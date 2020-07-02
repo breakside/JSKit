@@ -1,8 +1,7 @@
 // #import "SKApplication+Node.js"
 // #import "SKHTTPServer+Node.js"
-// #import "SKHTTPRequest+Node.js"
-// #import "SKHTTPResponse+Node.js"
-// #import "SKHTTPWebSocket+Node.js"
+// #import "SKNodeHTTPRequest.js"
+// #import "SKNodeHTTPResponse.js"
+// #import "SKNodeHTTPWebSocket.js"
 // #import "SKHTTPResponder+Node.js"
-// #import "SKSecrets+Node.js"
 'use strict';

@@ -4,7 +4,7 @@
 
 var logger = JSLog("serverkit", "websocket");
 
-SKHTTPWebSocket.definePropertiesFromExtensions({
+JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
 
     _nodeSocket: null,
 
@@ -55,5 +55,3 @@ SKHTTPWebSocket.definePropertiesFromExtensions({
     }
 
 });
-
-SKHTTPWebSocket.defineInitMethod("initWithNodeSocket");

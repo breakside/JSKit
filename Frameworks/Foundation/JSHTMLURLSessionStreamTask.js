@@ -25,7 +25,7 @@
 
 var logger = JSLog("foundation", "url-session");
 
-JSURLSessionStreamTask.definePropertiesFromExtensions({
+JSClass("JSHTMLURLSessionStreamTask", JSURLSessionStreamTask, {
 
     _websocket: null,
 

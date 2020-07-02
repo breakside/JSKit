@@ -15,7 +15,7 @@ JSClass("SKSecretsTests", TKTestSuite, {
             'secondTest',
             'other',
         ]);
-        secrets.providers[0] = SKSecretsEnvironmentProvider.initWithEnvironment(env);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
         var secret = secrets.firstTest;
         TKAssertEquals(secret, "Hello");
 
@@ -45,7 +45,7 @@ JSClass("SKSecretsTests", TKTestSuite, {
             'secondTest',
             'other',
         ]);
-        secrets.providers[0] = SKSecretsEnvironmentProvider.initWithEnvironment(env);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
         var providerClass = SKSecretsProvider.$extend({
 
             secretForName: function(name){

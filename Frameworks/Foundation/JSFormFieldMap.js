@@ -78,6 +78,10 @@ JSFormFieldMap.prototype = {
     },
 
     encode: function(reserved, encodeSpaceAsPlus){
+        if (encodeSpaceAsPlus){
+            reserved = JSCopy(reserved);
+            reserved[0x2b] = true;
+        }
         var totalLength = 0;
         var dataList = [];
         var field;

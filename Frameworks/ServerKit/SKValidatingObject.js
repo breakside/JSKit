@@ -99,6 +99,21 @@ JSClass("SKValidatingObject", JSObject, {
         });
     },
 
+    phoneForKey: function(key, defaultValue){
+        return this.stringForKey(key, defaultValue, function(str){
+            if (!str.match(/^\+?[\d\.\(\)\-\s]+$/)){
+                throw new SKValidatingObject.Error('`%s` must be a phone number'.sprintf(key));
+            }
+            var digits = str.replace(/[^\d]/g, '');
+            if (digits.length > 15){
+                throw new SKValidatingObject.Error('`%s` must be a phone number'.sprintf(key));
+            }
+            if (digits.length < 7){
+                throw new SKValidatingObject.Error('`%s` must be a phone number'.sprintf(key));   
+            }
+        });
+    },
+
     booleanForKey: function(key, defaultValue){
         var b = this.obj[key];
         if (b === undefined){

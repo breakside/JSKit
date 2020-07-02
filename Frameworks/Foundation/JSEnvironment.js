@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
+// #import "JSObject.js"
 'use strict';
 
-JSClass("EnvironmentFile", JSObject, {
+JSClass("JSEnvironment", JSObject, {
 
     _valuesByName: null,
 
@@ -47,6 +47,10 @@ JSClass("EnvironmentFile", JSObject, {
             return this._valuesByName[name];
         }
         return defaultValue;
+    },
+
+    getAll: function(){
+        return JSCopy(this._valuesByName);
     }
 
 });

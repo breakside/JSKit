@@ -83,14 +83,6 @@ JSClass("SKHTTPResponse", JSObject, {
     etag: HTTPHeaderProperty(SKHTTPHeaders.etag, HTTPHeaderValueType.quoted),
     lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),
 
-    setStatusCode: function(statusCode){
-        this._setStatusCode(statusCode);
-    },
-
-    getStatusCode: function(){
-        return this._getStatusCode();
-    },
-
     setHeader: function(name, value){
     },
 

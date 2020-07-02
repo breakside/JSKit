@@ -74,6 +74,31 @@ topics:
         type: JSMIMEHeader[]
         summary: An ordered list of headers
   -
+    name: Authorization
+    members:
+      -
+        name: addBasicAuthorization
+        kind: method
+        summary: Adds an `Authorization`() header for the `Basic`() scheme
+        arguments:
+          -
+            name: username
+            type: String
+            summary: The username to send to the server
+          -
+            name: password
+            type: String
+            summary: The password to send to the server
+      -
+        name: addBearerAuthorization
+        kind: method
+        summary: Adds an `Authorization`() header for the `Bearer`() scheme
+        arguments:
+          -
+            name: token
+            type: String
+            summary: The token to send to the server
+  -
     name: Request Body
     members:
       -

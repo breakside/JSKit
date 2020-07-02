@@ -159,7 +159,7 @@ JSClass("HTMLBuilder", Builder, {
         try{
             var contents = await this.fileManager.contentsAtURL(url);
             if (contents !== null){
-                this._workingDirectoryEnvironment = EnvironmentFile.initWithData(contents);
+                this._workingDirectoryEnvironment = JSEnvironment.initWithData(contents);
             }
         }catch(e){
         }

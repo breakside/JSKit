@@ -1,5 +1,5 @@
 // #import "SKHTTPServer.js"
-// #import "SKHTTPRequest+Node.js"
+// #import "SKNodeHTTPRequest.js"
 // jshint node: true
 'use strict';
 
@@ -24,12 +24,12 @@ SKHTTPServer.definePropertiesFromExtensions({
     },
 
     _handleNodeRequest: function(nodeRequest, nodeResponse){
-        var request = SKHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
+        var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
         this.handleRequest(request);
     },
 
     _handleNodeUpgrade: function(nodeRequest, socket, headPacket){
-        var request = SKHTTPRequest.initWithNodeRequest(nodeRequest, null);
+        var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, null);
         this.handleUpgrade(request);
     }
 

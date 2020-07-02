@@ -67,6 +67,16 @@ JSClass("JSURLRequest", JSObject, {
             return null;
         }
         return JSMediaType(header);
+    },
+
+    addBasicAuthorization: function(username, password){
+        var combined = username + ":" + password;
+        var encoded = combined.utf8().base64StringRepresentation();
+        this.headerMap.add("Authorization", "Basic " + encoded);
+    },
+
+    addBearerAuthorization: function(token){
+        this.headerMap.add("Authorization", "Bearer " + token);
     }
 
 });

@@ -6,7 +6,11 @@
 JSClass("SKSecretsEnvironmentProvider", SKSecretsProvider, {
 
     initWithEnvironment: function(environment){
-        this.environment = environment;
+        if (environment instanceof JSEnvironment){
+            this.environment = environment.getAll();
+        }else{
+            this.environment = environment;
+        }
     },
 
     secretForName: function(name){

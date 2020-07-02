@@ -1,9 +1,9 @@
 // #import "SKHTTPRequest.js"
-// #import "SKHTTPWebSocket+Node.js"
-// #import "SKHTTPResponse+Node.js"
+// #import "SKNodeHTTPWebSocket.js"
+// #import "SKNodeHTTPResponse.js"
 'use strict';
 
-SKHTTPRequest.definePropertiesFromExtensions({
+JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
 
     _nodeRequest: null,
 
@@ -47,5 +47,3 @@ SKHTTPRequest.definePropertiesFromExtensions({
     }
 
 });
-
-SKHTTPRequest.defineInitMethod('initWithNodeRequest');

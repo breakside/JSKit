@@ -75,6 +75,7 @@
 // #import "JSURLSessionTask.js"
 // #import "JSURLSessionDataTask.js"
 // #import "JSURLSessionUploadTask.js"
+// #import "JSURLSessionStreamTask.js"
 // #import "JSURLSessionDelegate.js"
 // #import "JSURLSessionStreamTaskDelegate.js"
 
@@ -93,5 +94,6 @@
 // #import "JSMD5Hash.js"
 
 // #import "JSArguments.js"
+// #import "JSEnvironment.js"
 
 'use strict';

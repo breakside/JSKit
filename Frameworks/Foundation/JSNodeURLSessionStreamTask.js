@@ -13,25 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Extensions
-// #import "JSColor+HTML.js"
-// #import "JSData+HTML.js"
-// #import "JSFont+HTML.js"
-// #import "JSFontDescriptor+HTML.js"
-// #import "JSImage+HTML.js"
-// #import "JSBundle+HTML.js"
-// #import "JSLocale+HTML.js"
-// #import "JSRunLoop+HTML.js"
+// #import "JSURLSessionStreamTask.js"
+// jshint node: true
+'use strict';
 
-// Implementations
-// #import "JSHTMLHTTPClient.js"
-// #import "JSHTMLURLSessionDataTask.js"
-// #import "JSHTMLURLSessionUploadTask.js"
-// #import "JSHTMLURLSessionStreamTask.js"
-// #import "JSURLSession+HTML.js"
-// #import "JSFileManager+HTML.js"
-// #import "JSFile+HTML.js"
+JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
 
-// Subclasses
-// #import "JSHTMLFile.js"
-// #import "JSHTMLFileEnumerator.js"
+});

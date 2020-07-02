@@ -4,7 +4,7 @@
 
 var fs = require('fs');
 
-SKHTTPResponse.definePropertiesFromExtensions({
+JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
 
     _nodeResponse: null,
 
@@ -12,11 +12,11 @@ SKHTTPResponse.definePropertiesFromExtensions({
         this._nodeResponse = nodeResponse;
     },
 
-    _getStatusCode: function(){
+    getStatusCode: function(){
         return this._nodeResponse.statusCode;
     },
 
-    _setStatusCode: function(statusCode){
+    setStatusCode: function(statusCode){
         this._nodeResponse.statusCode = statusCode;
     },
 
@@ -42,5 +42,3 @@ SKHTTPResponse.definePropertiesFromExtensions({
     }
 
 });
-
-SKHTTPResponse.defineInitMethod('initWithNodeResponse');

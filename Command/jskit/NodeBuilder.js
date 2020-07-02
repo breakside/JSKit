@@ -31,7 +31,7 @@ JSClass("NodeBuilder", Builder, {
     bundleType: "node",
 
     options: {
-        'port':         {valueType: "integer", default: 8081,   help: "The port on which the node application will be available"},
+        'debug-port':   {valueType: "integer", default: 8081,   help: "The port on which to bind during local debugging"},
         'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"},
         'no-docker':    {kind: "flag",                          help: "Don't build the docker image"}
     },
@@ -432,7 +432,7 @@ JSClass("NodeBuilder", Builder, {
         var dockerfile = contents.stringByDecodingUTF8();
         var params = {
             BUILD_ID: this.buildId,
-            PORT: this.arguments.port
+            PORT: 80
         };
         dockerfile = dockerfile.replacingTemplateParameters(params);
         var url = this.buildURL.appendingPathComponent("Dockerfile");
@@ -477,7 +477,7 @@ JSClass("NodeBuilder", Builder, {
                     "docker run",
                     "--rm",
                     "--name " + name,
-                    "-p%d:%d".sprintf(builder.arguments.port, builder.arguments.port),
+                    "-p%d:80".sprintf(builder.arguments['debug-port']),
                     identifier
                 ].join(" \\\n    "));
                 resolve();
