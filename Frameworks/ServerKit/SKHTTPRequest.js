@@ -28,11 +28,21 @@ JSClass("SKHTTPRequest", JSObject, {
     method: JSReadOnlyProperty('_method', null),
     contentType: JSLazyInitProperty('_getContentType'),
     origin: JSLazyInitProperty('_getOrigin'),
+    tag: null,
+    receivedAt: null,
 
-    initWithMethodAndURL: function(method, url){
+    initWithMethodAndURL: function(method, url, headerMap){
         this._method = method;
         this._url = url;
-        this._headerMap = JSMIMEHeaderMap();
+        this._headerMap = headerMap || JSMIMEHeaderMap();
+        this.tag = JSMD5Hash(this.objectID.toString().utf8()).subdataInRange(JSRange(0, 3)).hexStringRepresentation();
+        this.receivedAt = JSDate.now;
+        var host = this._headerMap.get('Host', null);
+        var scheme = this._headerMap.get('X-Forwarded-Proto', 'http');
+        if (host !== null){
+            this._url.host = host;
+            this._url.scheme = scheme;
+        }
     },
 
     _getContentType: function(){
@@ -56,10 +66,6 @@ JSClass("SKHTTPRequest", JSObject, {
 
     upgrade: function(statusMessage, headerMap){
         this.respond(SKHTTPResponse.StatusCode.switchingProtocols, statusMessage, headerMap);
-    },
-
-    writeRawHeaders: function(headers){
-        this._write(headers.join("\r\n") + "\r\n\r\n");
     },
 
     createWebsocket: function(){

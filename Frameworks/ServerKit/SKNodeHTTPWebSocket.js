@@ -23,14 +23,15 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
 
     _nodeSocket: null,
 
-    initWithNodeSocket: function(nodeSocket){
+    initWithNodeSocket: function(nodeSocket, tag){
         this.init();
+        this.tag = tag;
         this._nodeSocket = nodeSocket;
         this._setupEventListeners();
     },
 
     _write: function(data){
-        logger.info("Sending: %{public}", data.hexStringRepresentation());
+        logger.info("%{public} Sending: %{public}", this.tag, data.hexStringRepresentation());
         this._nodeSocket.write(data.nodeBuffer());
     },
 
@@ -44,7 +45,7 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
     },
 
     _setupEventListeners: function(){
-        logger.info("listening for data");
+        logger.info("%{public} websocket listening for data", this.tag);
         this._dataListener = this._handleDataEvent.bind(this);
         this._closeListener = this._handleCloseEvent.bind(this);
         this._nodeSocket.addListener('data', this._dataListener);
@@ -53,7 +54,7 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
 
     _cleanupEventListeners: function(){
         if (this._dataListener !== null){
-            logger.info("un-listening for data");
+            logger.info("%{public} websocket un-listening for data", this.tag);
             this._nodeSocket.removeListener('data', this._dataListener);
         }
         if (this._closeListener !== null){

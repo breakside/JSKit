@@ -25,15 +25,24 @@ JSClass('SKHTTPWebsocketResponder', SKHTTPResponder, {
     _socket: null,
     protocols: null,
 
+    objectMethodForRequestMethod: function(){
+        return null;
+    },
+
+    objectMethodForUpgrade: function(upgrade){
+        if (upgrade.lowercaseString() == 'websocket'){
+            return this.websocket;
+        }
+        return null;
+    },
+
     websocket: function(){
-        logger.info("calling websocket responder");
         this._socket = this.acceptWebsocketUpgrade(this.protocols);
         if (this._socket !== null){
-            logger.info("got a socket");
             this._socket.delegate = this;
             this.websocketEstablished(this._socket);
         }else{
-            logger.error("socket is null!");
+            logger.error("%{public} failed to create websocket", this.request.tag);
         }
     },
 

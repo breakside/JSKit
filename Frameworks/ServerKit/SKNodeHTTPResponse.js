@@ -18,13 +18,15 @@
 'use strict';
 
 var fs = require('fs');
+var logger = JSLog("serverkit", "http");
 
 JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
 
     _nodeResponse: null,
 
-    initWithNodeResponse: function(nodeResponse){
+    initWithNodeResponse: function(nodeResponse, tag){
         this._nodeResponse = nodeResponse;
+        this.tag = tag;
     },
 
     getStatusCode: function(){
@@ -37,6 +39,7 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
 
     complete: function(){
         this._nodeResponse.end();
+        logger.info("%{public} %d response complete", this.tag, this.statusCode);
     },
 
     setHeader: function(name, value){
@@ -54,6 +57,7 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
     writeFile: function(filePath){
         var fp = fs.createReadStream(filePath);
         fp.pipe(this._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
+        logger.info("%{public} %d write file complete", this.tag, this.statusCode);
     }
 
 });

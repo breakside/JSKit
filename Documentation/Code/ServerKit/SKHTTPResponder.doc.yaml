@@ -585,16 +585,16 @@ topics:
           You can override this method if the default behavior is not
           suitable for your needs.
       -
-        name: objectMethodForWebsocketProduct
+        name: objectMethodForUpgrade
         kind: method
         type: function
-        summary: Gets the responder's method that matches the websocket
-          product requested by the client
+        summary: Gets the responder's method that matches the upgrade
+          requested by the client
         arguments:
           -
-            name: product
+            name: upgrade
             type: String
-            summary: The specific websocket product that was requested.
+            summary: The upgrade that was requested.
         description: |
           The default implementation is identical to
           `objectMethodForRequestMethod()`.

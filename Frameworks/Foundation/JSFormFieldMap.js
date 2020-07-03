@@ -156,6 +156,19 @@ JSFormFieldMap.prototype = {
             }
         }
         return values;
+    },
+
+    debugDescription: function(prefix){
+        var description = "";
+        var l = this.fields.length;
+        if (l > 0){
+            description += prefix;
+            description += this.fields[0].name + '=xxxx';
+            for (var i = 1; i < l; ++i){
+                description += '&' + this.fields[i].name + '=xxxx';
+            }
+        }
+        return description;
     }
 };
 

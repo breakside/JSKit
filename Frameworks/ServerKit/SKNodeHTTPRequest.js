@@ -23,20 +23,20 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
     _nodeRequest: null,
 
     initWithNodeRequest: function(nodeRequest, nodeResponse){
+        var url = JSURL.initWithString(nodeRequest.url);
+        var headerMap = JSMIMEHeaderMap();
+        for (var i = 0, l = nodeRequest.rawHeaders.length - 1; i < l; i += 2){
+            headerMap.add(nodeRequest.rawHeaders[i], nodeRequest.rawHeaders[i + 1]);
+        }
+        SKNodeHTTPRequest.$super.initWithMethodAndURL.call(this, nodeRequest.method, url, headerMap);
         this._nodeRequest = nodeRequest;
-        this._headerMap = JSMIMEHeaderMap();
-        for (var i = 0, l = this._nodeRequest.rawHeaders.length - 1; i < l; i += 2){
-            this._headerMap.add(this._nodeRequest.rawHeaders[i], this._nodeRequest.rawHeaders[i + 1]);
-        }
         if (nodeResponse){
-            this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse);
+            this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse, this.tag);
         }
-        this._url = JSURL.initWithString(nodeRequest.url);
-        this._method = this._nodeRequest.method;
     },
 
     createWebsocket: function(){
-        return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket);
+        return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket, this.tag);
     },
 
     _write: function(str){

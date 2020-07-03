@@ -30,6 +30,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _messageChunks: null,
     _pingTimer: null,
     pingInterval: JSDynamicProperty('_pingInterval', 45),
+    tag: null,
 
     init: function(){
         this._frameParser = SKHTTPWebSocketParser.init();

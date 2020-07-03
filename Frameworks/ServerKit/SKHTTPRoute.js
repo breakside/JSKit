@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "SKHTTPResponderContext.js"
 // #import "SKHTTPResourceResponder.js"
+// #import "SKHTTPRouteMatch.js"
 'use strict';
 
 (function(){
@@ -77,13 +78,13 @@ JSClass("SKHTTPRoute", JSObject, {
         return responder;
     },
 
-    routeInfoForRequest: function(request){
+    routeMatchForRequest: function(request){
         var matches = {};
-        var routeInfo = this._routeInfoForPathComponents(request.url.pathComponents, matches);
-        return routeInfo;
+        var routeMatch = this._routeMatchForPathComponents(request.url.pathComponents, matches);
+        return routeMatch;
     },
 
-    _routeInfoForPathComponents: function(pathComponents, matches){
+    _routeMatchForPathComponents: function(pathComponents, matches){
         if (pathComponents.length === null){
             return null;
         }
@@ -108,15 +109,15 @@ JSClass("SKHTTPRoute", JSObject, {
             // FIXME: unwind components
         }
         if (componentIndex == pathComponents.length){
-            return {route: this, matches: matches};
+            return SKHTTPRouteMatch.initWithRoute(this, matches);
         }
         var child;
-        var routeInfo = null;
-        for (var i = 0, l = this.children.length; i < l && routeInfo === null; ++i){
+        var routeMatch = null;
+        for (var i = 0, l = this.children.length; i < l && routeMatch === null; ++i){
             child = this.children[i];
-            routeInfo = child._routeInfoForPathComponents(pathComponents.slice(componentIndex), Object.create(matches));
+            routeMatch = child._routeMatchForPathComponents(pathComponents.slice(componentIndex), Object.create(matches));
         }
-        return routeInfo;
+        return routeMatch;
     },
 
     pathComponentsForResponder: function(responderClass, params){
@@ -187,7 +188,7 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
 
     initWithResourceName: function(name, type, bundle, componentStrings){
         this.initWithComponentStrings(componentStrings);
-        this.bundle = bundle || JSBundle.mainBundle;
+        this._bundle = bundle || JSBundle.mainBundle;
         this._resourceMetadata = this._bundle.metadataForResourceName(name, type);
     },
 

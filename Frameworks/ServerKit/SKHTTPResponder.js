@@ -99,25 +99,37 @@ JSClass("SKHTTPResponder", JSObject, {
         return this[methodName] || null;
     },
 
-    objectMethodForWebsocketProduct: function(product){
+    objectMethodForUpgrade: function(product){
         return this.objectMethodForRequestMethod(product);
     },
 
+    applicableObjectMethod: function(){
+        var method = null;
+        var upgrade = this.request.headerMap.get('Upgrade', null);
+        if (upgrade !== null){
+            method = this.objectMethodForUpgrade(upgrade);
+            if (method !== null){
+                return method;
+            }
+        }
+        return this.objectMethodForRequestMethod(this.request.method);
+    },
+
     acceptWebsocketUpgrade: function(allowedProtocols){
+        logger.info("%{public} upgrading to websocket", this.request.tag);
         var requestHeaders = this._request.headerMap;
         var version = requestHeaders.get('Sec-WebSocket-Version');
         if (version !== "13"){
-            logger.warn("Unexpected websocket version: %{public}". version);
+            logger.warn("%{public} Unexpected websocket version: %{public}", this._request.tag, version);
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
         var requestedProtocols = requestHeaders.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
         var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
         if (protocol === null){
-            logger.warn("No match for protocols: %{public}". requestedProtocols.join(", "));
+            logger.warn("%{public} No match for protocols: %{public}", this._request.tag, requestedProtocols.join(", "));
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
 
-        logger.info("Accepting websocket");
         var key = requestHeaders.get('Sec-WebSocket-Key', '');
         var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8()).base64StringRepresentation();
         var upgradeHeaders = JSMIMEHeaderMap();
@@ -127,7 +139,6 @@ JSClass("SKHTTPResponder", JSObject, {
         upgradeHeaders.add("Sec-WebSocket-Protocol", protocol);
         this._request.upgrade("Web Socket Protocol Handshake", upgradeHeaders);
         this._isWebsocket = true;
-        logger.info("Creating websocket");
         return this._request.createWebsocket();
     },
 

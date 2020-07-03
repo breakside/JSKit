@@ -97,6 +97,7 @@ JSClass("SKHTTPResponse", JSObject, {
     contentLength: HTTPHeaderProperty(SKHTTPHeaders.contentLength, HTTPHeaderValueType.integer),
     etag: HTTPHeaderProperty(SKHTTPHeaders.etag, HTTPHeaderValueType.quoted),
     lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),
+    tag: null,
 
     setHeader: function(name, value){
     },

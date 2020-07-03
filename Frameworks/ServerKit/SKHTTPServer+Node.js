@@ -19,6 +19,7 @@
 'use strict';
 
 var http = require('http');
+var os = require('os');
 var logger = JSLog("serverkit", "http");
 
 SKHTTPServer.definePropertiesFromExtensions({
@@ -32,20 +33,42 @@ SKHTTPServer.definePropertiesFromExtensions({
 
     run: function(){
         this._nodeHttpServer.listen(this.port);
+        var networkInterfaces = os.networkInterfaces();
+        var networkInterface;
+        var address;
+        for (var name in networkInterfaces){
+            networkInterface = networkInterfaces[name];
+            for (var i = 0, l = networkInterface.length; i < l; ++i){
+                address = networkInterface[i];
+                if (address.family == 'IPv4'){
+                    logger.info("HTTP server listening on http://%{public}:%d", address.address, this.port);
+                }
+            }
+        }
     },
 
     _setupEventHandlers: function(){
-        this._nodeHttpServer.on('upgrade', this._handleNodeUpgrade.bind(this));
+        // this._nodeHttpServer.on('upgrade', this._handleNodeUpgrade.bind(this));
     },
 
     _handleNodeRequest: function(nodeRequest, nodeResponse){
-        var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
-        this.handleRequest(request);
+        try{
+            var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
+            this.handleRequest(request);
+        }catch (e){
+            nodeRequest.socket.destroy();
+            logger.error(e);
+        }
     },
 
     _handleNodeUpgrade: function(nodeRequest, socket, headPacket){
-        var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, null);
-        this.handleUpgrade(request);
+        try{
+            var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, null);
+            this.handleUpgrade(request);
+        }catch(e){
+            nodeRequest.socket.destroy();
+            logger.error(e);
+        }
     }
 
 });
