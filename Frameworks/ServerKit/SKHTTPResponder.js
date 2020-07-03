@@ -58,7 +58,7 @@ JSClass("SKHTTPResponder", JSObject, {
             return;
         }
         if (error instanceof SKValidatingObject.Error){
-            this.sendObject({error: error.message}, SKHTTPResponse.StatusCode.badRequest);
+            this.sendObject({invalid: error.info}, SKHTTPResponse.StatusCode.badRequest);
             return;
         }
         var statusCode = SKHTTPResponse.StatusCode.internalServerError;
@@ -73,7 +73,7 @@ JSClass("SKHTTPResponder", JSObject, {
         url.scheme = this.request.url.scheme;
         url.host = this.request.url.host;
         url.port = this.request.url.port;
-        url.setPathComponents = this.route.pathComponentsForResponder(responder, params);
+        url.pathComponents = this.route.pathComponentsForResponder(responder, params);
         return url;
     },
 
@@ -162,12 +162,28 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendRedirect: function(destination){
+        if (destination instanceof JSURL){
+            destination = destination.encodedString;
+        }
         this._setAccessHeaders();
         this.response.statusCode = SKHTTPResponse.StatusCode.found;
         this.response.setHeader("Location", destination);
     },
 
-    sendFile: function(filePath, contentType, hash){
+    sendFile: function(filePath, contentType, hash, statusCode){
+    },
+
+    sendResourceNamed: function(name, type, statusCode, bundle){
+        if (statusCode instanceof JSBundle){
+            bundle = statusCode;
+            statusCode = undefined;
+        }
+        bundle = bundle || JSBundle.mainBundle;
+        var metadata = bundle.metadataForResourceName(name, type);
+        this.sendResource(metadata, statusCode);
+    },
+
+    sendResource: function(metadata, statusCode){
     },
 
     _setAccessHeaders: function(){

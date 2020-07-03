@@ -27,7 +27,7 @@ JSBundle.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var resourcePath = this.getNodePath(metadata);
+        var resourcePath = JSBundle.getNodePath(metadata);
         fs.readFile(resourcePath, function(error, buffer){
             if (error){
                 completion.call(target, null);
@@ -38,12 +38,12 @@ JSBundle.definePropertiesFromExtensions({
         return completion.promise;
     },
 
-    getNodePath: function(metadata){
-        var resourcePath = metadata.nodeBundlePath;
-        if (!path.isAbsolute(resourcePath)){
-            resourcePath = path.join(JSBundle.nodeRootPath, metadata.nodeBundlePath);
-        }
-        return resourcePath;
-    }
-
 });
+
+JSBundle.getNodePath = function(metadata){
+    var resourcePath = metadata.nodeBundlePath;
+    if (!path.isAbsolute(resourcePath)){
+        resourcePath = path.join(JSBundle.nodeRootPath, metadata.nodeBundlePath);
+    }
+    return resourcePath;
+};

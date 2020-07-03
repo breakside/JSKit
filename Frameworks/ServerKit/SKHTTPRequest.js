@@ -173,6 +173,69 @@ JSClass("SKHTTPRequest", JSObject, {
         });
         return completion.promise;
 
+    },
+
+    getForm: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        if (!this.contentType || this.contentType.mime !== 'application/x-www-form-urlencoded'){
+            completion.call(target, null);
+            return completion.promise;
+        }
+        this.getData(function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            var encoded = String.initWithData(data, this.contentType.parameters.charset);
+            var form = JSFormFieldMap();
+            form.decode(encoded, true);
+            completion.call(target, form);
+        }, this);
+        return completion.promise;
+    },
+
+    getValidatingForm: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.getForm(function(form){
+            var validator = SKValidatingObject.initWithForm(form);
+            completion.call(target, validator);
+        });
+        return completion.promise;
+    },
+
+    getVaidForm: function(validatingClass, completion, target){
+        if (!completion){
+            completion = Promise.completion(function(result){
+                if (result[0] !== null){
+                    return Promise.reject(result[0]);
+                }
+                return result[1];
+            });
+        }
+        this.getValidatingForm(function(validator){
+            var valid = null;
+            var error = null;
+            try{
+                valid = validatingClass.initWithValidatingObject(validator);
+            }catch (e){
+                error = e;
+            }
+            completion.call(target, error, valid);
+        });
+        return completion.promise;
+    },
+
+    getValidatingQuery: function(){
+        return SKValidatingObject.initWithForm(this.url.query);
+    },
+
+    getValidQuery: function(validatingClass){
+        var validator = this.getValidatingQuery();
+        return validatingClass.initWithValidatingObject(validator);
     }
 
 });

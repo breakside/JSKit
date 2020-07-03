@@ -29,14 +29,14 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
             this._headerMap.add(this._nodeRequest.rawHeaders[i], this._nodeRequest.rawHeaders[i + 1]);
         }
         if (nodeResponse){
-            this._response = SKHTTPResponse.initWithNodeResponse(nodeResponse);
+            this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse);
         }
         this._url = JSURL.initWithString(nodeRequest.url);
         this._method = this._nodeRequest.method;
     },
 
     createWebsocket: function(){
-        return SKHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket);
+        return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket);
     },
 
     _write: function(str){

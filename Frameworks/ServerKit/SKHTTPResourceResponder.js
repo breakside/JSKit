@@ -28,9 +28,7 @@ JSClass("SKHTTPResourceResponder", SKHTTPResponder, {
     },
 
     get: function(){
-        // FIXME: node-specific call shouldn't be in env-generic file
-        var path = this.bundle.getNodePath(this.metadata);
-        this.sendFile(path, this.metadata.mimetype, this.metadata.hash);
+        this.sendResource(this.metadata);
     }
 
 });
