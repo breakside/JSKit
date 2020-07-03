@@ -353,7 +353,7 @@ JSClass("JSURL", JSObject, {
         }else{
             this._query = JSFormFieldMap(query);
         }
-        this._encodedQuery = this._query.encode(JSFormFieldMap.queryStringReserved, true);
+        this._encodedQuery = this._query.urlEncoded();
     },
 
     getEncodedString: function(){
@@ -401,6 +401,14 @@ JSClass("JSURL", JSObject, {
             this._encodedFragment = null;
         }else{
             this._encodedFragment = fragment.utf8().dataByEncodingPercentEscapes();
+        }
+    },
+
+    setFragmentQuery: function(query){
+        if (query === null){
+            this._encodedFragment = null;
+        }else{
+            this._encodedFragment = query.urlEncoded();
         }
     },
 
