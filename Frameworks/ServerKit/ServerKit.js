@@ -19,8 +19,6 @@
 // #import "SKHTTPResponse.js"
 // #import "SKHTTPWebSocket.js"
 // #import "SKHTTPWebSocketDelegate.js"
-// #import "SKHTTPWebSocketParser.js"
-// #import "SKHTTPWebSocketParserDelegate.js"
 // #import "SKHTTPResponder.js"
 // #import "SKHTTPResourceResponder.js"
 // #import "SKHTTPWebsocketResponder.js"

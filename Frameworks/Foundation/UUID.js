@@ -131,5 +131,5 @@ UUID.prototype = Object.create({}, {
 });
 
 UUID.init = function(){
-  return new UUID()
+  return new UUID();
 };

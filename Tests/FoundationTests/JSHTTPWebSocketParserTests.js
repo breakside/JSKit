@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import ServerKit
+// #import Foundation
 // #import TestKit
 'use strict';
 
-JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
+JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
 
     testUnmaskedBinaryFrame: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
@@ -47,7 +47,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testUnmaksedTextFrame: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
@@ -74,7 +74,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testMaskedBinaryFrame: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
@@ -102,7 +102,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testMaskedTextFrame: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
@@ -129,7 +129,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testFragmentedTextFrames: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
@@ -160,7 +160,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
         TKAssert(messageReceived);
 
 
-        parser = SKHTTPWebSocketParser.init();
+        parser = JSHTTPWebSocketParser.init();
         receiveCount = 0;
         received = [];
         parser.delegate = {
@@ -185,12 +185,12 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testFragmentedTextFramesByteByByte: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var receiveCount = 0;
         var received = null;
         var messageReceived = false;
 
-        parser = SKHTTPWebSocketParser.init();
+        parser = JSHTTPWebSocketParser.init();
         received = [];
         parser.delegate = {
             frameParserDidReceiveData: function(parser, data){
@@ -222,25 +222,25 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
 
     testUnmaskedHeaderForData: function(){
         var data = "Hello".utf8();
-        var header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data]);
+        var header = JSHTTPWebSocketParser.UnmaskedHeaderForData([data]);
         TKAssertNotNull(header);
         TKAssertEquals(header.length, 2);
         TKAssertEquals(header[0], 0x82);
         TKAssertEquals(header[1], 0x05);
 
-        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.binary, false);
+        header = JSHTTPWebSocketParser.UnmaskedHeaderForData([data], JSHTTPWebSocketParser.FrameCode.binary, false);
         TKAssertNotNull(header);
         TKAssertEquals(header.length, 2);
         TKAssertEquals(header[0], 0x02);
         TKAssertEquals(header[1], 0x05);
 
-        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.continuation, false);
+        header = JSHTTPWebSocketParser.UnmaskedHeaderForData([data], JSHTTPWebSocketParser.FrameCode.continuation, false);
         TKAssertNotNull(header);
         TKAssertEquals(header.length, 2);
         TKAssertEquals(header[0], 0x00);
         TKAssertEquals(header[1], 0x05);
 
-        header = SKHTTPWebSocketParser.UnmaskedHeaderForData([data], SKHTTPWebSocketParser.FrameCode.continuation, true);
+        header = JSHTTPWebSocketParser.UnmaskedHeaderForData([data], JSHTTPWebSocketParser.FrameCode.continuation, true);
         TKAssertNotNull(header);
         TKAssertEquals(header.length, 2);
         TKAssertEquals(header[0], 0x80);
@@ -248,7 +248,7 @@ JSClass("SKHTTPWebSocketParserTests", TKTestSuite, {
     },
 
     testRealWorldData: function(){
-        var parser = SKHTTPWebSocketParser.init();
+        var parser = JSHTTPWebSocketParser.init();
         var data = JSData.initWithArray([0x81, 0x8b, 0xab, 0x25, 0x15, 0x85, 0xdf, 0x40, 0x66, 0xf1, 0xc2, 0x4b, 0x72, 0xa5, 0x9a, 0x17, 0x26]);
         var receiveCount = 0;
         var received = null;

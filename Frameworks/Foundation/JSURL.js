@@ -49,6 +49,7 @@ JSClass("JSURL", JSObject, {
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
+    encodedPathAndQueryString: JSReadOnlyProperty(),
 
     _hasAuthority: false,
 
@@ -375,16 +376,22 @@ JSClass("JSURL", JSObject, {
                 encodedString += ":%d".sprintf(this._port);
             }
         }
+        encodedString += this.encodedPathAndQueryString;
+        if (this._encodedFragment !== null){
+            encodedString += '#';
+            encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
+        }
+        return encodedString;
+    },
+
+    getEncodedPathAndQueryString: function(){
+        var encodedString = "";
         if (this._path !== null){
             encodedString += String.initWithData(this._path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);
         }
         if (this._encodedQuery !== null){
             encodedString += '?';
             encodedString += String.initWithData(this._encodedQuery, String.Encoding.utf8);
-        }
-        if (this._encodedFragment !== null){
-            encodedString += '#';
-            encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
         }
         return encodedString;
     },

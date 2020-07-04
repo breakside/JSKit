@@ -78,6 +78,9 @@
 // #import "JSURLSessionStreamTask.js"
 // #import "JSURLSessionDelegate.js"
 // #import "JSURLSessionStreamTaskDelegate.js"
+// #import "JSHTTPResponseParser.js"
+// #import "JSHTTPWebSocketParser.js"
+// #import "JSHTTPWebSocketParserDelegate.js"
 
 // #import "JSFileManager.js"
 // #import "JSFile.js"

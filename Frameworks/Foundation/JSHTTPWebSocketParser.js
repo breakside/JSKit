@@ -13,12 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
+// #import "JSObject.js"
+// #import "JSLog.js"
 'use strict';
 
 (function(){
 
-var logger = JSLog("serverkit", "websocket");
+var logger = JSLog("http", "websocket");
 
 var WebSocketFrame = function(){
     if (this === undefined){
@@ -37,7 +38,7 @@ WebSocketFrame.prototype = {
 };
 
 
-JSClass("SKHTTPWebSocketParser", JSObject, {
+JSClass("JSHTTPWebSocketParser", JSObject, {
 
     frame: null,
     _header: null,
@@ -98,38 +99,38 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
     _handleChunk: function(chunk){
         var isEndOfFrame = this.frame.received == this.frame.length;
         switch (this.frame.code){
-            case SKHTTPWebSocketParser.FrameCode.continuation:
-            case SKHTTPWebSocketParser.FrameCode.text:
-            case SKHTTPWebSocketParser.FrameCode.binary:
-                this.delegate.frameParserDidReceiveData(this, chunk);
+            case JSHTTPWebSocketParser.FrameCode.continuation:
+            case JSHTTPWebSocketParser.FrameCode.text:
+            case JSHTTPWebSocketParser.FrameCode.binary:
+                this.delegate.webSocketParserDidReceiveData(this, chunk);
                 if (isEndOfFrame && this.frame.isFinal){
-                    if (this.delegate.frameParserDidReceiveMessage){
-                        this.delegate.frameParserDidReceiveMessage(this);
+                    if (this.delegate.webSocketParserDidReceiveMessage){
+                        this.delegate.webSocketParserDidReceiveMessage(this);
                     }
                 }
                 break;
-            case SKHTTPWebSocketParser.FrameCode.ping:
+            case JSHTTPWebSocketParser.FrameCode.ping:
                 if (isEndOfFrame){
-                    if (this.delegate.frameParserDidReceivePing){
-                        this.delegate.frameParserDidReceivePing(this, this.frame.chunks);
-                    }
-                }else{
-                    this.frame.chunks.push(chunk);
-                }
-                break;
-            case SKHTTPWebSocketParser.FrameCode.pong:
-                if (isEndOfFrame){
-                    if (this.delegate.frameParserDidReceivePong){
-                        this.delegate.frameParserDidReceivePong(this, this.frame.chunks);
+                    if (this.delegate.webSocketParserDidReceivePing){
+                        this.delegate.webSocketParserDidReceivePing(this, this.frame.chunks);
                     }
                 }else{
                     this.frame.chunks.push(chunk);
                 }
                 break;
-            case SKHTTPWebSocketParser.FrameCode.close:
+            case JSHTTPWebSocketParser.FrameCode.pong:
                 if (isEndOfFrame){
-                    if (this.delegate.frameParserDidReceiveClose){
-                        this.delegate.frameParserDidReceiveClose(this, this.frame.chunks);
+                    if (this.delegate.webSocketParserDidReceivePong){
+                        this.delegate.webSocketParserDidReceivePong(this, this.frame.chunks);
+                    }
+                }else{
+                    this.frame.chunks.push(chunk);
+                }
+                break;
+            case JSHTTPWebSocketParser.FrameCode.close:
+                if (isEndOfFrame){
+                    if (this.delegate.webSocketParserDidReceiveClose){
+                        this.delegate.webSocketParserDidReceiveClose(this, this.frame.chunks);
                     }
                 }else{
                     this.frame.chunks.push(chunk);
@@ -149,8 +150,8 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
         this.frame.isFinal = this._header[0] & 0x80;
         this.frame.code = this._header[0] & 0xF;
         if (this._initialMessageCode >= 0){
-            if (this.frame.code != SKHTTPWebSocketParser.FrameCode.continuation){
-                this.delegate.frameParserDidReceiveFrameOutOfSequence(this);
+            if (this.frame.code != JSHTTPWebSocketParser.FrameCode.continuation){
+                this.delegate.webSocketParserDidReceiveFrameOutOfSequence(this);
             }
         }
         var shortLength = this._header[1] & 0x7F;
@@ -161,7 +162,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
         }else{
             if (this._header[2] || this._header[3] || this._header[4] || this._header[5] || (this._header[6] > 0x7F)){
                 this.frame.length = -1;
-                this.delegate.frameParserDidReceiveInvalidLength(this);
+                this.delegate.webSocketParserDidReceiveInvalidLength(this);
             }else{
                 this.frame.length = 
                     (this._header[6] << 24) | 
@@ -191,7 +192,7 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
 
     _reset: function(){
         if (this.frame !== null){
-            if (!this.frame.isFinal && this.frame.code != SKHTTPWebSocketParser.FrameCode.continuation){
+            if (!this.frame.isFinal && this.frame.code != JSHTTPWebSocketParser.FrameCode.continuation){
                 this._initialMessageCode = this.frame.code;
             }
             if (this.frame.isFinal){
@@ -206,9 +207,9 @@ JSClass("SKHTTPWebSocketParser", JSObject, {
 
 });
 
-SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code, isFinal){
+JSHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code, isFinal){
     if (code === undefined){
-        code = SKHTTPWebSocketParser.FrameCode.binary;
+        code = JSHTTPWebSocketParser.FrameCode.binary;
     }
     if (isFinal === undefined){
         isFinal = true;
@@ -239,7 +240,7 @@ SKHTTPWebSocketParser.UnmaskedHeaderForData = function(chunks, code, isFinal){
     return header;
 };
 
-SKHTTPWebSocketParser.FrameCode = {
+JSHTTPWebSocketParser.FrameCode = {
     continuation: 0,
     text: 1,
     binary: 2,
