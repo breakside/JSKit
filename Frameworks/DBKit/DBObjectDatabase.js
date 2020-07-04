@@ -14,13 +14,26 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "DBFileStore.js"
+// #import "DBRemoteStore.js"
+// #import "DBEphemeralObjectStore.js"
 'use strict';
+
+(function(){
+
+var logger = JSLog("dbkit", "database");
 
 JSClass("DBObjectDatabase", JSObject, {
 
+    store: null,
+
     initWithURL: function(url, fileManager){
-        this.url = url;
-        this.fileManager = fileManager || JSFileManager.shared;
+        fileManager = fileManager || JSFileManager.shared;
+        if (fileManager.isFileURL(url)){
+            this.store = DBFileStore.initWithURL(url, fileManager);
+        }else{
+            this.store = DBRemoteStore.initWithURL(url);
+        }
     },
 
     id: function(table){
@@ -49,66 +62,42 @@ JSClass("DBObjectDatabase", JSObject, {
     },
 
     object: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        var url = this._urlForId(id);
-        this.fileManager.contentsAtURL(url, function(contents){
-            if (contents === null){
-                completion.call(target, null);
-                return;
-            }
-            var obj = null;
-            try{
-                var json = contents.stringByDecodingUTF8();
-                obj = JSON.parse(json);
-            }catch (e){
-                completion.call(target, null);
-                return;
-            }
-            completion.call(target, obj);
-        }, this);
-        return completion.promise;
+        return this.store.object(id, completion, target);
     },
 
-    saveObject: function(obj, completion, target){
+    requiredObject: function(id, errorClass, errorArg){
+        var db = this;
+        return new Promise(function(resolve, reject){
+            return db.object(id);
+        }).then(function(object){
+            if (object === null){
+                throw new errorClass(errorArg);
+            }
+            return object;
+        });
+    },
+
+    save: function(obj, completion, target){
+        return this.store.save(obj, completion, target);
+    },
+
+    saveExpiring: function(obj, lifetimeInSeconds, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var url = this._urlForId(obj.id);
-        var json = JSON.stringify(obj);
-        var contents = json.utf8();
-        this.fileManager.createFileAtURL(url, contents, function(success){
-            completion.call(target, success);
-        }, this);
-        return completion.promise;
-    },
-
-    deleteObject: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+        if (this.store.isKindOfClass(DBEphemeralObjectStore)){
+            this.store.saveExpiring(obj, lifetimeInSeconds, completion, target);
+        }else{
+            logger.error("Cannot save expiring object in a persistent data store");
+            JSRunLoop.main.schedule(completion, target, false);
         }
-        var url = this._urlForId(id);
-        this.fileManager.removeItemAtURL(url, function(success){
-            completion.call(target, success);
-        }, this);
         return completion.promise;
     },
 
-    _urlForId: function(id){
-        var hashlen = 40;
-        var i = id.length - hashlen;
-        var table = id.substr(0, i - 1);
-        var hash1 = id.substr(i, 2);
-        var hash2 = id.substr(i + 2, 2);
-        var final = id.substr(i + 4);
-        var components = [
-            table,
-            hash1,
-            hash2,
-            final
-        ];
-        return this.url.appendingPathComponents(components);
+    delete: function(id, completion, target){
+        return this.store.delete(id, completion, target);
     }
 
 });
+
+})();

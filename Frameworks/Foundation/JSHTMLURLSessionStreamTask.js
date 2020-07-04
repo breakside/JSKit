@@ -77,7 +77,7 @@ JSClass("JSHTMLURLSessionStreamTask", JSURLSessionStreamTask, {
     },
 
     _event_error: function(e){
-        this.session._taskDidReceiveStreamError(this);
+        this.session._taskDidReceiveStreamError(this, e.error);
     },
 
     _event_close: function(e){

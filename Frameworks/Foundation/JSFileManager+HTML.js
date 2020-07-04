@@ -104,6 +104,10 @@ JSFileManager.definePropertiesFromExtensions({
         return url.path;
     },
 
+    isFileURL: function(url){
+        return url.scheme === JSFileManager.Scheme.jskitfile;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Common Directories
 

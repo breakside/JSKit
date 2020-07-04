@@ -13,10 +13,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBObjectDatabase.js"
-// #import "DBObjectStore.js"
-// #import "DBPersistentObjectStore.js"
-// #import "DBEphemeralObjectStore.js"
-// #import "DBFileStore.js"
-// #import "DBRemoteStore.js"
-// #import "DBMemoryStore.js"
+// #import Foundation
+'use strict';
+
+JSClass("DBObjectStore", JSObject, {
+
+    object: function(id, completion, target){
+    },
+
+    save: function(obj, completion, target){
+    },
+
+    delete: function(id, completion, target){
+    },
+
+});

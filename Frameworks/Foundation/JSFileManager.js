@@ -55,6 +55,10 @@ JSClass("JSFileManager", JSObject, {
         return this.pathForURL(relativeURL);
     },
 
+    isFileURL: function(url){
+        return url.scheme === JSFileManager.Scheme.file;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Checking for Items
 
