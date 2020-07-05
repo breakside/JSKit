@@ -25,11 +25,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -52,11 +52,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -79,11 +79,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -107,11 +107,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -134,11 +134,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -164,10 +164,10 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         receiveCount = 0;
         received = [];
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received.push(data);
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -193,10 +193,10 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         parser = JSHTTPWebSocketParser.init();
         received = [];
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received.push(data);
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };
@@ -254,11 +254,11 @@ JSClass("JSHTTPWebSocketParserTests", TKTestSuite, {
         var received = null;
         var messageReceived = false;
         parser.delegate = {
-            frameParserDidReceiveData: function(parser, data){
+            webSocketParserDidReceiveData: function(parser, data){
                 received = data;
                 ++receiveCount;
             },
-            frameParserDidReceiveMessage: function(parser){
+            webSocketParserDidReceiveMessage: function(parser){
                 messageReceived = true;
             }
         };

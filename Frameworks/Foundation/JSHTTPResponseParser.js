@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "JSObject.js"
+// #import "JSProtocol.js"
 // #import "JSLog.js"
 // #import "JSMIMEHeaderMap.js"
 'use strict';
@@ -22,62 +23,103 @@
 
 var logger = JSLog("http", "websocket");
 
+JSProtocol("JSHTTPResponseParserDelegate", JSProtocol, {
+
+    httpParserDidReceiveStatus: function(parser, statusCode, statusMessage){},
+    httpParserDidReceiveHeaders: function(parser, headerMap){},
+    httpParserDidReceiveBodyData: function(parser, data){},
+    httpParserDidError: function(parser, error){},
+
+});
+
 JSClass("JSHTTPResponseParser", JSObject, {
 
     init: function(){
         this.headerMap = JSMIMEHeaderMap();
+        this.lineBuffer = JSData.initWithLength(this.lineBuferLength);
+        this.lineBufferIndex = 0;
     },
 
-    status: null,
-    statusMessage: null,
-    headerMap: null,
-    leftover: null,
-    done: true,
+    state: 0,
+    lineBuffer: null,
+    lineBuferLength: 4096,
+    lineBufferIndex: 0,
+    delegate: null,
 
     receive: function(data){
-        if (this.leftover !== null){
-            data = JSData.initWithChunks([this.leftover, data]);
-            this.leftover = null;
-        }
-        if (data.length >= 4096){
-            throw new Error("Received too much data without a line ending");
-        }
-        var start = 0;
-        var i = 1;
-        var line;
-        do {
-            i = data.indexOf(0x10, start);
-            if (i > 0){
-                if (data[i - 1] == 0x13){
-                    ++i;
-                    line = data.subdataInRange(JSRange(0, i - 2)).stringByDecodingUTF8();
-                    this.receiveLine(line);
-                    data = data.subdataInRange(JSRange(i, data.length - i));
-                    start = 0;
-                }else{
-                    start = i + 1;
-                }
+        var result;
+        while (this.state !== JSHTTPResponseParser.State.error && data !== null && data.length > 0){
+            result = this.parse(data);
+            if (result.method){
+                result.method.apply(this.delegate, result.args);
             }
-        }while (!this.done && i > 0 && data.length > 0);
-        if (data.length > 0){
-            this.leftover = data;
+            this.state = result.state;
+            data = result.remaining;
         }
     },
 
-    receiveLine: function(line){
-        var parts;
-        if (this.status === null){
-            var matches = line.match(/^HTTP\/1\.1\s+(\d+)\s+/);
-            if (matches === null){
-                throw new Error("Expecting response line");
+    parse: function(data){
+        try{
+            if (this.state === JSHTTPResponseParser.State.body){
+                return {state: JSHTTPResponseParser.body, method: this.delegate.httpParserDidReceiveBodyData, args: [this, data], remaining :null};
             }
-            this.status = parseInt(matches.group(1));
-        }else if (line === ""){
-            this.done = true;
-        }else{
-            this.headerMap.parseLine(line);
+            var i = 0;
+            var l = data.length;
+            var line = null;
+            for (; i < l && this.lineBufferIndex < this.lineBuferLength && line === null; ++i){
+                if (data[i] === 0x0A && this.lineBufferIndex > 0 && this.lineBuffer[this.lineBufferIndex - 1] == 0x0D){
+                    line = this.lineBuffer.truncatedToLength(this.lineBufferIndex - 1);
+                    this.lineBufferIndex = 0;
+                }else{
+                    this.lineBuffer[this.lineBufferIndex++] = data[i];
+                }
+            }
+            if (line === null){
+                if (i < l){  // If we didn't use all the data, then we must have ran out of buffer
+                    throw new Error("Line too long");
+                }
+                return {state: this.state, remaining: null};
+            }
+            var remaining = data.subdataInRange(JSRange(i, l - i));
+            if (this.state === JSHTTPResponseParser.State.status){
+                var statusLine = line.stringByDecodingLatin1();
+                return this.parseStatusLine(statusLine, remaining);
+            }
+            if (this.state == JSHTTPResponseParser.State.headers){
+                var headerLine = line.stringByDecodingUTF8();
+                if (headerLine === ""){
+                    return {state: JSHTTPResponseParser.State.body, method: this.delegate.httpParserDidReceiveHeaders, args: [this, this.headerMap], remaining: remaining};
+                }
+                this.headerMap.addLine(headerLine);
+                return {state: JSHTTPResponseParser.State.headers, remaining: remaining};
+            }
+            throw new Error("Unexpected state");
+        }catch (e){
+            return {state: JSHTTPResponseParser.State.error, method: this.delegate.httpParserDidError, args: [this, e], remaining: null};
         }
     },
+
+    parseStatusLine: function(statusLine, remaining){
+        if (!statusLine.startsWith("HTTP/1.1 ")){
+            throw new Error("Invalid status line, expecting HTTP/1.1");
+        }
+        var hundred = parseInt(statusLine[9]);
+        var ten = parseInt(statusLine[10]);
+        var one = parseInt(statusLine[11]);
+        if (isNaN(hundred) || isNaN(ten) || isNaN(one) || (statusLine.length > 12 && statusLine[12] != " ")){
+            throw new Error("Invalid status line, expecting 3 digit status code");
+        }
+        var code = hundred * 100 + ten * 10 + one;
+        var message = statusLine.substr(13);
+        return {state: JSHTTPResponseParser.State.headers, method: this.delegate.httpParserDidReceiveStatus, args: [this, code, message], remaining: remaining};
+    }
 });
+
+JSHTTPResponseParser.State = {
+    status: 0,
+    headers: 1,
+    body: 2,
+    error: 3
+};
 
 })();

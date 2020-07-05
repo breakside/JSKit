@@ -37,7 +37,7 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         if (this.socket !== null){
             return;
         }
-        this.key = UUID.init().bytes;
+        this.key = UUID.init().bytes.base64StringRepresentation();
         var scheme = this.currentURL.scheme;
         var port = this.currentURL.port;
         var host = this.currentURL.host;
@@ -59,6 +59,9 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
     },
 
     cancel: function(){
+        if (this.httpTimeoutTimer !== null){
+            this.httpTimeoutTimer.invalidate();
+        }
         this.stopPinging();
         this.socket.destroy();
     },
@@ -86,6 +89,9 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         this.socket.write(data.nodeBuffer);
     },
 
+    // ----------------------------------------------------------------------
+    // MARK: - Socket events
+
     handleSecureConnect: function(){
         if (!this.socket.authorized){
             logger.error("Invalid websocket server certificate: %{public}", this.socket.authorizationError);
@@ -96,16 +102,7 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
     },
 
     handleConnect: function(){
-        this.httpParser = JSHTTPResponseParser.init();
-        var encodedHost = JSURL.encodeDomainName(this.currentURL.host);
-        this.socket.write("GET %s HTTP/1.1\r\n".sprintf(this.currentURL.encodedPathAndQueryString));
-        this.socket.write("Host: %s\r\n".sprintf(encodedHost));
-        this.socket.write("Connection: Upgrade\r\n".sprintf(encodedHost));
-        this.socket.write("Upgrade: websocket\r\n".sprintf(encodedHost));
-        this.socket.write("Sec-WebSocket-Key: %s\r\n".sprintf(this.key.base64StringRepresentation()));
-        this.socket.write("Sec-WebSocket-Protocol: %s\r\n".sprintf(this.requestedProtocols.join(", ")));
-        this.socket.write("Sec-WebSocket-Version: 13\r\n");
-        this.socket.write("\r\n");
+        this.sendHTTPUpgradeRequest();
     },
 
     handleClose: function(){
@@ -124,56 +121,99 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         this.session._taskDidReceiveStreamError(this, error);
     },
 
-    httpParser: null,
-    websocketParser: null,
-
     handleData: function(nodeBuffer){
         var data = JSData.initWithNodeBuffer(nodeBuffer);
-        if (!this.httpParser.done){
-            try{
-                this.httpParser.receive(data);
-            }catch (e){
-                logger.error("HTTP response parser failed with: %{error}", e);
+        if (this.websocketParser === null){
+            if (this.httpParser === null){
+                logger.error("received data before creating parser");
                 this.cancel();
                 return;
             }
-            if (this.httpParser.done){
-                if (this.httpParser.status !== JSURLResponse.StatusCode.switchingProtocols){
-                    logger.error("Did not receive 101 Switching Protocols response");
-                    this.cancel();
-                    return;
-                }
-                if (this.httpParser.headers.get("Upgrade", "").lowercasedString() != "websocket"){
-                    logger.error("Did not receive Upgrade: Websocket response header");
-                    this.cancel();
-                    return;
-                }
-                var accept = this.httpParser.headers.get("Sec-WebSocket-Accept", "").dataByDecodingBase64();
-                var expected = JSSHA1Hash((this.key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8());
-                if (!accept.isEqual(expected)){
-                    logger.error("Incorrect Sec-WebSocket-Accept response");
-                    this.cancel();
-                    return;
-                }
-                var protocol = this.httpParser.headers.get("Sec-WebSocket-Protocol");
-                if (this.requestedProtocols.indexOf(protocol) < 0){
-                    logger.error("Unrequested Sec-WebSocket-Protocol response");
-                    this.cancel();
-                    return;
-                }
-                this.websocketParser = JSHTTPWebSocketParser.init();
-                this.websocketParser.delegate = this;
-                this.chunks = [];
-                this.protocol = protocol;
-                this.session._taskDidOpenStream(this);
-                if (this.httpParser.leftover !== null && this.httpParser.leftover.length > 0){
-                    this.handleData(this.httpParser.leftover);
-                }
-                this.startPinging();
-            }
+            this.httpParser.receive(data);
         }else{
             this.websocketParser.receive(data);
         }
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - HTTP parsing
+
+    sendHTTPUpgradeRequest: function(){
+        this.httpParser = JSHTTPResponseParser.init();
+        this.httpParser.delegate = this;
+        this.httpTimeoutTimer = JSTimer.scheduledTimerWithInterval(this.httpTimeoutInterval, this.timeoutHTTP, this);
+        var encodedHost = JSURL.encodeDomainName(this.currentURL.host);
+        this.socket.write("GET %s HTTP/1.1\r\n".sprintf(this.currentURL.encodedPathAndQueryString));
+        this.socket.write("Host: %s\r\n".sprintf(encodedHost));
+        this.socket.write("Connection: Upgrade\r\n".sprintf(encodedHost));
+        this.socket.write("Upgrade: websocket\r\n".sprintf(encodedHost));
+        this.socket.write("Sec-WebSocket-Key: %s\r\n".sprintf(this.key));
+        this.socket.write("Sec-WebSocket-Protocol: %s\r\n".sprintf(this.requestedProtocols.join(", ")));
+        this.socket.write("Sec-WebSocket-Version: 13\r\n");
+        this.socket.write("\r\n");
+    },
+
+    httpTimeoutInterval: 15,
+    httpTimeoutTimer: null,
+    httpParser: null,
+    httpSwitchingProtocols: false,
+
+    timeoutHTTP: function(){
+        logger.error("Timeout waiting for HTTP response");
+        this.cancel();
+    },
+
+    httpParserDidReceiveStatus: function(parser, statusCode, statusMessage){
+        if (statusCode !== JSURLResponse.StatusCode.switchingProtocols){
+            logger.error("Did not receive 101 Switching Protocols response");
+            this.cancel();
+        }
+        this.httpSwitchingProtocols = true;
+    },
+
+    httpParserDidReceiveHeaders: function(parser, headerMap){
+        if (this.httpSwitchingProtocols){
+            this.httpTimeoutTimer.invalidate();
+            if (headerMap.get("Upgrade", "").lowercaseString() != "websocket"){
+                logger.error("Did not receive Upgrade: Websocket response header");
+                this.cancel();
+                return;
+            }
+            var accept = headerMap.get("Sec-WebSocket-Accept", "").dataByDecodingBase64();
+            var expected = JSSHA1Hash((this.key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8());
+            if (!accept.isEqual(expected)){
+                logger.error("Incorrect Sec-WebSocket-Accept response");
+                this.cancel();
+                return;
+            }
+            var protocol = headerMap.get("Sec-WebSocket-Protocol");
+            if (this.requestedProtocols.indexOf(protocol) < 0){
+                logger.error("Unrequested Sec-WebSocket-Protocol response");
+                this.cancel();
+                return;
+            }
+            this.startWebSocket(protocol);
+        }
+    },
+
+    httpParserDidReceiveBodyData: function(data){
+        if (this.websocketParser !== null){
+            this.websocketParser.receive(data);
+        }
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Websocket parsing
+
+    websocketParser: null,
+
+    startWebSocket: function(protocol){
+        this.websocketParser = JSHTTPWebSocketParser.init();
+        this.websocketParser.delegate = this;
+        this.chunks = [];
+        this.protocol = protocol;
+        this.session._taskDidOpenStream(this);
+        this.startPinging();
     },
 
     webSocketParserDidReceivePing: function(parser, chunks){
@@ -186,29 +226,6 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
     webSocketParserDidReceivePong: function(parser, chunks){
         var pongData = JSData.initWithChunks(chunks);
         this.pingData = null;
-    },
-
-    startPinging: function(){
-        if (this.pingTimer === null){
-            this.pingData = JSData.initWithLength(1);
-            this.pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(55, this.sendPing, this);
-        }
-    },
-
-    stopPinging: function(){
-        if (this.pingTimer !== null){
-            this.pingTimer.invalidate();
-            this.pingTimer = null;
-        }
-    },
-
-    pingTimer: null,
-    pingData: 0,
-
-    sendPing: function(){
-        this.pingData[0] += 1;
-        this.write(JSHTTPWebSocketParser.UnmaskedHeaderForData([this.pingData], JSHTTPWebSocketParser.FrameCode.ping));
-        this.write(this.pingData);
     },
 
     webSocketParserDidReceiveClose: function(parser, chunks){
@@ -240,6 +257,32 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         var data = JSData.initWithChunks(this.chunks);
         this.chunks = [];
         this.session._taskDidReceiveStreamData(this, data);
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Websocket ping
+
+    pingTimer: null,
+    pingData: null,
+
+    startPinging: function(){
+        if (this.pingTimer === null){
+            this.pingData = JSData.initWithLength(1);
+            this.pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(55, this.sendPing, this);
+        }
+    },
+
+    stopPinging: function(){
+        if (this.pingTimer !== null){
+            this.pingTimer.invalidate();
+            this.pingTimer = null;
+        }
+    },
+
+    sendPing: function(){
+        this.pingData[0] += 1;
+        this.write(JSHTTPWebSocketParser.UnmaskedHeaderForData([this.pingData], JSHTTPWebSocketParser.FrameCode.ping));
+        this.write(this.pingData);
     },
 
 });
