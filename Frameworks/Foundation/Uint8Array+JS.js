@@ -134,23 +134,26 @@ Object.defineProperties(Uint8Array.prototype, {
 
     base64StringRepresentation: {
         enumerable: false,
-        value: function Uint8Array_base64StringRepresentation(maxLineWidth){
-            return this._base64StringRepresentation(base64EncodingMap, maxLineWidth);
+        value: function Uint8Array_base64StringRepresentation(maxLineWidth, omitPadding){
+            return this._base64StringRepresentation(base64EncodingMap, maxLineWidth, omitPadding);
         }
     },
 
     base64URLStringRepresentation: {
         enumerable: false,
         value: function Uint8Array_base64URLStringRepresentation(){
-            return this._base64StringRepresentation(base64URLEncodingMap);
+            return this._base64StringRepresentation(base64URLEncodingMap, undefined, true);
         }
     },
 
     _base64StringRepresentation: {
         enumerable: false,
-        value: function Uint8Array__base64StringRepresentation(map, maxLineWidth){
+        value: function Uint8Array__base64StringRepresentation(map, maxLineWidth, omitPadding){
             if (maxLineWidth === undefined){
                 maxLineWidth = this.length * 2 + 4;
+            }
+            if (omitPadding === undefined){
+                omitPadding = false;
             }
             var str = '';
             var i, l;
@@ -174,7 +177,9 @@ Object.defineProperties(Uint8Array.prototype, {
                 str += map[this[i] >> 2];
                 str += map[((this[i] & 0x3) << 4) | (this[i + 1] >> 4)];
                 str += map[((this[i + 1] & 0xF) << 2)];
-                str += '=';
+                if (!omitPadding){
+                    str += '=';
+                }
             }else if (i == this.length - 1){
                 lineWidth += 4;
                 if (lineWidth > maxLineWidth){
@@ -182,7 +187,9 @@ Object.defineProperties(Uint8Array.prototype, {
                 }
                 str += map[this[i] >> 2];
                 str += map[(this[i] & 0x3) << 4];
-                str += '==';
+                if (!omitPadding){
+                    str += '==';
+                }
             }
             return str;
         }

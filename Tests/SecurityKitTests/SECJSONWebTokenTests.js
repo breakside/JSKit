@@ -19,7 +19,7 @@
 
 JSClass("SECJSONWebTokenTests", TKTestSuite, {
 
-    testExampleHMACSHA256: function(){
+    testExampleHMACSHA256VerifyKeyData: function(){
         var token = SECJSONWebToken.initWithString("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
         TKAssertNotNull(token);
         var keyData = JSData.initWithArray([3, 35, 53, 75, 43, 15, 165, 188, 131, 126, 6, 101, 119, 123, 166, 143, 90, 179, 40, 230, 240, 84, 201, 40, 169, 15, 132, 178, 210, 80, 46, 191, 211, 251, 90, 146, 210, 6, 71, 239, 150, 138, 180, 195, 119, 98, 61, 34, 61, 46, 33, 114, 5, 46, 79, 8, 192, 205, 154, 245, 103, 208, 128, 163]);
@@ -29,6 +29,54 @@ JSClass("SECJSONWebTokenTests", TKTestSuite, {
             TKAssertExactEquals(payload.iss, "joe");
             TKAssertExactEquals(payload.exp, 1300819380);
             TKAssertExactEquals(payload['http://example.com/is_root'], true);
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testExampleHMACSHA256VerifyJWK: function(){
+        var token = SECJSONWebToken.initWithString("eyJ0eXAiOiJKV1QiLA0KICJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk");
+        TKAssertNotNull(token);
+        var keyData = JSData.initWithArray([3, 35, 53, 75, 43, 15, 165, 188, 131, 126, 6, 101, 119, 123, 166, 143, 90, 179, 40, 230, 240, 84, 201, 40, 169, 15, 132, 178, 210, 80, 46, 191, 211, 251, 90, 146, 210, 6, 71, 239, 150, 138, 180, 195, 119, 98, 61, 34, 61, 46, 33, 114, 5, 46, 79, 8, 192, 205, 154, 245, 103, 208, 128, 163]);
+        var jwk = {
+          kty: SECJSONWebToken.KeyType.symmetric,
+          k: keyData.base64URLStringRepresentation()
+        };
+        var expectation = TKExpectation.init();
+        expectation.call(token.verifiedPayload, token, jwk, function(payload){
+            TKAssertNotNull(payload);
+            TKAssertExactEquals(payload.iss, "joe");
+            TKAssertExactEquals(payload.exp, 1300819380);
+            TKAssertExactEquals(payload['http://example.com/is_root'], true);
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testExampleHMACSHA256Sign: function(){
+        var payload = {
+          iss: "https://tests.breakside.io",
+          exp: 1234567890,
+          testing: "Hello, World!"
+        };
+        var token = SECJSONWebToken.initWithPayload(payload);
+        var keyData = JSData.initWithArray([3, 35, 53, 75, 43, 15, 165, 188, 131, 126, 6, 101, 119, 123, 166, 143, 90, 179, 40, 230, 240, 84, 201, 40, 169, 15, 132, 178, 210, 80, 46, 191, 211, 251, 90, 146, 210, 6, 71, 239, 150, 138, 180, 195, 119, 98, 61, 34, 61, 46, 33, 114, 5, 46, 79, 8, 192, 205, 154, 245, 103, 208, 128, 163]);
+        var jwk = {
+          kty: SECJSONWebToken.KeyType.symmetric,
+          k: keyData.base64URLStringRepresentation(),
+          alg: SECJSONWebToken.Algorithm.hmacSHA256,
+        };
+        var expectation = TKExpectation.init();
+        expectation.call(token.sign, token, jwk, function(jwt){
+          TKAssertNotNull(jwt);
+          TKAssertEquals(jwt, "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3RzLmJyZWFrc2lkZS5pbyIsImV4cCI6MTIzNDU2Nzg5MCwidGVzdGluZyI6IkhlbGxvLCBXb3JsZCEifQ.kBAszisKh6NJ7K0a_N6Bt97DcB50cRbe5m86FwR5D-U");
+          var token = SECJSONWebToken.initWithString(jwt);
+          TKAssertNotNull(token);
+
+          expectation.call(token.verifiedPayload, token, jwk, function(payload){
+              TKAssertNotNull(payload);
+              TKAssertExactEquals(payload.iss, "https://tests.breakside.io");
+              TKAssertExactEquals(payload.exp, 1234567890);
+              TKAssertExactEquals(payload.testing, "Hello, World!");
+          });
         });
         this.wait(expectation, 1.0);
     },

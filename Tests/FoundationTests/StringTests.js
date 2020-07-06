@@ -868,6 +868,8 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals("Zg".dataByDecodingBase64URL().stringByDecodingUTF8(), "f");
         TKAssertEquals("Zm9vYg".dataByDecodingBase64URL().stringByDecodingUTF8(), "foob");
         TKAssertEquals("Zm9vYmE".dataByDecodingBase64URL().stringByDecodingUTF8(), "fooba");
+        TKAssertObjectEquals("s3pPLMBiTxaQ9kYGzzhZRbK-xOo".dataByDecodingBase64URL(), JSData.initWithArray([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]));
+        TKAssertObjectEquals("-_8".dataByDecodingBase64URL(), JSData.initWithArray([0xfb, 0xff]));
     },
 
     testMasking: function(){

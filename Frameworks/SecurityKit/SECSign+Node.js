@@ -15,6 +15,7 @@
 
 // #import "SECSign.js"
 // #import "SECNodeKey.js"
+// #import "SECDER.js"
 // jshint node: true
 'use strict';
 
@@ -60,6 +61,66 @@ SECSign.definePropertiesFromExtensions({
             };
             completion.call(target, pair);
         });
+        return completion.promise;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        // RSA private key ASN.1 syntax:
+        // RSAPrivateKey ::= SEQUENCE {
+        //     version           Version,
+        //     modulus           INTEGER,  -- n
+        //     publicExponent    INTEGER,  -- e
+        //     privateExponent   INTEGER,  -- d
+        //     prime1            INTEGER,  -- p
+        //     prime2            INTEGER,  -- q
+        //     exponent1         INTEGER,  -- d mod (p-1)
+        //     exponent2         INTEGER,  -- d mod (q-1)
+        //     coefficient       INTEGER,  -- (inverse of q) mod p
+        //     otherPrimeInfos   OtherPrimeInfos OPTIONAL
+        // }
+        // 
+
+        if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string" && typeof(jwk.d) == "string"){
+            try{
+                var values = [
+                    SECDERInteger(JSData.initWithArray([0])),
+                    SECDERInteger(jwk.n.dataByDecodingBase64URL()),
+                    SECDERInteger(jwk.e.dataByDecodingBase64URL()),
+                    SECDERInteger(jwk.d.dataByDecodingBase64URL()),
+                ];
+
+                if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.q1) == "string"){
+                    values.push(SECDERInteger(jwk.p.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.q.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.dp.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.dq.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.q1.dataByDecodingBase64URL()));
+                }
+
+                if (jwk.oth){
+                    completion.call(target, null);
+                    return completion.promise;
+                }
+
+                var rsaPrivateKey = SECDERSequence(values);
+                var der = JSData.initWithLength(rsaPrivateKey.length);
+                rsaPrivateKey.copyTo(der, 0);
+
+                var base64 = der.base64StringRepresentation(64);
+                var pem = "-----BEGIN RSA PRIVATE KEY-----\n";
+                pem += base64;
+                pem += "\n-----END RSA PRIVATE KEY-----\n";
+                var key = SECNodeKey.initWithData(pem.utf8());
+                JSRunLoop.main.schedule(completion, target, key);
+            }catch (e){
+                completion.call(target, null);
+            }
+        }else{
+            completion.call(target, null);
+        }
         return completion.promise;
     },
 

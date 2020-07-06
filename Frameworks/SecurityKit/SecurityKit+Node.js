@@ -19,5 +19,4 @@
 // #import "SECSign+Node.js"
 // #import "SECVerify+Node.js"
 // #import "SECPassword+Node.js"
-// #import "SECJSONWebToken+Node.js"
 // #import "SECNodeKey.js"

@@ -57,6 +57,19 @@ SECSign.definePropertiesFromExtensions({
         return completion.promise;
     },
 
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        crypto.subtle.importKey("jwk", jwk, this.htmlAlgorithm, true, ["sign"]).then(function(htmlKey){
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            completion.call(target, key);
+        }, function(error){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
     update: function(data){
         this.chunks.push(data);
     },

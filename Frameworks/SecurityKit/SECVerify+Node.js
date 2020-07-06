@@ -15,6 +15,7 @@
 
 // #import "SECVerify.js"
 // #import "SECNodeKey.js"
+// #import "SECDER.js"
 // jshint node: true
 'use strict';
 
@@ -45,6 +46,42 @@ SECVerify.definePropertiesFromExtensions({
         completion.call(target, verified);
         return completion.promise;
     },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        // RSA public key ASN.1 syntax:
+        // RSAPublicKey ::= SEQUENCE {
+        //     modulus           INTEGER,  -- n
+        //     publicExponent    INTEGER   -- e
+        // }
+        // 
+
+        if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string"){
+            try{
+                var rsaPublicKey = SECDERSequence([
+                    SECDERInteger(jwk.n.dataByDecodingBase64URL()),
+                    SECDERInteger(jwk.e.dataByDecodingBase64URL())
+                ]);
+
+                var der = JSData.initWithLength(rsaPublicKey.length);
+                rsaPublicKey.copyTo(der, 0);
+
+                var base64 = der.base64StringRepresentation(64);
+                var pem = "-----BEGIN RSA PUBLIC KEY-----\n";
+                pem += base64;
+                pem += "\n-----END RSA PUBLIC KEY-----\n";
+                var key = SECNodeKey.initWithData(pem.utf8());
+                JSRunLoop.main.schedule(completion, target, key);
+            }catch (e){
+                completion.call(target, null);
+            }
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
+    }
 
 });
 
