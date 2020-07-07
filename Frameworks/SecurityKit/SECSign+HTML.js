@@ -27,6 +27,7 @@ SECSign.definePropertiesFromExtensions({
     chunks: null,
 
     initWithAlgorithm: function(algorithm){
+        this.algorithm = algorithm;
         this.htmlAlgorithm = htmlAlgorithms[algorithm];
         if (!this.htmlAlgorithm){
             return null;

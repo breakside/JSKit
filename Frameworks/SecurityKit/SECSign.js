@@ -18,6 +18,8 @@
 
 JSClass("SECSign", JSObject, {
 
+    algorithm: null,
+
     initWithAlgorithm: function(algorithm){
     },
 

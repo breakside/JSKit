@@ -27,6 +27,7 @@ SECSign.definePropertiesFromExtensions({
     nodeAlgorithm: null,
 
     initWithAlgorithm: function(algorithm){
+        this.algorithm = algorithm;
         this.nodeAlgorithm = nodeAlgorithms[algorithm];
         if (!this.nodeAlgorithm){
             return null;
@@ -73,8 +74,60 @@ SECSign.definePropertiesFromExtensions({
                 completion.call(target, null);
                 return;
             }
-            // TODO: convert pem to jwk for public and private keys
-            completion.call(target, null);
+            var jwkPair = null;
+            try{
+                var kid = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+                var alg = null;
+                switch (this.algorithm){
+                    case SECSign.Algorithm.rsaSHA256:
+                        alg = "RS256";
+                        break;
+                    case SECSign.Algorithm.rsaSHA384:
+                        alg = "RS384";
+                        break;
+                    case SECSign.Algorithm.rsaSHA512:
+                        alg = "RS512";
+                        break;
+                    default:
+                        throw new Error("Unable to map SECSign algorithm to JWK");
+                }
+                var pem = pair.public.keyData;
+                var parser = SECDERParser.initWithPEM(pem, "RSA PUBLIC KEY");
+                var sequence = parser.parse();
+                var publicJWK = {
+                    kty: "RSA",
+                    alg: alg,
+                    key_ops: ["verify"],
+                    n: sequence[0].base64URLStringRepresentation(),
+                    e: sequence[1].base64URLStringRepresentation(),
+                    kid: kid
+                };
+                pem = pair.private.keyData;
+                parser = SECDERParser.initWithPEM(pem, "RSA PRIVATE KEY");
+                sequence = parser.parse();
+                var privateJWK = {
+                    kty: "RSA",
+                    alg: alg,
+                    key_ops: ["sign"],
+                    n: sequence[1].base64URLStringRepresentation(),
+                    e: sequence[2].base64URLStringRepresentation(),
+                    d: sequence[3].base64URLStringRepresentation(),
+                    kid: kid
+                };
+                if (sequence.length >= 9){
+                    privateJWK.p = sequence[4].base64URLStringRepresentation();
+                    privateJWK.q = sequence[5].base64URLStringRepresentation();
+                    privateJWK.dp = sequence[6].base64URLStringRepresentation();
+                    privateJWK.dq = sequence[7].base64URLStringRepresentation();
+                    privateJWK.qi = sequence[8].base64URLStringRepresentation();
+                }
+                jwkPair = {
+                    public: publicJWK,
+                    private: privateJWK
+                };
+            }catch (e){
+            }
+            completion.call(target, jwkPair);
         }, this);
         return completion.promise;
     },
@@ -107,12 +160,12 @@ SECSign.definePropertiesFromExtensions({
                     SECDERInteger(jwk.d.dataByDecodingBase64URL()),
                 ];
 
-                if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.q1) == "string"){
+                if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.qi) == "string"){
                     values.push(SECDERInteger(jwk.p.dataByDecodingBase64URL()));
                     values.push(SECDERInteger(jwk.q.dataByDecodingBase64URL()));
                     values.push(SECDERInteger(jwk.dp.dataByDecodingBase64URL()));
                     values.push(SECDERInteger(jwk.dq.dataByDecodingBase64URL()));
-                    values.push(SECDERInteger(jwk.q1.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.qi.dataByDecodingBase64URL()));
                 }
 
                 if (jwk.oth){
