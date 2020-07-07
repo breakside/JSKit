@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "DBFileStore.js"
 // #import "DBRemoteStore.js"
+// #import "DBMemoryStore.js"
 // #import "DBEphemeralObjectStore.js"
 'use strict';
 
@@ -34,6 +35,10 @@ JSClass("DBObjectDatabase", JSObject, {
         }else{
             this.store = DBRemoteStore.initWithURL(url);
         }
+    },
+
+    initInMemory: function(){
+        this.store = DBMemoryStore.init();
     },
 
     id: function(table){
