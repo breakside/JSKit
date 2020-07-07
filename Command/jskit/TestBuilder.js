@@ -21,18 +21,13 @@
 
 // buildURL
 //   - {PROJECT_NAME}
-//     - nginx
-//       - conf
-//       - logs
+//     - http
 //       - www
 //         - tests.html
 //         - tests.css
 //         - JS -> ../../JS/
 //         - Resources -> ../../Resources/
 //         - Frameworks -> ../../Frameworks/
-//       - conf
-//         - nginx.conf
-//       - logs
 //     - JS
 //     - Resources
 //     - Frameworks
@@ -56,10 +51,8 @@ JSClass("TestBuilder", Builder, {
     resourcesURL: null,
     frameworksURL: null,
     executableURL: null,
-    nginxURL: null,
+    httpURL: null,
     wwwURL: null,
-    confURL: null,
-    logsURL: null,
 
     setup: async function(){
         this.debug = true;
@@ -74,10 +67,8 @@ JSClass("TestBuilder", Builder, {
         this.frameworksURL = this.bundleURL.appendingPathComponent("Frameworks", true);
         this.executableURL = this.bundleURL.appendingPathComponent("tests");
         this.nodeWorkerURL = this.bundleURL.appendingPathComponent("JSDispatch-worker.js");
-        this.nginxURL = this.bundleURL.appendingPathComponent('nginx', true);
-        this.wwwURL = this.nginxURL.appendingPathComponent('www', true);
-        this.confURL = this.nginxURL.appendingPathComponent('conf', true);
-        this.logsURL = this.nginxURL.appendingPathComponent('logs', true);
+        this.httpURL = this.bundleURL.appendingPathComponent('http', true);
+        this.wwwURL = this.httpURL.appendingPathComponent('www', true);
         this.htmlWorkerURL = this.wwwURL.appendingPathComponent('JSDispatch-worker.js');
         var exists = await this.fileManager.itemExistsAtURL(this.bundleURL);
         if (exists){
@@ -94,10 +85,8 @@ JSClass("TestBuilder", Builder, {
         await this.fileManager.createDirectoryAtURL(this.resourcesURL);
         await this.fileManager.createDirectoryAtURL(this.frameworksURL);
         await this.fileManager.createDirectoryAtURL(this.sourcesURL);
-        await this.fileManager.createDirectoryAtURL(this.nginxURL);        
+        await this.fileManager.createDirectoryAtURL(this.httpURL);        
         await this.fileManager.createDirectoryAtURL(this.wwwURL);
-        await this.fileManager.createDirectoryAtURL(this.confURL);
-        await this.fileManager.createDirectoryAtURL(this.logsURL);
     },
 
     build: async function(){
@@ -116,16 +105,22 @@ JSClass("TestBuilder", Builder, {
     findImports: async function(){
         this.printer.setStatus("Finding code...");
         var suites = [];
-        var entries = await this.fileManager.contentsOfDirectoryAtURL(this.project.url);
-        for (let i = 0, l = entries.length; i < l; ++i){
-            let entry = entries[i];
-            if (entry.name.fileExtension == ".js"){
-                suites.push(entry.name);
-            }
-        }
+        await this._recursivelyFindImportsInDirectory(this.project.url, suites);
         suites.sort();
         var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
         this.imports = await this.project.findJavascriptImports(suites, includeDirectoryURLs);
+    },
+
+    _recursivelyFindImportsInDirectory: async function(url, suites){
+        var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
+        for (let i = 0, l = entries.length; i < l; ++i){
+            let entry = entries[i];
+            if (entry.itemType == JSFileManager.ItemType.directory){
+                await this._recursivelyFindImportsInDirectory(entry.url, suites);
+            }else if (entry.name.fileExtension == ".js"){
+                suites.push(entry.name);
+            }
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -351,12 +346,11 @@ JSClass("TestBuilder", Builder, {
 
     buildWWW: async function(){
         await this.linkWWW();
-        await this.copyConf();
         await this.buildHTMLIndex();
         if (this.hasLinkedDispatchFramework){
             await this.buildHTMLWorker();
         }
-        var path = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.nginxURL);
+        var path = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.httpURL);
         this.commands.push('nginx -p %s && open http://localhost:8088/'.sprintf(path));
     },
 
@@ -436,18 +430,6 @@ JSClass("TestBuilder", Builder, {
         var serializer = new XMLSerializer();
         var htmlString = serializer.serializeToString(document);
         await this.fileManager.createFileAtURL(indexURL, htmlString.utf8());
-    },
-
-    copyConf: async function(){
-        this.printer.setStatus("Copying nginx.conf...");
-        var metadata = JSBundle.mainBundle.metadataForResourceName("tests-nginx", "conf");
-        var conf = await JSBundle.mainBundle.getResourceData(metadata);
-        var confURL = this.confURL.appendingPathComponent("nginx.conf");
-        var exists = await this.fileManager.itemExistsAtURL(confURL);
-        if (exists){
-            await this.fileManager.removeItemAtURL(confURL);
-        }
-        await this.fileManager.createFileAtURL(confURL, conf);
     },
 
     buildHTMLWorker: async function(){
