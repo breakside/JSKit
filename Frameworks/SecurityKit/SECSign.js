@@ -24,6 +24,9 @@ JSClass("SECSign", JSObject, {
     createKeyPair: function(options, completion, target){
     },
 
+    createJWKPair: function(options, completion, target){
+    },
+
     createKeyFromJWK: function(jwk, completion, target){        
     },
 

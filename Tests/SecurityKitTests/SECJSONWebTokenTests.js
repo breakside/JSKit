@@ -51,7 +51,7 @@ JSClass("SECJSONWebTokenTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
-    testExampleHMACSHA256Sign: function(){
+    tesHMACSHA256Sign: function(){
         var payload = {
           iss: "https://tests.breakside.io",
           exp: 1234567890,
@@ -107,6 +107,108 @@ JSClass("SECJSONWebTokenTests", TKTestSuite, {
             TKAssertExactEquals(payload.iss, "https://accounts.google.com");
             TKAssertExactEquals(payload.sub, "114346271561131287666");
             TKAssertExactEquals(payload.exp, 1555115548);
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testRSA256Sign: function(){
+        var payload = {
+          iss: "https://tests.breakside.io",
+          exp: 1234567890,
+          testing: "Hello, World!"
+        };
+        var publicJWK = {
+          "alg": "RS256",
+          "e": "AQAB",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "RSA",
+          "n": "5KnpDItWK5vq3T3m7Yshr3JShzURaC9KwUVKIxJrbd-Aynr_aU9Ehv0I3qn8_2Tgum3Fh-69tGlpSg2JRYfmvs7dRJLHvAgb2MiXdpgpzBrce0qBRjNDpXAZcKsI0CSNhQEV9c3R8lRtSt4gJKctA3YSp6Kdve7v68QW-DLumGRf9_NSZ9NLEMo6d7kqksqo0QarKPhMah7x1D9_KIWvpZzbyYXIPXondLcJIEsxpfiAT0sSILKxFAf0uk2ba4w3EHfmKeP0viU1jQ4XspGmsRHBMk1l-l7reCBZOKNVRvbFiIvJhC2zh2_hMyqBcw-R8gau0tuM_aTg_S6pvElMNw",
+          "kid": "mqsZJl9bmCA00_Ed9XPXm3SssCA"
+        };
+        var privateJWK = {
+          "alg": "RS256",
+          "d": "INh5OziOkwANWg9TawliYtHF91mmRkljcGSpaWVIHNsPJHFLho8rgEUQ2kR1AiM1lqyVma4vqMkVezImPDXGbYpzGoUHqhjzaw3RQpNJObdytpu1UGX6Zbq2-h9PSkVd4LOPDyUBRHu1IUfL5TKa_YAfM4jhJhBlfSpzGYmItUc8QUwZXdb7fN9-CllosKBcjgOztmxZkMU3pXN8aDRkDecQsOaizYGfQsqIIRdXFjFY461zaU99H63GS8kxFrhqgHHUZSs5xfazKBZ4EoqsK7G2__fpBuPsm-MDvBYQOfgkGqh0aVKjw0MfLTWGu1Sbz0fJz-_Hmko55k7EhfqCPQ",
+          "dp": "ddS92-v3XPyTPtA6tcN_vc1XTyUJ00zOGk4QVf96HbZFpP1fscABUex98XJazP8wN_vtXodTSa22BHEUmLL3JX-K7BMoQ_99R-K0dmyKSQLxK9nl8ct47-JyXYfipiXyG3uo8G35siNKpUaSScMUkiZdmjNkCr_uZ-PYsimPTxU",
+          "dq": "rU93eySXbMcn5JK_4-Xy0AoaEv6UyIQ9yp3s3hcbno1F4xZkHfSc9hHLSMirx_IAM_pRs6w1ZKSh1WjsA67Br-VEOYsybPwozTCT3JrZRnU6OwYEEQQR-uQvTIeqDenJXTLs2y1KI4XGgJHlxMLbMeGjjD5Z8rMK6u5t3qEJNDk",
+          "e": "AQAB",
+          "ext": true,
+          "key_ops": [
+            "sign"
+          ],
+          "kty": "RSA",
+          "n": "5KnpDItWK5vq3T3m7Yshr3JShzURaC9KwUVKIxJrbd-Aynr_aU9Ehv0I3qn8_2Tgum3Fh-69tGlpSg2JRYfmvs7dRJLHvAgb2MiXdpgpzBrce0qBRjNDpXAZcKsI0CSNhQEV9c3R8lRtSt4gJKctA3YSp6Kdve7v68QW-DLumGRf9_NSZ9NLEMo6d7kqksqo0QarKPhMah7x1D9_KIWvpZzbyYXIPXondLcJIEsxpfiAT0sSILKxFAf0uk2ba4w3EHfmKeP0viU1jQ4XspGmsRHBMk1l-l7reCBZOKNVRvbFiIvJhC2zh2_hMyqBcw-R8gau0tuM_aTg_S6pvElMNw",
+          "p": "-C98oMf9Pk6CVfDKpPKPcx7Wdo_PGSgjJAefvP5MPwazPTrCLeQJABbF0pHoxss2v1t-QWG7xN5fHJVSbhCA0HE25jUSCTqylPfAKd63micykJVLmbGlm19AmCEb7sr5wCcAhOHhR39LdZ9r6C8t8cpe7x31XwUJWm5WD2dwx70",
+          "q": "690RLJH4pl0ennmc0QQN-y2JtoOqucUL7FQ_AYfoo7Jd3LlglX3LG97riUgWtqXcmweUOORXRd0eWtr8jvPt4C7jZK7bBcFNIex8Kwgs6r_DsiybhXnseVLrvS6q3c5occlRwDf-5gkyaJ9CnRp5Rhdggc6ShB6xYBmmHyrjmQM",
+          "qi": "2TjnUL0oCa3c0l1PeclEUNySjXiGUlMvlmdZxnHfHtRWWrvRxyDjRdTeoc2qEPQL5N2z_1WG1APKwqK1ezPjMOIY_5bXOWvuBq76Q5EqeNiSVV9vfcj0JMtNNU2_DSzERiUw-LdB4SYfXM_joa_gW9kkpXFkIT923eAHiUBS4U0",
+          "kid": "mqsZJl9bmCA00_Ed9XPXm3SssCA"
+        };
+        var token = SECJSONWebToken.initWithPayload(payload);
+        var expectation = TKExpectation.init();
+        expectation.call(token.sign, token, privateJWK, function(jwt){
+          TKAssertNotNull(jwt);
+          TKAssertEquals(jwt, "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Im1xc1pKbDlibUNBMDBfRWQ5WFBYbTNTc3NDQSJ9.eyJpc3MiOiJodHRwczovL3Rlc3RzLmJyZWFrc2lkZS5pbyIsImV4cCI6MTIzNDU2Nzg5MCwidGVzdGluZyI6IkhlbGxvLCBXb3JsZCEifQ.bNdgyG-0gBdh6PmMs7Y9RF-ovvp8Y4lC5sSMasYzP6sdyM4LQUqAHwgUm4DmXidNbnEv4VKOF52YZTXHVbDNAhifKOCISpuzNd6SrMUpERVWkPrhAkoRMQmyMn_fBqEZN75_17EdRE8DmLnaY1qu95vdkA4Y6kYANmTv7pWhj6EKG-aplgax0jNXTIKkTEuxyjs2vRwOIfpUOXoh9UmFN7ZUl5yZQRDslZD_gfcZ3oJLW5RdKfNCrMAJhMujzjJTi7_VfOvO6smE0jEriIi5PUysUdRqWf3BcGA5M8EcWRlgnefubTJJAywiceV6t7WOT19tmVecPoEdhPKbsxT1rw");
+          var token = SECJSONWebToken.initWithString(jwt);
+          TKAssertNotNull(token);
+          expectation.call(token.verifiedPayload, token, publicJWK, function(payload){
+              TKAssertNotNull(payload);
+              TKAssertExactEquals(payload.iss, "https://tests.breakside.io");
+              TKAssertExactEquals(payload.exp, 1234567890);
+              TKAssertExactEquals(payload.testing, "Hello, World!");
+          });
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testRSA256SignKid: function(){
+        var payload = {
+          iss: "https://tests.breakside.io",
+          exp: 1234567890,
+          testing: "Hello, World!"
+        };
+        var publicJWK = {
+          "alg": "RS256",
+          "e": "AQAB",
+          "ext": true,
+          "key_ops": [
+            "verify"
+          ],
+          "kty": "RSA",
+          "n": "5KnpDItWK5vq3T3m7Yshr3JShzURaC9KwUVKIxJrbd-Aynr_aU9Ehv0I3qn8_2Tgum3Fh-69tGlpSg2JRYfmvs7dRJLHvAgb2MiXdpgpzBrce0qBRjNDpXAZcKsI0CSNhQEV9c3R8lRtSt4gJKctA3YSp6Kdve7v68QW-DLumGRf9_NSZ9NLEMo6d7kqksqo0QarKPhMah7x1D9_KIWvpZzbyYXIPXondLcJIEsxpfiAT0sSILKxFAf0uk2ba4w3EHfmKeP0viU1jQ4XspGmsRHBMk1l-l7reCBZOKNVRvbFiIvJhC2zh2_hMyqBcw-R8gau0tuM_aTg_S6pvElMNw",
+          "kid": "mqsZJl9bmCA00_Ed9XPXm3SssCA"
+        };
+        var privateJWK = {
+          "alg": "RS256",
+          "d": "INh5OziOkwANWg9TawliYtHF91mmRkljcGSpaWVIHNsPJHFLho8rgEUQ2kR1AiM1lqyVma4vqMkVezImPDXGbYpzGoUHqhjzaw3RQpNJObdytpu1UGX6Zbq2-h9PSkVd4LOPDyUBRHu1IUfL5TKa_YAfM4jhJhBlfSpzGYmItUc8QUwZXdb7fN9-CllosKBcjgOztmxZkMU3pXN8aDRkDecQsOaizYGfQsqIIRdXFjFY461zaU99H63GS8kxFrhqgHHUZSs5xfazKBZ4EoqsK7G2__fpBuPsm-MDvBYQOfgkGqh0aVKjw0MfLTWGu1Sbz0fJz-_Hmko55k7EhfqCPQ",
+          "dp": "ddS92-v3XPyTPtA6tcN_vc1XTyUJ00zOGk4QVf96HbZFpP1fscABUex98XJazP8wN_vtXodTSa22BHEUmLL3JX-K7BMoQ_99R-K0dmyKSQLxK9nl8ct47-JyXYfipiXyG3uo8G35siNKpUaSScMUkiZdmjNkCr_uZ-PYsimPTxU",
+          "dq": "rU93eySXbMcn5JK_4-Xy0AoaEv6UyIQ9yp3s3hcbno1F4xZkHfSc9hHLSMirx_IAM_pRs6w1ZKSh1WjsA67Br-VEOYsybPwozTCT3JrZRnU6OwYEEQQR-uQvTIeqDenJXTLs2y1KI4XGgJHlxMLbMeGjjD5Z8rMK6u5t3qEJNDk",
+          "e": "AQAB",
+          "ext": true,
+          "key_ops": [
+            "sign"
+          ],
+          "kty": "RSA",
+          "n": "5KnpDItWK5vq3T3m7Yshr3JShzURaC9KwUVKIxJrbd-Aynr_aU9Ehv0I3qn8_2Tgum3Fh-69tGlpSg2JRYfmvs7dRJLHvAgb2MiXdpgpzBrce0qBRjNDpXAZcKsI0CSNhQEV9c3R8lRtSt4gJKctA3YSp6Kdve7v68QW-DLumGRf9_NSZ9NLEMo6d7kqksqo0QarKPhMah7x1D9_KIWvpZzbyYXIPXondLcJIEsxpfiAT0sSILKxFAf0uk2ba4w3EHfmKeP0viU1jQ4XspGmsRHBMk1l-l7reCBZOKNVRvbFiIvJhC2zh2_hMyqBcw-R8gau0tuM_aTg_S6pvElMNw",
+          "p": "-C98oMf9Pk6CVfDKpPKPcx7Wdo_PGSgjJAefvP5MPwazPTrCLeQJABbF0pHoxss2v1t-QWG7xN5fHJVSbhCA0HE25jUSCTqylPfAKd63micykJVLmbGlm19AmCEb7sr5wCcAhOHhR39LdZ9r6C8t8cpe7x31XwUJWm5WD2dwx70",
+          "q": "690RLJH4pl0ennmc0QQN-y2JtoOqucUL7FQ_AYfoo7Jd3LlglX3LG97riUgWtqXcmweUOORXRd0eWtr8jvPt4C7jZK7bBcFNIex8Kwgs6r_DsiybhXnseVLrvS6q3c5occlRwDf-5gkyaJ9CnRp5Rhdggc6ShB6xYBmmHyrjmQM",
+          "qi": "2TjnUL0oCa3c0l1PeclEUNySjXiGUlMvlmdZxnHfHtRWWrvRxyDjRdTeoc2qEPQL5N2z_1WG1APKwqK1ezPjMOIY_5bXOWvuBq76Q5EqeNiSVV9vfcj0JMtNNU2_DSzERiUw-LdB4SYfXM_joa_gW9kkpXFkIT923eAHiUBS4U0",
+          "kid": "mqsZJl9bmCA00_Ed9XPXm3SssCA"
+        };
+        var token = SECJSONWebToken.initWithPayload(payload);
+        var expectation = TKExpectation.init();
+        expectation.call(token.sign, token, privateJWK, function(jwt){
+          TKAssertNotNull(jwt);
+          TKAssertEquals(jwt, "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Im1xc1pKbDlibUNBMDBfRWQ5WFBYbTNTc3NDQSJ9.eyJpc3MiOiJodHRwczovL3Rlc3RzLmJyZWFrc2lkZS5pbyIsImV4cCI6MTIzNDU2Nzg5MCwidGVzdGluZyI6IkhlbGxvLCBXb3JsZCEifQ.bNdgyG-0gBdh6PmMs7Y9RF-ovvp8Y4lC5sSMasYzP6sdyM4LQUqAHwgUm4DmXidNbnEv4VKOF52YZTXHVbDNAhifKOCISpuzNd6SrMUpERVWkPrhAkoRMQmyMn_fBqEZN75_17EdRE8DmLnaY1qu95vdkA4Y6kYANmTv7pWhj6EKG-aplgax0jNXTIKkTEuxyjs2vRwOIfpUOXoh9UmFN7ZUl5yZQRDslZD_gfcZ3oJLW5RdKfNCrMAJhMujzjJTi7_VfOvO6smE0jEriIi5PUysUdRqWf3BcGA5M8EcWRlgnefubTJJAywiceV6t7WOT19tmVecPoEdhPKbsxT1rw");
+          var token = SECJSONWebToken.initWithString(jwt);
+          TKAssertNotNull(token);
+          expectation.call(token.verifiedPayload, token, [{kid: "wrong"}, publicJWK, {kid: "another"}], function(payload){
+              TKAssertNotNull(payload);
+              TKAssertExactEquals(payload.iss, "https://tests.breakside.io");
+              TKAssertExactEquals(payload.exp, 1234567890);
+              TKAssertExactEquals(payload.testing, "Hello, World!");
+          });
         });
         this.wait(expectation, 1.0);
     }

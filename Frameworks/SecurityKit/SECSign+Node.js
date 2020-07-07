@@ -64,6 +64,21 @@ SECSign.definePropertiesFromExtensions({
         return completion.promise;
     },
 
+    createJWKPair: function(options, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.createKeyPair(options, function(pair){
+            if (pair === null){
+                completion.call(target, null);
+                return;
+            }
+            // TODO: convert pem to jwk for public and private keys
+            completion.call(target, null);
+        }, this);
+        return completion.promise;
+    },
+
     createKeyFromJWK: function(jwk, completion, target){
         if (!completion){
             completion = Promise.completion();

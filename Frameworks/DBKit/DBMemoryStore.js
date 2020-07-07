@@ -19,23 +19,22 @@
 JSClass("DBMemoryStore", DBEphemeralObjectStore, {
 
     init: function(){
-        this.infoByKey = {};
+        this.valuesByKey = {};
+        this.expirationsByKey = {};
     },
 
-    infoByKey: null,
+    valuesByKey: null,
+    expirationsByKey: null,
     
     object: function(id, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
-        var info = this.infoByKey[id];
-        var object = null;
-        if (info){
-            if (info.expiresAt && info.expiresAt >= JSDate.now){
-                delete this.infoByKey[id];
-            }else{
-                object = info.object;
-            }
+        var object = this.valuesByKey[id];
+        var expiration = this.expirationsByKey[id];
+        if (expiration !== undefined && expiration < JSDate.now.timeIntervalSince1970){
+            this._delete(id);
+            object = null;
         }
         JSRunLoop.main.schedule(completion, target, object);
         return completion.promise;
@@ -45,16 +44,29 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         return this.saveExpiring(object, 0, completion, target);
     },
 
-    saveExpiring: function(object, lifetimeInSeconds, completion, target){
+    delete: function(id, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this._delete(id);
+        JSRunLoop.main.schedule(completion, target, true);
+        return completion.promise;
+    },
+
+    _delete: function(key){
+        delete this.valuesByKey[key];
+        delete this.expirationsByKey[key];
+    },
+
+    saveExpiring: function(object, lifetimeInterval, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var info = {
-             expiresAt: 0,
-             object: object
-        };
-        if (lifetimeInSeconds){
-            info.expiresAt = JSDate.now + lifetimeInSeconds;
+        this.valuesByKey[object.id] = object;
+        if (lifetimeInterval){
+            this.expirationsByKey[object.id] = JSDate.now.timeIntervalSince1970 + lifetimeInterval;
+        }else{
+            delete this.expirationsByKey[object.id];
         }
         JSRunLoop.main.schedule(completion, target, true);
         return completion.promise;

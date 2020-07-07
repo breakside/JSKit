@@ -50,6 +50,7 @@
 // #import "JSMediaType.js"
 
 // #import "JSDate.js"
+// #import "JSTimeInterval.js"
 // #import "JSCalendar.js"
 // #import "JSTimeZone.js"
 // #import "JSDateFormatter.js"
