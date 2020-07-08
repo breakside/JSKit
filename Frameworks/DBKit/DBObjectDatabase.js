@@ -73,7 +73,7 @@ JSClass("DBObjectDatabase", JSObject, {
     requiredObject: function(id, errorfn, errorArg1){
         var db = this;
         return new Promise(function(resolve, reject){
-            return db.object(id);
+            resolve(db.object(id));
         }).then(function(object){
             if (object === null){
                 var args = Array.prototype.slice.call(arguments, 2);

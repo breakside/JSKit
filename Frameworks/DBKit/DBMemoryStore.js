@@ -63,7 +63,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         this.valuesByKey[object.id] = object;
-        if (lifetimeInterval){
+        if (lifetimeInterval > 0){
             this.expirationsByKey[object.id] = JSDate.now.timeIntervalSince1970 + lifetimeInterval;
         }else{
             delete this.expirationsByKey[object.id];
