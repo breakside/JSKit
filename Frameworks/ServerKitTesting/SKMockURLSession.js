@@ -40,13 +40,14 @@ var sharedDataAndUpload = {
                 return task.currentRequest.response;
             });
         }
+        var promise = this.completion.promise;
         var serverRequest = SKMockHTTPRequest.initWithURLRequest(this.currentRequest);
         this.session.server.handleRequest(serverRequest, function(){
             var response = serverRequest.response.urlResponse;
             this.currentRequest._response = response;
             this.session._taskDidComplete(this, null);
         }, this);
-        return this.completion.promise;
+        return promise;
     }
 
 };
