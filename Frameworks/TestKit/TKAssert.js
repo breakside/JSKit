@@ -251,3 +251,9 @@ JSGlobalObject.TKAssertArrayEquals = function(a, b, message){
         throw TKAssertion('TKAssertArrayEquals failed, length mismatch. '  + (message || ''));
     }
 };
+
+JSGlobalObject.TKAssertType = function(a, type, message){
+    if (typeof(a) != type){
+        throw new TKAssertion('TKAssertType ' + (a) + ' is not of type ' + type + '. ' + (message || ''));
+    }
+};
