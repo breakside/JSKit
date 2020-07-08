@@ -48,8 +48,7 @@ JSClass("GlobalsCommand", Command, {
         }
         let globals;
         if (project !== null){
-            var includeDirectories = await project.findIncludeDirectoryURLs();
-            globals = await project.globals([root], includeDirectories, this.arguments.frameworks);
+            globals = await project.globals([root], this.arguments.frameworks);
         }else{
             let contents;
             if (root instanceof JSData){

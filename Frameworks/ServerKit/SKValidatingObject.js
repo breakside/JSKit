@@ -29,7 +29,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
     stringForKey: function(key){
         var s = this.obj[key];
         if (s !== undefined){
-            if (typeof(value) !== "string"){
+            if (typeof(s) !== "string"){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "string"});
             }
         }
@@ -398,7 +398,7 @@ JSClass("SKValidatingObject", JSObject, {
 });
 
 SKValidatingObject.Error = function(info, message){
-    if (this === undefined){
+    if (this === undefined || this === SKValidatingObject){
         return new SKValidatingObject.Error(info, message);
     }
     if (info instanceof SKValidatingObject.Error){

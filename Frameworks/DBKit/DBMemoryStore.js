@@ -30,7 +30,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         if (!completion){
             completion = Promise.completion();
         }
-        var object = this.valuesByKey[id];
+        var object = this.valuesByKey[id] || null;
         var expiration = this.expirationsByKey[id];
         if (expiration !== undefined && expiration < JSDate.now.timeIntervalSince1970){
             this._delete(id);

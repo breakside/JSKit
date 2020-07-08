@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "SKHTTPResponse.js"
+// #import ServerKit
 'use strict';
 
 JSClass("SKMockHTTPResponse", SKHTTPResponse, {
@@ -21,25 +21,26 @@ JSClass("SKMockHTTPResponse", SKHTTPResponse, {
     chunks: null,
     urlResponse: null,
 
-    init: function(){
+    initWithTag: function(tag){
         SKMockHTTPResponse.$super.init.call(this);
         this.urlResponse = JSURLResponse.init();
         this.chunks = [];
+        this.tag = tag;
     },
 
     getData: function(completion, target){
         if (!completion){
-            completion = Promise.completion;
+            completion = Promise.completion();
         }
         JSRunLoop.main.schedule(completion, target, this.data);
         return completion.promise;
     },
 
-    _getStatusCode: function(){
+    getStatusCode: function(){
         return this.urlResponse.statusCode;
     },
 
-    _setStatusCode: function(statusCode){
+    setStatusCode: function(statusCode){
         this.urlResponse.statusCode = statusCode;
     },
 

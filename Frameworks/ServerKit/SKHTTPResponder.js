@@ -155,7 +155,7 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendString: function(str, contentType, status){
-        this.sendData(str.utf8(), contentType + "; charset=utf8", status);
+        this.sendData(str.utf8(), contentType + "; charset=utf-8", status);
     },
 
     sendObject: function(obj, status, indent){

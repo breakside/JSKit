@@ -40,7 +40,7 @@ var sharedDataAndUpload = {
                 return task.currentRequest.response;
             });
         }
-        var serverRequest = SKMockHTTPRequest.initWithURLRequest(this.request);
+        var serverRequest = SKMockHTTPRequest.initWithURLRequest(this.currentRequest);
         this.session.server.handleRequest(serverRequest, function(){
             var response = serverRequest.response.urlResponse;
             this.currentRequest._response = response;
@@ -56,6 +56,8 @@ JSClass("SKMockURLSessionUploadTask", JSURLSessionUploadTask, sharedDataAndUploa
 
 JSClass("SKMockURLSessionStreamTask", JSURLSessionStreamTask, {
 
-    
+    resume: function(){
+        throw new Error("Not implemented");
+    }
 
 });

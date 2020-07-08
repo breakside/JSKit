@@ -39,17 +39,17 @@ JSClass("FrameworkBuilder", Builder, {
     // -----------------------------------------------------------------------
     // MARK: - Environment
 
-    environmentRoots: JSReadOnlyProperty(),
+    bundleEnvironments: JSLazyInitProperty('_populateBundleEnvironments'),
 
-    getEnvironmentRoots: function(){
-        var roots = {generic: this.project.entryPoint.path};
-        var environments = this.project.info.JSBundleEnvironments;
-        if (environments){
-            for (let env in environments){
-                roots[env] = environments[env];
+    _populateBundleEnvironments: function(){
+        var bundleEnvironments = {generic: this.project.entryPoint.path};
+        var extraEnvironments = this.project.info.JSBundleEnvironments;
+        if (extraEnvironments){
+            for (let env in extraEnvironments){
+                bundleEnvironments[env] = extraEnvironments[env];
             }
         }
-        return roots;
+        return bundleEnvironments;
     },
 
     // -----------------------------------------------------------------------
@@ -87,17 +87,9 @@ JSClass("FrameworkBuilder", Builder, {
     },
 
     bundleResources: async function(){
-        var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", this.project.licenseFilename])
-        };
         this.printer.setStatus("Finding resources...");
-        var resourceURLs = await this.project.findResourceURLs(blacklist);
-        var resources = this.resources = Resources.initWithFileManager(this.fileManager);
-        for (let i = 0, l = resourceURLs.length; i < l; ++i){
-            let url = resourceURLs[i];
-            this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
-            await resources.addResourceAtURL(url);
-        }
+        await this.project.loadResources(this.printer);
+        var resources = this.resources = this.project.resources;
         for (let i = 0, l = resources.metadata.length; i < l; ++i){
             let metadata = resources.metadata[i];
             let url = resources.sourceURLs[i];
@@ -123,11 +115,8 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFrameworks = new Set();
         var genericFiles = new Set();
         var genericFeatures = new Set();
-        var roots = this.environmentRoots;
-        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
-        for (let env in roots){
-            let root = roots[env];
-            let imports = await this.project.findJavascriptImports([root], includeDirectoryURLs);
+        for (let env in this.bundleEnvironments){
+            let imports = await this.project.findJavascriptImports(env);
             this.importsByEnvironment[env] = imports;
         }
     },
@@ -150,9 +139,7 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFiles = new Set();
         var genericFeatures = new Set();
         var sources = {};
-        var roots = this.environmentRoots;
-        for (let env in roots){
-            let root = roots[env];
+        for (let env in this.bundleEnvironments){
             sources[env] = {frameworks: [], files: [], features: []};
             let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.frameworks.length; i < l; ++i){
@@ -197,7 +184,6 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFiles = new Set();
         var genericFeatures = new Set();
         var sources = {};
-        var roots = this.environmentRoots;
         var copyright  = this.project.getInfoString("JSCopyright", this.resources);
         var licenseString = await this.project.licenseNoticeString();
         if (licenseString.startsWith("Copyright")){
@@ -206,10 +192,10 @@ JSClass("FrameworkBuilder", Builder, {
             copyright += "\n\n";
         }
         var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
-        for (let env in roots){
+        for (let env in this.bundleEnvironments){
             sources[env] = {frameworks: [], files: [], features: []};
-            let root = roots[env];
-            let compilation = JavascriptCompilation.initWithName(root, this.sourcesURL, this.fileManager);
+            let filename = this.bundleEnvironments[env];
+            let compilation = JavascriptCompilation.initWithName(filename, this.sourcesURL, this.fileManager);
             var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
             compilation.sourceRoot = fullSourcesURL.encodedStringRelativeTo(this.sourcesURL);
             compilation.writeComment(header);

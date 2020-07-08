@@ -16,6 +16,7 @@
 // #import Foundation
 // #import jsyaml
 // #import "JavascriptFile.js"
+// #import "Resources.js"
 'use strict';
 
 JSClass("Project", JSObject, {
@@ -65,8 +66,32 @@ JSClass("Project", JSObject, {
         return infoValue;
     },
 
-    roots: function(envs){
-        let roots = [this.entryPoint.path];
+    roots: async function(envs){
+        var entryPoint = this.entryPoint;
+        let roots = [];
+        if (entryPoint !== null){
+            roots.push(entryPoint.path);
+        }
+        var resourceImportPaths;
+        if (this.info.JSBundleType == 'html'){
+            if (!this.info.UIMainSpec && this.info.UIApplicationDelegate){
+                roots.push(this.info.UIApplicationDelegate + ".js");
+            }
+            await this.loadResources();
+            await this.loadIncludeDirectoryURLs();
+            resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
+            roots = roots.concat(resourceImportPaths);
+        }else if (this.info.JSBundleType == 'node'){
+            if (!this.info.SKMainSpec && this.info.SKApplicationDelegate){
+                roots.push(this.info.SKApplicationDelegate + ".js");
+            }
+            await this.loadResources();
+            await this.loadIncludeDirectoryURLs();
+            resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
+            roots = roots.concat(resourceImportPaths);
+        }else if (this.info.JSBundleType == 'tests'){
+            await this._recursivelyAddAnyJavascriptInDirectory(this.url, roots);
+        }
         var envRoots = this.info.JSBundleEnvironments;
         if (envRoots && envs){
             for (let i = 0, l = envs.length; i < l; ++i){
@@ -154,6 +179,9 @@ JSClass("Project", JSObject, {
         if (this.info.JSBundleType == 'framework'){
             return {path: this.info.EntryPoint || this.name + '.js', fn: null};
         }
+        if (this.info.JSBundleType == 'tests'){
+            return null;
+        }
         return {
             path: 'main.js',
             fn: 'main'
@@ -162,6 +190,15 @@ JSClass("Project", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Subdirectory Traversal
+
+    includeDirectoryURLs: null,
+
+    loadIncludeDirectoryURLs: async function(){
+        if (this.includeDirectoryURLs !== null){
+            return;
+        }
+        this.includeDirectoryURLs = await this.findIncludeDirectoryURLs();
+    },
 
     findIncludeDirectoryURLs: async function(){
         var stack = [this.url];
@@ -243,7 +280,10 @@ JSClass("Project", JSObject, {
         return null;
     },
 
-    findJavascriptImports: async function(roots, includeDirectoryURLs){
+    findJavascriptImports: async function(env){
+        await this.loadIncludeDirectoryURLs();
+        var includeDirectoryURLs = this.includeDirectoryURLs;
+        var roots = await this.roots([env]);
         var result = {
             files: [],
             frameworks: [],
@@ -306,7 +346,21 @@ JSClass("Project", JSObject, {
         return result;
     },
 
-    globals: async function(roots, includeDirectoryURLs, visitFrameworks, seenFrameworks, envs){
+    _recursivelyAddAnyJavascriptInDirectory: async function(url, paths){
+        var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
+        for (let i = 0, l = entries.length; i < l; ++i){
+            let entry = entries[i];
+            if (entry.itemType == JSFileManager.ItemType.directory){
+                await this._recursivelyAddAnyJavascriptInDirectory(entry.url, paths);
+            }else if (entry.name.fileExtension == ".js"){
+                paths.push(entry.name);
+            }
+        }
+    },
+
+    globals: async function(roots, visitFrameworks, seenFrameworks, envs){
+        await this.loadIncludeDirectoryURLs();
+        var includeDirectoryURLs = this.includeDirectoryURLs;
         var seenFiles = new Set();
         var urlStack = [];
         var frameworkStack = [];
@@ -371,9 +425,8 @@ JSClass("Project", JSObject, {
                         let frameworkProject = Project.initWithURL(url);
                         try{
                             await frameworkProject.load();
-                            let frameworkIncludeURLs = await frameworkProject.findIncludeDirectoryURLs();
-                            let roots = frameworkProject.roots(envs);
-                            let frameworkGlobals = await frameworkProject.globals(roots, frameworkIncludeURLs, true, seenFrameworks, envs);
+                            let roots = await frameworkProject.roots(envs);
+                            let frameworkGlobals = await frameworkProject.globals(roots, true, seenFrameworks, envs);
                             for (let i = 0, l = frameworkGlobals.length; i < l; ++i){
                                 globals.push(frameworkGlobals[i]);
                             }
@@ -391,16 +444,41 @@ JSClass("Project", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Resources
 
-    findResourceURLs: async function(blacklist){
-        if (!blacklist){
-            blacklist = {};
+    resources: null,
+
+    loadResources: async function(printer){
+        if (this.resources !== null){
+            return;
         }
-        if (!('names' in blacklist)){
-            blacklist.names = new Set();
+        var urls = await this.findResourceURLs();
+        var resources = Resources.initWithFileManager(this.fileManager);
+        for (let i = 0, l = urls.length; i < l; ++i){
+            let url = urls[i];
+            if (printer !== undefined){
+                printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
+            }
+            await resources.addResourceAtURL(url);
         }
-        if (!('extensions' in blacklist)){
-            blacklist.extensions = new Set();
+        this.resources = resources;
+    },
+
+    resourceBlacklist: function(){
+        switch (this.info.JSBundleType){
+            case "html":
+                return {names: new Set(["Info.yaml", "Info.json", "Dockerfile", "conf", "www", this.licenseFilename]), extensions: new Set()};
+            case "node":
+                return {names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", "README.md", this.licenseFilename]), extensions: new Set()};
+            case "framework":
+                return {names: new Set(["Info.yaml", "Info.json", this.licenseFilename]), extensions: new Set()};
+            case "tests":
+                return {names: new Set(["Info.yaml", "Info.json", this.licenseFilename]), extensions: new Set()};
+            default:
+                return {names: new Set(), blacklist: new Set()};
         }
+    },
+
+    findResourceURLs: async function(){
+        var blacklist = this.resourceBlacklist();
         blacklist.extensions.add(".js");
         blacklist.extensions.add(".jslink");
         blacklist.extensions.add(".jsframework");

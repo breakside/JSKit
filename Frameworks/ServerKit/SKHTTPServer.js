@@ -54,12 +54,15 @@ JSClass("SKHTTPServer", JSObject, {
     run: function(){
     },
 
-    handleRequest: function(request){
+    handleRequest: function(request, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
         logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
         var responder = null;
         var server = this;
         var catcher = function(error){
-            if (!(error instanceof SKHTTPError) && !(error instanceof SKValidatingObject.Error)){
+            if (error && !(error instanceof SKHTTPError) && !(error instanceof SKValidatingObject.Error)){
                 logger.error("%{public} %{error}", request.tag, error);
             }
             var errorResonder = responder || SKHTTPResponder.initWithRequest(request);
@@ -73,6 +76,7 @@ JSClass("SKHTTPServer", JSObject, {
             }catch(e){
                 logger.error(e);
             }
+            completion.call(target);
         };
         try{
 
@@ -130,6 +134,7 @@ JSClass("SKHTTPServer", JSObject, {
             catcher(e);
             finish();
         }
+        return completion.promise;
     }
 
 });

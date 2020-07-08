@@ -104,23 +104,7 @@ JSClass("TestBuilder", Builder, {
 
     findImports: async function(){
         this.printer.setStatus("Finding code...");
-        var suites = [];
-        await this._recursivelyFindImportsInDirectory(this.project.url, suites);
-        suites.sort();
-        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
-        this.imports = await this.project.findJavascriptImports(suites, includeDirectoryURLs);
-    },
-
-    _recursivelyFindImportsInDirectory: async function(url, suites){
-        var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
-        for (let i = 0, l = entries.length; i < l; ++i){
-            let entry = entries[i];
-            if (entry.itemType == JSFileManager.ItemType.directory){
-                await this._recursivelyFindImportsInDirectory(entry.url, suites);
-            }else if (entry.name.fileExtension == ".js"){
-                suites.push(entry.name);
-            }
-        }
+        this.imports = await this.project.findJavascriptImports();
     },
 
     // ----------------------------------------------------------------------
@@ -189,18 +173,9 @@ JSClass("TestBuilder", Builder, {
     resources: null,
 
     findResources: async function(){
-        var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", this.project.licenseFilename])
-        };
         this.printer.setStatus("Finding resources...");
-        var resourceURLs = await this.project.findResourceURLs(blacklist);
-        var resources = Resources.initWithFileManager(this.fileManager);
-        for (let i = 0, l = resourceURLs.length; i < l; ++i){
-            let url = resourceURLs[i];
-            this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
-            await resources.addResourceAtURL(url);
-        }
-        this.resources = resources;
+        await this.project.loadResources(this.printer);
+        this.resources = this.project.resources;
     },
 
     bundleResources: async function(){
