@@ -230,31 +230,34 @@ JSClass("SKValidatingObject", JSObject, {
     },
 
     numberForKeyInRange: function(key, min, max, defaultValue){
+        var prefix = this.valueProvider.prefix;
         return this.numberForKey(key, defaultValue, function(n){
             if (min !== undefined && n < min){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "range", min: min, max: max, provided: n});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "range", min: min, max: max, provided: n});
             }
             if (max !== undefined && n > max){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "range", min: min, max: max, provided: n});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "range", min: min, max: max, provided: n});
             }
         });
     },
 
     integerForKey: function(key, defaultValue){
+        var prefix = this.valueProvider.prefix;
         return this.numberForKey(key, defaultValue, function(n){
             if (n !== Math.floor(n)){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "type", expected: "integer"});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "type", expected: "integer"});
             }
         });
     },
 
     integerForKeyInRange: function(key, min, max, defaultValue){
+        var prefix = this.valueProvider.prefix;
         return this.integerForKey(key, defaultValue, function(n){
             if (min !== undefined && n < min){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "range", min: min, max: max, provided: n});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "range", min: min, max: max, provided: n});
             }
             if (max !== undefined && n > max){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "range", min: min, max: max, provided: n});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "range", min: min, max: max, provided: n});
             }
         });
     },
@@ -277,25 +280,39 @@ JSClass("SKValidatingObject", JSObject, {
         return value;
     },
 
+    stringForKeyInLengthRange: function(key, minLength, maxLength, defaultValue){
+        var prefix = this.valueProvider.prefix;
+        return this.stringForKey(key, defaultValue, function(s){
+            if (minLength !== undefined && s.length < minLength){
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "length", min: minLength, max: maxLength, provided: s.length});
+            }
+            if (maxLength !== undefined && s.length > maxLength){
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "length", min: minLength, max: maxLength, provided: s.length});
+            }
+        });
+    },
+
     emailForKey: function(key, defaultValue){
+        var prefix = this.valueProvider.prefix;
         return this.stringForKey(key, defaultValue, function(str){
             if (!str.match(/^[^\s]+@[^\s]+$/)){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "email"});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "format", format: "email"});
             }
         });
     },
 
     phoneForKey: function(key, defaultValue){
+        var prefix = this.valueProvider.prefix;
         return this.stringForKey(key, defaultValue, function(str){
             if (!str.match(/^\+?[\d\.\(\)\-\s]+$/)){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "phone"});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "format", format: "phone"});
             }
             var digits = str.replace(/[^\d]/g, '');
             if (digits.length > 15){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "phone"});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "format", format: "phone"});
             }
             if (digits.length < 7){
-                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "phone"});
+                throw new SKValidatingObject.Error({field: prefix + key, problem: "format", format: "phone"});
             }
         });
     },
@@ -424,6 +441,13 @@ SKValidatingObject.Error = function(info, message){
                     this.message = "`%s` must be <= %s".sprintf(info.field, info.max);
                 }else{
                     this.message = "`%s` must be >= %s".sprintf(info.field, info.min);
+                }
+                break;
+            case "length":
+                if (info.provided > info.max){
+                    this.message = "`%s.length` must be <= %s".sprintf(info.field, info.max);
+                }else{
+                    this.message = "`%s.length` must be >= %s".sprintf(info.field, info.min);
                 }
                 break;
             default:
