@@ -112,7 +112,23 @@ JSClass("TestCommand", Command, {
                 }
             });
             server.listen(port, '127.0.0.1');
-            process.stdout.write("Run in-browser tests at http://localhost:%d/\n".sprintf(port));
+            var url = JSURL.initWithString("http://localhost/");
+            url.port = port;
+            var args = JSArguments.initWithOptions({
+                suite: {default: null},
+                case: {default: null},
+                other: {kind: "unknown"}
+            });
+            var query = JSFormFieldMap();
+            args.parse([""].concat(this.arguments.testargs));
+            if (args.suite !== null){
+                query.set("suite", args.suite);
+                if (args.case !== null){
+                    query.set("case", args.case);
+                }
+            }
+            url.query = query;
+            process.stdout.write("Run in-browser tests at %s\n".sprintf(url.encodedString));
         }else{
             const { spawn } = require('child_process');
             let exe = this.fileManager.pathForURL(builder.executableURL);
