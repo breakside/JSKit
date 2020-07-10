@@ -367,7 +367,7 @@ JSClass("JSTimeZone", JSObject, {
 });
 
 JSTimeZone.changeLocalTimeZone = function(identifer){
-    localIdentifier = localIdentifier;
+    localIdentifier = identifer;
     Object.defineProperty(JSTimeZone, 'local', defaultLocalProperty);
 };
 
