@@ -42,8 +42,48 @@ jobs:
         run: npx jskit test Tests/FoundationTests
 
       - 
+        name: Test TestKit
+        run: npx jskit test Tests/TestKitTests
+
+      - 
         name: Test SecurityKit
         run: npx jskit test Tests/SecurityKitTests
+
+      - 
+        name: Test Dispatch
+        run: npx jskit test Tests/DispatchTests
+
+      - 
+        name: Test DOM
+        run: npx jskit test Tests/DOMTests
+
+      - 
+        name: Test ImageKit
+        run: npx jskit test Tests/ImageKitTests
+
+      - 
+        name: Test FontKit
+        run: npx jskit test Tests/FontKitTests
+
+      - 
+        name: Test PDFKit
+        run: npx jskit test Tests/PDFKitTests
+
+      - 
+        name: Test AuthKit
+        run: npx jskit test Tests/AuthKitTests
+
+      - 
+        name: Test DBKit
+        run: npx jskit test Tests/DBKitTests
+
+      - 
+        name: Test ServerKit
+        run: npx jskit test Tests/ServerKitTests
+
+      - 
+        name: Test UIKit
+        run: npx jskit test Tests/UIKitTests
 
       - 
         name: Test jskit

@@ -1547,4 +1547,6 @@ JSClass("TKTestRunTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    // TODO: teardown always called
+
 });

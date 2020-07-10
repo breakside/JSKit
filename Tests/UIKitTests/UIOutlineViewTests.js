@@ -459,7 +459,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 3);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 6);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 9);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 3);
         TKAssertExactEquals(calls.CustomCellInit.length, 3);
 
@@ -467,7 +467,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 4);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 8);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 12);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 4);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath[3].outlineView, outlineView);
         TKAssertObjectEquals(calls.cellForListViewAtIndexPath[3].indexPath, JSIndexPath([0,1]));
@@ -477,7 +477,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 4);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 8);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 15);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 4);
         TKAssertExactEquals(calls.CustomCellInit.length, 4);
 
@@ -485,7 +485,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 4);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 8);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 18);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 4);
         TKAssertExactEquals(calls.CustomCellInit.length, 4);
 
@@ -493,7 +493,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 5);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 10);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 22);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 5);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath[4].outlineView, outlineView);
         TKAssertObjectEquals(calls.cellForListViewAtIndexPath[4].indexPath, JSIndexPath([0,0]));
@@ -503,7 +503,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 8);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 14);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 26);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 8);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath[5].outlineView, outlineView);
         TKAssertObjectEquals(calls.cellForListViewAtIndexPath[5].indexPath, JSIndexPath([0,1]));
@@ -517,7 +517,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 11);
-        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 16);
+        TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 28);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 11);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath[8].outlineView, outlineView);
         TKAssertObjectEquals(calls.cellForListViewAtIndexPath[8].indexPath, JSIndexPath([0,0]));
