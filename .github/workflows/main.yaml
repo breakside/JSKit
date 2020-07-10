@@ -27,7 +27,7 @@ jobs:
       
       # Download & install nodes
       -
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v1
 
       # Install project dev dependencies
       -
