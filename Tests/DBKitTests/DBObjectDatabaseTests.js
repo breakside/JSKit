@@ -169,7 +169,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(this.db.object, this.db, id, function(obj){
                 TKAssertNotNull(obj);
-                expectation.call(this.db.deleteObject, this.db, id, function(success){
+                expectation.call(this.db.delete, this.db, id, function(success){
                     TKAssert(success);
                     expectation.call(this.db.object, this.db, id, function(obj){
                         TKAssertNull(obj);

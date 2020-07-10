@@ -79,8 +79,8 @@ JSClass("UIApplicationTests", TKTestSuite, {
                 UIApplicationRequiresFileManager: false
             }
         });
-        expectation.call(app.run, app, function(success){
-            TKAssert(success);
+        expectation.call(app.run, app, function(error){
+            TKAssertNull(error);
             TKAssert(launched);
         });
         this.wait(expectation, 1.0);
