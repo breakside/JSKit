@@ -24,9 +24,7 @@ SECPassword.dataDerivedFromPassphrase = function(passphrase, length, salt, itera
         completion = Promise.completion(Promise.resolveNonNull);
     }
     var digest = nodeAlgorithms[hash];
-    var utf8Passphrase = String.fromCharCode.apply(String, passphrase.utf8());
-    var saltString = String.fromCharCode.apply(String, salt);
-    crypto.pbkdf2(utf8Passphrase, saltString, iterations, length, digest, function(error, derivedBytes){
+    crypto.pbkdf2(passphrase.utf8().nodeBuffer(), salt.nodeBuffer(), iterations, length, digest, function(error, derivedBytes){
         if (error){
             completion.call(target, null);
         }else{
