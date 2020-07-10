@@ -20,7 +20,7 @@
 JSClass("JSURLSessionTests", TKTestSuite, {
 
     testRequest: function(){
-        var url = JSURL.initWithString("http://localhost:8088/");
+        var url = JSURL.initWithString(JSGlobalObject.location ? JSGlobalObject.location.href : "https://jskit.dev/");
         var expectation = TKExpectation.init();
         var task = expectation.call(JSURLSession.shared.dataTaskWithURL, JSURLSession.shared, url, function(error){
             TKAssertNull(error);
