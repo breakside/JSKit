@@ -71,13 +71,13 @@ JSClass("DBObjectDatabase", JSObject, {
     },
 
     requiredObject: function(id, errorfn, errorArg1){
+        var errorArgs = Array.prototype.slice.call(arguments, 2);
         var db = this;
         return new Promise(function(resolve, reject){
             resolve(db.object(id));
         }).then(function(object){
             if (object === null){
-                var args = Array.prototype.slice.call(arguments, 2);
-                throw errorfn.apply(undefined, args);
+                throw errorfn.apply(undefined, errorArgs);
             }
             return object;
         });
