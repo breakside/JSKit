@@ -65,7 +65,7 @@ JSClass("SECPasswordTests", TKTestSuite, {
 
     testCreateVerify: function(){
         var expectation = TKExpectation.init();
-        expectation.call(SECPassword.createWithPlainPassword, SECPassword, "test123", 256, 100000, SECHash.Algorithm.sha256, function(password){
+        expectation.call(SECPassword.createWithPlainPassword, SECPassword, "test123", 40, 100000, SECHash.Algorithm.sha256, function(password){
             TKAssertNotNull(password);
             expectation.call(password.verify, password, "Test123", function(verified){
                 TKAssert(!verified);
@@ -79,7 +79,7 @@ JSClass("SECPasswordTests", TKTestSuite, {
 
     testCreateVerifyPromise: function(){
         var expectation = TKExpectation.init();
-        var promise = SECPassword.createWithPlainPassword("test123", 512, 100000, SECHash.Algorithm.sha256);
+        var promise = SECPassword.createWithPlainPassword("test123", 64, 100000, SECHash.Algorithm.sha512);
         expectation.call(promise.then, promise, function(password){
             var promise = password.verify("Test123");
             expectation.call(promise.then, promise, function(verified){
