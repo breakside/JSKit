@@ -90,6 +90,175 @@ JSClass('TKTestRun', JSObject, {
         };
 
         var setupTestCase = function(){
+            return new Promise(function(resolve, reject){
+                suiteInstance = suite.init();
+                suiteInstance.bundle = run.bundle;
+                var promise = suiteInstance.setup();
+                if (promise){
+                    var timedOut = false;
+                    var timer = JSTimer.scheduledTimerWithInterval(suiteInstance.implicitWaitInterval, function(){
+                        timedOut = true;
+                        reject(new Error("Async test setup took longer than %f seconds".sprintf(suiteInstance.implicitWaitInterval)));
+                    });
+                    promise.then(function(){
+                        if (!timedOut){
+                            timer.invalidate();
+                            resolve();
+                        }
+                    }, function(e){
+                        if (!timedOut){
+                            timer.invalidate();
+                            reject(e);
+                        }
+                    });
+                    return;
+                }
+                if (suiteInstance.expectation){
+                    if (result !== null){
+                        suiteInstance.expectation.cancel();
+                    }
+                    suiteInstance.expectation.finally(function(){
+                        var error = suiteInstance.expectation.error;
+                        suiteInstance.expectation = null;
+                        if (error){
+                            reject(error);
+                        }else{
+                            resolve();
+                        }
+                    });
+                    return;
+                }
+                resolve();
+            });
+        };
+
+        var runTestCase = function(){
+            return new Promise(function(resolve, reject){
+                var promise = suiteInstance[testName]();
+                if (promise){
+                    var timedOut = false;
+                    var timer = JSTimer.scheduledTimerWithInterval(suiteInstance.implicitWaitInterval, function(){
+                        timedOut = true;
+                        reject(new Error("Async test took longer than %f seconds".sprintf(suiteInstance.implicitWaitInterval)));
+                    });
+                    promise.then(function(){
+                        if (!timedOut){
+                            timer.invalidate();
+                            resolve();
+                        }
+                    }, function(e){
+                        if (!timedOut){
+                            timer.invalidate();
+                            reject(e);
+                        }
+                    });
+                    return;
+                }
+                if (suiteInstance.expectation){
+                    if (result !== null){
+                        suiteInstance.expectation.cancel();
+                    }
+                    suiteInstance.expectation.finally(function(){
+                        var error = suiteInstance.expectation.error;
+                        suiteInstance.expectation = null;
+                        if (error){
+                            reject(error);
+                        }else{
+                            resolve();
+                        }
+                    });
+                    return;
+                }
+                resolve();
+            });
+        };
+
+        var teardownTestCase = function(){
+            return new Promise(function(resolve, reject){
+                if (suiteInstance !== null){
+                    var promise = suiteInstance.teardown();
+                    if (promise){
+                        var timedOut = false;
+                        var timer = JSTimer.scheduledTimerWithInterval(suiteInstance.implicitWaitInterval, function(){
+                            timedOut = true;
+                            reject(new Error("Async test teardown took longer than %f seconds".sprintf(suiteInstance.implicitWaitInterval)));
+                        });
+                        promise.then(function(){
+                            if (!timedOut){
+                                timer.invalidate();
+                                resolve();
+                            }
+                        }, function(e){
+                            if (!timedOut){
+                                timer.invalidate();
+                                reject(e);
+                            }
+                        });
+                        return;
+                    }
+                    if (suiteInstance.expectation){
+                        suiteInstance.expectation.finally(function(){
+                            var error = suiteInstance.expectation.error;
+                            suiteInstance.expectation = null;
+                            if (error){
+                                reject(error);
+                            }else{
+                                resolve();
+                            }
+                        });
+                        return;
+                    }
+                }
+                resolve();
+            });
+        };
+
+        var writeTestCaseResults = function(){
+            if (result === null){
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
+            }
+            if (result.result != TKTestResult.NotRun){
+                run.results[suite.className][TKTestResult.NotRun] -= 1;
+                run.results[suite.className][result.result] += 1;
+            }
+            run.endCase(suite, testName, result);
+        };
+
+        run.pause();
+        setupTestCase().then(runTestCase).catch(function(e){
+            handleTestCaseError(e);
+        }).then(teardownTestCase).catch(function(e){
+            handleTestCaseError(e);
+        }).then(function(){
+            writeTestCaseResults();
+            run.resume();
+        });
+    },
+
+    _runCaseOriginal: function(suite, testName){
+        TKAssertion.CurrentTestSuite = suite.className;
+        TKAssertion.CurrentTestCase = testName;
+        this.startCase(suite, testName);
+        var result = null;
+        var suiteInstance = null;
+        var run = this;
+
+        var handleTestCaseError = function(e){
+            if (result !== null){
+                return;
+            }
+            if (e instanceof TKAssertion){
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
+                result.message = e.message;
+            }else{
+                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Error);
+                var line = TKAssertion.LineForCurrentCaseInError(e);
+                result.error = e;
+                result.message = "Line " + line + ". " + e.toString();
+            }
+        };
+
+        var setupTestCase = function(){
             try{
                 suiteInstance = suite.init();
                 suiteInstance.bundle = run.bundle;

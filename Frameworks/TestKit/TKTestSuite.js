@@ -22,6 +22,7 @@ JSClass("TKTestSuite", JSObject, {
 
     expectation: null,
     bundle: null,
+    implicitWaitInterval: 5,
 
     init: function(){
     },
