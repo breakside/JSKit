@@ -75,6 +75,8 @@ JSClass('JSFormFieldMapTests', TKTestSuite, {
         TKAssertExactEquals(map.get("test"), "one");
         TKAssertNull(map.get("two"));
         TKAssertUndefined(map.get("three"));
+        map.add("withUppercase", "hi");
+        TKAssertEquals(map.get("withUppercase"), "hi");
     },
 
     testFormFieldMapGetAll: function(){

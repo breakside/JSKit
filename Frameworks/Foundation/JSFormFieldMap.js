@@ -126,11 +126,10 @@ JSFormFieldMap.prototype = {
     },
 
     unset: function(name){
-        var header;
-        var lowerName = name.lowercaseString();
+        var field;
         for (var i = this.fields.length - 1; i >= 0; --i){
-            header = this.fields[i];
-            if (header.name == lowerName){
+            field = this.fields[i];
+            if (field.name == name){
                 this.fields.splice(i, 1);
             }
         }
@@ -141,18 +140,21 @@ JSFormFieldMap.prototype = {
         this.add(name, value);
     },
 
-    get: function(name){
-        return this.getAll(name)[0];
+    get: function(name, defaultValue){
+        var values = this.getAll(name);
+        if (values.length === 0){
+            return defaultValue;
+        }
+        return values[0];
     },
 
     getAll: function(name){
         var values = [];
-        var header;
-        var lowerName = name.lowercaseString();
+        var field;
         for (var i = 0, l = this.fields.length; i < l; ++i){
-            header = this.fields[i];
-            if (header.name == lowerName){
-                values.push(header.value);
+            field = this.fields[i];
+            if (field.name == name){
+                values.push(field.value);
             }
         }
         return values;
