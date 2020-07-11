@@ -7,4 +7,4 @@ RUN npm install /${PROJECT_NAME_FILE_SAFE}
 EXPOSE 80
 
 ENTRYPOINT ["/${PROJECT_NAME_FILE_SAFE}/Node/${PROJECT_NAME_FILE_SAFE}"]
-CMD ["--port", 80]
+CMD ["--port", "80"]
