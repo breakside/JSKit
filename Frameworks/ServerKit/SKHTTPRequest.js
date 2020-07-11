@@ -54,24 +54,7 @@ JSClass("SKHTTPRequest", JSObject, {
         return this.headerMap.get('Origin', null);
     },
 
-    respond: function(statusCode, statusMessage, headerMap){
-        this._write("HTTP/1.1 %d %s\r\n".sprintf(statusCode, statusMessage));
-        var header;
-        for (var i = 0, l = headerMap.headers.length; i < l; ++i){
-            header = headerMap.headers[i];
-            this._write("%s\r\n".sprintf(header));
-        }
-        this._write("\r\n");
-    },
-
-    upgrade: function(statusMessage, headerMap){
-        this.respond(SKHTTPResponse.StatusCode.switchingProtocols, statusMessage, headerMap);
-    },
-
     createWebsocket: function(){
-    },
-
-    _write: function(){
     },
 
     close: function(){

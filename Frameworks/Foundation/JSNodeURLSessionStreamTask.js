@@ -19,6 +19,7 @@
 // #import "JSHTTPWebSocketParser.js"
 // #import "JSSHA1Hash.js"
 // #import "JSTimer.js"
+// #import "JSRunLoop.js"
 // #import "UUID.js"
 // jshint node: true
 'use strict';
@@ -37,39 +38,44 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         if (this.socket !== null){
             return;
         }
-        this.key = UUID.init().bytes.base64StringRepresentation();
-        var scheme = this.currentURL.scheme;
-        var port = this.currentURL.port;
-        var host = this.currentURL.host;
-        if (scheme == 'wss' || scheme == 'https'){
-            port = port || 443;
-            this.socket = tls.connect(port, host, this.handleConnect.bind(this));
-        }else if (scheme == 'ws' || scheme == 'http'){
-            port = port || 80;
-            this.socket = net.connect(port, host, this.handleSecureConnect.bind(this));
-        }else{
-            logger.error("invalid url scheme provided to stream task: %s{public}", scheme);
-            return;
+        try{
+            this.key = UUID.init().bytes.base64StringRepresentation();
+            var scheme = this.currentURL.scheme;
+            var port = this.currentURL.port;
+            var host = this.currentURL.host;
+            if (scheme == 'wss' || scheme == 'https'){
+                port = port || 443;
+                this.socket = tls.connect(port, host, this.handleConnect.bind(this));
+            }else if (scheme == 'ws' || scheme == 'http'){
+                port = port || 80;
+                this.socket = net.connect(port, host, this.handleSecureConnect.bind(this));
+            }else{
+                new Error("invalid URL scheme provided: %s".sprintf(scheme));
+            }
+        }catch (e){
+            logger.error(e);
+            JSRunLoop.main.schedule(this.session._taskDidReceiveStreamError, this.session, this, e);
+            JSRunLoop.main.schedule(this.session._taskDidCloseStream, this.session, this);
         }
-        this.socket.on('close', this.handleClose.bind(this));
-        this.socket.on('error', this.handleError.bind(this));
-        this.socket.on('timeout', this.handleTimeout.bind(this));
-        this.socket.on('end', this.handleEnd.bind(this));
-        this.socket.on('data', this.handleData.bind(this));
+        if (this.socket !== null){
+            this.socket.on('close', this.handleClose.bind(this));
+            this.socket.on('error', this.handleError.bind(this));
+            this.socket.on('timeout', this.handleTimeout.bind(this));
+            this.socket.on('end', this.handleEnd.bind(this));
+            this.socket.on('data', this.handleData.bind(this));
+        }
     },
 
     cancel: function(){
         if (this.httpTimeoutTimer !== null){
             this.httpTimeoutTimer.invalidate();
         }
-        this.stopPinging();
         this.socket.destroy();
     },
 
     sentClose: false,
 
     close: function(status){
-        this.stopPinging();
         this.sentClose = true;
         var payload = JSData.initWithLength(2);
         payload[0] = status >> 8;
@@ -213,7 +219,6 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         this.chunks = [];
         this.protocol = protocol;
         this.session._taskDidOpenStream(this);
-        this.startPinging();
     },
 
     webSocketParserDidReceivePing: function(parser, chunks){
@@ -225,7 +230,6 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
 
     webSocketParserDidReceivePong: function(parser, chunks){
         var pongData = JSData.initWithChunks(chunks);
-        this.pingData = null;
     },
 
     webSocketParserDidReceiveClose: function(parser, chunks){
@@ -257,33 +261,7 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         var data = JSData.initWithChunks(this.chunks);
         this.chunks = [];
         this.session._taskDidReceiveStreamData(this, data);
-    },
-
-    // ----------------------------------------------------------------------
-    // MARK: - Websocket ping
-
-    pingTimer: null,
-    pingData: null,
-
-    startPinging: function(){
-        if (this.pingTimer === null){
-            this.pingData = JSData.initWithLength(1);
-            this.pingTimer = JSTimer.scheduledRepeatingTimerWithInterval(55, this.sendPing, this);
-        }
-    },
-
-    stopPinging: function(){
-        if (this.pingTimer !== null){
-            this.pingTimer.invalidate();
-            this.pingTimer = null;
-        }
-    },
-
-    sendPing: function(){
-        this.pingData[0] += 1;
-        this.write(JSHTTPWebSocketParser.UnmaskedHeaderForData([this.pingData], JSHTTPWebSocketParser.FrameCode.ping));
-        this.write(this.pingData);
-    },
+    }
 
 });
 

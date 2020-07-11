@@ -47,7 +47,7 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         try{
             var json = JSON.stringify(payload);
             var jsondata = json.ut8();
-            data = data.initWithChunks([data, jsondata]);
+            data = JSData.initWithChunks([data, jsondata]);
         }catch (e){
             completion.call(target, e, null);
             return;
@@ -83,10 +83,10 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         }
     },
 
-    messageHeaderRange: JSRange(0, 3),
+    messageHeaderRange: JSRange(0, 4),
 
     taskDidReceiveStreamData: function(task, data){
-        if (data.length < 3){
+        if (data.length < this.messageHeaderRange.length){
             logger.error("Received message too short");
             return;
         }
@@ -97,12 +97,30 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
             logger.error("Received unexpected message id: %d", id);
             return;
         }
-        if (requestType != active.type){
-            logger.error("Received unexpected type for message id %d", id);
-            return;
-        }
+        var error = null;
         delete this.activeSendsById[id];
-        active.completion.call(active.target, null, data.subdataInRange(this.messageHeaderRange));
+        if (requestType != active.type){
+            error = new Error("Received unexpected type for message id %d".sprintf(id));
+        }else{
+            switch (data[3]){
+                case DBRemoteStore.ResponseStatus.success:
+                    break;
+                case DBRemoteStore.ResponseStatus.error:
+                    error = new Error("General Error");
+                    break;
+                case DBRemoteStore.ResponseStatus.badRequest:
+                    error = new Error("Bad Request");
+                    break;
+                default:
+                    error = new Error("Unknown Error");
+                    break;
+            }
+        }
+        var response = null;
+        if (data.length > this.messageHeaderRange.length){
+            response = data.subdataInRange(this.messageHeaderRange);
+        }
+        active.completion.call(active.target, error, response);
     },
 
     taskDidReceiveStreamError: function(task, error){
@@ -162,6 +180,14 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
     }
 
 });
+
+DBRemoteStore.ResponseStatus = {
+
+    success: 0x00,
+    error: 0x01,
+    badRequest: 0x02
+
+};
 
 DBRemoteStore.MessageType = {
     getObject: 0x01,

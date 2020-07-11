@@ -16,6 +16,7 @@
 // #import "JSURL.js"
 // #import "JSURLSessionStreamTask.js"
 // #import "JSLog.js"
+// #import "JSRunLoop.js"
 // #feature WebSocket
 // #feature Uint8Array
 // jshint browser: true
@@ -30,11 +31,17 @@ JSClass("JSHTMLURLSessionStreamTask", JSURLSessionStreamTask, {
     _websocket: null,
 
     resume: function(){
-        if (this._websocket === null){
+        if (this._websocket !== null){
+            return;
+        }
+        try{
             var url = this._currentURL;
             this._websocket = new WebSocket(url.encodedString, this.requestedProtocols);
             this._websocket.binaryType = "arraybuffer";
             this._addEventListeners(this._websocket);
+        }catch (e){
+            logger.error(e);
+            JSRunLoop.main.schedule(this.session._taskDidReceiveStreamError, this.session, this, e);
         }
     },
 

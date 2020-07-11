@@ -38,6 +38,12 @@ JSClass("SKMockHTTPRequest", SKHTTPRequest, {
 
     _write: function(){
         
-    }
+    },
+
+    mockWebSocket: null,
+
+    createWebsocket: function(){
+        return this.mockWebSocket;
+    },
 
 });

@@ -34,7 +34,6 @@ JSClass("SKHTTPResponder", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     allowedOrigins: null,
     route: null,
-    _isWebsocket: false,
 
     initWithRequest: function(request, context){
         this._request = request;
@@ -53,10 +52,6 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     fail: function(error){
-        if (this._isWebsocket){
-            this._request.close();
-            return;
-        }
         if (error instanceof SKValidatingObject.Error){
             this.sendObject({invalid: error.info}, SKHTTPResponse.StatusCode.badRequest);
             return;
@@ -115,33 +110,6 @@ JSClass("SKHTTPResponder", JSObject, {
         return this.objectMethodForRequestMethod(this.request.method);
     },
 
-    acceptWebsocketUpgrade: function(allowedProtocols){
-        logger.info("%{public} upgrading to websocket", this.request.tag);
-        var requestHeaders = this._request.headerMap;
-        var version = requestHeaders.get('Sec-WebSocket-Version');
-        if (version !== "13"){
-            logger.warn("%{public} Unexpected websocket version: %{public}", this._request.tag, version);
-            throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
-        }
-        var requestedProtocols = requestHeaders.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
-        var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
-        if (protocol === null){
-            logger.warn("%{public} No match for protocols: %{public}", this._request.tag, requestedProtocols.join(", "));
-            throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
-        }
-
-        var key = requestHeaders.get('Sec-WebSocket-Key', '');
-        var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8()).base64StringRepresentation();
-        var upgradeHeaders = JSMIMEHeaderMap();
-        upgradeHeaders.add("Upgrade", "websocket");
-        upgradeHeaders.add("Connection", "Upgrade");
-        upgradeHeaders.add("Sec-WebSocket-Accept", accept);
-        upgradeHeaders.add("Sec-WebSocket-Protocol", protocol);
-        this._request.upgrade("Web Socket Protocol Handshake", upgradeHeaders);
-        this._isWebsocket = true;
-        return this._request.createWebsocket();
-    },
-
     sendData: function(data, contentType, status){
         if (status === undefined){
             status = SKHTTPResponse.StatusCode.ok;
@@ -160,8 +128,8 @@ JSClass("SKHTTPResponder", JSObject, {
 
     sendObject: function(obj, status, indent){
         var json = JSON.stringify(obj, null, indent ? 2 : 0);
-        this.response.setHeader("Cache-Control", "no-cache");
-        this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
+        this.response.headerMap.set("Cache-Control", "no-cache");
+        this.response.headerMap.set("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
         this.sendString(json + "\n", "application/json", status);
     },
 
@@ -178,7 +146,7 @@ JSClass("SKHTTPResponder", JSObject, {
         }
         this._setAccessHeaders();
         this.response.statusCode = SKHTTPResponse.StatusCode.found;
-        this.response.setHeader("Location", destination);
+        this.response.headerMap.set("Location", destination);
     },
 
     sendFile: function(filePath, contentType, hash, statusCode){
@@ -206,34 +174,23 @@ JSClass("SKHTTPResponder", JSObject, {
                 allowed = this.allowedOrigins[origin];
             }
             if (allowed){
-                this.response.setHeader("Access-Control-Allow-Origin", origin);
+                this.response.headerMap.set("Access-Control-Allow-Origin", origin);
                 if (origin != "*"){
-                    this.response.setHeader("Vary", "Origin");
+                    this.response.headerMap.set("Vary", "Origin");
                 }
                 if (this.request.headerMap.get('Access-Control-Request-Method', null) !== null){
-                    this.response.setHeader("Access-Control-Allow-Methods", allowed.methods.join(", "));
+                    this.response.headerMap.set("Access-Control-Allow-Methods", allowed.methods.join(", "));
                 }
                 if (this.request.headerMap.get('Access-Control-Request-Headers', null) !== null){
-                    this.response.setHeader("Access-Control-Allow-Headers", allowed.headers.join(", "));
+                    this.response.headerMap.set("Access-Control-Allow-Headers", allowed.headers.join(", "));
                 }
                 if (this.request.method == "OPTIONS"){
-                    this.response.setHeader("Access-Control-Max-Age", 60 * 60);
+                    this.response.headerMap.set("Access-Control-Max-Age", 60 * 60);
                 }
             }
         }
     }
 
 });
-
-var findFirstMatch = function(a, b){
-    for (var i = 0, l = a.length; i < l; ++i){
-        for (var j = 0, k = b.length; j < k; ++j){
-            if (a[i] == b[j].trim()){
-                return a[i];
-            }
-        }
-    }
-    return null;
-};
 
 })();

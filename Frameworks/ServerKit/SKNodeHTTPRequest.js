@@ -39,10 +39,6 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
         return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket, this.tag);
     },
 
-    _write: function(str){
-        this._nodeRequest.socket.write(str);
-    },
-
     close: function(){
         this._nodeRequest.socket.destroy();
     },

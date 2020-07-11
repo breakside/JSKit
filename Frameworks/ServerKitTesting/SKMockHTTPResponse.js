@@ -36,26 +36,17 @@ JSClass("SKMockHTTPResponse", SKHTTPResponse, {
         return completion.promise;
     },
 
-    getStatusCode: function(){
-        return this.urlResponse.statusCode;
-    },
-
-    setStatusCode: function(statusCode){
-        this.urlResponse.statusCode = statusCode;
-    },
-
     complete: function(){
+        this.writeHeaderIfNeeded();
     },
 
-    setHeader: function(name, value){
-        this.urlResponse.headerMap.set(name, value);
-    },
-
-    getHeader: function(name){
-        return this.urlResponse.headerMap.get(name);
+    writeHeader: function(){
+        this.urlResponse.statusCode = this.statusCode;
+        this.urlResponse._headerMap = JSMIMEHeaderMap(this._headerMap);
     },
 
     writeData: function(data){
+        this.writeHeaderIfNeeded();
         this.chunks.push(data);
         this.urlResponse.data = JSData.initWithChunks(this.chunks);
     },

@@ -25,36 +25,47 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
     _nodeResponse: null,
 
     initWithNodeResponse: function(nodeResponse, tag){
+        SKNodeHTTPResponse.$super.init.call(this);
         this._nodeResponse = nodeResponse;
         this.tag = tag;
     },
 
-    getStatusCode: function(){
-        return this._nodeResponse.statusCode;
-    },
-
-    setStatusCode: function(statusCode){
-        this._nodeResponse.statusCode = statusCode;
-    },
-
     complete: function(){
+        this.writeHeaderIfNeeded();
         this._nodeResponse.end();
         logger.info("%{public} %d response complete", this.tag, this.statusCode);
     },
 
-    setHeader: function(name, value){
-        this._nodeResponse.setHeader(name, value);
-    },
-
-    getHeader: function(name){
-        return this._nodeResponse.getHeader(name);
+    writeHeader: function(){
+        var nameMap = {};
+        var nodeHeaders = {};
+        var header;
+        for (var i = 0, l = this.headerMap.headers.length; i < l; ++i){
+            header = this.headerMap.headers[i];
+            var nodeName = nameMap[header.lowerName];
+            if (!nodeName){
+                nodeName = nameMap[header.lowerName] = header.name;
+            }
+            if (nodeName in nodeHeaders){
+                if (!(nodeHeaders[nodeName] instanceof Array)){
+                    nodeHeaders[nodeName] = [nodeHeaders[nodeName]];
+                }
+                nodeHeaders[nodeName].push(header.value);
+            }else{
+                nodeHeaders[nodeName] = header.value;
+            }
+        }
+        this._nodeResponse.writeHead(this._statusCode, nodeHeaders);
+        this._nodeResponse.flushHeaders();
     },
 
     writeData: function(data){
+        this.writeHeaderIfNeeded();
         this._nodeResponse.write(data.nodeBuffer());
     },
 
     writeFile: function(filePath){
+        this.writeHeaderIfNeeded();
         var fp = fs.createReadStream(filePath);
         fp.pipe(this._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
         logger.info("%{public} %d write file complete", this.tag, this.statusCode);
