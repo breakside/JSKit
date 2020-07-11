@@ -39,7 +39,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
     numberForKey: function(key){
         var n = this.obj[key];
         if (n !== undefined){
-            if (isNaN(n)){
+            if (typeof(n) != "number" || isNaN(n) || !isFinite(n)){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "number"});
             }
         }
@@ -60,7 +60,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
         var a = this.obj[key];
         if (a !== undefined){
             if (typeof(a) !== "object" || !(a instanceof Array)){
-                throw new Error({field: this.prefix + key, problem: "type", expected: "array"});
+                throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "array"});
             }
             return SKValidatingObjectPropertyProvider.initWithObject(a, this.prefix + key + '.');
         }
@@ -70,8 +70,8 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
     objectValueProviderForKey: function(key){
         var o = this.obj[key];
         if (o !== undefined){
-            if (typeof(obj) !== "object"){
-                throw new Error({field: this.prefix + key, problem: "type", expected: "object"});
+            if (typeof(o) !== "object" || o === null || (o instanceof Array)){
+                throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "object"});
             }
             return SKValidatingObjectPropertyProvider.initWithObject(o, this.prefix + key + '.');
         }
@@ -96,24 +96,24 @@ JSClass("SKValidatingObjectFormFieldProvider", JSObject, {
         this.prefix = prefix || "";
     },
 
-    _stringForKey: function(key){
-        return this.form.get(key);
+    _stringForKey: function(key, expectedType){
+        var values = this.form.getAll(key);
+        if (values.length === 0){
+            return undefined;
+        }
+        if (values.length === 1 && values[0] !== null){
+            return values[0];
+        }
+        throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: expectedType});
     },
 
     stringForKey: function(key){
-        var s = this._stringForKey(key);
-        if (s === null){
-            throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "string"});
-        }
-        return s;
+        return this._stringForKey(key, "string");
     },
 
     numberForKey: function(key){
-        var stringValue = this._stringForKey(key);
+        var stringValue = this._stringForKey(key, "number");
         if (stringValue !== undefined){
-            if (stringValue === null){
-                throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "number"});
-            }
             var n = NaN;
             if (stringValue.match(/^\d+$/)){
                 n = parseInt(stringValue);
@@ -129,9 +129,9 @@ JSClass("SKValidatingObjectFormFieldProvider", JSObject, {
     },
 
     booleanForKey: function(key){
-        var stringValue = this._stringForKey(key);
+        var stringValue = this._stringForKey(key, "boolean");
         if (stringValue !== undefined){
-            if (stringValue === null && stringValue === 'true' || stringValue === '1' || stringValue === 'yes' || stringValue === 'on'){
+            if (stringValue === 'true' || stringValue === '1' || stringValue === 'yes' || stringValue === 'on'){
                 return true;
             }
             if (stringValue === 'false' || stringValue === '0' || stringValue === 'no' || stringValue === 'off'){
@@ -151,9 +151,9 @@ JSClass("SKValidatingObjectFormFieldProvider", JSObject, {
     },
 
     objectValueProviderForKey: function(key){
-        var o = this._stringForKey(key);
+        var o = this._stringForKey(key, "object");
         if (o !== undefined){
-            throw new Error({field: this.prefix + key, problem: "type", expected: "object"});
+            throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "object"});
         }
         return null;
     },
@@ -171,14 +171,20 @@ JSClass("SKValidatingObjectFormFieldArrayProvider", SKValidatingObjectFormFieldP
         this.prefix = prefix || "";
     },
 
-    _stringForKey: function(key){
-        return this.array[key];
+    _stringForKey: function(key, expectedType){
+        var s = this.array[key];
+        if (s !== undefined){
+            if (s === null){
+                throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: expectedType});
+            }
+        }
+        return s;
     },
 
     arrayValueProviderForKey: function(key){
         var a = this.array[key];
-        if (a.length > 0){
-            throw new Error({field: this.prefix + key, problem: "type", expected: "array"});
+        if (a !== undefined){
+            throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "array"});
         }
         return null;
     },
@@ -241,11 +247,14 @@ JSClass("SKValidatingObject", JSObject, {
         });
     },
 
-    integerForKey: function(key, defaultValue){
+    integerForKey: function(key, defaultValue, validator){
         var prefix = this.valueProvider.prefix;
         return this.numberForKey(key, defaultValue, function(n){
             if (n !== Math.floor(n)){
                 throw new SKValidatingObject.Error({field: prefix + key, problem: "type", expected: "integer"});
+            }
+            if (validator){
+                validator(n);
             }
         });
     },
@@ -295,7 +304,7 @@ JSClass("SKValidatingObject", JSObject, {
     emailForKey: function(key, defaultValue){
         var prefix = this.valueProvider.prefix;
         return this.stringForKey(key, defaultValue, function(str){
-            if (!str.match(/^[^\s]+@[^\s]+$/)){
+            if (!str.match(/^[^\s]+@[^\s]*[^\s\.]$/)){
                 throw new SKValidatingObject.Error({field: prefix + key, problem: "format", format: "email"});
             }
         });
@@ -418,9 +427,11 @@ SKValidatingObject.Error = function(info, message){
     if (this === undefined || this === SKValidatingObject){
         return new SKValidatingObject.Error(info, message);
     }
+    this.name = "SKValidatingObject.Error";
     if (info instanceof SKValidatingObject.Error){
         this.info = info.info;
         this.message = info.message;
+        this.stack = info.stack;
     }else{
         this.info = info;
         switch (info.problem){
@@ -454,13 +465,10 @@ SKValidatingObject.Error = function(info, message){
                 this.message = message;
                 break;
         }
+        if (Error.captureStackTrace){
+            Error.captureStackTrace(this, SKValidatingObject.Error);
+        }
     }
 };
 
-SKValidatingObject.Error.prototype = {
-    
-    toString: function(){
-        return "[SKValidatingObject.Error " + this.message + "]";
-    }
-
-};
+SKValidatingObject.Error.prototype = Object.create(Error.prototype);
