@@ -83,10 +83,10 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         }
     },
 
-    messageHeaderRange: JSRange(0, 4),
+    messageHeaderLength: 4,
 
     taskDidReceiveStreamData: function(task, data){
-        if (data.length < this.messageHeaderRange.length){
+        if (data.length < this.messageHeaderLength){
             logger.error("Received message too short");
             return;
         }
@@ -117,8 +117,8 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
             }
         }
         var response = null;
-        if (data.length > this.messageHeaderRange.length){
-            response = data.subdataInRange(this.messageHeaderRange);
+        if (data.length > this.messageHeaderLength){
+            response = data.subdataInRange(JSRange(this.messageHeaderLength, data.length - this.messageHeaderLength));
         }
         active.completion.call(active.target, error, response);
     },
