@@ -26,4 +26,9 @@ JSGlobalObject.SKHTTPError = function(statusCode, message){
         this.statusCode = statusCode;
         this.message = message;
     }
+    if (Error.captureStackTrace){
+        Error.captureStackTrace(this, SKHTTPError);
+    }
 };
+
+JSGlobalObject.SKHTTPError.prototype = Object.create(Error.prototype);

@@ -73,6 +73,9 @@ function ZlibError(msg){
     }
     this.name = "ZlibError";
     this.message = msg;
+    if (Error.captureStackTrace){
+        Error.captureStackTrace(this, ZlibError);
+    }
 }
 
 ZlibError.prototype = Object.create(Error.prototype);

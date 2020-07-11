@@ -869,6 +869,9 @@ function DeflateError(msg){
     }
     this.name = "DeflateError";
     this.message = msg;
+    if (Error.captureStackTrace){
+        Error.captureStackTrace(this, DeflateError);
+    }
 }
 
 DeflateError.prototype = Object.create(Error.prototype);
