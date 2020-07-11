@@ -84,6 +84,18 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         SKHTTPWebSocketResponder.$super.fail.call(this);
     },
 
+    sendMessage: function(data){
+        this._socket.sendMessage(data);
+    },
+
+    startMessage: function(data){
+        this._socket.startMessage(data);
+    },
+
+    continueMessage: function(data, isFinal){
+        this._socket.continueMessage(data, isFinal);
+    },
+
     websocketEstablished: function(socket){
     },
 
