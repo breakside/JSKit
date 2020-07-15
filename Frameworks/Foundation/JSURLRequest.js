@@ -57,6 +57,11 @@ JSClass("JSURLRequest", JSObject, {
         this.contentType = JSMediaType('application/json', {charset: 'utf-8'});
     },
 
+    setForm: function(form){
+        this.data = form.urlEncoded();
+        this.contentType = JSMediaType('application/x-www-form-urlencoded');
+    },
+
     setContentType: function(mediaType){
         this._headerMap.set('Content-Type', mediaType.toString());
     },
