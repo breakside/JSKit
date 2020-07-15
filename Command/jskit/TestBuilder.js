@@ -189,14 +189,14 @@ JSClass("TestBuilder", Builder, {
         await this.addBundleJS(this.sourcesURL, this.resourcesURL, this.project.info, this.resources, true);
     },
 
-    addBundleJS: async function(parentURL, resourcesURL, info, resources, isMain){
+    addBundleJS: async function(parentURL, resourcesURL, info, resources, isTestBundle){
         var bundle = {
             Info: info,
             Resources: [],
             ResourceLookup: {},
             Fonts: []
         };
-        if (isMain){
+        if (isTestBundle){
             if (this.hasLinkedDispatchFramework){
                 bundle.Info = JSCopy(bundle.Info);
                 bundle.Info.JSNodeDispatchQueueWorkerModule = this.nodeWorkerURL.lastPathComponent;
@@ -220,8 +220,10 @@ JSClass("TestBuilder", Builder, {
         }
         var json = JSON.stringify(bundle, null, this.debug ? 2 : 0);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
-        if (isMain){
+        if (info.JSBundleType == "html" || info.JSBundleType == "node"){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
+        }
+        if (isTestBundle){
             js += 'JSBundle.testBundle = JSBundle.initWithIdentifier("%s");\n'.sprintf(info.JSBundleIdentifier);
         }
 
@@ -231,7 +233,7 @@ JSClass("TestBuilder", Builder, {
         this.htmlScripts.push(path);
         this.nodeExecutableRequires.push(path);
 
-        if (isMain){
+        if (isTestBundle){
             jsURL = parentURL.appendingPathComponent("node-bundle.js");
             js = 'var path = require("path");\n';
             js += 'JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n';
