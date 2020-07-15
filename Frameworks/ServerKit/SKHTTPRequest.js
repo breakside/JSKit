@@ -177,9 +177,8 @@ JSClass("SKHTTPRequest", JSObject, {
                 completion.call(target, null);
                 return;
             }
-            var encoded = String.initWithData(data, this.contentType.parameters.charset);
             var form = JSFormFieldMap();
-            form.decode(encoded, true);
+            form.decode(data, true);
             completion.call(target, form);
         }, this);
         return completion.promise;
