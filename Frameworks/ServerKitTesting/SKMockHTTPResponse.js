@@ -52,7 +52,7 @@ JSClass("SKMockHTTPResponse", SKHTTPResponse, {
     },
 
     writeFile: function(filePath){
-        throw new Error("Not implemented");
+        this.writeHeaderIfNeeded();
     }
 
 });

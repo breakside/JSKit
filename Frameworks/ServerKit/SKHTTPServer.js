@@ -66,7 +66,7 @@ JSClass("SKHTTPServer", JSObject, {
                 logger.error("%{public} %{error}", request.tag, error);
             }
             var errorResonder = responder || SKHTTPResponder.initWithRequest(request);
-            errorResonder.fail(error);
+            return errorResonder.fail(error) || Promise.resolve();
         };
         var finish = function(){
             try{
@@ -131,8 +131,7 @@ JSClass("SKHTTPServer", JSObject, {
             // 6. Error Handling & Metrics
             }).catch(catcher).then(finish);
         }catch (e){
-            catcher(e);
-            finish();
+            catcher(e).then(finish);
         }
         return completion.promise;
     }

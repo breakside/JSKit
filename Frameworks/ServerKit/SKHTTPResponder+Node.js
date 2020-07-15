@@ -14,14 +14,14 @@
 // limitations under the License.
 
 // #import "SKHTTPResponder.js"
-// jshint node: true
+// jshint node: true, esversion: 8
 'use strict';
 
 var fs = require('fs');
 
 SKHTTPResponder.definePropertiesFromExtensions({
 
-    sendResource: function(metadata, statusCode){
+    sendResource: async function(metadata, statusCode){
         if (statusCode === undefined){
             statusCode = SKHTTPResponse.StatusCode.ok;
         }
@@ -38,7 +38,7 @@ SKHTTPResponder.definePropertiesFromExtensions({
             return;
         }
         var path = JSBundle.getNodePath(metadata);
-        this.sendFile(path, metadata.mimetype, metadata.hash, statusCode);
+        await this.sendFile(path, metadata.mimetype, metadata.hash, statusCode);
     },
 
     sendFile: function(filePath, contentType, hash, statusCode){
@@ -47,20 +47,23 @@ SKHTTPResponder.definePropertiesFromExtensions({
         }
         this._setAccessHeaders();
         var responder = this;
-        fs.stat(filePath, function(error, stat){
-            if (error){
-                if (statusCode !== SKHTTPResponse.StatusCode.ok){
-                    // We're trying to send a non-ok code, like maybe an html
-                    // resource for a 400/404/500 page but can't find the
-                    // file to send with it.  Make sure to still send the
-                    // intended code even though we can't find the file.
-                    responder.sendStatus(statusCode);
+        return new Promise(function(resolve, reject){
+            fs.stat(filePath, function(error, stat){
+                if (error){
+                    if (statusCode !== SKHTTPResponse.StatusCode.ok){
+                        // We're trying to send a non-ok code, like maybe an html
+                        // resource for a 400/404/500 page but can't find the
+                        // file to send with it.  Make sure to still send the
+                        // intended code even though we can't find the file.
+                        responder.sendStatus(statusCode);
+                    }else{
+                        responder.sendStatus(SKHTTPResponse.StatusCode.notFound);
+                    }
                 }else{
-                    responder.sendStatus(SKHTTPResponse.StatusCode.notFound);
+                    responder._sendFileAfterStat(filePath, contentType, hash, stat, statusCode);
                 }
-            }else{
-                responder._sendFileAfterStat(filePath, contentType, hash, stat, statusCode);
-            }
+                resolve();
+            });
         });
     },
 

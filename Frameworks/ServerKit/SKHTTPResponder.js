@@ -145,11 +145,12 @@ JSClass("SKHTTPResponder", JSObject, {
             destination = destination.encodedString;
         }
         this._setAccessHeaders();
-        this.response.statusCode = SKHTTPResponse.StatusCode.found;
         this.response.headerMap.set("Location", destination);
+        this.sendStatus(SKHTTPResponse.StatusCode.found);
     },
 
     sendFile: function(filePath, contentType, hash, statusCode){
+        return Promise.reject(new Error("not implemented"));
     },
 
     sendResourceNamed: function(name, type, statusCode, bundle){
@@ -159,10 +160,11 @@ JSClass("SKHTTPResponder", JSObject, {
         }
         bundle = bundle || JSBundle.mainBundle;
         var metadata = bundle.metadataForResourceName(name, type);
-        this.sendResource(metadata, statusCode);
+        return this.sendResource(metadata, statusCode);
     },
 
     sendResource: function(metadata, statusCode){
+        return Promise.reject(new Error("not implemented"));
     },
 
     _setAccessHeaders: function(){
