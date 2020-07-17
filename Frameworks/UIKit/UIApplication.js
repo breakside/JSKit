@@ -28,18 +28,22 @@ var logger = JSLog("uikit", "application");
 
 JSClass('UIApplication', UIResponder, {
 
-    // MARK: - Initialization & Startup
-
-    initWithWindowServer: function(windowServer){
+    initWithBundle: function(bundle, windowServer){
         if (shared){
             throw new Error("UIApplication.init: one application already initialized, and only one may exist");
         }
-        this.bundle = JSBundle.mainBundle;
+        this.bundle = bundle;
         this.setupLogging();
         logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
         this._windowsById = {};
+    },
+
+    // MARK: - Initialization & Startup
+
+    initWithWindowServer: function(windowServer){
+        this.initWithBundle(JSBundle.mainBundle, windowServer);
     },
 
     deinit: function(){
