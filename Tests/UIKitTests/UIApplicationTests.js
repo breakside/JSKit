@@ -41,7 +41,8 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
     setup: function(){
         var windowServer = MockWindowServer.init();
-        this.app = UIApplication.initWithWindowServer(windowServer);
+        var bundle = JSBundle.initWithDictionary({Info: {}});
+        this.app = UIApplication.initWithBundle(bundle, windowServer);
     },
 
     teardown: function(){
@@ -58,7 +59,8 @@ JSClass("UIApplicationTests", TKTestSuite, {
         TKAssertExactEquals(this.app, UIApplication.shared);
         TKAssertThrows(function(){
             var windowServer = MockWindowServer.init();
-            this.app = UIApplication.initWithWindowServer(windowServer);
+            var bundle = JSBundle.initWithDictionary({Info: {}});
+            this.app = UIApplication.initWithBundle(bundle, windowServer);
         });
     },
 

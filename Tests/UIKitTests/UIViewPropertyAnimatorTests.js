@@ -22,7 +22,8 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
 
     setup: function(){
         this.windowServer = MockWindowServer.init();
-        this.application = UIApplication.initWithWindowServer(this.windowServer);
+        var bundle = JSBundle.initWithDictionary({Info: {}});
+        this.application = UIApplication.initWithBundle(bundle, this.windowServer);
     },
 
     teardown: function(){

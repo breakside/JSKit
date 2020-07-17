@@ -26,7 +26,8 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
 
     setup: function(){
         this.windowServer = MockWindowServer.init();
-        this.app = UIApplication.initWithWindowServer(this.windowServer);
+        var bundle = JSBundle.initWithDictionary({Info: {}});
+        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
         this.window = UIRootWindow.initWithApplication(this.app);
         this.window.makeKeyAndOrderFront();
         JSFont.registerDummySystemFont();

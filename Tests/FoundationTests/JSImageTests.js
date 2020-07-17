@@ -20,7 +20,7 @@
 JSClass("JSImageTests", TKTestSuite, {
 
     testResourceData: function(){
-        var image = JSImage.initWithResourceName('test');
+        var image = JSImage.initWithResourceName('test', JSBundle.testBundle);
         TKAssertNotNull(image);
 
         var expectation = TKExpectation.init();
