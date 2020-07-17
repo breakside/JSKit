@@ -78,6 +78,7 @@ SECHMAC.definePropertiesFromExtensions({
 });
 
 var nodeAlgorithms = {};
+nodeAlgorithms[SECHMAC.Algorithm.sha1] = 'sha1';
 nodeAlgorithms[SECHMAC.Algorithm.sha256] = 'sha256';
 nodeAlgorithms[SECHMAC.Algorithm.sha384] = 'sha384';
 nodeAlgorithms[SECHMAC.Algorithm.sha512] = 'sha512';

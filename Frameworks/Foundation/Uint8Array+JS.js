@@ -33,6 +33,11 @@ var base64URLEncodingMap = [
     '-', '_'
 ];
 
+var base32EncodingMap = [
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '2', '3', '4', '5', '6', '7'
+];
+
 Object.defineProperties(Uint8Array, {
 
     initWithLength: {
@@ -150,7 +155,7 @@ Object.defineProperties(Uint8Array.prototype, {
         enumerable: false,
         value: function Uint8Array__base64StringRepresentation(map, maxLineWidth, omitPadding){
             if (maxLineWidth === undefined){
-                maxLineWidth = this.length * 2 + 4;
+                maxLineWidth = Number.MAX_VALUE;
             }
             if (omitPadding === undefined){
                 omitPadding = false;
@@ -189,6 +194,95 @@ Object.defineProperties(Uint8Array.prototype, {
                 str += map[(this[i] & 0x3) << 4];
                 if (!omitPadding){
                     str += '==';
+                }
+            }
+            return str;
+        }
+    },
+
+    base32StringRepresentation: {
+        enumerable: false,
+        value: function Uint8Array_base32StringRepresentation(maxLineWidth, omitPadding){
+            return this._base32StringRepresentation(base32EncodingMap, maxLineWidth, omitPadding);
+        }
+    },
+
+    _base32StringRepresentation: {
+        enumerable: false,
+        value: function Uint8Array__base32StringRepresentation(map, maxLineWidth, omitPadding){
+            if (maxLineWidth === undefined){
+                maxLineWidth = Number.MAX_VALUE;
+            }
+            if (omitPadding === undefined){
+                omitPadding = false;
+            }
+            var str = '';
+            var i, l;
+            var lineWidth = 0;
+            for (i = 0, l = this.length - 4; i < l; i += 5){
+                lineWidth += 8;
+                if (lineWidth > maxLineWidth){
+                    str += "\n";
+                    lineWidth = 8;
+                }
+                str += map[this[i] >> 3];
+                str += map[((this[i] & 0x7) << 2) | (this[i + 1] >> 6)];
+                str += map[(this[i + 1] & 0x3E) >> 1];
+                str += map[((this[i + 1 ] & 0x1) << 4) | (this[i + 2] >> 4)];
+                str += map[((this[i + 2] & 0xF) << 1) | (this[i + 3] >> 7)];
+                str += map[(this[i + 3] & 0x7C) >> 2];
+                str += map[((this[i + 3] & 0x3) << 3) | (this[i + 4] >> 5)];
+                str += map[this[i + 4] & 0x1F];
+            }
+            if (i == this.length - 4){
+                lineWidth += 8;
+                if (lineWidth > maxLineWidth){
+                    str += "\n";
+                }
+                str += map[this[i] >> 3];
+                str += map[((this[i] & 0x7) << 2) | (this[i + 1] >> 6)];
+                str += map[(this[i + 1] & 0x3E) >> 1];
+                str += map[((this[i + 1 ] & 0x1) << 4) | (this[i + 2] >> 4)];
+                str += map[((this[i + 2] & 0xF) << 1) | (this[i + 3] >> 7)];
+                str += map[(this[i + 3] & 0x7C) >> 2];
+                str += map[((this[i + 3] & 0x3) << 3)];
+                if (!omitPadding){
+                    str += '=';
+                }
+            }else if (i == this.length - 3){
+                lineWidth += 8;
+                if (lineWidth > maxLineWidth){
+                    str += "\n";
+                }
+                str += map[this[i] >> 3];
+                str += map[((this[i] & 0x7) << 2) | (this[i + 1] >> 6)];
+                str += map[(this[i + 1] & 0x3E) >> 1];
+                str += map[((this[i + 1 ] & 0x1) << 4) | (this[i + 2] >> 4)];
+                str += map[((this[i + 2] & 0xF) << 1)];
+                if (!omitPadding){
+                    str += '===';
+                }
+            }else if (i == this.length - 2){
+                lineWidth += 8;
+                if (lineWidth > maxLineWidth){
+                    str += "\n";
+                }
+                str += map[this[i] >> 3];
+                str += map[((this[i] & 0x7) << 2) | (this[i + 1] >> 6)];
+                str += map[(this[i + 1] & 0x3E) >> 1];
+                str += map[((this[i + 1 ] & 0x1) << 4)];
+                if (!omitPadding){
+                    str += '====';
+                }
+            }else if (i == this.length - 1){
+                lineWidth += 8;
+                if (lineWidth > maxLineWidth){
+                    str += "\n";
+                }
+                str += map[this[i] >> 3];
+                str += map[((this[i] & 0x7) << 2)];
+                if (!omitPadding){
+                    str += '======';
                 }
             }
             return str;
