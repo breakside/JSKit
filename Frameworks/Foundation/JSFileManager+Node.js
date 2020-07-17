@@ -100,7 +100,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        return this._rootURL.appendingPathComponent(JSBundle.mainBundleIdentifier, true);
+        return this._rootURL.appendingPathComponent(this._identifier, true);
     },
 
     // --------------------------------------------------------------------

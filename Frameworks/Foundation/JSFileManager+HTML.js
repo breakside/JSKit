@@ -116,7 +116,7 @@ JSFileManager.definePropertiesFromExtensions({
     },
 
     _getPersistentContainerURL: function(){
-        return JSURL.initWithString('%s:///Containers/%s/'.sprintf(JSFileManager.Scheme.jskitfile, JSBundle.mainBundleIdentifier));
+        return JSURL.initWithString('%s:///Containers/%s/'.sprintf(JSFileManager.Scheme.jskitfile, this._identifier));
     },
 
     _getWorkingDirectoryURL: function(){
