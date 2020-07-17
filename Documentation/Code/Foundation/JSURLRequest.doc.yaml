@@ -77,6 +77,7 @@ topics:
     name: Authorization
     members:
       -
+        introduced: 2020.28.0
         name: addBasicAuthorization
         kind: method
         summary: Adds an `Authorization`() header for the `Basic`() scheme
@@ -90,6 +91,7 @@ topics:
             type: String
             summary: The password to send to the server
       -
+        introduced: 2020.28.0
         name: addBearerAuthorization
         kind: method
         summary: Adds an `Authorization`() header for the `Bearer`() scheme
@@ -117,6 +119,15 @@ topics:
           Setting this `object` property will automatically set `data` to
           a JSON serialized UTF-8 encoded byte array.  It will also set the
           `contentType` to `"application/json"`.
+      -
+        introduced: 2020.28.0
+        name: form
+        type: JSFormFieldMap
+        summary: A form url-encoded that can be used to create a `data` body
+        description: |
+          Setting this `form` property will automatically set `data` to
+          a form representation.  It will also set the
+          `contentType` to `"application/x-www-form-urlencoded"`.
   -
     name: Response
     members:

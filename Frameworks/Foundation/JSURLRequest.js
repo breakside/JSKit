@@ -27,7 +27,8 @@ JSClass("JSURLRequest", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     headers: JSReadOnlyProperty(),
     headerMap: JSDynamicProperty('_headerMap', null),
-    object: JSDynamicProperty('_object', null),
+    object: JSDynamicProperty(),
+    form: JSDynamicProperty(),
     contentType: JSDynamicProperty(),
 
     initWithURL: function(url){
@@ -50,11 +51,49 @@ JSClass("JSURLRequest", JSObject, {
         return request;
     },
 
+    getObject: function(){
+        var contentType = this.contentType;
+        if (contentType === null){
+            return null;
+        }
+        if (contentType.mime != 'application/json'){
+            return null;
+        }
+        if (this._data === null){
+            return null;
+        }
+        try{
+            var json = this._data.stringByDecodingUTF8();
+            return JSON.parse(json);
+        }catch (e){
+            return null;
+        }
+    },
+
     setObject: function(object){
-        this._object = object;
         var json = JSON.stringify(object);
         this.data = json.utf8();
         this.contentType = JSMediaType('application/json', {charset: 'utf-8'});
+    },
+
+    getForm: function(){
+        var contentType = this.contentType;
+        if (contentType === null){
+            return null;
+        }
+        if (contentType.mime != 'application/x-www-form-urlencoded'){
+            return null;
+        }
+        if (this._data === null){
+            return null;
+        }
+        try{
+            var form = JSFormFieldMap();
+            form.decode(this._data, true);
+            return form;
+        }catch (e){
+            return null;
+        }
     },
 
     setForm: function(form){

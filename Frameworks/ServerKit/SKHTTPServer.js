@@ -59,8 +59,17 @@ JSClass("SKHTTPServer", JSObject, {
             completion = Promise.completion();
         }
         logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
+
         var responder = null;
         var server = this;
+
+        try{
+            if (server.delegate && server.delegate.serverDidReceiveRequest){
+                server.delegate.serverDidReceiveRequest(server, request);
+            }
+        }catch(e){
+            logger.error(e);
+        }
         var catcher = function(error){
             if (error && !(error instanceof SKHTTPError) && !(error instanceof SKValidatingObject.Error)){
                 logger.error("%{public} %{error}", request.tag, error);

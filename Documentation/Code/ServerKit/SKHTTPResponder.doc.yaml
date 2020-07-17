@@ -402,6 +402,43 @@ topics:
         description: |
           Causes all headers to be sent and closes the response when complete.
       -
+        name: sendResourceNamed
+        kind: method
+        summary: Send a bundle resource with the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The resource name
+          -
+            name: ext
+            type: String
+            summary: The resource file extension
+          -
+            name: bundle
+            type: JSBundle
+            default: JSBundle.mainBundle
+            summary: The bundle that contains the resource
+          -
+            name: statusCode
+            type: StatusCode
+            default: StatusCode.ok
+            summary: The status code to send
+      -
+        name: sendResource
+        kind: method
+        summary: Send a bundle resource
+        arguments:
+          -
+            name: metadata
+            type: JSBundle.Metadata
+            summary: The resource metadata
+          -
+            name: statusCode
+            type: StatusCode
+            default: StatusCode.ok
+            summary: The status code to send
+      -
         name: sendFile
         kind: method
         summary: Send a file's contents and complete the response
@@ -419,6 +456,11 @@ topics:
             type: String
             summary: A unique has of the file's contents, used for cache
               matching
+          -
+            name: statusCode
+            type: StatusCode
+            default: StatusCode.ok
+            summary: The status code to send with the file
         description: |
           Causes all headers to be sent and closes the response when complete.
   -
@@ -427,7 +469,9 @@ topics:
       -
         name: fail
         kind: method
-        summary: Immediately sends a response for the given error
+        type: Promise
+        nullable: true
+        summary: Sends a response for the given error
         arguments:
           -
             name: error
@@ -510,19 +554,6 @@ topics:
               with any object
         summary: Respond with headers appropriate for an HTTP `"OPTIONS"`
           request
-      -
-        name: acceptWebsocketUpgrade
-        kind: method
-        type: SKHTTPWebSocket
-        return: The newly created web socket over which stream communication
-          can happen
-        summary: Negotiate a web socket upgrade with the client
-        arguments:
-          -
-            name: allowedProtocols
-            type: String[]
-            summary: The application-defined protocols that are allowed over
-              the web socket
   -
     name: Method Name Matching
     members:

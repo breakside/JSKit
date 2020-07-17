@@ -24,23 +24,70 @@ topics:
             type: dictionary
             summary: The dictionary to wrap
       -
-        name: initWithObject
+        name: initWithForm
         kind: init
-        summary: Wrap the given array so its properties can be validated
+        summary: Wrap the given form so its properties can be validated
         arguments:
           -
-            name: array
-            type: Array
-            summary: The array to wrap
-        description: |
-          When an array is wrapped, its propertes are still accessed in
-          the same way as a dictionary, using array indexes as keys.
-
-          However, wrapped arrays also expose a `length` property to support
-          iteration.
+            name: form
+            type: JSFormFieldMap
+            summary: The form to wrap
   -
     name: Validation Errors
     members:
+      -
+        name: ErrorInfo
+        kind: class
+        anonymous: true
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: field
+                type: String
+                summary: The name of the field within the validation context
+              -
+                name: problem
+                type: String
+                summary: The kind of problem encountered
+          - 
+            name: Type Problems
+            members:
+              -
+                name: expected
+                type: String
+                nullable: true
+                summary: The expected type, when `problem` is `"type"`
+          - 
+            name: Range Problems
+            members:
+              -
+                name: format
+                type: String
+                nullable: true
+                summary: The epected format, when `problem` is `"format"`
+          -
+            name: Range Problems
+            members:
+              -
+                name: min
+                type: Number
+                nullable: true
+                summary: The minimum allowed value, when `problem` is `"range"`,
+                  or the minimum length, when `problem` is `"length"`
+              -
+                name: max
+                type: Number
+                nullable: true
+                summary: The maximum allowed value, when `problem` is `"range"`,
+                  or the maximum length, when `problem` is `"length"`
+              -
+                name: provided
+                type: Number
+                nullable: true
+                summary: The provided value, when `problem` is `"range"`,
+                  or the provided length, when `problem` is `"length"`
       -
         name: Error
         kind: class
@@ -60,18 +107,24 @@ topics:
                 summary: Create a validation error with a message
                 arguments:
                   -
+                    name: info
+                    type: ErrorInfo
+                  -
                     name: message
                     type: String
-                    summary: A message that will be returned in the response
-                      body
+                    default: "undefined"
+                    summary: An otional custom message
           -
             name: Properties
             members:
               -
+                name: info
+                type: ErrorInfo
+                summary: A structed data description of the error
+              -
                 name: message
                 type: String
-                summary: A message that will be returned in the response
-                  body
+                summary: A developer-readable message
   -
     name: String Properties
     members:
@@ -169,6 +222,51 @@ topics:
           The custom validator should throw a `SKValidatingObject.Error` for
           any string that is not valid.
       -
+        name: stringForKeyInLengthRange
+        kind: method
+        type: String
+        summary: Get a string for the given required key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: min
+            type: Number
+            summary: The minimum length of the string
+          -
+            name: max
+            type: Number
+            summary: The maximum length of the string
+      -
+        name: stringForKeyInLengthRange
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a string for the given required key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: min
+            type: Number
+            summary: The minimum length of the string
+          -
+            name: max
+            type: Number
+            summary: The maximum length of the string
+          -
+            name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key is missing, the provided default value will be returned 
+      -
         name: emailForKey
         kind: method
         type: String
@@ -199,6 +297,72 @@ topics:
               be `null`.
         description: |
           If the key isn't an email address, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      -
+        name: phoneForKey
+        kind: method
+        type: String
+        summary: Get a phone number for the given required key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an phone number, an error will be thrown
+      -
+        name: phoneForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a phone number for the given key, or return a default value
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a phone number, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      -
+        name: urlForKey
+        kind: method
+        type: JSURL
+        summary: Get a url for the given required key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an url, an error will be thrown
+      -
+        name: urlForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a url for the given key, or return a default value
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a url, an error will be thrown.
 
           If the key is missing entirely, the `defaultValue`() will be returned.
   -

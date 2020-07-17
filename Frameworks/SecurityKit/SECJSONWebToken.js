@@ -259,7 +259,7 @@ SECJSONWebToken.Algorithm = {
 SECJSONWebToken.KeyType = {
     symmetric: "oct",
     rsa: "RSA",
-    ellipticCurv: "EC"
+    ellipticCurve: "EC"
 };
 
 var dot = JSData.initWithArray([0x2E]);

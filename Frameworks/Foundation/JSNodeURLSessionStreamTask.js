@@ -149,7 +149,7 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
         this.httpParser.delegate = this;
         this.httpTimeoutTimer = JSTimer.scheduledTimerWithInterval(this.httpTimeoutInterval, this.timeoutHTTP, this);
         var encodedHost = JSURL.encodeDomainName(this.currentURL.host);
-        this.socket.write("GET %s HTTP/1.1\r\n".sprintf(this.currentURL.encodedPathAndQueryString));
+        this.socket.write("GET %s HTTP/1.1\r\n".sprintf(this.currentURL.encodedPathAndQuery));
         this.socket.write("Host: %s\r\n".sprintf(encodedHost));
         this.socket.write("Connection: Upgrade\r\n".sprintf(encodedHost));
         this.socket.write("Upgrade: websocket\r\n".sprintf(encodedHost));

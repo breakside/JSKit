@@ -1,0 +1,71 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.28.0
+kind: framework
+summary: Mock classes for testing `ServerKit`-based applications
+codeURL: Frameworks/ServerKitTesting/
+description: |
+  `ServerKitTesting` is designed to provide a way of testing `ServerKit`
+  applications without actually running an HTTP server.
+
+  Essentially, the tests use a mock `JSURLSession` subclass that talks
+  to a mock `SKHTTPServer` subclass without the need to open sockets and
+  send network messages.
+
+  ````
+  // #import MessagesServer
+  // #import TestKit
+  // #import ServerKitTesting
+  'use strict';
+
+  JSClass("MessagesResponderTests", TKTestSuite, {
+
+      urlSession: null,
+      server: null,
+
+      setup: async function(){
+          // Create a mock URL session & server
+          this.urlSession = SKMockURLSession.init();
+          this.server = this.urlSession.server;
+
+          // Configure the server with the same routes from Main.spec.yaml
+          // (Alternatively, you could create routes by hand, but the spec
+          // method helps test that the spec is written correctly)
+          var mainSpec = JSSpec.initWithResource("Main");
+          var serverSpecDictionary = mainSpec.unmodifiedValueForKey("HTTPServer");
+          this.server.rootRoute = SKHTTPRoute.CreateFromMap(serverSpecDictionary.routes);
+
+          // Since the tests don't involve AppDelegate, you may need to
+          // set the server delegate to an object that does similar things
+          this.server.delegate = {
+              serverDidCreateContextForRequest: function(server, context, request){
+                // configure the context as you would in AppDelegate
+              }
+          };
+      },
+
+      testGet: async function(){
+          // For a mock URL session, the domain is unimportant unless your
+          // server uses it in some way.  The default server does not, only
+          // considering the path when figuring out which resonder to use.
+          var url = JSURL.initWithString("http://test/messages");
+
+          // Create a regular JSURLRequest and use the mock url session
+          var request = JSURLRequest.initWithURL(url);
+          var task = this.urlSession.dataTaskWithRequest(request);
+          var response = await task.resume();
+
+          // The response is a standard JSURLResponse
+          TKAssertNotNull(response);
+          TKAssertEquals(response.statusCode, 200);
+          TKAssertEquals(response.contentType.mime, "text/html");
+      }
+
+  });
+  ````
+
+topics:
+  -
+    name: Mock Classes
+    members:
+      - SKMockURLSession
+      - SKMockHTTPServer

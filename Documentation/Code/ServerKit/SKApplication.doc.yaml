@@ -83,7 +83,7 @@ topics:
     members:
       -
         name: secrets
-        introduced: 2020.26.0
+        introduced: 2020.28.0
         type: SKSecrets
         summary: A way to access application secrets that should not be stored
           in source code and can vary from environment to environment

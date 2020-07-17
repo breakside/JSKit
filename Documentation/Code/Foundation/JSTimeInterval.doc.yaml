@@ -1,0 +1,71 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.28.0
+summary: Convenience methods for calculating the correct number of seconds for
+  various intervals like minutes or hours.
+description: |
+  Throughout `JSKit`, various methods take a Number argument representing a
+  time interval in seconds.
+
+  To improve readability, clarity of intent, and to reduce calculation errors,
+  `JSTimeInterval` provides a handful of methods that perform calculations.
+
+  Anything larger than hours should be handled with `JSCalendar`, which correctly
+  handles situtations such as daylight savings time switches where a day may
+  not be 24 hours.
+topics:
+  -
+    name: Calculating Seconds
+    members:
+      -
+        name: milliseconds
+        kind: method
+        static: true
+        type: Number
+        summary: Calculate and return the number of seconds for the given milliseconds
+        arguments:
+          -
+            name: milliseconds
+            type: Number
+            summary: The number of milliseconds to conver to seconds
+        description: |
+          Divides the given milliseconds by `1000`.
+      -
+        name: seconds
+        kind: method
+        static: true
+        type: Number
+        summary: An identity method that simply returns the given value
+        arguments:
+          -
+            name: seconds
+            type: Number
+            summary: The number of seconds
+        description: |
+          Returns the input as-is.  Useful for code clarity.
+      -
+        name: minutes
+        kind: method
+        static: true
+        type: Number
+        summary: Calculate and return the number of seconds for the given minutes
+        arguments:
+          -
+            name: minutes
+            type: Number
+            summary: The number of minutes to convert into seconds
+        description: |
+          Multiplies the given minutes by `60`.
+      -
+        name: hours
+        kind: method
+        static: true
+        type: Number
+        summary: Calculate and return the number of seconds for the given hours
+        arguments:
+          -
+            name: hours
+            type: Number
+            summary: The number of hours to convert into seconds
+        description: |
+          Multiplies the given hours by `3600`.

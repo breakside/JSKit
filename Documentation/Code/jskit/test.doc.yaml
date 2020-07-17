@@ -8,7 +8,7 @@ description: |
   run the tests with the resulting commands, the `test` command does this
   all at once.
 invocations:
-  - <project-dir> [--suite test-suite] [--case test-case]
+  - "[--inspect-brk] [--http-port N] <project-dir> [--suite test-suite] [--case test-case]"
 topics:
   -
     name: Project Info
@@ -17,6 +17,35 @@ topics:
         name: project-dir
         type: String
         summary: The test project directory to build and run
+  -
+    name: Browser Based Testing
+    members:
+      -
+        introduced: 2020.28.0
+        name: --http-port
+        type: Number
+        summary: Start a local HTTP server for running tests in a browser environment
+        description: |
+          Tests will by default run in the node environment on the command line, but
+          it can be useful to run tests in a browser to verify that everything is
+          working correctly in that environment.
+
+          Using this argument starts a web server and prints out where to go
+          in your browser to run the tests.
+
+          Press `ctrl`+`c` to stop the server
+  -
+    name: Node Based Debugging
+    members:
+      -
+        introduced: 2020.28.0
+        name: --inspect-brk
+        summary: Pause the test run and wait for a node debugger
+        description: |
+          Allows for debugging of the tests and the code they are testing.
+
+          Open Chrome and navigate to `chrome://inspect`, then open the
+          "Dedicated Node Tools".  See node docs for more debugging help.
   -
     name: Test Selection
     members:

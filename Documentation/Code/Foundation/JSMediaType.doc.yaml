@@ -18,7 +18,7 @@ topics:
         arguments:
           -
             name: string
-            type: string
+            type: String
             summary: The string representation of the media type, including
               optional parameters
       -
@@ -29,7 +29,7 @@ topics:
         arguments:
           -
             name: string
-            type: string
+            type: String
             summary: The `"type/subtype"` string of the media type
           -
             name: parameters

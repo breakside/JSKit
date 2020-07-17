@@ -49,7 +49,7 @@ JSClass("JSURL", JSObject, {
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
-    encodedPathAndQueryString: JSReadOnlyProperty(),
+    encodedPathAndQuery: JSReadOnlyProperty(),
 
     _hasAuthority: false,
 
@@ -376,7 +376,7 @@ JSClass("JSURL", JSObject, {
                 encodedString += ":%d".sprintf(this._port);
             }
         }
-        encodedString += this.encodedPathAndQueryString;
+        encodedString += this.encodedPathAndQuery;
         if (this._encodedFragment !== null){
             encodedString += '#';
             encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
@@ -384,7 +384,7 @@ JSClass("JSURL", JSObject, {
         return encodedString;
     },
 
-    getEncodedPathAndQueryString: function(){
+    getEncodedPathAndQuery: function(){
         var encodedString = "";
         if (this._path !== null){
             encodedString += String.initWithData(this._path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);

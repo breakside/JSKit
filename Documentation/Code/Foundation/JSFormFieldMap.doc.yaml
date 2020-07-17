@@ -64,7 +64,7 @@ topics:
             summary: Should a space be encoded as a `+`?
       -
         name: urlEncoded
-        introduced: 2020.26.1
+        introduced: 2020.28.0
         type: JSData
         return: A byte array representing a utf-8 and percent encoded set of
           fields
@@ -85,6 +85,7 @@ topics:
             type: String
             summary: The field name
       -
+        introduced: 2020.28.0
         name: get
         suffix: default
         kind: method

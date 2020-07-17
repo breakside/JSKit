@@ -257,6 +257,15 @@ topics:
         see:
           - encodedQuery
       -
+        introduced: 2020.28.0
+        name: encodedPathAndQuery
+        type: JSData
+        summary: A byte array of the combined path and query string with all percent escaping in
+          place and a user-defined string encoding.
+        see:
+          - path
+          - query
+      -
         name: encodedFragment
         type: JSData
         summary: A byte array of the fragment string with all percent escaping in
@@ -275,6 +284,21 @@ topics:
           encoding assumed.
         see:
           - fragment
+      -
+        introduced: 2020.28.0
+        name: setFragmentQuery
+        kind: method
+        summary: Set the fragment by url-encoding the given query
+        arguments:
+          -
+            name: query
+            type: JSFormFieldMap
+            summary: The query to set as a fragment
+        description: |
+          Single-page web apps often receive arguments via the fragment of their
+          URL rather than the query component.
+
+          This method helps make it easier to construct such URLs
       -
         name: encodedUserInfo
         type: JSData

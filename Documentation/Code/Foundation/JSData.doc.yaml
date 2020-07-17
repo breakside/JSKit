@@ -110,12 +110,41 @@ topics:
         return: The entire byte array in base64 form
         summary: Get a string of base64 representing the bytes in this array
       -
+        name: base64StringRepresentation
+        kind: method
+        suffix: wrapped
+        type: String
+        return: The entire byte array in base64 form
+        summary: Get a string of base64 representing the bytes in this array, wrapped to a maximum line width 
+        arguments:
+          -
+            name: maxLineWidth
+            type: Number
+            summary: The maximum length of a returned line
+          -
+            name: omitPadding
+            type: boolean
+            default: false
+            summary: Omit the padding characters at the end of the base64
+      -
         name: base64URLStringRepresentation
         kind: method
         type: String
         return: The entire byte array in base64 url-safe form
         summary: Get a string of base64 url-safe representing the bytes in this
           array
+      -
+        name: base64URLStringRepresentation
+        suffix: wrapped
+        kind: method
+        type: String
+        return: The entire byte array in base64 url-safe form
+        summary: Get a string of base64 url-safe representing the bytes in this array, wrapped to a maximum line width
+        arguments:
+          -
+            name: maxLineWidth
+            type: Number
+            summary: The maximum length of a returned line
       -
         name: dataView
         kind: method
