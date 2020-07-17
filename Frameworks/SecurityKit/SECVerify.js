@@ -25,6 +25,9 @@ JSClass("SECVerify", JSObject, {
     },
 
     verify: function(key, signature, completion, target){
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){        
     }
 
 });

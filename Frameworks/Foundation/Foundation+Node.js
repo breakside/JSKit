@@ -19,4 +19,7 @@
 // #import "JSRunLoop+Node.js"
 // #import "JSFileManager+Node.js"
 // #import "JSLocale+Node.js"
-// #import "JSURLSessionDataTask+Node.js"
+// #import "JSNodeURLSessionDataTask.js"
+// #import "JSNodeURLSessionUploadTask.js"
+// #import "JSNodeURLSessionStreamTask.js"
+// #import "JSURLSession+Node.js"

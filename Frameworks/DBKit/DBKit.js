@@ -14,3 +14,9 @@
 // limitations under the License.
 
 // #import "DBObjectDatabase.js"
+// #import "DBObjectStore.js"
+// #import "DBPersistentObjectStore.js"
+// #import "DBEphemeralObjectStore.js"
+// #import "DBFileStore.js"
+// #import "DBRemoteStore.js"
+// #import "DBMemoryStore.js"

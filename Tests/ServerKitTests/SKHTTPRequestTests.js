@@ -50,27 +50,6 @@ JSClass("SKHTTPRequestTests", TKTestSuite, {
         TKAssertEquals(request.contentType.parameters.charset, "utf-8");
     },
 
-    testRespond: function(){
-        var url = JSURL.initWithString("http://breakside.io/test/request");
-        var request = MockRequest.initMock("GET", url, []);
-        var headers = JSMIMEHeaderMap();
-        headers.set('Content-Length', 0);
-        request.respond(200, "OK", headers);
-        TKAssertEquals(request.responseText, "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
-        TKAssert(!request.response.isClosed);
-    },
-
-    testUpgrade: function(){
-        var url = JSURL.initWithString("http://breakside.io/test/request");
-        var request = MockRequest.initMock("GET", url, []);
-        var headers = JSMIMEHeaderMap();
-        headers.set('Content-Length', 0);
-        headers.set('X-Upgrade-Info', "hello");
-        request.upgrade("Upgrade", headers);
-        TKAssertEquals(request.responseText, "HTTP/1.1 101 Upgrade\r\nContent-Length: 0\r\nX-Upgrade-Info: hello\r\n\r\n");
-        TKAssert(!request.response.isClosed);
-    },
-
     testNeedsEntityWithTag: function(){
         var url = JSURL.initWithString("http://breakside.io/test/request");
         var request = MockRequest.initMock("GET", url, []);

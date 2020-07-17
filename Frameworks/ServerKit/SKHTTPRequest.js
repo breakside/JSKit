@@ -1,3 +1,18 @@
+// Copyright 2020 Breakside Inc.
+//
+// Licensed under the Breakside Public License, Version 1.0 (the "License");
+// you may not use this file except in compliance with the License.
+// If a copy of the License was not distributed with this file, you may
+// obtain a copy at
+//
+//     http://breakside.io/licenses/LICENSE-1.0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // #import Foundation
 // #import "SKHTTPResponse.js"
 // #import "SKValidatingObject.js"
@@ -13,11 +28,21 @@ JSClass("SKHTTPRequest", JSObject, {
     method: JSReadOnlyProperty('_method', null),
     contentType: JSLazyInitProperty('_getContentType'),
     origin: JSLazyInitProperty('_getOrigin'),
+    tag: null,
+    receivedAt: null,
 
-    initWithMethodAndURL: function(method, url){
+    initWithMethodAndURL: function(method, url, headerMap){
         this._method = method;
         this._url = url;
-        this._headerMap = JSMIMEHeaderMap();
+        this._headerMap = headerMap || JSMIMEHeaderMap();
+        this.tag = JSMD5Hash(this.objectID.toString().utf8()).subdataInRange(JSRange(0, 3)).hexStringRepresentation();
+        this.receivedAt = JSDate.now;
+        var host = this._headerMap.get('Host', null);
+        var scheme = this._headerMap.get('X-Forwarded-Proto', 'http');
+        if (host !== null){
+            this._url.host = host;
+            this._url.scheme = scheme;
+        }
     },
 
     _getContentType: function(){
@@ -29,28 +54,7 @@ JSClass("SKHTTPRequest", JSObject, {
         return this.headerMap.get('Origin', null);
     },
 
-    respond: function(statusCode, statusMessage, headerMap){
-        this._write("HTTP/1.1 %d %s\r\n".sprintf(statusCode, statusMessage));
-        var header;
-        for (var i = 0, l = headerMap.headers.length; i < l; ++i){
-            header = headerMap.headers[i];
-            this._write("%s\r\n".sprintf(header));
-        }
-        this._write("\r\n");
-    },
-
-    upgrade: function(statusMessage, headerMap){
-        this.respond(SKHTTPResponse.StatusCode.switchingProtocols, statusMessage, headerMap);
-    },
-
-    writeRawHeaders: function(headers){
-        this._write(headers.join("\r\n") + "\r\n\r\n");
-    },
-
     createWebsocket: function(){
-    },
-
-    _write: function(){
     },
 
     close: function(){
@@ -139,15 +143,87 @@ JSClass("SKHTTPRequest", JSObject, {
 
     getValidObject: function(validatingClass, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(function(result){
+                if (result[0] !== null){
+                    return Promise.reject(result[0]);
+                }
+                return result[1];
+            });
         }
-        this.getValidatingObject(function(obj){
-            var validator = SKValidatingObject.initWithObject(obj);
-            var valid = validatingClass.initWithValidatingObject(validator);
-            completion.call(target, valid);
+        this.getValidatingObject(function(validator){
+            var valid = null;
+            var error = null;
+            try{
+                valid = validatingClass.initWithValidatingObject(validator);
+            }catch (e){
+                error = e;
+            }
+            completion.call(target, error, valid);
         });
         return completion.promise;
 
+    },
+
+    getForm: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        if (!this.contentType || this.contentType.mime !== 'application/x-www-form-urlencoded'){
+            completion.call(target, null);
+            return completion.promise;
+        }
+        this.getData(function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            var form = JSFormFieldMap();
+            form.decode(data, true);
+            completion.call(target, form);
+        }, this);
+        return completion.promise;
+    },
+
+    getValidatingForm: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.getForm(function(form){
+            var validator = SKValidatingObject.initWithForm(form);
+            completion.call(target, validator);
+        });
+        return completion.promise;
+    },
+
+    getVaidForm: function(validatingClass, completion, target){
+        if (!completion){
+            completion = Promise.completion(function(result){
+                if (result[0] !== null){
+                    return Promise.reject(result[0]);
+                }
+                return result[1];
+            });
+        }
+        this.getValidatingForm(function(validator){
+            var valid = null;
+            var error = null;
+            try{
+                valid = validatingClass.initWithValidatingObject(validator);
+            }catch (e){
+                error = e;
+            }
+            completion.call(target, error, valid);
+        });
+        return completion.promise;
+    },
+
+    getValidatingQuery: function(){
+        return SKValidatingObject.initWithForm(this.url.query);
+    },
+
+    getValidQuery: function(validatingClass){
+        var validator = this.getValidatingQuery();
+        return validatingClass.initWithValidatingObject(validator);
     }
 
 });

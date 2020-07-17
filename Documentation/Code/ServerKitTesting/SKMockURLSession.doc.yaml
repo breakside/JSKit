@@ -1,0 +1,22 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.28.0
+inherits: JSURLSession
+kind: class
+summary: A mock URL session that creates a mock HTTP server for testing
+description: |
+  When testing `ServerKit` based applications, you can use this `SKMockURLSession`
+  to write tests of your server code without actually making HTTP requests over
+  the network.
+
+  Typically you'll instantiate a mock session and then set the `rootRoute`(SKHTTPServer.rootRoute) on
+  the `server`.
+
+  Then just use the session as you would use any other `JSURLSession`.
+topics:
+  -
+    name: Mock Server
+    members:
+      -
+        name: server
+        type: SKMockHTTPServer
+        summary: The mock HTTP server used by this mock session

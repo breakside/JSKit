@@ -41,9 +41,13 @@ JSMIMEHeaderMap.prototype = {
         var name;
         for (var i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            name = line.split(':', 1)[0];
-            this.add(name.trim(), line.substr(name.length + 2).trim());
+            this.addLine(line);
         }
+    },
+
+    addLine: function(line){
+        var name = line.split(':', 1)[0];
+        this.add(name.trim(), line.substr(name.length + 2).trim());
     },
 
     add: function(name, value){

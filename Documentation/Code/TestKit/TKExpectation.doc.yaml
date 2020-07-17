@@ -8,6 +8,9 @@ description: |
   Asynchronous tests are supported by using `TKExpectation` and calling `wait()`
   on the suite.
 
+  `TKExpectation` should be used when `async function` tests are not allowed,
+  otherwise, using `async` test case methods often leads to clearer code.
+
   Here's an example of testing the asynchronous `JSImage.getData()` method
   ````
   // #import Foundation

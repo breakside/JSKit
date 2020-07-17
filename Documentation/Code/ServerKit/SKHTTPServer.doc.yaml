@@ -168,6 +168,39 @@ topics:
                 description: |
                   Gives the server an opportunity to do logging or last chance
                   preparation of the responder.
+              -
+                introduced: 2020.28.0
+                name: serverDidReceiveRequest
+                summary: Called when the server begins handling a request
+                arguments:
+                  -
+                    name: server
+                    type: SKHTTPServer
+                    summary: The server making the call
+                  -
+                    name: request
+                    type: SKHTTPRequest
+                    summary: The request being made
+                description: |
+                  Gives the server an opportunity to do logging or metrics
+                see:
+                  - serverFoundResponder
+                  - serverDidRespondToRequest
+              -
+                introduced: 2020.28.0
+                name: serverDidRespondToRequest
+                summary: Called when the server completes a request
+                arguments:
+                  -
+                    name: server
+                    type: SKHTTPServer
+                    summary: The server making the call
+                  -
+                    name: request
+                    type: SKHTTPRequest
+                    summary: The request being made
+                description: |
+                  Gives the server an opportunity to do logging or metrics
       -
         name: delegate
         type: SKHTTPServerDelegate

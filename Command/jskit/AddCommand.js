@@ -63,9 +63,6 @@ JSClass("AddCommand", Command, {
         }
 
         if (this.arguments.template !== 'tests'){
-            var testsTemplateURL = templatesURL.appendingPathComponent("project-tests");
-            var testsTemplate = Template.initWithURL(testsTemplateURL, this.fileManager);
-            await testsTemplate.addToWorkspace(workspaceURL, projectName);
             if (projectSettings !== null){
                 projectSettings.build_systems.push({
                     "name": "%s Tests".sprintf(projectName),

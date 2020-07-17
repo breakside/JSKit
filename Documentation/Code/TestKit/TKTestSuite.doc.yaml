@@ -70,8 +70,35 @@ description: |
   Asynchronous Tests
   ========
 
-  Asynchronous tests are supported by using `TKExpectation` and calling `wait()`
+  Asynchronous tests are supported whenever a test case method returns a
+  `Promise`, including when it is declared as an `async function`.
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: async function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+          var data = await image.getData();
+          TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+      }
+
+  });
+  ````
+
+  Asynchronous Tests using TKExpectation
+  ========
+
+  Asynchronous tests are also supported by using `TKExpectation` and calling `wait()`
   on the suite.
+
+  This is helpful when `async` methods are not allowed, perhaps because your
+  tests needs to run an browser that doesn't support `async`
 
   Here's an example of testing the asynchronous `JSImage.getData()` method
   ````

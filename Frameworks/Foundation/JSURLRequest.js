@@ -27,7 +27,8 @@ JSClass("JSURLRequest", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     headers: JSReadOnlyProperty(),
     headerMap: JSDynamicProperty('_headerMap', null),
-    object: JSDynamicProperty('_object', null),
+    object: JSDynamicProperty(),
+    form: JSDynamicProperty(),
     contentType: JSDynamicProperty(),
 
     initWithURL: function(url){
@@ -50,11 +51,54 @@ JSClass("JSURLRequest", JSObject, {
         return request;
     },
 
+    getObject: function(){
+        var contentType = this.contentType;
+        if (contentType === null){
+            return null;
+        }
+        if (contentType.mime != 'application/json'){
+            return null;
+        }
+        if (this._data === null){
+            return null;
+        }
+        try{
+            var json = this._data.stringByDecodingUTF8();
+            return JSON.parse(json);
+        }catch (e){
+            return null;
+        }
+    },
+
     setObject: function(object){
-        this._object = object;
         var json = JSON.stringify(object);
         this.data = json.utf8();
         this.contentType = JSMediaType('application/json', {charset: 'utf-8'});
+    },
+
+    getForm: function(){
+        var contentType = this.contentType;
+        if (contentType === null){
+            return null;
+        }
+        if (contentType.mime != 'application/x-www-form-urlencoded'){
+            return null;
+        }
+        if (this._data === null){
+            return null;
+        }
+        try{
+            var form = JSFormFieldMap();
+            form.decode(this._data, true);
+            return form;
+        }catch (e){
+            return null;
+        }
+    },
+
+    setForm: function(form){
+        this.data = form.urlEncoded();
+        this.contentType = JSMediaType('application/x-www-form-urlencoded');
     },
 
     setContentType: function(mediaType){
@@ -67,13 +111,29 @@ JSClass("JSURLRequest", JSObject, {
             return null;
         }
         return JSMediaType(header);
+    },
+
+    addBasicAuthorization: function(username, password){
+        var combined = username + ":" + password;
+        var encoded = combined.utf8().base64StringRepresentation();
+        this.headerMap.add("Authorization", "Basic " + encoded);
+    },
+
+    addBearerAuthorization: function(token){
+        this.headerMap.add("Authorization", "Bearer " + token);
     }
 
 });
 
 JSURLRequest.Method = {
-    GET: "GET",
-    PUT: "PUT",
-    DELETE: "DELETE",
-    POST: "POST"
+    'get': "GET",
+    'put': "PUT",
+    'delete': "DELETE",
+    'post': "POST"
 };
+
+// deprecated
+JSURLRequest.Method.GET = JSURLRequest.Method.get;
+JSURLRequest.Method.PUT = JSURLRequest.Method.put;
+JSURLRequest.Method.DELETE = JSURLRequest.Method.delete;
+JSURLRequest.Method.POST = JSURLRequest.Method.post;

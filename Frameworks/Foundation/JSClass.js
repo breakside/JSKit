@@ -115,7 +115,7 @@ JSClass.prototype = {
 
     definePropertiesFromExtensions: function(extensions){
         for (var i in extensions){
-            if (typeof(extensions[i]) == 'function'){
+            if (typeof(extensions[i]) == 'function' && !(extensions[i] instanceof JSClass)){
                 var superclassMethod = this.prototype[i];
                 if (superclassMethod){
                     // We might be providing a function that should override the getter/setter

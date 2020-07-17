@@ -15,6 +15,7 @@
 
 // #import "SECSign.js"
 // #import "SECNodeKey.js"
+// #import "SECDER.js"
 // jshint node: true
 'use strict';
 
@@ -26,6 +27,7 @@ SECSign.definePropertiesFromExtensions({
     nodeAlgorithm: null,
 
     initWithAlgorithm: function(algorithm){
+        this.algorithm = algorithm;
         this.nodeAlgorithm = nodeAlgorithms[algorithm];
         if (!this.nodeAlgorithm){
             return null;
@@ -60,6 +62,133 @@ SECSign.definePropertiesFromExtensions({
             };
             completion.call(target, pair);
         });
+        return completion.promise;
+    },
+
+    createJWKPair: function(options, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.createKeyPair(options, function(pair){
+            if (pair === null){
+                completion.call(target, null);
+                return;
+            }
+            var jwkPair = null;
+            try{
+                var kid = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+                var alg = null;
+                switch (this.algorithm){
+                    case SECSign.Algorithm.rsaSHA256:
+                        alg = "RS256";
+                        break;
+                    case SECSign.Algorithm.rsaSHA384:
+                        alg = "RS384";
+                        break;
+                    case SECSign.Algorithm.rsaSHA512:
+                        alg = "RS512";
+                        break;
+                    default:
+                        throw new Error("Unable to map SECSign algorithm to JWK");
+                }
+                var pem = pair.public.keyData;
+                var parser = SECDERParser.initWithPEM(pem, "RSA PUBLIC KEY");
+                var sequence = parser.parse();
+                var publicJWK = {
+                    kty: "RSA",
+                    alg: alg,
+                    key_ops: ["verify"],
+                    n: sequence[0].base64URLStringRepresentation(),
+                    e: sequence[1].base64URLStringRepresentation(),
+                    kid: kid
+                };
+                pem = pair.private.keyData;
+                parser = SECDERParser.initWithPEM(pem, "RSA PRIVATE KEY");
+                sequence = parser.parse();
+                var privateJWK = {
+                    kty: "RSA",
+                    alg: alg,
+                    key_ops: ["sign"],
+                    n: sequence[1].base64URLStringRepresentation(),
+                    e: sequence[2].base64URLStringRepresentation(),
+                    d: sequence[3].base64URLStringRepresentation(),
+                    kid: kid
+                };
+                if (sequence.length >= 9){
+                    privateJWK.p = sequence[4].base64URLStringRepresentation();
+                    privateJWK.q = sequence[5].base64URLStringRepresentation();
+                    privateJWK.dp = sequence[6].base64URLStringRepresentation();
+                    privateJWK.dq = sequence[7].base64URLStringRepresentation();
+                    privateJWK.qi = sequence[8].base64URLStringRepresentation();
+                }
+                jwkPair = {
+                    public: publicJWK,
+                    private: privateJWK
+                };
+            }catch (e){
+            }
+            completion.call(target, jwkPair);
+        }, this);
+        return completion.promise;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        // RSA private key ASN.1 syntax:
+        // RSAPrivateKey ::= SEQUENCE {
+        //     version           Version,
+        //     modulus           INTEGER,  -- n
+        //     publicExponent    INTEGER,  -- e
+        //     privateExponent   INTEGER,  -- d
+        //     prime1            INTEGER,  -- p
+        //     prime2            INTEGER,  -- q
+        //     exponent1         INTEGER,  -- d mod (p-1)
+        //     exponent2         INTEGER,  -- d mod (q-1)
+        //     coefficient       INTEGER,  -- (inverse of q) mod p
+        //     otherPrimeInfos   OtherPrimeInfos OPTIONAL
+        // }
+        // 
+
+        if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string" && typeof(jwk.d) == "string"){
+            try{
+                var values = [
+                    SECDERInteger(JSData.initWithArray([0])),
+                    SECDERInteger(jwk.n.dataByDecodingBase64URL()),
+                    SECDERInteger(jwk.e.dataByDecodingBase64URL()),
+                    SECDERInteger(jwk.d.dataByDecodingBase64URL()),
+                ];
+
+                if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.qi) == "string"){
+                    values.push(SECDERInteger(jwk.p.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.q.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.dp.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.dq.dataByDecodingBase64URL()));
+                    values.push(SECDERInteger(jwk.qi.dataByDecodingBase64URL()));
+                }
+
+                if (jwk.oth){
+                    completion.call(target, null);
+                    return completion.promise;
+                }
+
+                var rsaPrivateKey = SECDERSequence(values);
+                var der = JSData.initWithLength(rsaPrivateKey.length);
+                rsaPrivateKey.copyTo(der, 0);
+
+                var base64 = der.base64StringRepresentation(64);
+                var pem = "-----BEGIN RSA PRIVATE KEY-----\n";
+                pem += base64;
+                pem += "\n-----END RSA PRIVATE KEY-----\n";
+                var key = SECNodeKey.initWithData(pem.utf8());
+                JSRunLoop.main.schedule(completion, target, key);
+            }catch (e){
+                completion.call(target, null);
+            }
+        }else{
+            completion.call(target, null);
+        }
         return completion.promise;
     },
 

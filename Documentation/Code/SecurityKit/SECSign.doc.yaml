@@ -87,6 +87,92 @@ topics:
           For RSA signing, the `options`() argument must be an `RSAOptions`
           object
       -
+        introduced: 2020.28.0
+        name: createJWKPair
+        kind: method
+        summary: Create a pair of private/public keys in JWK format
+        arguments:
+          -
+            name: options
+            type: dictionary
+            summary: The key pair options
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: JWKKeyPair
+                  nullable: true
+                  summary: The key pair, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+        description: |
+          For RSA signing, the `options`() argument must be an `RSAOptions`
+          object
+      -
+        introduced: 2020.28.0
+        name: createJWKPair
+        suffix: promise
+        kind: method
+        summary: Create a pair of private/public keys in JWK format return them in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JWKKeyPair
+            summary: The key pair
+        arguments:
+          -
+            name: options
+            type: dictionary
+            summary: The key pair options
+        description: |
+          For RSA signing, the `options`() argument must be an `RSAOptions`
+          object
+      -
+        introduced: 2020.28.0
+        name: createKeyFromJWK
+        kind: method
+        summary: Create a single key by converting a private JWK
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JSON Web Key to convert
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The converted key, or `null` if there was an error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` in the completion function call
+      -
+        introduced: 2020.28.0
+        name: createKeyFromJWK
+        suffix: promise
+        kind: method
+        summary: Create a single key by converting a private JWK in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The converted key
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JSON Web Key to convert
+      -
         name: RSAOptions
         kind: class
         anonymous: true
@@ -103,6 +189,24 @@ topics:
                 name: publicExponent
                 type: Number
                 summary: The public exponent.  Defaults to `0x10001`.
+      -
+        introduced: 2020.28.0
+        name: JWKKeyPair
+        kind: class
+        anonymous: true
+        summary: A private/public pair of JWK keys
+        topics:
+          -
+            name: Keys
+            members:
+              -
+                name: public
+                type: JSONWebKey
+                summary: The public key
+              -
+                name: private
+                type: JSONWebKey
+                summary: The private key
   -
     name: Signing Data
     members:

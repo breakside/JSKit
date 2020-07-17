@@ -62,6 +62,14 @@ topics:
             type: boolean
             default: "false"
             summary: Should a space be encoded as a `+`?
+      -
+        name: urlEncoded
+        introduced: 2020.28.0
+        type: JSData
+        return: A byte array representing a utf-8 and percent encoded set of
+          fields
+        kind: method
+        summary: Encode the map's fields into a byte array according to url query string standards
   -
     name: Getting Field Values
     members:
@@ -77,6 +85,7 @@ topics:
             type: String
             summary: The field name
       -
+        introduced: 2020.28.0
         name: get
         suffix: default
         kind: method

@@ -21,7 +21,7 @@ JSClass("JSFileTests", TKTestSuite, {
 
     testDataFile: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         TKAssertNotNull(file);
         TKAssertEquals(file.size, 4);
         TKAssertEquals(file.name, "test.dat");
@@ -31,7 +31,7 @@ JSClass("JSFileTests", TKTestSuite, {
 
     testReadDataFile: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         var expectation = TKExpectation.init();
         expectation.call(file.readData, file, function(readData){
             TKAssertNotNull(readData);
@@ -42,7 +42,7 @@ JSClass("JSFileTests", TKTestSuite, {
 
     testReadDataFilePromise: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         var expectation = TKExpectation.init();
         var promise = file.readData();
         TKAssert(promise instanceof Promise);
@@ -57,7 +57,7 @@ JSClass("JSFileTests", TKTestSuite, {
 
     testReadDataFileRange: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         var expectation = TKExpectation.init();
         var range = JSRange(1, 2);
         expectation.call(file.readDataRange, file, range, function(readData){
@@ -71,7 +71,7 @@ JSClass("JSFileTests", TKTestSuite, {
 
     testReadDataFileRangePromise: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         var expectation = TKExpectation.init();
         var range = JSRange(1, 2);
         var promise = file.readDataRange(range);

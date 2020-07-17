@@ -36,6 +36,31 @@ JSClass("SECSignTests", TKTestSuite, {
             }, this);
         }, this);
         this.wait(expectation, 2.0);
+    },
+
+    testCreateJWK: function(){
+        var signer = SECSign.initWithAlgorithm(SECSign.Algorithm.rsaSHA256);
+        var expectation = TKExpectation.init();
+        expectation.call(signer.createJWKPair, signer, {}, function(keys){
+            TKAssertNotNull(keys);
+            var plaintext = "This is a test of SECSign and SECVerify".utf8();
+            expectation.call(signer.createKeyFromJWK, signer, keys.private, function(privateKey){
+                TKAssertNotNull(privateKey);
+                signer.update(plaintext);
+                expectation.call(signer.sign, signer, privateKey, function(signature){
+                    TKAssertNotNull(signature);
+                    var verify = SECVerify.initWithAlgorithm(SECVerify.Algorithm.rsaSHA256);
+                    expectation.call(verify.createKeyFromJWK, verify, keys.public, function(publicKey){
+                        TKAssertNotNull(publicKey);
+                        verify.update(plaintext);
+                        expectation.call(verify.verify, verify, publicKey, signature, function(verified){
+                            TKAssert(verified);
+                        }, this);
+                    }, this);
+                }, this);
+            }, this);
+        }, this);
+        this.wait(expectation, 2.0);
     }
 
 });

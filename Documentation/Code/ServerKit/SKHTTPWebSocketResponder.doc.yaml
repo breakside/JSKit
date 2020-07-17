@@ -17,7 +17,7 @@ topics:
     name: Supported Protocols
     members:
       -
-        name: protocols
+        name: supportedProtocols
         type: String[]
         summary: The application-specific protocols supported by the responder
         description: |
@@ -27,6 +27,46 @@ topics:
           provides the protocols it supports.
 
           The first match between the client and server protocols will be used.
+      -
+        name: protocol
+        type: String
+        nullable: true
+        summary: The agreed upon protocol after coordination with the client
+  -
+    name: Sending Messages
+    members:
+      -
+        name: sendMessage
+        kind: method
+        summary: Send the full message
+        arguments:
+          -
+            name: message
+            type: JSData
+            summary: A complete message
+      -
+        name: startMessage
+        kind: method
+        summary: Start a multi-packet message
+        arguments:
+          -
+            name: chunk
+            type: JSData
+            summary: The first chunk of the message
+      -
+        name: continueMessage
+        kind: method
+        summary: Continue or complete a multi-packet message
+        arguments:
+          -
+            name: chunk
+            type: JSData
+            summary: The next or final chunk of the message
+          -
+            name: isFinal
+            type: boolean
+            default: false
+            summary: Whether this is the final chunk in the message
   -
     name: Web Socket Events
     members:

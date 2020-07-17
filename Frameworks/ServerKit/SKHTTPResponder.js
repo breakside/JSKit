@@ -1,3 +1,18 @@
+// Copyright 2020 Breakside Inc.
+//
+// Licensed under the Breakside Public License, Version 1.0 (the "License");
+// you may not use this file except in compliance with the License.
+// If a copy of the License was not distributed with this file, you may
+// obtain a copy at
+//
+//     http://breakside.io/licenses/LICENSE-1.0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // #import Foundation
 // #import "SKHTTPResponderContext.js"
 // #import "SKHTTPError.js"
@@ -19,7 +34,6 @@ JSClass("SKHTTPResponder", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     allowedOrigins: null,
     route: null,
-    _isWebsocket: false,
 
     initWithRequest: function(request, context){
         this._request = request;
@@ -38,12 +52,8 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     fail: function(error){
-        if (this._isWebsocket){
-            this._request.close();
-            return;
-        }
         if (error instanceof SKValidatingObject.Error){
-            this.sendObject({error: error.message}, SKHTTPResponse.StatusCode.badRequest);
+            this.sendObject({invalid: error.info}, SKHTTPResponse.StatusCode.badRequest);
             return;
         }
         var statusCode = SKHTTPResponse.StatusCode.internalServerError;
@@ -58,7 +68,7 @@ JSClass("SKHTTPResponder", JSObject, {
         url.scheme = this.request.url.scheme;
         url.host = this.request.url.host;
         url.port = this.request.url.port;
-        url.setPathComponents = this.route.pathComponentsForResponder(responder, params);
+        url.pathComponents = this.route.pathComponentsForResponder(responder, params);
         return url;
     },
 
@@ -84,36 +94,20 @@ JSClass("SKHTTPResponder", JSObject, {
         return this[methodName] || null;
     },
 
-    objectMethodForWebsocketProduct: function(product){
+    objectMethodForUpgrade: function(product){
         return this.objectMethodForRequestMethod(product);
     },
 
-    acceptWebsocketUpgrade: function(allowedProtocols){
-        var requestHeaders = this._request.headerMap;
-        var version = requestHeaders.get('Sec-WebSocket-Version');
-        if (version !== "13"){
-            logger.warn("Unexpected websocket version: %{public}". version);
-            throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
+    applicableObjectMethod: function(){
+        var method = null;
+        var upgrade = this.request.headerMap.get('Upgrade', null);
+        if (upgrade !== null){
+            method = this.objectMethodForUpgrade(upgrade);
+            if (method !== null){
+                return method;
+            }
         }
-        var requestedProtocols = requestHeaders.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
-        var protocol = findFirstMatch(allowedProtocols, requestedProtocols);
-        if (protocol === null){
-            logger.warn("No match for protocols: %{public}". requestedProtocols.join(", "));
-            throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
-        }
-
-        logger.info("Accepting websocket");
-        var key = requestHeaders.get('Sec-WebSocket-Key', '');
-        var accept = JSSHA1Hash((key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").utf8()).base64StringRepresentation();
-        var upgradeHeaders = JSMIMEHeaderMap();
-        upgradeHeaders.add("Upgrade", "websocket");
-        upgradeHeaders.add("Connection", "Upgrade");
-        upgradeHeaders.add("Sec-WebSocket-Accept", accept);
-        upgradeHeaders.add("Sec-WebSocket-Protocol", protocol);
-        this._request.upgrade("Web Socket Protocol Handshake", upgradeHeaders);
-        this._isWebsocket = true;
-        logger.info("Creating websocket");
-        return this._request.createWebsocket();
+        return this.objectMethodForRequestMethod(this.request.method);
     },
 
     sendData: function(data, contentType, status){
@@ -129,13 +123,13 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendString: function(str, contentType, status){
-        this.sendData(str.utf8(), contentType + "; charset=utf8", status);
+        this.sendData(str.utf8(), contentType + "; charset=utf-8", status);
     },
 
     sendObject: function(obj, status, indent){
         var json = JSON.stringify(obj, null, indent ? 2 : 0);
-        this.response.setHeader("Cache-Control", "no-cache");
-        this.response.setHeader("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
+        this.response.headerMap.set("Cache-Control", "no-cache");
+        this.response.headerMap.set("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
         this.sendString(json + "\n", "application/json", status);
     },
 
@@ -147,12 +141,30 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendRedirect: function(destination){
+        if (destination instanceof JSURL){
+            destination = destination.encodedString;
+        }
         this._setAccessHeaders();
-        this.response.statusCode = SKHTTPResponse.StatusCode.found;
-        this.response.setHeader("Location", destination);
+        this.response.headerMap.set("Location", destination);
+        this.sendStatus(SKHTTPResponse.StatusCode.found);
     },
 
-    sendFile: function(filePath, contentType, hash){
+    sendFile: function(filePath, contentType, hash, statusCode){
+        return Promise.reject(new Error("not implemented"));
+    },
+
+    sendResourceNamed: function(name, type, statusCode, bundle){
+        if (statusCode instanceof JSBundle){
+            bundle = statusCode;
+            statusCode = undefined;
+        }
+        bundle = bundle || JSBundle.mainBundle;
+        var metadata = bundle.metadataForResourceName(name, type);
+        return this.sendResource(metadata, statusCode);
+    },
+
+    sendResource: function(metadata, statusCode){
+        return Promise.reject(new Error("not implemented"));
     },
 
     _setAccessHeaders: function(){
@@ -164,34 +176,23 @@ JSClass("SKHTTPResponder", JSObject, {
                 allowed = this.allowedOrigins[origin];
             }
             if (allowed){
-                this.response.setHeader("Access-Control-Allow-Origin", origin);
+                this.response.headerMap.set("Access-Control-Allow-Origin", origin);
                 if (origin != "*"){
-                    this.response.setHeader("Vary", "Origin");
+                    this.response.headerMap.set("Vary", "Origin");
                 }
                 if (this.request.headerMap.get('Access-Control-Request-Method', null) !== null){
-                    this.response.setHeader("Access-Control-Allow-Methods", allowed.methods.join(", "));
+                    this.response.headerMap.set("Access-Control-Allow-Methods", allowed.methods.join(", "));
                 }
                 if (this.request.headerMap.get('Access-Control-Request-Headers', null) !== null){
-                    this.response.setHeader("Access-Control-Allow-Headers", allowed.headers.join(", "));
+                    this.response.headerMap.set("Access-Control-Allow-Headers", allowed.headers.join(", "));
                 }
                 if (this.request.method == "OPTIONS"){
-                    this.response.setHeader("Access-Control-Max-Age", 60 * 60);
+                    this.response.headerMap.set("Access-Control-Max-Age", 60 * 60);
                 }
             }
         }
     }
 
 });
-
-var findFirstMatch = function(a, b){
-    for (var i = 0, l = a.length; i < l; ++i){
-        for (var j = 0, k = b.length; j < k; ++j){
-            if (a[i] == b[j].trim()){
-                return a[i];
-            }
-        }
-    }
-    return null;
-};
 
 })();

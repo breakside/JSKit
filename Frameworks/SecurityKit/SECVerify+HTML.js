@@ -49,6 +49,19 @@ SECVerify.definePropertiesFromExtensions({
             completion.call(target, false);
         });
         return completion.promise;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        crypto.subtle.importKey("jwk", jwk, this.htmlAlgorithm, true, ["verify"]).then(function(htmlKey){
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            completion.call(target, key);
+        }, function(error){
+            completion.call(target, null);
+        });
+        return completion.promise;
     }
 
 });
@@ -57,6 +70,5 @@ var htmlAlgorithms = {};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA256] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA384] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-384'};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA512] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-512'};
-
 
 })();

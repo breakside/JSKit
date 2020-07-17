@@ -97,7 +97,7 @@ JSClass("IKBitmapTests", TKTestSuite, {
     },
 
     testJSImageResourceBitmap: function(){
-        var image = JSImage.initWithResourceName('test');
+        var image = JSImage.initWithResourceName('test', JSBundle.testBundle);
         var expectation = TKExpectation.init();
         expectation.call(image.getBitmap, image, function(bitmap){
             TKAssertNotNull(bitmap);

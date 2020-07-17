@@ -22,7 +22,7 @@ topics:
         arguments:
           -
             name: identifier
-            type: string
+            type: String
             summary: A unique identifier for this file manager
         summary: Create a file manager with the given unique identifier
         description: |
@@ -126,6 +126,22 @@ topics:
             name: toURL
             type: JSURL
             summary: The to URL
+      -
+        name: isFileURL
+        type: boolean
+        kind: method
+        introduced: 2020.28.0
+        summary: Check if the given URL is a file URL for this file manager
+        arguments:
+          - 
+            name: url
+            type: JSURL
+            summary: The URL to check
+        note: |
+          This doesn't simply return `true` if the `url`'s scheme is `file`.
+
+          For example, in the HTML environment, `JSFileManager` uses a custom
+          scheme for its URLs, and considers `file` urls to be irrelevant.
   -
     name: Item Attributes
     members:

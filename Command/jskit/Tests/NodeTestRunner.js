@@ -111,6 +111,8 @@ module.exports.run = function(){
     JSLog.configure({print: false}, JSLog.Level.debug);
     JSLog.configure({print: false}, JSLog.Level.info);
     JSLog.configure({print: false}, JSLog.Level.log);
+    JSLog.configure({print: false}, JSLog.Level.warn);
+    JSLog.configure({print: false}, JSLog.Level.error);
     var args = JSArguments.initWithOptions({
         help: {kind: "flag", shortcut: "h", hidden: true},
         suite: {default: null, help: "The single test suite (class name) to run"},

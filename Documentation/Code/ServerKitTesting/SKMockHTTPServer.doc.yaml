@@ -1,0 +1,14 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2020.28.0
+inherits: SKHTTPServer
+kind: class
+summary: A mock HTTP server that receives requests in memory from an `SKMockURLSession`
+description: |
+  A mock server doesn't expose any addtional properties or methods over `SKHTTPServer`.
+
+  Typically you'll interface with a mock server via the `server`(SKMockURLSession.server)
+  property of a mock session.
+
+  Creating a mock session creates a mock server, but does not configure the server's routes,
+  so you'll need to set the `rootRoute` property in order to conduct tests.  Sample
+  code is shown under `ServerKitTesting`

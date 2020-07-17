@@ -54,134 +54,134 @@ JSClass("SKHTTPRouteTests", TKTestSuite, {
 
 
         var request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/"));
-        var routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        var context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        var routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        var context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsRootContext));
-        var responder = routeInfo.route.responderWithRequest(request, context);
+        var responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsRootResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/missing"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNull(routeInfo);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNull(routeMatch);
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/one"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsRootContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsOneResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/one/a"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsRootContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsOneAResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/one/b"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNull(routeInfo);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNull(routeMatch);
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/two"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsRootContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsTwoResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/three"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNull(routeInfo);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNull(routeMatch);
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/three/hello"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.id, "hello");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsThreeContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsThreeResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/three/there"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.id, "there");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsThreeContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsThreeResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/three/hello/there"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNull(routeInfo);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNull(routeMatch);
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/three/hello/x"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.id, "hello");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsThreeContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsThreeXResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/four/hello.txt"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.file.length, 1);
         TKAssertEquals(context.file[0], "hello.txt");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsFourContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsFourResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/four/there.pdf"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.file.length, 1);
         TKAssertEquals(context.file[0], "there.pdf");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsFourContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsFourResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io/four/hello/there.txt"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNotNull(routeInfo);
-        context = routeInfo.route.contextWithMatches(routeInfo.matches);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNotNull(routeMatch);
+        context = routeMatch.route.contextWithMatches(routeMatch.matches);
         TKAssertNotNull(context);
         TKAssertEquals(context.file.length, 2);
         TKAssertEquals(context.file[0], "hello");
         TKAssertEquals(context.file[1], "there.txt");
         TKAssert(context.isKindOfClass(SKHTTPRouteTestsFourContext));
-        responder = routeInfo.route.responderWithRequest(request, context);
+        responder = routeMatch.route.responderWithRequest(request, context);
         TKAssertNotNull(responder);
         TKAssert(responder.isKindOfClass(SKHTTPRouteTestsFourResponder));
 
         request = SKHTTPRequest.initWithMethodAndURL("GET", JSURL.initWithString("http://breakside.io//hello/there"));
-        routeInfo = rootRoute.routeInfoForRequest(request);
-        TKAssertNull(routeInfo);
+        routeMatch = rootRoute.routeMatchForRequest(request);
+        TKAssertNull(routeMatch);
     },
 
     testPathComponentsForResponder: function(){

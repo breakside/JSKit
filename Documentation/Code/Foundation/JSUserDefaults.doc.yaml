@@ -85,6 +85,7 @@ topics:
           -
             name: target
             type: any
+            default: "undefined"
             summary: The object to use as `this` when calling `completion`
       -
         name: open
@@ -126,6 +127,7 @@ topics:
           -
             name: target
             type: any
+            default: "undefined"
             summary: The object to use as `this` when calling `completion`
       -
         name: close

@@ -52,6 +52,19 @@ JSClass('Uint8ArrayTests', TKTestSuite, {
         TKAssertEquals("fooba".utf8().base64StringRepresentation(), "Zm9vYmE=");
         TKAssertEquals("foobar".utf8().base64StringRepresentation(), "Zm9vYmFy");
         TKAssertEquals(new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]).base64StringRepresentation(), "s3pPLMBiTxaQ9kYGzzhZRbK+xOo=");
+        TKAssertEquals(JSData.initWithArray([0xfb, 0xff]).base64StringRepresentation(), "+/8=");
+    },
+
+    testBase64URLStringRepresentation: function(){
+        TKAssertEquals("".utf8().base64URLStringRepresentation(), "");
+        TKAssertEquals("f".utf8().base64URLStringRepresentation(), "Zg");
+        TKAssertEquals("fo".utf8().base64URLStringRepresentation(), "Zm8");
+        TKAssertEquals("foo".utf8().base64URLStringRepresentation(), "Zm9v");
+        TKAssertEquals("foob".utf8().base64URLStringRepresentation(), "Zm9vYg");
+        TKAssertEquals("fooba".utf8().base64URLStringRepresentation(), "Zm9vYmE");
+        TKAssertEquals("foobar".utf8().base64URLStringRepresentation(), "Zm9vYmFy");
+        TKAssertEquals(new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]).base64URLStringRepresentation(), "s3pPLMBiTxaQ9kYGzzhZRbK-xOo");
+        TKAssertEquals(JSData.initWithArray([0xfb, 0xff]).base64URLStringRepresentation(), "-_8");
     }
 
 });

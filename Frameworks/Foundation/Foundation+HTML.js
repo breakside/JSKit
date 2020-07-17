@@ -24,8 +24,11 @@
 // #import "JSRunLoop+HTML.js"
 
 // Implementations
-// #import "JSURLSessionDataTask+HTML.js"
-// #import "JSURLSessionStreamTask+HTML.js"
+// #import "JSHTMLHTTPClient.js"
+// #import "JSHTMLURLSessionDataTask.js"
+// #import "JSHTMLURLSessionUploadTask.js"
+// #import "JSHTMLURLSessionStreamTask.js"
+// #import "JSURLSession+HTML.js"
 // #import "JSFileManager+HTML.js"
 // #import "JSFile+HTML.js"
 

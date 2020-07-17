@@ -263,7 +263,7 @@ Object.defineProperty(JSBundle, 'mainBundle', {
     configurable: true,
     enumerable: false,
     get: function JSBundle_getMainBundle(){
-        var bundle = JSBundle.initWithIdentifier(JSBundle.mainBundleIdentifier);
+        var bundle = JSBundle.mainBundleIdentifier !== null ? JSBundle.initWithIdentifier(JSBundle.mainBundleIdentifier) : null;
         Object.defineProperty(JSBundle, 'mainBundle', {
             configurable: false,
             enumerable: false,

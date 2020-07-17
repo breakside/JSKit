@@ -49,6 +49,7 @@ JSClass("JSURL", JSObject, {
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
+    encodedPathAndQuery: JSReadOnlyProperty(),
 
     _hasAuthority: false,
 
@@ -353,7 +354,7 @@ JSClass("JSURL", JSObject, {
         }else{
             this._query = JSFormFieldMap(query);
         }
-        this._encodedQuery = this._query.encode(QueryReserved, true);
+        this._encodedQuery = this._query.urlEncoded();
     },
 
     getEncodedString: function(){
@@ -375,16 +376,22 @@ JSClass("JSURL", JSObject, {
                 encodedString += ":%d".sprintf(this._port);
             }
         }
+        encodedString += this.encodedPathAndQuery;
+        if (this._encodedFragment !== null){
+            encodedString += '#';
+            encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
+        }
+        return encodedString;
+    },
+
+    getEncodedPathAndQuery: function(){
+        var encodedString = "";
         if (this._path !== null){
             encodedString += String.initWithData(this._path.utf8().dataByEncodingPercentEscapes(PathReserved), String.Encoding.utf8);
         }
         if (this._encodedQuery !== null){
             encodedString += '?';
             encodedString += String.initWithData(this._encodedQuery, String.Encoding.utf8);
-        }
-        if (this._encodedFragment !== null){
-            encodedString += '#';
-            encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
         }
         return encodedString;
     },
@@ -401,6 +408,14 @@ JSClass("JSURL", JSObject, {
             this._encodedFragment = null;
         }else{
             this._encodedFragment = fragment.utf8().dataByEncodingPercentEscapes();
+        }
+    },
+
+    setFragmentQuery: function(query){
+        if (query === null){
+            this._encodedFragment = null;
+        }else{
+            this._encodedFragment = query.urlEncoded();
         }
     },
 
@@ -750,21 +765,6 @@ var PathReserved = {
     0x3c: true,
     0x3e: true,
     0x3f: true,
-    0x5b: true,
-    0x5c: true,
-    0x5d: true,
-    0x5e: true,
-    0x60: true,
-    0x7b: true,
-    0x7c: true,
-    0x7d: true
-};
-
-var QueryReserved = {
-    0x22: true,
-    0x23: true,
-    0x3c: true,
-    0x3e: true,
     0x5b: true,
     0x5c: true,
     0x5d: true,

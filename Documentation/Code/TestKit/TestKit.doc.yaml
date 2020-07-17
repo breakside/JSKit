@@ -382,3 +382,24 @@ topics:
         description: |
           Throws an exception if the two arrays have different lengths, or
           if any matching items are not exactly equal (`!==`)
+      -
+        introduced: 2020.28.0
+        name: TKAssertType
+        kind: function
+        summary: Throws an exception if the given object's type does not match the expected type
+        arguments:
+          -
+            name: obj
+            type: any
+            summary: The test value
+          -
+            name: expectedType
+            type: String
+            summary: The expected type
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Throws an exception if `typeof(obj)` != `expectedType`

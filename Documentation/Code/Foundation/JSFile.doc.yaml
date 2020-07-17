@@ -25,7 +25,7 @@ topics:
             summary: The contents of the file
           -
             name: name
-            type: string
+            type: String
             summary: The name of the file
           -
             name: contentType
@@ -42,7 +42,7 @@ topics:
     members:
       -
         name: name
-        type: string
+        type: String
         summary: The file's name
         description: |
           When receiving a file from drag and drop or a `UIOpenPanel`,

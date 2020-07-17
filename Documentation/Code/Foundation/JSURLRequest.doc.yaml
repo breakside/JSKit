@@ -5,7 +5,7 @@ inherits: JSObject
 summary: An HTTP request
 description: |
   HTTP requests are a combination of a `url`, a `method`, any number of
-  `headers`, and a `body`
+  `headers`, and a `data` body
 
   A request object defines how a request should be made, and is typically
   passed to `JSURLSession` to create a task that actually makes the request.
@@ -39,19 +39,19 @@ topics:
             name: Options
             members:
               -
-                name: GET
+                name: get
                 summary: For read-only requests that don't contain a body
                 value: '"GET"'
               -
-                name: POST
+                name: post
                 summary: For update requests that contain a body
                 value: '"POST"'
               -
-                name: PUT
+                name: put
                 summary: For replacing a resource with the given body
                 value: '"PUT"'
               -
-                name: DELETE
+                name: delete
                 summary: For deleting a resource
                 value: '"DELETE"'
       -
@@ -74,6 +74,33 @@ topics:
         type: JSMIMEHeader[]
         summary: An ordered list of headers
   -
+    name: Authorization
+    members:
+      -
+        introduced: 2020.28.0
+        name: addBasicAuthorization
+        kind: method
+        summary: Adds an `Authorization`() header for the `Basic`() scheme
+        arguments:
+          -
+            name: username
+            type: String
+            summary: The username to send to the server
+          -
+            name: password
+            type: String
+            summary: The password to send to the server
+      -
+        introduced: 2020.28.0
+        name: addBearerAuthorization
+        kind: method
+        summary: Adds an `Authorization`() header for the `Bearer`() scheme
+        arguments:
+          -
+            name: token
+            type: String
+            summary: The token to send to the server
+  -
     name: Request Body
     members:
       -
@@ -81,17 +108,26 @@ topics:
         type: JSMediaType
         summary: The content type of the request body
       -
-        name: body
+        name: data
         type: JSData
         summary: The raw byte array request body
       -
         name: object
         type: object
-        summary: A JSON-encodable object that will be used to create a `body`
+        summary: A JSON-encodable object that will be used to create a `data` body
         description: |
-          Setting this `object` property will automatically set the `body` to
+          Setting this `object` property will automatically set `data` to
           a JSON serialized UTF-8 encoded byte array.  It will also set the
           `contentType` to `"application/json"`.
+      -
+        introduced: 2020.28.0
+        name: form
+        type: JSFormFieldMap
+        summary: A form url-encoded that can be used to create a `data` body
+        description: |
+          Setting this `form` property will automatically set `data` to
+          a form representation.  It will also set the
+          `contentType` to `"application/x-www-form-urlencoded"`.
   -
     name: Response
     members:

@@ -18,10 +18,18 @@
 
 JSClass("SECSign", JSObject, {
 
+    algorithm: null,
+
     initWithAlgorithm: function(algorithm){
     },
 
     createKeyPair: function(options, completion, target){
+    },
+
+    createJWKPair: function(options, completion, target){
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){        
     },
 
     update: function(data){

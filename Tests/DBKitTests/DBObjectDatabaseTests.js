@@ -69,7 +69,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             three: null
         };
         var expectation = TKExpectation.init();
-        expectation.call(this.db.saveObject, this.db, obj, function(success){
+        expectation.call(this.db.save, this.db, obj, function(success){
             TKAssert(success);
         });
         this.wait(expectation, 1.0);
@@ -83,7 +83,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             three: null
         };
         var expectation = TKExpectation.init();
-        var promise = this.db.saveObject(obj);
+        var promise = this.db.save(obj);
         expectation.call(promise.then, promise, function(){
         }, function(){
             TKAssert(false, "Promise rejected");
@@ -100,7 +100,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             three: null
         };
         var expectation = TKExpectation.init();
-        expectation.call(this.db.saveObject, this.db, obj, function(success){
+        expectation.call(this.db.save, this.db, obj, function(success){
             TKAssert(success);
             expectation.call(this.db.object, this.db, id, function(obj){
                 TKAssertNotNull(obj);
@@ -122,7 +122,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             three: null
         };
         var expectation = TKExpectation.init();
-        var promise = this.db.saveObject(obj);
+        var promise = this.db.save(obj);
         var db  = this.db;
         expectation.call(promise.then, promise, function(){
             var promise = db.object(id);
@@ -165,11 +165,11 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
             three: null
         };
         var expectation = TKExpectation.init();
-        expectation.call(this.db.saveObject, this.db, obj, function(success){
+        expectation.call(this.db.save, this.db, obj, function(success){
             TKAssert(success);
             expectation.call(this.db.object, this.db, id, function(obj){
                 TKAssertNotNull(obj);
-                expectation.call(this.db.deleteObject, this.db, id, function(success){
+                expectation.call(this.db.delete, this.db, id, function(success){
                     TKAssert(success);
                     expectation.call(this.db.object, this.db, id, function(obj){
                         TKAssertNull(obj);

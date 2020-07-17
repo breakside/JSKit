@@ -41,6 +41,7 @@ topics:
       - JSCalendar
       - JSLocale
       - JSTimeZone
+      - JSTimeInterval
   -
     name: Indexes and Lookup
     summary: Simple types for specifying locations and selections in one- and two-dimensional lists

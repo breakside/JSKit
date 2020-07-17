@@ -34,6 +34,16 @@ topics:
         type: String
         nullable: true
         summary: The value of the `"Origin"` header in the request
+      -
+        introduced: 2020.28.0
+        name: tag
+        type: String
+        summary: A short unique identifier useful for tracking a request when logging
+      -
+        introduced: 2020.28.0
+        name: receivedAt
+        type: JSDate
+        summary: The timestamp when the request was received
   -
     name: Request Body
     members:
@@ -57,7 +67,12 @@ topics:
             type:
               arguments:
                 -
-                  name: validator
+                  name: error
+                  type: SKValidatingObject.Error
+                  nullable: true
+                  summary: The error, if the object could not be validated
+                -
+                  name: valid
                   type: JSObject
                   mullable: true
                   summary: The fully validated object, after being constructed
@@ -73,7 +88,7 @@ topics:
           Creates an instance with all input validated via a
           `JSValidatingObject` passed to the init method.
 
-          `getValidObject()` is the reccommended way to create objects from user
+          `getValidObject()` is the recommended way to create objects from user
           input in a request.
 
           ````
@@ -124,7 +139,7 @@ topics:
           Creates an instance with all input validated via a
           `JSValidatingObject` passed to the init method.
 
-          `getValidObject()` is the reccommended way to create objects from user
+          `getValidObject()` is the recommended way to create objects from user
           input in a request.
 
           ````
@@ -154,6 +169,126 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
+      -
+        introduced: 2020.28.0
+        name: getValidForm
+        kind: method
+        summary: Get an instance of the given class created from a form body with
+          \`initWithValidatingObject()`
+        arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: SKValidatingObject.Error
+                  nullable: true
+                  summary: The error, if the object could not be validated
+                -
+                  name: valid
+                  type: JSObject
+                  mullable: true
+                  summary: The fully validated object, after being constructed
+                    with the `SKValidatingObject` protocol's
+                    `initWithValidatingObject()`
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidForm()` is the recommended way to create objects from user
+          input in a form request.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidForm(CommentRequest);
+            }
+
+          });
+
+          JSClass("CommentRequest", JSObject, {
+
+            text: null,
+            replyToId: null,
+
+            initWithValidatingObject: function(obj){
+              this.text = obj.stringForKey('text');
+              this.replyToId = obj.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          In order to successfully decode a form object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/x-www-form-urlencoded"`
+          2. Valid form data
+      -
+        introduced: 2020.28.0
+        name: getValidForm
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidating
+            summary: An instance of the given class
+        summary: Get an instance of the given class created from a form request with
+          \`initWithValidatingObject()`, returned via a promise
+        arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidForm()` is the recommended way to create objects from user
+          input in a form request.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidForm(CommentRequest);
+            }
+
+          });
+
+          JSClass("CommentRequest", JSObject, {
+
+            text: null,
+            replyToId: null,
+
+            initWithValidatingObject: function(obj){
+              this.text = obj.stringForKey('text');
+              this.replyToId = obj.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          In order to successfully decode a form object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/x-www-form-urlencoded"`
+          2. Valid form data
       -
         name: getValidatingObject
         kind: method
@@ -237,6 +372,90 @@ topics:
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
       -
+        introduced: 2020.28.0
+        name: getValidatingForm
+        kind: method
+        summary: Get the request's body as an validation-wrapped object decoded
+          from a form in a callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: validator
+                  type: SKValidatingObject
+                  mullable: true
+                  summary: The request's form body decoded into an object and
+                    wrapped in a validator
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidatingForm();
+              var text = comment.stringForKey('text');
+              var replyToId = comment.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidForm()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+
+          In order to successfully decode a form object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/x-www-form-urlencoded"`
+          2. Valid form data
+      -
+        introduced: 2020.28.0
+        name: getValidatingForm
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidatingObject
+            summary: The request's body form wrapped in a validator
+        summary: Get the request's body form wrapped in a validator with a promise
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          ````
+          JSClass("CommentsResponder", SKHTTPResponder, {
+
+            post: async function(){
+              var comment = await this.request.getValidatingForm();
+              var text = comment.stringForKey('text');
+              var replyToId = comment.numberForKey('replyToId', null);
+            }
+
+          });
+          ````
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidForm()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+
+          In order to successfully decode a form object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/x-www-form-urlencoded"`
+          2. Valid form data
+      -
         name: getObject
         kind: method
         summary: Get the request's body as an object decoded from JSON in a
@@ -280,6 +499,51 @@ topics:
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
       -
+        introduced: 2020.28.0
+        name: getForm
+        kind: method
+        summary: Get the request's body as a JSFormFieldMap in a
+          callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: form
+                  type: JSFormFieldMap
+                  mullable: true
+                  summary: The request's form body
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          In order to successfully decode a form, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/x-www-form-urlencoded"`
+          2. Valid form data
+      -
+        introduced: 2020.28.0
+        name: getForm
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSFormFieldMap
+            summary: The request's form object
+        summary: Get the request's body as a JSFormFieldMap() with a promise
+        description: |
+          In order to successfully decode a JSON object, the request must 
+          meet the following criteria:
+
+          1. Content-Type equal to `"application/json; charset=utf-8"`
+          2. Valid JSON data
+      -
         name: getData
         kind: method
         summary: Get the request's body data in a callback function
@@ -310,48 +574,127 @@ topics:
             summary: The request's body data
         summary: Get the request's body data with a promise
   -
+    name: Query String
+    members:
+      -
+        introduced: 2020.28.0
+        name: getValidQuery
+        kind: method
+        summary: Get an instance of the given class created from the request's query string with
+          \`initWithValidatingObject()`
+        arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: error
+                  type: SKValidatingObject.Error
+                  nullable: true
+                  summary: The error, if the object could not be validated
+                -
+                  name: valid
+                  type: JSObject
+                  mullable: true
+                  summary: The fully validated object, after being constructed
+                    with the `SKValidatingObject` protocol's
+                    `initWithValidatingObject()`
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidQuery()` is the recommended way to create objects from user
+          input in a query string.
+      -
+        introduced: 2020.28.0
+        name: getValidQuery
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidating
+            summary: An instance of the given class
+        summary: Get an instance of the given class created from the request's query string with
+          \`initWithValidatingObject()`, returned via a promise
+        arguments:
+          -
+            name: validatingContructionClass
+            type: JSClass
+            summary: The class of object to instantiate.  Must implement
+              the `SKValidatingConstruction` protocol.
+        description: |
+          Creates an instance with all input validated via a
+          `JSValidatingObject` passed to the init method.
+
+          `getValidQuery()` is the recommended way to create objects from user
+          input in a query string.
+      -
+        introduced: 2020.28.0
+        name: getValidatingQuery
+        kind: method
+        summary: Get the request's query string as an validation-wrapped object decoded
+          from a form in a callback function
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: validator
+                  type: SKValidatingObject
+                  mullable: true
+                  summary: The request's query string decoded into an object and
+                    wrapped in a validator
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidQuery()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+      -
+        introduced: 2020.28.0
+        name: getValidatingQuery
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SKValidatingObject
+            summary: The request's body query string wrapped in a validator
+        summary: Get the request's body query string wrapped in a validator with a promise
+        description: |
+          A validating object provides a simple interface to extract user
+          input while ensuring it meets input validation requirements.
+
+          Unless you need to extract fields at different times, we recommend
+          using `getValidQuery()` instead because it validates all the input
+          upfront and allows for a more structured pattern to validate input.
+  -
     name: Response
     members:
       -
         name: response
         type: SKHTTPResponse
         summary: The response object that will be sent for this request
-      -
-        name: respond
-        kind: method
-        summary: Start the response
-        arguments:
-          -
-            name: statusCode
-            type: SKHTTPResponse.StatusCode
-            summary: The status code for the response
-          -
-            name: statusMessage
-            type: String
-            summary: The message to send along with the status code
-          -
-            name: headerMap
-            type: JSMIMEHeaderMap
-            summary: The headers to send
-        description: |
-          Only sends the status and headers.  Does not send any response body.
-      -
-        name: upgrade
-        kind: method
-        summary: Send an upgrade response
-        arguments:
-          -
-            name: statusMessage
-            type: String
-            summary: The message to send along with the status code
-          -
-            name: headerMap
-            type: JSMIMEHeaderMap
-            summary: The headers to send
-        description: |
-          Sends the `SKHTTPResponse.StatusCode.switchingProtocols` code.
-
-          Used for features like WebSockets.
       -
         name: close
         kind: method

@@ -25,7 +25,8 @@ JSClass("UIWindowServerTests", TKTestSuite, {
 
     setup: function(){
         this.windowServer = MockWindowServer.init();
-        this.app = UIApplication.initWithWindowServer(this.windowServer);
+        var bundle = JSBundle.initWithDictionary({Info: {}});
+        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
         JSFont.registerDummySystemFont();
     },
 

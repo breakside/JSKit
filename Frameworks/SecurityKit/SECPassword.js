@@ -28,7 +28,7 @@ JSClass("SECPassword", JSObject, {
         this.salt = dictionary.salt.dataByDecodingBase64();
         this.iterations = dictionary.iterations;
         this.hashAlgorithm = dictionary.hash;
-        this.pbkdf2Data = dictionary.key.dataByDecodingBase64();
+        this.pbkdf2Data = dictionary.pbkdf2.dataByDecodingBase64();
     },
 
     initWithPBKDF2Data: function(pbkdf2Data, salt, iterations, hash){
@@ -43,7 +43,7 @@ JSClass("SECPassword", JSObject, {
             salt: this.salt.base64StringRepresentation(),
             iterations: this.iterations,
             hash: this.hashAlgorithm,
-            key: this.pbkdf2Data.base64StringRepresentation()
+            pbkdf2: this.pbkdf2Data.base64StringRepresentation()
         };
     },
 

@@ -19,6 +19,9 @@
 // #import "Printer.js"
 'use strict';
 
+var http = require('http');
+var fs = require('fs');
+
 JSClass("TestCommand", Command, {
 
     name: "test",
@@ -27,7 +30,9 @@ JSClass("TestCommand", Command, {
     options: {
         'builds-root':  {default: null, help: "Root folder for builds"},
         project: {kind: "positional", help: "The test project to build and run"},
+        'inspect-brk': {kind: "flag", help: "Wait for a debugger to attach when running tests"},
         testargs: {kind: "unknown", help: "Additional arguments for the test run"},
+        'http-port': {default: null, help: "Runs an http server for in-browser testing"}
     },
 
     run: async function(){
@@ -58,17 +63,107 @@ JSClass("TestCommand", Command, {
         this.printer.setStatus("Done");
         this.printer.print("");
 
-        const { spawn } = require('child_process');
-        let exe = this.fileManager.pathForURL(builder.executableURL);
-        var tests = spawn(exe, this.arguments.testargs, {stdio: 'inherit'});
-
-        var cmd = this;
-        return new Promise(function(resolve, reject){
-            tests.on('close', function(code){
-                cmd.returnValue = code;
-                resolve();
+        var port = this.arguments['http-port'];
+        if (port !== null){
+            var fileManager = this.fileManager;
+            var server = http.createServer(function(request, response){
+                try{
+                    if (request.method != 'GET'){
+                        response.statusCode = JSURLResponse.StatusCode.methodNotAllowed;
+                        response.end();
+                        return;
+                    }
+                    var url = JSURL.initWithString(request.url).standardized();
+                    var path = url.path;
+                    if (path === null || path.length === 0 || path[0] != '/'){
+                        response.statusCode = JSURLResponse.StatusCode.badRequest;
+                        response.end();
+                        return;
+                    }
+                    if (path === "/"){
+                        path = "/tests.html";
+                    }
+                    var relativePath = path.substr(1);
+                    var fileURL = JSURL.initWithString(relativePath, builder.wwwURL);
+                    var filePath = fileManager.pathForURL(fileURL);
+                    var contentType = typeForExtension(filePath.fileExtension);
+                    fs.stat(filePath, function(error, stat){
+                        try{
+                            if (error){
+                                response.statusCode = JSURLResponse.StatusCode.notFound;
+                                response.end();
+                                return;
+                            }
+                            response.setHeader("Content-Type", contentType);
+                            response.setHeader("Content-Length", stat.size);
+                            response.statusCode = JSURLResponse.StatusCode.ok;
+                            var fp = fs.createReadStream(filePath);
+                            fp.pipe(response); // calls .end()
+                        }catch(e){
+                            process.stdout.write(e.stack);
+                            response.statusCode = JSURLResponse.StatusCode.internalServerError;
+                            response.end();
+                        }
+                    });
+                }catch (e){
+                    process.stdout.write(e.stack);
+                    response.statusCode = JSURLResponse.StatusCode.internalServerError;
+                    response.end();
+                }
             });
-        });
+            server.listen(port, '127.0.0.1');
+            var url = JSURL.initWithString("http://localhost/");
+            url.port = port;
+            var args = JSArguments.initWithOptions({
+                suite: {default: null},
+                case: {default: null},
+                other: {kind: "unknown"}
+            });
+            var query = JSFormFieldMap();
+            args.parse([""].concat(this.arguments.testargs));
+            if (args.suite !== null){
+                query.set("suite", args.suite);
+                if (args.case !== null){
+                    query.set("case", args.case);
+                }
+            }
+            url.query = query;
+            process.stdout.write("Run in-browser tests at %s\n".sprintf(url.encodedString));
+        }else{
+            const { spawn } = require('child_process');
+            let exe = this.fileManager.pathForURL(builder.executableURL);
+            var nodeargs = [];
+            if (this.arguments['inspect-brk']){
+                nodeargs.push('--inspect-brk');
+            }
+            nodeargs.push(exe);
+            nodeargs = nodeargs.concat(this.arguments.testargs);
+            var tests = spawn('node', nodeargs, {stdio: 'inherit'});
+
+            var cmd = this;
+            return new Promise(function(resolve, reject){
+                tests.on('close', function(code){
+                    cmd.returnValue = code;
+                    resolve();
+                });
+            });
+        }
     }
 
 });
+
+var typeForExtension = function(ext){
+    switch (ext){
+        case ".html": return "text/html";
+        case ".js": return "application/javascript";
+        case ".css": return "text/css";
+        case ".png": return "image/png";
+        case ".jpg": return "image/jepg";
+        case ".jpg": return "image/jpg";
+        case ".svg": return "image/svg+xml";
+        case ".svgz": return "image/svg+xml";
+        case ".woff": return "application/font-woff";
+        case ".ttf": return "application/x-font-ttf";
+        default: return "application/octet-stream";
+    }
+};

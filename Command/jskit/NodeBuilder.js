@@ -31,7 +31,7 @@ JSClass("NodeBuilder", Builder, {
     bundleType: "node",
 
     options: {
-        'port':         {valueType: "integer", default: 8081,   help: "The port on which the node application will be available"},
+        'debug-port':   {valueType: "integer", default: 8081,   help: "The port on which to bind during local debugging"},
         'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"},
         'no-docker':    {kind: "flag",                          help: "Don't build the docker image"}
     },
@@ -104,15 +104,7 @@ JSClass("NodeBuilder", Builder, {
 
     findImports: async function(){
         this.printer.setStatus("Finding code...");
-        var entryPoint = this.project.entryPoint;
-        var includeDirectoryURLs = await this.project.findIncludeDirectoryURLs();
-        var roots = [entryPoint.path];
-        var resourceImportPaths = await this.resources.getImportPaths(includeDirectoryURLs);
-        roots = roots.concat(resourceImportPaths);
-        if (!this.project.info.SKMainSpec && this.project.info.SKApplicationDelegate){
-            roots.push(this.project.info.SKApplicationDelegate + ".js");
-        }
-        this.imports = await this.project.findJavascriptImports(roots, includeDirectoryURLs);
+        this.imports = await this.project.findJavascriptImports();
     },
 
     // ----------------------------------------------------------------------
@@ -171,18 +163,9 @@ JSClass("NodeBuilder", Builder, {
     resources: null,
 
     findResources: async function(){
-        var blacklist = {
-            names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", "README.md", this.project.licenseFilename])
-        };
         this.printer.setStatus("Finding resources...");
-        var resourceURLs = await this.project.findResourceURLs(blacklist);
-        var resources = Resources.initWithFileManager(this.fileManager);
-        for (let i = 0, l = resourceURLs.length; i < l; ++i){
-            let url = resourceURLs[i];
-            this.printer.setStatus("Inspecting %s...".sprintf(url.lastPathComponent));
-            await resources.addResourceAtURL(url);
-        }
-        this.resources = resources;
+        await this.project.loadResources(this.printer);
+        this.resources = this.project.resources;
     },
 
     bundleResources: async function(){
@@ -432,7 +415,7 @@ JSClass("NodeBuilder", Builder, {
         var dockerfile = contents.stringByDecodingUTF8();
         var params = {
             BUILD_ID: this.buildId,
-            PORT: this.arguments.port
+            PORT: 80
         };
         dockerfile = dockerfile.replacingTemplateParameters(params);
         var url = this.buildURL.appendingPathComponent("Dockerfile");
@@ -477,7 +460,7 @@ JSClass("NodeBuilder", Builder, {
                     "docker run",
                     "--rm",
                     "--name " + name,
-                    "-p%d:%d".sprintf(builder.arguments.port, builder.arguments.port),
+                    "-p%d:80".sprintf(builder.arguments['debug-port']),
                     identifier
                 ].join(" \\\n    "));
                 resolve();

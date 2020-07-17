@@ -25,7 +25,8 @@ JSClass("JSNodeDispatchQueue", JSWorkerBasedDispatchQueue, {
     child: null,
 
     startWorker: function(){
-        var workerModule = JSBundle.mainBundle.info[JSNodeDispatchQueueWorkerModuleBundleKey];
+        var bundle = JSBundle.testBundle || JSBundle.mainBundle;
+        var workerModule = bundle.info[JSNodeDispatchQueueWorkerModuleBundleKey];
         var mainDir = path.dirname(require.main.filename);
         this.child = child_process.fork(path.join(mainDir, workerModule));
         this.child.on('message', this.receiveWorkerMessage.bind(this));

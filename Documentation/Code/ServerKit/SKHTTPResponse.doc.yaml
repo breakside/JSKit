@@ -153,29 +153,9 @@ topics:
         type: StatusCode
         summary: The status code for the response
       -
-        name: setHeader
-        kind: method
-        summary: Set a header on the response
-        arguments:
-          -
-            name: name
-            type: String
-            summary: The name of the header
-          -
-            name: value
-            type: String
-            summary: The value of the header
-      -
-        name: getHeader
-        kind: method
-        type: String
-        return: The value of the header
-        summary: Get the value for a header that is already set
-        arguments:
-          -
-            name: name
-            type: String
-            summary: The name of the header
+        name: headerMap
+        type: JSMimeHeaderMap
+        summary: The headers for this response
   -
     name: Response Body
     members:
@@ -214,6 +194,14 @@ topics:
             name: path
             type: String
             summary: The path to the file
+      -
+        introduced: 2020.28.0
+        name: writeHeaderIfNeeded
+        kind: method
+        summary: Write the response header if it hasn't already been sent
+        description: |
+          Useful in upgrade scenarios when you need to send a respone header
+          block without closing the connection.
   -
     name: Caching
     members:
@@ -225,3 +213,32 @@ topics:
         name: lastModified
         type: JSDate
         summary: The last modified time of the resource for caching purposes
+  -
+    name: Deprecated
+    members:
+      -
+        deprecated: 2020.28.0
+        name: setHeader
+        kind: method
+        summary: Set a header on the response
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the header
+          -
+            name: value
+            type: String
+            summary: The value of the header
+      -
+        deprecated: 2020.28.0
+        name: getHeader
+        kind: method
+        type: String
+        return: The value of the header
+        summary: Get the value for a header that is already set
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the header

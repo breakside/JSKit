@@ -78,3 +78,34 @@ topics:
         type: JSURL
         summary: The `file://` url pointing to the running application's
           working directory
+  -
+    name: Application Secrets
+    members:
+      -
+        name: secrets
+        introduced: 2020.28.0
+        type: SKSecrets
+        summary: A way to access application secrets that should not be stored
+          in source code and can vary from environment to environment
+        description: |
+          The `SKApplicationSecrets` entry in the application's info file
+          controls which sub-property names are available.
+
+          `Info.yaml`
+          ````
+          ...
+          SKApplicationSecrets:
+            - databasePassword
+          ````
+
+          `AppDelegate.js`
+          ````
+          JSClass("AppDelegate", JSObject, {
+
+            applicationDidFinishLaunching: function(application, options){
+              this.database = Database.initWithPassword(application.secrets.databasePassword);
+              // ...
+            }
+
+          });
+          ````

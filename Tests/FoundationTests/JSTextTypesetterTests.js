@@ -523,7 +523,7 @@ JSClass("JSTextTypesetterTests", TKTestSuite, {
         attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = JSTextTypesetter.init();
         var attributedString = JSAttributedString.initWithString('Testing  attachment runs', attributes);
-        var image = JSImage.initWithResourceName("attachment");
+        var image = JSImage.initWithResourceName("attachment", JSBundle.testBundle);
         var attachment = JSTextAttachment.initWithImage(image);
         var attachmentString = JSAttributedString.initWithAttachment(attachment);
         attributedString.replaceCharactersInRangeWithAttributedString(JSRange(8, 0), attachmentString);

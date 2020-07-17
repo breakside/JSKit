@@ -14,15 +14,15 @@
 // limitations under the License.
 
 // #import "JSObject.js"
-// #import "JSURLSessionDataTask.js"
-// #import "JSURLSessionUploadTask.js"
-// #import "JSURLSessionStreamTask.js"
 // #import "JSURLRequest.js"
 'use strict';
 
 JSClass("JSURLSession", JSObject, {
 
     delegate: null,
+    dataTaskClass: null,
+    uploadTaskClass: null,
+    streamTaskClass: null,
 
     init: function(){
     },
@@ -33,7 +33,7 @@ JSClass("JSURLSession", JSObject, {
     },
 
     dataTaskWithRequest: function(request, completion, target){
-        var task = JSURLSessionDataTask.initWithRequest(request);
+        var task = this.dataTaskClass.initWithRequest(request);
         task.session = this;
         task.completion = completion;
         task.target = target;
@@ -44,7 +44,7 @@ JSClass("JSURLSession", JSObject, {
         if (data !== null && data !== undefined){
             request.data = data;
         }
-        var task = JSURLSessionUploadTask.initWithRequest(request);
+        var task = this.uploadTaskClass.initWithRequest(request);
         task.session = this;
         task.completion = completion;
         task.target = target;
@@ -52,7 +52,7 @@ JSClass("JSURLSession", JSObject, {
     },
 
     streamTaskWithURL: function(url, requestedProtocols){
-        var task = JSURLSessionStreamTask.initWithURL(url, requestedProtocols);
+        var task = this.streamTaskClass.initWithURL(url, requestedProtocols);
         task.session = this;
         return task;
     },

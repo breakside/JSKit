@@ -1,6 +1,22 @@
+// Copyright 2020 Breakside Inc.
+//
+// Licensed under the Breakside Public License, Version 1.0 (the "License");
+// you may not use this file except in compliance with the License.
+// If a copy of the License was not distributed with this file, you may
+// obtain a copy at
+//
+//     http://breakside.io/licenses/LICENSE-1.0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 // #import Foundation
 // #import "SKHTTPResponderContext.js"
 // #import "SKHTTPResourceResponder.js"
+// #import "SKHTTPRouteMatch.js"
 'use strict';
 
 (function(){
@@ -62,13 +78,13 @@ JSClass("SKHTTPRoute", JSObject, {
         return responder;
     },
 
-    routeInfoForRequest: function(request){
+    routeMatchForRequest: function(request){
         var matches = {};
-        var routeInfo = this._routeInfoForPathComponents(request.url.pathComponents, matches);
-        return routeInfo;
+        var routeMatch = this._routeMatchForPathComponents(request.url.pathComponents, matches);
+        return routeMatch;
     },
 
-    _routeInfoForPathComponents: function(pathComponents, matches){
+    _routeMatchForPathComponents: function(pathComponents, matches){
         if (pathComponents.length === null){
             return null;
         }
@@ -93,15 +109,15 @@ JSClass("SKHTTPRoute", JSObject, {
             // FIXME: unwind components
         }
         if (componentIndex == pathComponents.length){
-            return {route: this, matches: matches};
+            return SKHTTPRouteMatch.initWithRoute(this, matches);
         }
         var child;
-        var routeInfo = null;
-        for (var i = 0, l = this.children.length; i < l && routeInfo === null; ++i){
+        var routeMatch = null;
+        for (var i = 0, l = this.children.length; i < l && routeMatch === null; ++i){
             child = this.children[i];
-            routeInfo = child._routeInfoForPathComponents(pathComponents.slice(componentIndex), Object.create(matches));
+            routeMatch = child._routeMatchForPathComponents(pathComponents.slice(componentIndex), Object.create(matches));
         }
-        return routeInfo;
+        return routeMatch;
     },
 
     pathComponentsForResponder: function(responderClass, params){
@@ -172,7 +188,7 @@ JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
 
     initWithResourceName: function(name, type, bundle, componentStrings){
         this.initWithComponentStrings(componentStrings);
-        this.bundle = bundle || JSBundle.mainBundle;
+        this._bundle = bundle || JSBundle.mainBundle;
         this._resourceMetadata = this._bundle.metadataForResourceName(name, type);
     },
 

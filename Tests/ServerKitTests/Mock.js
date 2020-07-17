@@ -20,10 +20,6 @@ JSClass("MockRequest", SKHTTPRequest, {
         this.responseText = "";
     },
 
-    _write: function(txt){
-        this.responseText += txt;
-    },
-
     getData: function(completion, target){
         JSRunLoop.main.schedule(completion, target, this._data);
     }
@@ -41,29 +37,23 @@ JSClass("MockResponse", SKHTTPResponse, {
         this._headerMap = JSMIMEHeaderMap();
     },
 
+    complete: function(){
+        this.writeHeaderIfNeeded();
+    },
+
+    writeHeader: function(){
+        this.chunks.push("HTTP/1.1 %d\r\n".sprintf(this._statusCode).utf8());
+        var header;
+        for (var i = 0, l = this._headerMap.headers.length; i < l; ++i){
+            header = this._headerMap.headers[i];
+            this.chunks.push("%s\r\n".sprintf(header).utf8());
+        }
+        this.chunks.push("\r\n".utf8());
+    },
+
     writeData: function(chunk){
-        if (!this._headersWritten){
-            this._headersWritten = true;
-            this.chunks.push("HTTP/1.1 %d\r\n".sprintf(this._statusCode).utf8());
-            var header;
-            for (var i = 0, l = this._headerMap.headers.length; i < l; ++i){
-                header = this._headerMap.headers[i];
-                this.chunks.push("%s\r\n".sprintf(header).utf8());
-            }
-            this.chunks.push("\r\n".utf8());
-        }
+        this.writeHeaderIfNeeded();
         this.chunks.push(chunk);
-    },
-
-    setHeader: function(name, value){
-        if (this._headersWritten){
-            throw new Error("Cannot set header after data has been written");
-        }
-        this._headerMap.set(name, value);
-    },
-
-    getHeader: function(name){
-        return this._headerMap.get(name);
     },
 
     text: JSReadOnlyProperty(),
