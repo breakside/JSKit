@@ -18,11 +18,12 @@
 
 JSContext.definePropertiesFromExtensions({
 
-    drawQRCode: function(qrCodeDrawing, rect){
+    drawQRCode: function(qrCode, rect){
+        var drawing = qrCode.prepareDrawing();
         this.save();
-        var size = qrCodeDrawing.size;
-        var modules = qrCodeDrawing.modules;
-        var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y).scaledBy(rect.size.width / qrCodeDrawing.size, rect.size.height / qrCodeDrawing.size);
+        var size = drawing.size;
+        var modules = drawing.modules;
+        var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y).scaledBy(rect.size.width / drawing.size, rect.size.height / drawing.size);
         this.concatenate(transform);
         for (var y = 0, i = 0; y < size; ++y){
             for (var x = 0; x < size; ++x, ++i){

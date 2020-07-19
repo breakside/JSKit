@@ -24,6 +24,9 @@ JSClass("QRCodeDrawing", JSObject, {
     modules: null,
     version: null,
     quietSize: 4,
+    bitColumn: 0,
+    bitIndex: 0,
+    bitDirection: -1,
 
     initWithVersion: function(version){
         if (version < 1 || version > 40){
@@ -93,7 +96,7 @@ JSClass("QRCodeDrawing", JSObject, {
         this.flag(0, this.size - this.quietSize, this.size, this.quietSize, QRCodeDrawing.Flag.quiet);
 
         // Starting point for writing bits
-        this.bitIndex = (this.size - this.quietSize) * this.size + this.size - this.quietSize;
+        this.bitIndex = (this.size - this.quietSize - 1) * this.size + this.size - this.quietSize - 1;
         this.bitDirection = BitDirection.up;
     },
 
@@ -161,132 +164,6 @@ JSClass("QRCodeDrawing", JSObject, {
         }
     },
 
-    bitColumn: 0,
-    bitIndex: 0,
-    bitDirection: -1,
-
-    drawCodeword: function(byte){
-        var mask = 0x80;
-        var shift = 7;
-        while (mask > 0){
-            mask >>= 1;
-            --shift;
-            this.drawBit((byte & mask) >> shift);
-        }
-    },
-
-    drawBit: function(on){
-        var index = this.bitIndex;
-        if (on){
-            this.modules[index] |= QRCodeDrawing.Flag.on;
-        }
-        if (this.bitColumn === 0){
-            // if we just wrote to the right side of the column,
-            // we can safely assume the left side of the column is open
-            this.bitIndex = index - 1;
-            this.bitColumn = 1;
-            if (this.modules[this.bitIndex] !== 0){
-                throw new Error("Next module already written");
-            }
-        }else if (this.bitDirection === BitDirection.up){
-            // if we just wrote to the left side of the column,
-            // see if the space is open one up and one to the right
-            index = index - this.size + 1;
-            if (this.modules[index] === 0){
-                this.bitColumn = 0;
-                this.bitIndex = index;
-            }else{
-                // If up and over isn't available, what about up?
-                --index;
-                if (this.modules[index] === 0){
-                    this.bitIndex = index;
-                }else{
-                    // If up isn't available, can we skip over something?
-                    index = index - this.size + 1;
-                    while (index > 0 && this.modules[index] !== 0){
-                        index -= this.size;
-                    }
-                    if (index > 0){
-                        this.bitIndex = index;
-                        this.bitColumn = 0;
-                    }else{
-                        // If we can't skip over something, it's time to change direction
-                        this.bitDirection = BitDirection.down;
-                        index = this.bitIndex - 1;
-                        this.bitIndex = index;
-                        this.bitColumn = 0;
-                    }
-                }
-            }
-        }else if (this.bitDirection === BitDirection.down){
-            // if we just wrote to the left side of the column,
-            // see if the space is open one down and one to the right
-            index = index + this.size + 1;
-            if (this.modules[index] === 0){
-                this.bitColumn = 0;
-                this.bitIndex = index;
-                if (this.modules[this.bitIndex] !== 0){
-                    throw new Error("Next module already written");
-                }
-            }else{
-                // If down and over isn't available, what about down?
-                --index;
-                if (this.modules[index] === 0){
-                    this.bitIndex = index;
-                }else{
-                    // If down isn't available, can we skip over something?
-                    index = index + this.size + 1;
-                    while (index < this.modules.length && this.modules[index] !== 0){
-                        index += this.size;
-                    }
-                    if (index < this.modules.length){
-                        this.bitIndex = index;
-                        this.bitColumn = 0;
-                    }else{
-                        // If we can't skip over something, it's time to change direction
-                        this.bitDirection = BitDirection.up;
-                        index = this.bitIndex - 1;
-                        this.bitIndex = index;
-                        this.bitColumn = 0;
-                    }
-                }
-            }
-        }
-    },
-
-    mask: function(){
-        var modules;
-        var x, y;
-        var fn;
-        var lowestScoringMask = -1;
-        var lowScore = Number.MAX_VALUE;
-        var lowScoreModules = this.modules;
-        var score;
-        var m0 = this.quietSize * this.size + this.quietSize;
-        var m;
-        for (var i = 0, l = maskFunctions.length; i < l; ++i){
-            modules = JSData.initWithData(this.modules);
-            fn = maskFunctions[i];
-            m = m0;
-            for (y = this.quietSize; y < this.size - this.quietSize; ++y){
-                for (x = this.quietSize; x < this.size - this.quietSize; ++x, ++m){
-                    if ((modules[m] & QRCodeDrawing.Flag.reserved) === 0){
-                        modules[m] = modules[m] ^ fn(y, x);
-                    }
-                }
-                m += this.quietSize + this.quietSize;
-            }
-            score = scoreMaskedModules(modules, this.size, this.quietSize);
-            if (score < lowScore){
-                lowScore = score;
-                lowScoreModules = modules;
-                lowestScoringMask = i;
-            }
-        }
-        this.modules = lowScoreModules;
-        return lowestScoringMask;
-    },
-
     drawFormat: function(format){
         // Upper left
         var i = this.quietSize * this.size + this.quietSize + 8;
@@ -342,7 +219,7 @@ JSClass("QRCodeDrawing", JSObject, {
         this.modules[i] |= (format & (0x01 << 7)) >> 7;
 
         // Lower left
-        i = (this.quietSize + this.size - 1) * this.size + this.quietSize + 8;
+        i = (this.size - this.quietSize - 1) * this.size + this.quietSize + 8;
         this.modules[i] |= (format & (0x01 << 14)) >> 14;
         i -= this.size;
         this.modules[i] |= (format & (0x01 << 13)) >> 13;
@@ -358,178 +235,560 @@ JSClass("QRCodeDrawing", JSObject, {
         this.modules[i] |= (format & (0x01 << 8)) >> 8;
         i -= this.size;
         this.modules[i] |= QRCodeDrawing.Flag.on;
-    }
+    },
+
+    drawVersion: function(version){
+        if (this.version < 7){
+            return;
+        }
+        // upper right
+        var i = this.quietSize * this.size + this.size - this.quietSize - 11;
+        this.modules[i] |= (version & (0x1 << 0)) >> 0;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 1)) >> 1;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 2)) >> 2;
+        i += this.size - 2;
+        this.modules[i] |= (version & (0x1 << 3)) >> 3;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 4)) >> 4;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 5)) >> 5;
+        i += this.size - 2;
+        this.modules[i] |= (version & (0x1 << 6)) >> 6;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 7)) >> 7;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 8)) >> 8;
+        i += this.size - 2;
+        this.modules[i] |= (version & (0x1 << 9)) >> 9;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 10)) >> 10;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 11)) >> 11;
+        i += this.size - 2;
+        this.modules[i] |= (version & (0x1 << 12)) >> 12;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 13)) >> 13;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 14)) >> 14;
+        i += this.size - 2;
+        this.modules[i] |= (version & (0x1 << 15)) >> 15;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 16)) >> 16;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 17)) >> 17;
+
+        // lower left
+        i = (this.size - this.quietSize - 11) * this.size + this.quietSize;
+        this.modules[i] |= (version & (0x1 << 0)) >> 0;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 3)) >> 3;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 6)) >> 6;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 9)) >> 9;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 12)) >> 12;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 15)) >> 15;
+        i += this.size - 5;
+        this.modules[i] |= (version & (0x1 << 1)) >> 1;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 4)) >> 4;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 7)) >> 7;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 10)) >> 10;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 13)) >> 13;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 16)) >> 16;
+        i += this.size - 5;
+        this.modules[i] |= (version & (0x1 << 2)) >> 2;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 5)) >> 5;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 8)) >> 8;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 11)) >> 11;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 14)) >> 14;
+        i += 1;
+        this.modules[i] |= (version & (0x1 << 17)) >> 17;
+    },
+
+    drawCodeword: function(byte){
+        var mask = 0x80;
+        var shift = 7;
+        while (mask > 0){
+            this.drawBit((byte & mask) >> shift);
+            mask >>= 1;
+            --shift;
+        }
+    },
+
+    drawBit: function(on){
+        var index = this.bitIndex;
+        if (on){
+            this.modules[index] |= QRCodeDrawing.Flag.on;
+        }
+        if (this.bitIndex < 0){
+            throw new Error("Cannot write more data");
+        }
+        if (this.bitColumn === 0){
+            // if we just wrote to the right side of the column,
+            // we can safely assume the left side of the column is open
+            this.bitIndex = index - 1;
+            this.bitColumn = 1;
+            if (this.modules[this.bitIndex] !== 0){
+                throw new Error("Next module already written");
+            }
+            return;
+        }
+        // Up
+        if (this.bitDirection == BitDirection.up){
+            // if we just wrote to the left side of the column,
+            // see if the space is open one up and one to the right
+            // if not, see if the space is open one up
+            // if not, continue checking until we have to turn around
+            index -= this.size - 1;
+            while (index >= 0){
+                // up and over
+                if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                    this.bitColumn = 0;
+                    this.bitIndex = index;
+                    return;
+                }
+                index -= 1;
+                if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                    this.bitColumn = 1;
+                    this.bitIndex = index;
+                    return;
+                }
+                index -= this.size - 1;
+            }
+            // turn around and move left
+            this.bitDirection = BitDirection.down;
+            index = this.bitIndex - 1;
+            // back up to the top row
+            while (index > this.size){
+                index -= this.size;
+            }
+            while (index < this.modules.length){
+                if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                    this.bitIndex = index;
+                    this.bitColumn = 0;
+                    return;
+                }
+                // taken, move left
+                index -= 1;
+                if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                    this.bitIndex = index;
+                    if ((this.modules[index + 1] & QRCodeDrawing.Flag.timing) !== 0){
+                        this.bitColumn = 0;
+                    }else{
+                        this.bitColumn = 1;
+                    }
+                    return;
+                }
+                index += this.size + 1;
+            }
+            // end
+            this.bitIndex = -1;
+            this.bitColumn = 0;
+            return;
+        }
+        // Down
+        // if we just wrote to the left side of the column,
+        // see if the space is open one down and over to the right
+        // if not, see if the space is open one down
+        // if not, continue checking until we have to turn around
+        index += this.size + 1;
+        while (index < this.modules.length){
+            // down and over
+            if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                this.bitColumn = 0;
+                this.bitIndex = index;
+                return;
+            }
+            index -= 1;
+            if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                this.bitColumn = 1;
+                this.bitIndex = index;
+                return;
+            }
+            index += this.size + 1;
+        }
+        // turn around and move left
+        this.bitDirection = BitDirection.up;
+        index = this.bitIndex - 1;
+        while (index >= 0){
+            if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                this.bitIndex = index;
+                this.bitColumn = 0;
+                return;
+            }
+            // taken, move left
+            index -= 1;
+            if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+                this.bitIndex = index;
+                if ((this.modules[index + 1] & QRCodeDrawing.Flag.timing) !== 0){
+                    this.bitColumn = 0;
+                }else{
+                    this.bitColumn = 1;
+                }
+                return;
+            }
+            index -= this.size - 1;
+        }
+        // end
+        this.bitIndex = -1;
+        this.bitColumn = 0;
+        // }else if (this.bitDirection === BitDirection.up){
+        //     if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //         this.bitColumn = 0;
+        //         this.bitIndex = index;
+        //     }else{
+        //         // If up and over isn't available, what about up?
+        //         --index;
+        //         if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //             this.bitIndex = index;
+        //             this.bitColumn = 1;
+        //         }else{
+        //             // If up isn't available, can we skip over something back in column 0
+        //             index = index - this.size + 1;
+        //             while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                 index -= this.size;
+        //             }
+        //             if (index >= 0){
+        //                 this.bitIndex = index;
+        //                 this.bitColumn = 0;
+        //             }else{
+        //                 // If we can't skip over something, it's time to change direction
+        //                 this.bitDirection = BitDirection.down;
+        //                 index = this.bitIndex - 1;
+        //                 if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //                     this.bitIndex = index;
+        //                     this.bitColumn = 0;
+        //                 }else{
+        //                     // If the next column over is taken, move down until an opening
+        //                     index += this.size;
+        //                     while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                         index += this.size;
+        //                     }
+        //                     if (index < this.modules.length){
+        //                         this.bitIndex = index;
+        //                         this.bitColumn = 0;
+        //                     }else{
+        //                         // If the next column is completely taken, it must be a timing pattern
+        //                         index = this.bitIndex - 2;
+        //                         while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                             index += this.size;
+        //                         }
+        //                         if (index < this.modules.length){
+        //                             this.bitIndex = index;
+        //                             this.bitColumn = 0;
+        //                         }else{
+        //                             // We're at the end
+        //                             this.bitIndex = -1;
+        //                             this.bitColumn = 0;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }else if (this.bitDirection === BitDirection.down){
+        //     // if we just wrote to the left side of the column,
+        //     // see if the space is open one down and one to the right
+        //     index = index + this.size + 1;
+        //     if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //         this.bitColumn = 0;
+        //         this.bitIndex = index;
+        //         if (this.modules[this.bitIndex] !== 0){
+        //             throw new Error("Next module already written");
+        //         }
+        //     }else{
+        //         // If down and over isn't available, what about down?
+        //         --index;
+        //         if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //             this.bitIndex = index;
+        //         }else{
+        //             // If down isn't available, can we skip over something?
+        //             index = index + this.size + 1;
+        //             while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                 index += this.size;
+        //             }
+        //             if (index < this.modules.length){
+        //                 this.bitIndex = index;
+        //                 this.bitColumn = 0;
+        //             }else{
+        //                 // If we can't skip over something, it's time to change direction
+        //                 this.bitDirection = BitDirection.up;
+        //                 index = this.bitIndex - 1;
+        //                 if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
+        //                     this.bitIndex = index;
+        //                     this.bitColumn = 0;
+        //                 }else{
+        //                     // If the next column over is taken, move up until an opening
+        //                     index -= this.size;
+        //                     while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                         index -= this.size;
+        //                     }
+        //                     if (index >= 0){
+        //                         this.bitIndex = index;
+        //                         // this.bitColumn = 0;
+        //                     }else{
+        //                         // If the next column is completely taken, it must be a timing pattern
+        //                         index = this.bitIndex - 2;
+        //                         while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
+        //                             index -= this.size;
+        //                         }
+        //                         if (index >= 0){
+        //                             this.bitIndex = index;
+        //                             this.bitColumn = 0;
+        //                         }else{
+        //                             // We're at the end
+        //                             this.bitIndex = -1;
+        //                             this.bitColumn = 0;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+    },
+
+    copy: function(){
+        var drawing = QRCodeDrawing.init();
+        drawing.size = this.size;
+        drawing.modules = JSData.initWithLength(this.modules.length);
+        this.modules.copyTo(drawing.modules);
+        drawing.version = this.version;
+        drawing.quietSize = this.quietSize;
+        drawing.bitColumn = this.bitColumn;
+        drawing.bitIndex = this.bitIndex;
+        drawing.bitDirection = this.bitDirection;
+        return drawing;
+    },
+
+    drawingWithMask: function(mask){
+        var drawing = this.copy();
+        drawing._applyMask(mask);
+        return drawing;
+    },
+
+    maskScore: function(){
+        var quietSize = this.quietSize;
+        var size = this.size;
+        var modules = this.modules;
+        var score = 0;
+        var x, y;
+        var m0 = quietSize * size + quietSize;
+        var m = m0;
+        var n;
+        var totalCount = 0;
+        var onCount = 0;
+        var n1 = 3;
+        var n2 = 3;
+        var n3 = 40;
+        var n4 = 10;
+        var on = 0;
+        var size2 = size + size;
+        var size3 = size2 + size;
+        var size4 = size3 + size;
+        var size5 = size4 + size;
+        var size6 = size5 + size;
+        var size7 = size6 + size;
+        var size8 = size7 + size;
+        var size9 = size8 + size;
+        var size10 = size9 + size;
+        var c;
+        for (y = quietSize; y < size - quietSize; ++y){
+            for (x = quietSize; x < size - quietSize; ++x, ++m){
+                ++totalCount;
+                on = modules[m] & QRCodeDrawing.Flag.on;
+                if (on){
+                    ++onCount;
+                }
+
+                // N1 - runs of same color, without double counting (horizontal)
+                if (x > quietSize){
+                    c = 0;
+                    n = 0;
+                    // Check for prior whenever the color changes
+                    if ((modules[m - 1] & QRCodeDrawing.Flag.on === on) !== on){
+                        n = m - 2;
+                        c = 1;
+                        while (n >= m - x && (modules[n] & QRCodeDrawing.Flag.on) !== on){
+                            --n;
+                            ++c;
+                        }
+                    // ... and don't forget to check at the end of a row
+                    }else if (x == size - quietSize - 1){
+                        n = m - 1;
+                        c = 1;
+                        while (n >= m - x && (modules[n] & QRCodeDrawing.Flag.on) === on){
+                            --n;
+                            ++c;
+                        }
+                    }
+                    if (c >= 5){
+                        score += n1 + (c - 5);
+                    }
+                }
+
+                // N1 - runs of same color, without double counting (vertical)
+                if (y > quietSize){
+                    c = 0;
+                    // Check for prior whenever the color changes
+                    if ((modules[m - size] & QRCodeDrawing.Flag.on === on) !== on){
+                        n = m - size - size;
+                        c = 1;
+                        while (n >= m0 && (modules[n] & QRCodeDrawing.Flag.on) !== on){
+                            n -= size;
+                            ++c;
+                        }
+                    // ... and don't forget to check at the end of a row
+                    }else if (y == size - quietSize - 1){
+                        n = m - size;
+                        c = 1;
+                        while (n >= m0 && (modules[n] & QRCodeDrawing.Flag.on) === on){
+                            n -= size;
+                            ++c;
+                        }
+                    }
+                    if (c >= 5){
+                        score += n1 + (c - 5);
+                    }
+                }
+
+                // N2 - blocks of same color, 3 points for each 2x2 including overlapping
+                if (x > quietSize && y > quietSize){
+                    if ((modules[m - 1] & QRCodeDrawing.Flag.on === on) && (modules[m - size] & QRCodeDrawing.Flag.on === on) && (modules[m - size - 1] & QRCodeDrawing.Flag.on === on)){
+                        score += n2;
+                    }
+                }
+            }
+            m += quietSize + quietSize;
+        }
+
+        // N3 (horizontal)
+        m = m0;
+        for (y = quietSize; y < size - quietSize; ++y){
+            for (x = quietSize; x < size - quietSize - 6; ++x, ++m){
+                if (
+                    ((modules[m] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + 1] & QRCodeDrawing.Flag.on) === 0) &&
+                    ((modules[m + 2] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + 3] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + 4] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + 5] & QRCodeDrawing.Flag.on) === 0) &&
+                    ((modules[m + 6] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on)
+                ){
+                    if (
+                        (
+                            (x >= quietSize + 4) &&
+                            ((modules[m - 1] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - 2] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - 3] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - 4] & QRCodeDrawing.Flag.on) === 0)
+                        ) ||
+                        (
+                            (x < size - quietSize - 10) &&
+                            ((modules[m + 7] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + 8] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + 9] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + 10] & QRCodeDrawing.Flag.on) === 0)
+                        )
+                    ){
+                        score += n3;
+                    }
+                }
+            }
+        }
+
+        // N3 (vertical)
+        m = m0;
+        for (y = quietSize; y < size - quietSize - 6; ++y){
+            for (x = quietSize; x < size - quietSize; ++x, ++m){
+                if (
+                    ((modules[m] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + size] & QRCodeDrawing.Flag.on) === 0) &&
+                    ((modules[m + size2] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + size3] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + size4] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
+                    ((modules[m + size5] & QRCodeDrawing.Flag.on) === 0) &&
+                    ((modules[m + size6] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on)
+                ){
+                    if (
+                        (
+                            (y >= quietSize + 4) &&
+                            ((modules[m - size] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - size2] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - size3] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m - size4] & QRCodeDrawing.Flag.on) === 0)
+                        ) ||
+                        (
+                            (y < size - quietSize - 10) &&
+                            ((modules[m + size7] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + size8] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + size9] & QRCodeDrawing.Flag.on) === 0) &&
+                            ((modules[m + size10] & QRCodeDrawing.Flag.on) === 0)
+                        )
+                    ){
+                        score += n3;
+                    }
+                }
+            }
+        }
+
+        // N4 - Proportion of dark, 10 points for every 5% deviation from 50%
+        var k = Math.floor(Math.abs(50 - Math.round(onCount / totalCount * 100)) / 5);
+        score += n4 * k;
+
+        return score;
+    },
+
+    applyOptimalMask: function(){
+        var lowScoreMask = -1;
+        var lowScore = Number.MAX_VALUE;
+        var lowScoreDrawing = this;
+        var score;
+        var drawing;
+        for (var i = 0, l = maskFunctions.length; i < l; ++i){
+            drawing = this.drawingWithMask(i);
+            score = drawing.maskScore();
+            if (score < lowScore){
+                lowScore = score;
+                lowScoreDrawing = drawing;
+                lowScoreMask = i;
+            }
+        }
+        this.modules = lowScoreDrawing.modules;
+        return lowScoreMask;
+    },
+
+    _applyMask: function(mask){
+        var fn = maskFunctions[mask];
+        var m = this.quietSize * this.size + this.quietSize;
+        var result;
+        for (var y = this.quietSize; y < this.size - this.quietSize; ++y){
+            for (var x = this.quietSize; x < this.size - this.quietSize; ++x, ++m){
+                if ((this.modules[m] & QRCodeDrawing.Flag.reserved) === 0){
+                    result = fn(y - this.quietSize, x - this.quietSize);
+                    if (result){
+                        this.modules[m] = this.modules[m] ^ QRCodeDrawing.Flag.on;
+                    }
+                }
+            }
+            m += this.quietSize + this.quietSize;
+        }
+    },
 
 });
-
-var scoreMaskedModules = function(modules, size, quietSize){
-    var score = 0;
-    var x, y;
-    var m0 = quietSize * size + quietSize;
-    var m = m0;
-    var n;
-    var totalCount = 0;
-    var onCount = 0;
-    var n1 = 3;
-    var n2 = 3;
-    var n3 = 40;
-    var n4 = 10;
-    var on = 0;
-    var size2 = size + size;
-    var size3 = size2 + size;
-    var size4 = size3 + size;
-    var size5 = size4 + size;
-    var size6 = size5 + size;
-    var size7 = size6 + size;
-    var size8 = size7 + size;
-    var size9 = size8 + size;
-    var size10 = size9 + size;
-    var c;
-    for (y = quietSize; y < size - quietSize; ++y){
-        for (x = quietSize; x < size - quietSize; ++x, ++m){
-            ++totalCount;
-            on = modules[m] & QRCodeDrawing.Flag.on;
-            if (on){
-                ++onCount;
-            }
-
-            // N1 - runs of same color, without double counting (horizontal)
-            if (x > quietSize){
-                c = 0;
-                n = 0;
-                // Check for prior whenever the color changes
-                if ((modules[m - 1] & QRCodeDrawing.Flag.on === on) !== on){
-                    n = m - 2;
-                    c = 1;
-                    while (n >= m - x && (modules[n] & QRCodeDrawing.Flag.on) !== on){
-                        --n;
-                        ++c;
-                    }
-                // ... and don't forget to check at the end of a row
-                }else if (x == size - quietSize - 1){
-                    n = m - 1;
-                    c = 1;
-                    while (n >= m - x && (modules[n] & QRCodeDrawing.Flag.on) === on){
-                        --n;
-                        ++c;
-                    }
-                }
-                if (c >= 5){
-                    score += n1 + (c - 5);
-                }
-            }
-
-            // N1 - runs of same color, without double counting (vertical)
-            if (y > quietSize){
-                c = 0;
-                // Check for prior whenever the color changes
-                if ((modules[m - size] & QRCodeDrawing.Flag.on === on) !== on){
-                    n = m - size - size;
-                    c = 1;
-                    while (n >= m0 && (modules[n] & QRCodeDrawing.Flag.on) !== on){
-                        n -= size;
-                        ++c;
-                    }
-                // ... and don't forget to check at the end of a row
-                }else if (y == size - quietSize - 1){
-                    n = m - size;
-                    c = 1;
-                    while (n >= m0 && (modules[n] & QRCodeDrawing.Flag.on) === on){
-                        n -= size;
-                        ++c;
-                    }
-                }
-                if (c >= 5){
-                    score += n1 + (c - 5);
-                }
-            }
-
-            // N2 - blocks of same color, 3 points for each 2x2 including overlapping
-            if (x > quietSize && y > quietSize){
-                if ((modules[m - 1] & QRCodeDrawing.Flag.on === on) && (modules[m - size] & QRCodeDrawing.Flag.on === on) && (modules[m - size - 1] & QRCodeDrawing.Flag.on === on)){
-                    score += n2;
-                }
-            }
-        }
-        m += quietSize + quietSize;
-    }
-
-    // N3 (horizontal)
-    m = m0;
-    for (y = quietSize; y < size - quietSize; ++y){
-        for (x = quietSize; x < size - quietSize - 6; ++x, ++m){
-            if (
-                ((modules[m] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + 1] & QRCodeDrawing.Flag.on) === 0) &&
-                ((modules[m + 2] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + 3] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + 4] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + 5] & QRCodeDrawing.Flag.on) === 0) &&
-                ((modules[m + 6] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on)
-            ){
-                if (
-                    (
-                        (x >= quietSize + 4) &&
-                        ((modules[m - 1] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - 2] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - 3] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - 4] & QRCodeDrawing.Flag.on) === 0)
-                    ) ||
-                    (
-                        (x < size - quietSize - 10) &&
-                        ((modules[m + 7] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + 8] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + 9] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + 10] & QRCodeDrawing.Flag.on) === 0)
-                    )
-                ){
-                    score += n3;
-                }
-            }
-        }
-    }
-
-    // N3 (vertical)
-    m = m0;
-    for (y = quietSize; y < size - quietSize - 6; ++y){
-        for (x = quietSize; x < size - quietSize; ++x, ++m){
-            if (
-                ((modules[m] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + size] & QRCodeDrawing.Flag.on) === 0) &&
-                ((modules[m + size2] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + size3] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + size4] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on) &&
-                ((modules[m + size5] & QRCodeDrawing.Flag.on) === 0) &&
-                ((modules[m + size6] & QRCodeDrawing.Flag.on) === QRCodeDrawing.Flag.on)
-            ){
-                if (
-                    (
-                        (y >= quietSize + 4) &&
-                        ((modules[m - size] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - size2] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - size3] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m - size4] & QRCodeDrawing.Flag.on) === 0)
-                    ) ||
-                    (
-                        (y < size - quietSize - 10) &&
-                        ((modules[m + size7] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + size8] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + size9] & QRCodeDrawing.Flag.on) === 0) &&
-                        ((modules[m + size10] & QRCodeDrawing.Flag.on) === 0)
-                    )
-                ){
-                    score += n3;
-                }
-            }
-        }
-    }
-
-    // N4 - Proportion of dark, 10 points for every 5% deviation from 50%
-    var k = Math.floor(Math.abs(50 - Math.round(onCount / totalCount * 100)) / 5);
-    score += n4 * k;
-
-    return score;
-};
 
 var maskFunctions = [
     function(i, j){ return (i + j) % 2 === 0; },
@@ -538,8 +797,8 @@ var maskFunctions = [
     function(i, j){ return (i + j) % 3 === 0; },
     function(i, j){ return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 === 0; },
     function(i, j){ return ((i * j) % 2) + ((i * j) % 3) === 0; },
-    function(i, j){ return ((i * j) % 2) + ((i * j) % 3) % 2 === 0; },
-    function(i, j){ return ((i + j) % 2) + ((i * j) % 3) % 2 === 0; }
+    function(i, j){ return (((i * j) % 2) + ((i * j) % 3)) % 2 === 0; },
+    function(i, j){ return (((i + j) % 2) + ((i * j) % 3)) % 2 === 0; }
 ];
 
 var BitDirection = {
