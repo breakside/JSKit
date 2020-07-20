@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "QRCodeBitstream.js"
 // #import "QRCodeDrawing.js"
+// #import "QRErrorCorrection.js"
 'use strict';
 
 (function(){
@@ -26,7 +27,7 @@ JSClass("QRCode", JSObject, {
     content: null,
     characterLength: null,
     version: null,
-    errorCorrection: 0,
+    errorCorrection: QRErrorCorrection.Level.M,
 
     initWithURL: function(url){
         this.initWithString(url.encodedString);
@@ -134,16 +135,31 @@ JSClass("QRCode", JSObject, {
     },
 
     prepareDrawing: function(){
+        // Get the data codwords
+        var dataCodewords = this.dataCodewords();
 
-        var codewords = this.dataCodewords();
+        // Add error correction codewords, dividing into blocks as required for version
+        var errorCorrection = QRErrorCorrection.initWithVersion(this.version, this.errorCorrection);
+        var dataBlocks = errorCorrection.blocksOfCodewords(dataCodewords);
+        var errorBlocks = errorCorrection.errorBlocksForDataBlocks(dataBlocks);
 
-        var dataBlocks = [];
-        var errorBlocks = [];
-
-        // TODO: error correction
-
+        // Create a drawing for our version
         var drawing = QRCodeDrawing.initWithVersion(this.version);
 
+        // Write the data and error blocks according to the spec
+        // - Data block 1, codeword 1
+        // - Data block 2, codeword 1
+        // - Data block N, codeword 1,
+        // - Data block 1, codeword 2
+        // - Data block 2, codeword 2
+        // - Data block N, codeword 2
+        // - Data block 1, codeword M
+        // - Data block 2, codeword M
+        // - Data block N, codeword M
+        // - ... same interleaving of blocks for errors
+        //
+        // Note: blocks may not be the same size, but the smaller ones will
+        // always come before the larger ones
         var block;
         var codewordIndex, codewordLength;
         var blockIndex, blockLength;
@@ -165,14 +181,18 @@ JSClass("QRCode", JSObject, {
             }
         }
 
+        // Mask the drawing
         var mask = drawing.applyOptimalMask();
-        var format = (this.errorCorrection << 3) | mask;
-        // TODO: error correct format
+
+        // Set the format bits
+        var format = ((this.errorCorrection << 3) | mask) << 10;
+        format = format | QRErrorCorrection.BCH15_5(format, 0x537);
         format = format ^ 0x5412;
         drawing.drawFormat(format);
 
-        var version = this.version;
-        // TODO: error correct version
+        // Set the version bits (no-op on version < 7)
+        var version = this.version << 12;
+        version = version | QRErrorCorrection.Golay18_6(version, 0x1F25);
         drawing.drawVersion(version);
 
         return drawing;
@@ -188,12 +208,6 @@ QRCode.Mode = {
     byte: 0x4
 };
 
-QRCode.ErrorCorrection = {
-    M: 0x0,
-    L: 0x1,
-    H: 0x2,
-    Q: 0x3,
-};
 
 var dataCapacities = [
     [0,16,28,44,64,86,108,124,154,182,216,254,290,334,365,415,453,507,563,627,669,714,782,860,914,1000,1062,1128,1193,1267,1373,1455,1541,1631,1725,1812,1914,1992,2102,2216,2334],
