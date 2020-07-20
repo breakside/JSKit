@@ -1,5 +1,7 @@
 // #import QRKit
 // #import TestKit
+// #import PDFKit
+// #import SecurityKit
 'use strict';
 
 (function(){
@@ -571,7 +573,24 @@ JSClass("QRCodeTests", TKTestSuite, {
         TKAssertEquals(codewords[13], 0x11);
         TKAssertEquals(codewords[14], 0xEC);
         TKAssertEquals(codewords[15], 0x11);
-    }
+    },
+
+    // testPDF: async function(){
+    //     var otp = SECOneTimePassword.init();
+    //     // var url = JSURL.initWithString("https://jskit.dev");
+    //     var url = otp.urlForUsername("Test", "Test App");
+    //     var token = await otp.generateToken();
+    //     console.log(token);
+    //     token = await otp.generateTokenWithOffset(30);
+    //     console.log(token);
+    //     var code = QRCode.initWithURL(url);
+    //     var pdfURL = JSFileManager.shared.urlForPath('/Users/oshaw/Desktop/qr.pdf');
+    //     var context = PDFContext.initWithURL(pdfURL, JSRect(0,0,144,144));
+    //     context.beginPage();
+    //     context.drawQRCode(code, JSRect(0, 0, 144, 144));
+    //     context.endPage();
+    //     await context.endDocument();
+    // }
 
 });
 

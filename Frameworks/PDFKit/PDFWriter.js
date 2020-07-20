@@ -247,7 +247,7 @@ JSClass("PDFWriterFileStream", PDFWriterDataStream, {
     initWithURL: function(url, fileManager){
         PDFWriterFileStream.$super.init.call(this);
         this.url = url;
-        this.fileManager = fileManager || JSFileManager.default;
+        this.fileManager = fileManager || JSFileManager.shared;
     },
 
     write: function(bytes, offset, length){

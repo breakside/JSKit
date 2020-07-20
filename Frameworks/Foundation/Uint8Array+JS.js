@@ -79,6 +79,14 @@ Object.defineProperties(Uint8Array, {
         value: function Uint8Array_initWithArray(array){
             return Uint8Array.from(array);
         }
+    },
+
+    initWithCopyOfData: {
+        value: function Uint8Array_initWithData(data){
+            var copy = new Uint8Array(data.length);
+            data.copyTo(copy);
+            return copy;
+        }
     }
 
 });

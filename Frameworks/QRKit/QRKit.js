@@ -16,3 +16,5 @@
 // #import "QRCode.js"
 // #import "QRCodeBitstream.js"
 // #import "QRCodeDrawing.js"
+// #import "QRErrorCorrection.js"
+// #import "JSContext+QRCode.js"

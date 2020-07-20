@@ -27,7 +27,7 @@ JSClass("QRCode", JSObject, {
     content: null,
     characterLength: null,
     version: null,
-    errorCorrection: QRErrorCorrection.Level.M,
+    errorCorrectionLevel: QRErrorCorrection.Level.M,
 
     initWithURL: function(url){
         this.initWithString(url.encodedString);
@@ -71,7 +71,7 @@ JSClass("QRCode", JSObject, {
     },
 
     _determineVersion: function(){
-        var searcher = JSBinarySearcher(characterCapacities[this.mode][this.errorCorrection], function(a, b){
+        var searcher = JSBinarySearcher(characterCapacities[this.mode][this.errorCorrectionLevel], function(a, b){
             return a - b;
         });
         this.version = searcher.insertionIndexForValue(this.characterLength);
@@ -79,7 +79,7 @@ JSClass("QRCode", JSObject, {
 
     dataCodewords: function(){
         // Figure out which version we need an how much capacity it has
-        var dataCapacity = dataCapacities[this.errorCorrection][this.version];
+        var dataCapacity = dataCapacities[this.errorCorrectionLevel][this.version];
 
         // Create a bitstream for the data codewords
         var dataBitstream = QRCodeBitstream.initWithCodewordLength(dataCapacity);
@@ -139,7 +139,7 @@ JSClass("QRCode", JSObject, {
         var dataCodewords = this.dataCodewords();
 
         // Add error correction codewords, dividing into blocks as required for version
-        var errorCorrection = QRErrorCorrection.initWithVersion(this.version, this.errorCorrection);
+        var errorCorrection = QRErrorCorrection.initWithVersion(this.version, this.errorCorrectionLevel);
         var dataBlocks = errorCorrection.blocksOfCodewords(dataCodewords);
         var errorBlocks = errorCorrection.errorBlocksForDataBlocks(dataBlocks);
 
@@ -167,7 +167,7 @@ JSClass("QRCode", JSObject, {
             for (blockIndex = 0, blockLength = dataBlocks.length; blockIndex < blockLength; ++blockIndex){
                 block = dataBlocks[blockIndex];
                 if (codewordIndex < block.length){
-                    drawing.drawByte(block[codewordIndex]);
+                    drawing.drawCodeword(block[codewordIndex]);
                 }
             }
         }
@@ -176,7 +176,7 @@ JSClass("QRCode", JSObject, {
             for (blockIndex = 0, blockLength = errorBlocks.length; blockIndex < blockLength; ++blockIndex){
                 block = errorBlocks[blockIndex];
                 if (codewordIndex < block.length){
-                    drawing.drawByte(block[codewordIndex]);
+                    drawing.drawCodeword(block[codewordIndex]);
                 }
             }
         }
@@ -185,18 +185,26 @@ JSClass("QRCode", JSObject, {
         var mask = drawing.applyOptimalMask();
 
         // Set the format bits
-        var format = ((this.errorCorrection << 3) | mask) << 10;
-        format = format | QRErrorCorrection.BCH15_5(format, 0x537);
-        format = format ^ 0x5412;
+        var format = this.encodedFormat(mask);
         drawing.drawFormat(format);
 
         // Set the version bits (no-op on version < 7)
-        var version = this.version << 12;
-        version = version | QRErrorCorrection.Golay18_6(version, 0x1F25);
+        var version = this.encodedVersion();
         drawing.drawVersion(version);
 
         return drawing;
-    }
+    },
+
+    encodedFormat: function(mask){
+        var format = ((this.errorCorrectionLevel << 3) | mask) << 10;
+        format = format | QRGalois.divide(format, 0x537);
+        return format ^ 0x5412;
+    },
+
+    encodedVersion: function(){
+        var version = this.version << 12;
+        return version | QRGalois.divide(version, 0x1F25);
+    },
 
 });
 

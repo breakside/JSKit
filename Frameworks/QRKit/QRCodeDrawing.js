@@ -445,127 +445,12 @@ JSClass("QRCodeDrawing", JSObject, {
         // end
         this.bitIndex = -1;
         this.bitColumn = 0;
-        // }else if (this.bitDirection === BitDirection.up){
-        //     if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //         this.bitColumn = 0;
-        //         this.bitIndex = index;
-        //     }else{
-        //         // If up and over isn't available, what about up?
-        //         --index;
-        //         if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //             this.bitIndex = index;
-        //             this.bitColumn = 1;
-        //         }else{
-        //             // If up isn't available, can we skip over something back in column 0
-        //             index = index - this.size + 1;
-        //             while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                 index -= this.size;
-        //             }
-        //             if (index >= 0){
-        //                 this.bitIndex = index;
-        //                 this.bitColumn = 0;
-        //             }else{
-        //                 // If we can't skip over something, it's time to change direction
-        //                 this.bitDirection = BitDirection.down;
-        //                 index = this.bitIndex - 1;
-        //                 if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //                     this.bitIndex = index;
-        //                     this.bitColumn = 0;
-        //                 }else{
-        //                     // If the next column over is taken, move down until an opening
-        //                     index += this.size;
-        //                     while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                         index += this.size;
-        //                     }
-        //                     if (index < this.modules.length){
-        //                         this.bitIndex = index;
-        //                         this.bitColumn = 0;
-        //                     }else{
-        //                         // If the next column is completely taken, it must be a timing pattern
-        //                         index = this.bitIndex - 2;
-        //                         while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                             index += this.size;
-        //                         }
-        //                         if (index < this.modules.length){
-        //                             this.bitIndex = index;
-        //                             this.bitColumn = 0;
-        //                         }else{
-        //                             // We're at the end
-        //                             this.bitIndex = -1;
-        //                             this.bitColumn = 0;
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }else if (this.bitDirection === BitDirection.down){
-        //     // if we just wrote to the left side of the column,
-        //     // see if the space is open one down and one to the right
-        //     index = index + this.size + 1;
-        //     if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //         this.bitColumn = 0;
-        //         this.bitIndex = index;
-        //         if (this.modules[this.bitIndex] !== 0){
-        //             throw new Error("Next module already written");
-        //         }
-        //     }else{
-        //         // If down and over isn't available, what about down?
-        //         --index;
-        //         if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //             this.bitIndex = index;
-        //         }else{
-        //             // If down isn't available, can we skip over something?
-        //             index = index + this.size + 1;
-        //             while (index < this.modules.length && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                 index += this.size;
-        //             }
-        //             if (index < this.modules.length){
-        //                 this.bitIndex = index;
-        //                 this.bitColumn = 0;
-        //             }else{
-        //                 // If we can't skip over something, it's time to change direction
-        //                 this.bitDirection = BitDirection.up;
-        //                 index = this.bitIndex - 1;
-        //                 if ((this.modules[index] & QRCodeDrawing.Flag.reserved) === 0){
-        //                     this.bitIndex = index;
-        //                     this.bitColumn = 0;
-        //                 }else{
-        //                     // If the next column over is taken, move up until an opening
-        //                     index -= this.size;
-        //                     while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                         index -= this.size;
-        //                     }
-        //                     if (index >= 0){
-        //                         this.bitIndex = index;
-        //                         // this.bitColumn = 0;
-        //                     }else{
-        //                         // If the next column is completely taken, it must be a timing pattern
-        //                         index = this.bitIndex - 2;
-        //                         while (index >= 0 && (this.modules[index] & QRCodeDrawing.Flag.reserved) !== 0){
-        //                             index -= this.size;
-        //                         }
-        //                         if (index >= 0){
-        //                             this.bitIndex = index;
-        //                             this.bitColumn = 0;
-        //                         }else{
-        //                             // We're at the end
-        //                             this.bitIndex = -1;
-        //                             this.bitColumn = 0;
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
     },
 
     copy: function(){
         var drawing = QRCodeDrawing.init();
         drawing.size = this.size;
-        drawing.modules = JSData.initWithLength(this.modules.length);
-        this.modules.copyTo(drawing.modules);
+        drawing.modules = JSData.initWithCopyOfData(this.modules);
         drawing.version = this.version;
         drawing.quietSize = this.quietSize;
         drawing.bitColumn = this.bitColumn;

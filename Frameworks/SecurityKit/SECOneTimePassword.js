@@ -83,16 +83,23 @@ JSClass("SECOneTimePassword", JSObject, {
             n = n >>> 8;
             --i;
         }
-        hmac.update(data);
-        hmac.sign(function(signature){
-            if (signature === null){
+        hmac.createKeyWithData(this.secretData, function(key){
+            if (key === null){
                 completion.call(target, null);
                 return;
             }
-            var offset = signature[19] & 0xF;
-            var n = ((signature[offset] & 0x7F) << 24) | (signature[offset + 1] << 16) | (signature[offset + 2] << 8) | (signature[offset + 3]);
-            var tokenNumber = n % Math.pow(10, this.numberOfDigits);
-            completion.call(target, tokenNumber.toString());
+            hmac.key = key;
+            hmac.update(data);
+            hmac.sign(function(signature){
+                if (signature === null){
+                    completion.call(target, null);
+                    return;
+                }
+                var offset = signature[19] & 0xF;
+                var n = ((signature[offset] & 0x7F) << 24) | (signature[offset + 1] << 16) | (signature[offset + 2] << 8) | (signature[offset + 3]);
+                var tokenNumber = n % Math.pow(10, this.numberOfDigits);
+                completion.call(target, tokenNumber.toString());
+            }, this);
         }, this);
         return completion.promise;
     },
