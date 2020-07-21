@@ -149,6 +149,11 @@ topics:
                 name: escapeClosesWindow
                 type: boolean
                 summary: Does pressing the escape key close the window?
+              -
+                introduced: 2020.29.0
+                name: allowsClose
+                type: boolean
+                summary: Can the window be closed by the user?
           -
             name: Sizing
             members:

@@ -76,6 +76,9 @@ JSClass('UIWindow', UIView, {
         if (spec.containsKey('escapeClosesWindow')){
             this.escapeClosesWindow = spec.valueForKey("escapeClosesWindow");
         }
+        if (spec.containsKey('allowsClose')){
+            this._allowsClose = spec.valueForKey("allowsClose");
+        }
         if (spec.containsKey('firstResponder')){
             this._initialFirstResponder = spec.valueForKey("firstResponder");
         }
