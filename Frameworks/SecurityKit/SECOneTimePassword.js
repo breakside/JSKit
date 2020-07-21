@@ -3,49 +3,51 @@
 // #import "SECHMAC.js"
 'use strict';
 
+// Implements Time-based One-Time Password Algorithm https://tools.ietf.org/html/rfc6238
+
 JSClass("SECOneTimePassword", JSObject, {
 
     secretData: null,
     numberOfDigits: null,
     timePeriod: null,
-    startTime: 0,
+    startDate: null,
 
     init: function(){
         this.initWithNumberOfDigits(6);
     },
 
-    initWithSecret: function(secretData, numberOfDigits, timePeriod, startTime){
+    initWithSecret: function(secretData, numberOfDigits, timePeriod, startDate){
         if (numberOfDigits === undefined){
             numberOfDigits = 6;
         }
         if (timePeriod === undefined){
             timePeriod = 30;
         }
-        if (startTime === undefined){
-            startTime = 0;
+        if (startDate === undefined){
+            startDate = JSDate.initWithTimeIntervalSince1970(0);
         }
         this.secretData = secretData;
         this.numberOfDigits = numberOfDigits;
         this.timePeriod = timePeriod;
-        this.startTime = startTime;
+        this.startDate = startDate;
     },
 
-    initWithNumberOfDigits: function(numberOfDigits, timePeriod, startTime){
+    initWithNumberOfDigits: function(numberOfDigits, timePeriod, startDate){
         var secretData = SECCipher.getRandomData(20);
-        this.initWithSecret(secretData, numberOfDigits, timePeriod, startTime);
+        this.initWithSecret(secretData, numberOfDigits, timePeriod, startDate);
     },
 
-    initWithStorageRepresentation: function(dictionary){
+    initWithDictionary: function(dictionary){
         var secretData = dictionary.secret.dataByDecodingBase64();
-        this.initWithSecret(secretData, dictionary.digits, dictionary.timePeriod, dictionary.start);
+        this.initWithSecret(secretData, dictionary.digits, dictionary.period, JSDate.initWithTimeIntervalSince1970(dictionary.start));
     },
 
-    storageRepresentation: function(){
+    dictionaryRepresentation: function(){
         return {
             secret: this.secretData.base64StringRepresentation(),
             digits: this.numberOfDigits,
             period: this.timePeriod,
-            start: this.startTime
+            start: this.startDate.timeIntervalSince1970
         };
     },
 
@@ -68,19 +70,15 @@ JSClass("SECOneTimePassword", JSObject, {
     },
 
     generateToken: function(completion, target){
-        return this.generateTokenForTimestamp(JSDate.now.timeIntervalSince1970, completion, target);
+        return this.generateTokenForDate(JSDate.now, completion, target);
     },
 
-    generateTokenWithOffset: function(timeOffset, completion, target){
-        return this.generateTokenForTimestamp(JSDate.now.timeIntervalSince1970 + timeOffset, completion, target);
-    },
-
-    generateTokenForTimestamp: function(timestamp, completion, target){
+    generateTokenForDate: function(date, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var now = Math.floor(timestamp);
-        var steps = Math.floor((now - this.startTime) / this.timePeriod);
+        var dt = Math.floor(date.timeIntervalSinceDate(this.startDate));
+        var steps = Math.floor(dt / this.timePeriod);
         var n = steps;
         var data = JSData.initWithLength(8);
         var i = 7;
@@ -115,9 +113,10 @@ JSClass("SECOneTimePassword", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        this.generateTokenWithOffset(0, function(generated){
+        var date = JSDate.now;
+        this.generateTokenForDate(date, function(generated){
             if (token !== generated){
-                this.generateTokenWithOffset(-this.timePeriod / 2, function(generated){
+                this.generateTokenForDate(date.addingTimeInterval(-this.timePeriod / 2), function(generated){
                     completion.call(target, token === generated);
                 }, this);
                 return;

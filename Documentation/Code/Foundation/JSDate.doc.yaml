@@ -64,6 +64,15 @@ topics:
           future
         note: While this is implemented as a property, a unique `JSDate` object
           each time it is accessed.
+      -
+        introduced: 2020.29.0
+        name: unixEpoch
+        kind: property
+        type: JSDate
+        static: true
+        summary: A date that represents the unix epoch of Jan 1 1970 00:00:00 UTC.
+        note: While this is implemented as a property, a unique `JSDate` object
+          each time it is accessed.
   -
     name: Calculations
     members:
@@ -79,6 +88,28 @@ topics:
             type: Number
             summary: The number of seconds to add to this date, either positive
               or negative.
+      -
+        introduced: 2020.29.0
+        name: timeIntervalSinceDate
+        kind: method
+        type: Number
+        summary: Get the time interval from the given date to this date
+        arguments:
+          -
+            name: other
+            type: JSDate
+            summary: The date to subtract from this date
+      -
+        introduced: 2020.29.0
+        name: timeIntervalUntilDate
+        kind: method
+        type: Number
+        summary: Get the time interval from the this date to the given date
+        arguments:
+          -
+            name: other
+            type: JSDate
+            summary: The date from which to subtract this date
   -
     name: Unix Timestamp
     members:

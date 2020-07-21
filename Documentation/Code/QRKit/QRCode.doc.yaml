@@ -1,0 +1,111 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+summary: Represents a QR code
+introduced: 2020.29.0
+description: |
+  `QRCode` can be used to generate and draw a QR code for the desired data.
+
+  Once you create a `QRCode`, you can draw it to any `JSContext` using the
+  `drawQRCode()`(JSContext.drawQRCode)` method.
+  
+  UIKit based drawing might looks something like this
+  ````
+  #import UIKit
+  #import QRKit
+
+  JSClass("MyViewController", UIViewController, {
+
+    qrCodeView: JSOutlet(), // defined by a spec as a QRCodeView
+
+    viewDidLoad: function(){
+      MyViewController.$super.viewDidLoad.call(this);
+      qrCodeView.qrCode = QRCode.initWithURL("https://jskit.dev");
+    }
+
+  });
+
+  JSClass("QRCodeView", UIView, {
+
+    qrCode: JSDynamicProperty('_qrCode', null),
+
+    setQrCode: function(qrCode){
+      this._qrCode = qrCode;
+      this.setNeedsDisplay();
+    },
+
+    drawLayerInContext: function(layer, context){
+      if (this.qrCode !== null){
+        context.drawQRCode(this._qrCode, this.bounds);
+      }
+    }
+
+  });
+  ````
+
+  Drawing to a PDF:
+  ````
+  #import PDFKit
+  #import QRKit
+
+  var pointsPerInch = 72;
+
+  async function drawQRCodeForStringToPDF(string, pdfURL){
+    var pageRect = JSRect(0, 0, 2 * pointsPerInch, 2 * pointsPerInch)
+    var context = PDFContext.initWithURL(pdfURL, pageRect);
+    context.beginPage();
+    var qrCode = QRCode.initWithString(string);
+    context.drawQRCode(qrCode, pageRect);
+    await context.endDocument();
+  }
+
+  ````
+
+topics:
+  -
+    name: Create a QR Code
+    members:
+      -
+        name: initWithURL
+        kind: init
+        summary: Create a new QR code representing the given URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url to represent with the QR code
+      -
+        name: initWithString
+        kind: init
+        summary: Create a new QR code representing the given string
+        arguments:
+          - 
+            name: string
+            type: String
+            summary: The string to represent with the QR code
+          -
+            name: encoding
+            type: String.Encoding
+            default: String.Encoding.utf8
+            summary: If the encoding to use if string contains characters outside the regex `[0-9A-Z \$%\*\+\-\.\/\:]`
+      -
+        name: initWithData
+        kind: init
+        summary: Create a QR coe representing the given bytes
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to represent with the QR code
+  -
+    name: Drawing
+    members:
+      -
+        name: prepareDrawing
+        kind: method
+        type: QRCodeDrawing
+        summary: Generate a drawing description for this code
+        description: |
+          This is an advanced method only required if you need to do custom drawing.
+
+          It's available in case `JSContext.drawQRCode()`(JSContext.drawQRCode)
+          isn't sufficient for your needs.

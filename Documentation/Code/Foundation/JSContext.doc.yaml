@@ -668,3 +668,74 @@ topics:
             name: maskImage
             type: JSImage
             summary: The image to use as an alpha mask
+  -
+    name: QRKit Extensions
+    summary: Methods added when you import `QRKit`
+    members:
+      -
+        introduced: 2020.29.0
+        name: drawQRCode
+        kind: method
+        summary: Draw the given QR code
+        arguments:
+          -
+            name: qrCode
+            type: QRCode
+            summary: 
+        description: |
+          Extension method added when you import `QRKit`.
+
+          Uses the current fill color to draw the QR code in the specified rectangle,
+          including the required spacing around the QR code image.
+          
+          UIKit based drawing might looks something like this
+          ````
+          #import UIKit
+          #import QRKit
+
+          JSClass("MyViewController", UIViewController, {
+
+            qrCodeView: JSOutlet(), // defined by a spec as a QRCodeView
+
+            viewDidLoad: function(){
+              MyViewController.$super.viewDidLoad.call(this);
+              qrCodeView.qrCode = QRCode.initWithURL("https://jskit.dev");
+            }
+
+          });
+
+          JSClass("QRCodeView", UIView, {
+
+            qrCode: JSDynamicProperty('_qrCode', null),
+
+            setQrCode: function(qrCode){
+              this._qrCode = qrCode;
+              this.setNeedsDisplay();
+            },
+
+            drawLayerInContext: function(layer, context){
+              if (this.qrCode !== null){
+                context.drawQRCode(this._qrCode, this.bounds);
+              }
+            }
+
+          });
+          ````
+
+          Drawing to a PDF:
+          ````
+          #import PDFKit
+          #import QRKit
+
+          var pointsPerInch = 72;
+
+          async function drawQRCodeForStringToPDF(string, pdfURL){
+            var pageRect = JSRect(0, 0, 2 * pointsPerInch, 2 * pointsPerInch)
+            var context = PDFContext.initWithURL(pdfURL, pageRect);
+            context.beginPage();
+            var qrCode = QRCode.initWithString(string);
+            context.drawQRCode(qrCode, pageRect);
+            await context.endDocument();
+          }
+
+          ````
