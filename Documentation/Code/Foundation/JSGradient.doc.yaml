@@ -57,7 +57,7 @@ topics:
         kind: spec
         summary: Description of properties that can be included in a spec file
         description: |
-          Only a two-color `JSGradient` can be specified in a spec.  The stop
+          For simple gradients a shortcut spec format is allowed.  The stop
           positions are `0` and `1` for the two colors.
 
           ````
@@ -72,20 +72,66 @@ topics:
 
           ````
           var view = UIView.init();
-          view.backgroundGradient = JSGradient.initWithStops(0, JSColor.red, 1, JSColor.blue);
+          view.backgroundGradient = JSGradient.gradientBetweenColors(JSColor.red, JSColor.blue);
           ````
+
+          For more advanced gradients, you can specify an array of alternating
+          stop positions and colors:
+
+          ````
+          MainView:
+            class: UIView
+            backgroundGradient:
+              stops: [0%, red, 10%, blue, 80%, {rgba: 102,102,204}]
+          ````
+
         topics:
           -
-            name: Colors
+            name: Shorthand
             members:
               -
                 name: from
                 type: JSColor
                 summary: The color to place at position `0`
+                note: |
+                  If using this shorthand format, none of the other properties
+                  are available
               -
                 name: to
                 type: JSColor
                 summary: The color to place at position `1`
+                note: |
+                  If using this shorthand format, none of the other properties
+                  are available
+          -
+            name: Stops
+            members:
+              -
+                name: stops
+                type: Array
+                summary: An array of alternating positions and colors
+                description: |
+                  Similar to the arguments that can be passed to `initWithStops()`
+
+                  ````
+                  MainView:
+                    class: UIView
+                    backgroundGradient:
+                      stops: [0%, red, 10%, blue, 80%, {rgba: "102,102,204"}]
+                  ````
+
+                  You can also include `start` and `end` properties in the spec
+          -
+            name: Direction
+            members:
+              -
+                name: start
+                type: JSPoint
+                summary: The starting point for the gradient, in unit square coodinates (0-1)
+              -
+                name: end
+                type: JSPoint
+                summary: The ending point for the gradient, in unit square coodinates (0-1)
   -
     name: Color Stops
     members:

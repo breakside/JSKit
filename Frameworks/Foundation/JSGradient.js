@@ -27,17 +27,45 @@ JSClass('JSGradient', JSObject, {
     init: function(){
         this.start = JSPoint(0, 0);
         this.end = JSPoint(0, 1);
-        this.stops = {};
+        this.stops = [];
     },
 
     initWithSpec: function(spec){
         JSGradient.$super.initWithSpec.call(this, spec);
-        this.start = JSPoint(0, 0);
-        this.end = JSPoint(0, 1);
-        this.stops = {};
+        this.stops = [];
         if (spec.containsKey('from') && spec.containsKey('to')){
+            this.start = JSPoint(0, 0);
+            this.end = JSPoint(0, 1);
             this.addStop(0, spec.valueForKey("from", JSColor));
             this.addStop(1, spec.valueForKey("to", JSColor));
+        }else{
+            if (spec.containsKey("start")){
+                this.start = spec.valueForKey("start", JSPoint);
+            }else{
+                this.start = JSPoint(0, 0);
+            }
+            if (spec.containsKey("end")){
+                this.end = spec.valueForKey("end", JSPoint);
+            }else{
+                this.end = JSPoint(0, 1);
+            }
+            if (spec.containsKey("stops")){
+                var stops = spec.valueForKey("stops");
+                var stop;
+                var position;
+                var color;
+                for (var i = 0, l = stops.length; i < l - 1; i += 2){
+                    position = stops.valueForKey(i);
+                    if (typeof(position) === "string" && position.endsWith("%")){
+                        position = parseFloat(position.substr(0, position.length - 1)) / 100;
+                    }
+                    if (isNaN(position)){
+                        throw new Error("JSGradient.initWithSpec cannot parse `at` value. Must be a number or a percentage string");
+                    }
+                    color = stops.valueForKey(i + 1, JSColor);
+                    this.addStop(position, color);
+                }
+            }
         }
     },
 
@@ -50,15 +78,15 @@ JSClass('JSGradient', JSObject, {
     },
 
     addStop: function(position, color){
-        this.stops[position] = color;
+        this.stops.push({position: position, color: color});
     },
 
     cssString: function(){
-        var color;
         var cssStops = [];
-        for (var position in this.stops){
-            color = this.stops[position];
-            cssStops.push('%s %f%%'.sprintf(color.cssString(), position * 100));
+        var stop;
+        for (var i = 0, l = this.stops.length; i < l; ++i){
+            stop = this.stops[i];
+            cssStops.push('%s %f%%'.sprintf(stop.color.cssString(), stop.position * 100));
         }
         // css degrees start with 0 at bottom and go clockwise
         // atan degrees start with 0 at right and go anticlockwise
