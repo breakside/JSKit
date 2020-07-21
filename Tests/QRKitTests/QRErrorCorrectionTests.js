@@ -150,7 +150,57 @@ JSClass("QRPolynomialTests", TKTestSuite, {
 
 JSClass("QRErrorCorrectionTests", TKTestSuite, {
 
+    testCodewordBlocks: function(){
+        var code = QRCode.initWithData(JSData.initWithLength(100));
+        TKAssertEquals(code.version, 6);
+        var codewords = code.dataCodewords();
+        var errorCorrection = QRErrorCorrection.initWithVersion(code.version, code.errorCorrectionLevel);
+        var blocks = errorCorrection.blocksOfCodewords(codewords);
+        TKAssertEquals(blocks.length, 4);
+        TKAssertEquals(blocks[0].length, 27);
+        TKAssertEquals(blocks[1].length, 27);
+        TKAssertEquals(blocks[2].length, 27);
+        TKAssertEquals(blocks[3].length, 27);
+    },
+
+    testErrorBlocks: function(){
+        var code = QRCode.initWithData(JSData.initWithLength(100));
+        TKAssertEquals(code.version, 6);
+        var codewords = code.dataCodewords();
+        var errorCorrection = QRErrorCorrection.initWithVersion(code.version, code.errorCorrectionLevel);
+        var dataBlocks = errorCorrection.blocksOfCodewords(codewords);
+        TKAssertEquals(dataBlocks.length, 4);
+        var errorBlocks = errorCorrection.errorBlocksForDataBlocks(dataBlocks);
+        TKAssertEquals(errorBlocks.length, 4);
+        TKAssertEquals(errorBlocks[0].length, 16);
+        TKAssertEquals(errorBlocks[1].length, 16);
+        TKAssertEquals(errorBlocks[2].length, 16);
+        TKAssertEquals(errorBlocks[3].length, 16);
+    },
+
     testNumericExample: function(){
+        var dataCodewords = JSData.initWithArray([0x10,0x20,0x0C,0x56,0x61,0x80,0xEC,0x11,0xEC,0x11,0xEC,0x11,0xEC,0x11,0xEC,0x11]);
+        var errorCorrection = QRErrorCorrection.initWithVersion(1, QRErrorCorrection.Level.M);
+        var dataBlocks = errorCorrection.blocksOfCodewords(dataCodewords);
+        TKAssertEquals(dataBlocks.length, 1);
+        TKAssertObjectEquals(dataBlocks[0], dataCodewords);
+        var errorBlocks = errorCorrection.errorBlocksForDataBlocks(dataBlocks);
+        TKAssertEquals(errorBlocks.length, 1);
+        var errorCodewords = errorBlocks[0];
+        TKAssertEquals(errorCodewords.length, 10);
+        TKAssertEquals(errorCodewords[0], 0xA5);
+        TKAssertEquals(errorCodewords[1], 0x24);
+        TKAssertEquals(errorCodewords[2], 0xD4);
+        TKAssertEquals(errorCodewords[3], 0xC1);
+        TKAssertEquals(errorCodewords[4], 0xED);
+        TKAssertEquals(errorCodewords[5], 0x36);
+        TKAssertEquals(errorCodewords[6], 0xC7);
+        TKAssertEquals(errorCodewords[7], 0x87);
+        TKAssertEquals(errorCodewords[8], 0x2C);
+        TKAssertEquals(errorCodewords[9], 0x55);
+    },
+
+    testExample: function(){
         var dataCodewords = JSData.initWithArray([0x40, 0xd2, 0x75, 0x47, 0x76, 0x17, 0x32, 0x06, 0x27, 0x26, 0x96, 0xc6, 0xc6, 0x96, 0x70, 0xec]);
         var errorCorrection = QRErrorCorrection.initWithVersion(1, QRErrorCorrection.Level.M);
         var dataBlocks = errorCorrection.blocksOfCodewords(dataCodewords);
@@ -170,26 +220,6 @@ JSClass("QRErrorCorrectionTests", TKTestSuite, {
         TKAssertEquals(errorCodewords[7], 0xfd);
         TKAssertEquals(errorCodewords[8], 0x4b);
         TKAssertEquals(errorCodewords[9], 0xe0);
-
-        dataCodewords = JSData.initWithArray([0x10,0x20,0x0C,0x56,0x61,0x80,0xEC,0x11,0xEC,0x11,0xEC,0x11,0xEC,0x11,0xEC,0x11]);
-        errorCorrection = QRErrorCorrection.initWithVersion(1, QRErrorCorrection.Level.M);
-        dataBlocks = errorCorrection.blocksOfCodewords(dataCodewords);
-        TKAssertEquals(dataBlocks.length, 1);
-        TKAssertObjectEquals(dataBlocks[0], dataCodewords);
-        errorBlocks = errorCorrection.errorBlocksForDataBlocks(dataBlocks);
-        TKAssertEquals(errorBlocks.length, 1);
-        errorCodewords = errorBlocks[0];
-        TKAssertEquals(errorCodewords.length, 10);
-        TKAssertEquals(errorCodewords[0], 0xA5);
-        TKAssertEquals(errorCodewords[1], 0x24);
-        TKAssertEquals(errorCodewords[2], 0xD4);
-        TKAssertEquals(errorCodewords[3], 0xC1);
-        TKAssertEquals(errorCodewords[4], 0xED);
-        TKAssertEquals(errorCodewords[5], 0x36);
-        TKAssertEquals(errorCodewords[6], 0xC7);
-        TKAssertEquals(errorCodewords[7], 0x87);
-        TKAssertEquals(errorCodewords[8], 0x2C);
-        TKAssertEquals(errorCodewords[9], 0x55);
     }
 
 });

@@ -25,6 +25,9 @@ JSClass("SECOneTimePassword", JSObject, {
             startTime = 0;
         }
         this.secretData = secretData;
+        this.numberOfDigits = numberOfDigits;
+        this.timePeriod = timePeriod;
+        this.startTime = startTime;
     },
 
     initWithNumberOfDigits: function(numberOfDigits, timePeriod, startTime){
@@ -65,16 +68,19 @@ JSClass("SECOneTimePassword", JSObject, {
     },
 
     generateToken: function(completion, target){
-        return this.generateTokenWithOffset(0, completion, target);
+        return this.generateTokenForTimestamp(JSDate.now.timeIntervalSince1970, completion, target);
     },
 
     generateTokenWithOffset: function(timeOffset, completion, target){
+        return this.generateTokenForTimestamp(JSDate.now.timeIntervalSince1970 + timeOffset, completion, target);
+    },
+
+    generateTokenForTimestamp: function(timestamp, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var now = Math.floor(JSDate.now.timeIntervalSince1790 + timeOffset);
+        var now = Math.floor(timestamp);
         var steps = Math.floor((now - this.startTime) / this.timePeriod);
-        var hmac = SECHMAC.initWithAlgorithm(SECHMAC.Algorithm.sha1);
         var n = steps;
         var data = JSData.initWithLength(8);
         var i = 7;
@@ -83,6 +89,7 @@ JSClass("SECOneTimePassword", JSObject, {
             n = n >>> 8;
             --i;
         }
+        var hmac = SECHMAC.initWithAlgorithm(SECHMAC.Algorithm.sha1);
         hmac.createKeyWithData(this.secretData, function(key){
             if (key === null){
                 completion.call(target, null);
@@ -98,7 +105,7 @@ JSClass("SECOneTimePassword", JSObject, {
                 var offset = signature[19] & 0xF;
                 var n = ((signature[offset] & 0x7F) << 24) | (signature[offset + 1] << 16) | (signature[offset + 2] << 8) | (signature[offset + 3]);
                 var tokenNumber = n % Math.pow(10, this.numberOfDigits);
-                completion.call(target, tokenNumber.toString());
+                completion.call(target, tokenNumber.toString().leftPaddedString("0", this.numberOfDigits));
             }, this);
         }, this);
         return completion.promise;

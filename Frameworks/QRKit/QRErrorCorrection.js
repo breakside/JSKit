@@ -35,10 +35,10 @@ JSClass("QRErrorCorrection", JSObject, {
         var i;
         var offset = 0;
         for (i = 0; i < numberOfSmallBlocks; ++i, offset += numberOfCodewordsInSmallBlock){
-            dataBlocks.push(dataCodewords.subdataInRange(offset, numberOfCodewordsInSmallBlock));
+            dataBlocks.push(dataCodewords.subdataInRange(JSRange(offset, numberOfCodewordsInSmallBlock)));
         }
         for (i = 0; i < numberOfBigBlocks; ++i, offset += numberOfCodewordsInBigBlock){
-            dataBlocks.push(dataCodewords.subdataInRange(offset, numberOfCodewordsInBigBlock));
+            dataBlocks.push(dataCodewords.subdataInRange(JSRange(offset, numberOfCodewordsInBigBlock)));
         }
         return dataBlocks;
     },

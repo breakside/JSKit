@@ -29,6 +29,13 @@ JSContext.definePropertiesFromExtensions({
             for (var x = 0; x < size; ++x, ++i){
                 if ((modules[i] & QRCodeDrawing.Flag.on) == QRCodeDrawing.Flag.on){
                     this.fillRect(JSRect(x, y, 1, 1));
+                    // overdraw to cover gaps between adjacent squares caused by rounding errors
+                    if (x > 0 && (modules[i - 1] & QRCodeDrawing.Flag.on) == QRCodeDrawing.Flag.on){
+                        this.fillRect(JSRect(x - 0.5, y, 1, 1));
+                    }
+                    if (y > 0 && (modules[i - size] & QRCodeDrawing.Flag.on) == QRCodeDrawing.Flag.on){
+                        this.fillRect(JSRect(x, y - 0.5, 1, 1));
+                    }
                 }
             }
         }

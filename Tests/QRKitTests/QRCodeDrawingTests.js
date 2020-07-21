@@ -665,8 +665,19 @@ JSClass("QRCodeDrawingTests", TKTestSuite, {
             drawing.drawCodeword(0x00);
         });
 
-        drawing = QRCodeDrawing.initWithVersion(7);
         var i;
+        drawing = QRCodeDrawing.initWithVersion(6);
+        for (i = 0; i < 108; ++i){
+            drawing.drawCodeword(0xFE);
+        }
+        for (i = 0; i < 64; ++i){
+            drawing.drawCodeword(0x01);
+        }
+        TKAssertThrows(function(){
+            drawing.drawCodeword(0x00);
+        });
+
+        drawing = QRCodeDrawing.initWithVersion(7);
         for (i = 0; i < 66; ++i){
             drawing.drawCodeword(0xFE);
         }
