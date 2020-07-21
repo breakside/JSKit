@@ -66,6 +66,9 @@ JSClass("UIControl", UIView, {
                 this.addAction(action, target, event);
             }
         }
+        if (spec.containsKey("enabled")){
+            this.enabled = spec.valueForKey("enabled");
+        }
     },
 
     commonUIControlInit: function(){

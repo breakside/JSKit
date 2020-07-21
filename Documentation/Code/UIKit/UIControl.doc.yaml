@@ -105,6 +105,21 @@ topics:
                       rgba: 54,163,250
                   ````
           -
+            name: State
+            members:
+              -
+                introduced: 2020.29.0
+                name: enabled
+                type: boolean
+                summary: Set the control's initial enabled state
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    enabled: false
+                  ````
+          -
             name: Actions
             members:
               -
