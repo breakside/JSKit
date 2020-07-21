@@ -112,6 +112,12 @@ JSClass("Project", JSObject, {
         await this._loadInfo();
     },
 
+    reload: async function(){
+        this.unloadResources();
+        this.unloadIncludeDirectoryURLs();
+        await this._loadInfo();
+    },
+
     _loadInfo: async function(){
         var url = this.url.appendingPathComponent("Info.json");
         var exists = await this.fileManager.itemExistsAtURL(url);
@@ -222,6 +228,10 @@ JSClass("Project", JSObject, {
             }
         }
         return urls;
+    },
+
+    unloadIncludeDirectoryURLs: function(){
+        this.includeDirectoryURLs = null;
     },
 
     // -----------------------------------------------------------------------
@@ -509,6 +519,10 @@ JSClass("Project", JSObject, {
             }
         }
         return urls;
+    },
+
+    unloadResources: function(){
+        this.resources = null;
     }
 
 });
