@@ -90,6 +90,7 @@ SECHMAC.definePropertiesFromExtensions({
 });
 
 var htmlAlgorithms = {};
+htmlAlgorithms[SECHMAC.Algorithm.sha1] = { name: 'HMAC', hash: 'SHA-1'};
 htmlAlgorithms[SECHMAC.Algorithm.sha256] = { name: 'HMAC', hash: 'SHA-256'};
 htmlAlgorithms[SECHMAC.Algorithm.sha384] = { name: 'HMAC', hash: 'SHA-384'};
 htmlAlgorithms[SECHMAC.Algorithm.sha512] = { name: 'HMAC', hash: 'SHA-512'};

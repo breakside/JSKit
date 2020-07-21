@@ -65,6 +65,17 @@ JSClass('Uint8ArrayTests', TKTestSuite, {
         TKAssertEquals("foobar".utf8().base64URLStringRepresentation(), "Zm9vYmFy");
         TKAssertEquals(new Uint8Array([0xb3, 0x7a, 0x4f, 0x2c, 0xc0, 0x62, 0x4f, 0x16, 0x90, 0xf6, 0x46, 0x06, 0xcf, 0x38, 0x59, 0x45, 0xb2, 0xbe, 0xc4, 0xea]).base64URLStringRepresentation(), "s3pPLMBiTxaQ9kYGzzhZRbK-xOo");
         TKAssertEquals(JSData.initWithArray([0xfb, 0xff]).base64URLStringRepresentation(), "-_8");
-    }
+    },
+
+    testBase32StringRepresentation: function(){
+        TKAssertEquals("".utf8().base32StringRepresentation(), "");
+        TKAssertEquals("f".utf8().base32StringRepresentation(), "MY======");
+        TKAssertEquals("fo".utf8().base32StringRepresentation(), "MZXQ====");
+        TKAssertEquals("foo".utf8().base32StringRepresentation(), "MZXW6===");
+        TKAssertEquals("foob".utf8().base32StringRepresentation(), "MZXW6YQ=");
+        TKAssertEquals("fooba".utf8().base32StringRepresentation(), "MZXW6YTB");
+        TKAssertEquals("foobar".utf8().base32StringRepresentation(), "MZXW6YTBOI======");
+        TKAssertEquals(new Uint8Array([0x48, 0x65, 0x6C, 0x6C, 0x6F, 0x21, 0xDE, 0xAD, 0xBE, 0xEF]).base32StringRepresentation(), "JBSWY3DPEHPK3PXP");
+    },
 
 });

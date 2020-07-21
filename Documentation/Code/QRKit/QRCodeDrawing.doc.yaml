@@ -1,0 +1,102 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+summary: Describes how to draw a QR code
+introduced: 2020.29.0
+description: |
+  Useful when `JSContext.drawQRCode()`(JSContext.drawQRCode)
+  isn't sufficient for your needs.
+
+  For reference, `drawQRCode()` looks something like this:
+
+  ````
+    drawQRCode: function(qrCode, rect){
+        // Get a drawing description from the code
+        var drawing = qrCode.prepareDrawing();
+
+        this.save();
+
+        // Scale the drawing so we can consider a module to be 1x1
+        var size = drawing.size;
+        var transform = JSAffineTransform.Translated(rect.origin.x, rect.origin.y).scaledBy(rect.size.width / drawing.size, rect.size.height / drawing.size);
+        this.concatenate(transform);
+
+        // Loop through the modules as fill any that is "on"
+        var modules = drawing.modules;
+        for (var y = 0, i = 0; y < size; ++y){
+            for (var x = 0; x < size; ++x, ++i){
+                if ((modules[i] & QRCodeDrawing.Flag.on) == QRCodeDrawing.Flag.on){
+                    this.fillRect(JSRect(x, y, 1, 1));
+                }
+            }
+        }
+
+        this.restore();
+    }
+  ````
+topics:
+  -
+    name: Dimensions
+    members:
+      -
+        name: size
+        type: Number
+        summary: The length of one side of the QR code sqare, including
+          extra "quiet zone" space
+      -
+        name: quietSize
+        type: Number
+        summary: The amount of "quiet zone" space around each edge
+  -
+    name: Modules Grid
+    members:
+      -
+        name: modules
+        type: JSData
+        summary: The data containing one byte per module of the qr code
+        description: |
+          A drawing of `size` `n` has `n` x `n` modules, one per dot in the
+          square.
+
+          Each module is represented by one byte.  The byte is a bitmask
+          of various properties, such as `QRCodeDrawing.Flag.on`, which
+          indicates if a module should be dark or light.
+
+          Other flags can be used to identify modules as part of features
+          such as `QRCodeDrawing.Flag.finder`.  This could allow you to
+          color the finder patterns differently from the data modules, for
+          example.
+      -
+        name: Flag
+        kind: enum
+        summary: The bitmasked flags encoding properties for each module
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: "on"
+                summary: Whether the module should be dark on light background (or light on a dark background)
+              -
+                name: quiet
+                summary: Indicates the module is part of the "quiet zone" around the QR code
+              -
+                name: finder
+                summary: Indicates the module is part of a finder pattern in the corner of the QR code
+              -
+                name: alignment
+                summary: Indicates the module is part of an alignment pattern evenly spaced throughout the QR code
+              -
+                name: timing
+                summary: Indicates the module is part of an timing pattern
+              -
+                name: format
+                summary: Indicates the module is part of an area encoding the QR code format
+              -
+                name: version
+                summary: Indicates the module is part of an area encoding the QR code version
+              -
+                name: function
+                summary: Indicates the module is one of `finder`, `alignment`, `timing`, `format`, or `version`
+              -
+                name: reserved
+                summary: Indicates the module is `function` or `quiet`, essentially any area where data-encoding bits may not go

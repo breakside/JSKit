@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 name: JSKit
 kind: index
-codeURL: https://github.com/breakside/JSKit/tree/v2020.28.1/
+codeURL: https://github.com/breakside/JSKit/tree/v2020.29.0/
 publishedURL: https://docs.jskit.dev/
 page:
   titleSuffix: JSKit Documentation
@@ -93,13 +93,14 @@ topics:
       - SecurityKit/SecurityKit
       - AuthKit/AuthKit
   -
-    name: Images & PDFs
+    name: Images, PDFs, QR Codes
     summary: Advanced graphics frameworks for applications that need to read
       or create PNG, JPEG, or PDF data.
     members:
       - ImageKit/ImageKit
       - PDFKit/PDFKit
       - FontKit/FontKit
+      - QRKit/QRKit
   -
     name: Testing
     summary: A comprehensive unit-test framework for testing your code

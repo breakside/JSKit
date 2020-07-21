@@ -74,6 +74,10 @@ jobs:
         run: npx jskit test Tests/AuthKitTests
 
       - 
+        name: Test QRKit
+        run: npx jskit test Tests/QRKitTests
+
+      - 
         name: Test DBKit
         run: npx jskit test Tests/DBKitTests
 

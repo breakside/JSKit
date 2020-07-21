@@ -90,6 +90,20 @@ JSClass("JSDateTests", TKTestSuite, {
         date = JSDate.initWithTimeIntervalSince1970(123456);
         date = date.addingTimeInterval(-123);
         TKAssertEquals(date.timeIntervalSince1970, 123333);
+    },
+
+    testTimeIntervalSinceDate: function(){
+        var date1 = JSDate.initWithTimeIntervalSince1970(123456);
+        var date2 = JSDate.initWithTimeIntervalSince1970(123579);
+        var interval = date2.timeIntervalSinceDate(date1);
+        TKAssertEquals(interval, 123);
+    },
+
+    testTimeIntervalUntilDate: function(){
+        var date1 = JSDate.initWithTimeIntervalSince1970(123456);
+        var date2 = JSDate.initWithTimeIntervalSince1970(123579);
+        var interval = date1.timeIntervalUntilDate(date2);
+        TKAssertEquals(interval, 123);
     }
 
 });

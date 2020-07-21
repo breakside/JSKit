@@ -1,0 +1,20 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: framework
+summary: Generate QR code images
+codeURL: Frameworks/QRKit/
+introduced: 2020.29.0
+description: |
+  `QRKit` provides methods for generating and drawing QR codes according to
+  the [ISO Standard](https://www.iso.org/standard/62021.html).
+
+  Drawing is supported in any `JSContext` via `drawQRCode()`.
+note: QR code scanning & reading is not currently supported
+topics:
+  -
+    name: Create QR Codes
+    members:
+      - QRCode
+  -
+    name: Advanced Drawing
+    members:
+      - QRCodeDrawing

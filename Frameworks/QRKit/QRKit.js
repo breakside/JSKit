@@ -13,13 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
-
-// #import "SECCipher.js"
-// #import "SECHash.js"
-// #import "SECVerify.js"
-// #import "SECKeychain.js"
-// #import "SECJSONWebToken.js"
-// #import "SECPassword.js"
-// #import "SECDER.js"
-// #import "SECOneTimePassword.js"
+// #import "QRCode.js"
+// #import "QRCodeBitstream.js"
+// #import "QRCodeDrawing.js"
+// #import "QRErrorCorrection.js"
+// #import "JSContext+QRCode.js"

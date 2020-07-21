@@ -40,6 +40,14 @@ JSDate.prototype = {
         return JSDate.initWithTimeIntervalSince1970(this.timeIntervalSince1970 + timeInterval);
     },
 
+    timeIntervalSinceDate: function(other){
+        return this.timeIntervalSince1970 - other.timeIntervalSince1970;
+    },
+
+    timeIntervalUntilDate: function(other){
+        return other.timeIntervalSince1970 - this.timeIntervalSince1970;
+    },
+
     toString: function(){
         var d = new Date(this.timeIntervalSince1970);
         return "%s: UTC %s".sprintf(this.timeIntervalSince1970, d.toGMTString());
@@ -66,6 +74,12 @@ Object.defineProperties(JSDate, {
     now: {
         get: function JSDate_getNow(){
             return JSDate.initWithTimeIntervalSinceNow(0);
+        }
+    },
+
+    unixEpoch: {
+        get: function JSDate_getUnixEpoch(){
+            return JSDate.initWithTimeIntervalSince1970(0);
         }
     },
 
