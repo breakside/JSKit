@@ -20,6 +20,13 @@
 /* global UISplitViewController */
 'use strict';
 
+JSProtocol("UINavigationControllerDelegate", JSProtocol, {
+
+    navigationControllerWillShowViewController: function(navigationController, viewController){},
+    navigationControllerDidShowViewController: function(navigationController, viewController){}
+
+});
+
 JSClass("UINavigationController", UIViewController, {
 
     initWithRootViewController: function(rootViewController){
@@ -42,6 +49,9 @@ JSClass("UINavigationController", UIViewController, {
             this.navigationBar.items = [this._viewControllers[0].navigationItem];
         }else{
             this.navigationBar = UINavigationBar.initWithRootItem(this._viewControllers[0].navigationItem);
+        }
+        if (spec.containsKey("delegate")){
+            this.delegate = spec.valueForKey("delegate");
         }
     },
 
@@ -100,6 +110,9 @@ JSClass("UINavigationController", UIViewController, {
         if (newTopViewController !== this.topViewController){
             this.topViewController.viewWillDisappear();
             newTopViewController.viewWillAppear();
+            if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+                this.delegate.navigationControllerWillShowViewController(this, newTopViewController);
+            }
         }
         this.topViewController.view.removeFromSuperview();
         var i, l;
@@ -154,6 +167,9 @@ JSClass("UINavigationController", UIViewController, {
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
         }
+        if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+            this.delegate.navigationControllerWillShowViewController(this, viewController);
+        }
         this.addChildViewController(viewController);
         this._viewControllers.push(viewController);
         this._navigationBar.pushItem(viewController.navigationItem, animated);
@@ -162,6 +178,9 @@ JSClass("UINavigationController", UIViewController, {
             if (this._isVisible){
                 fromViewController.enqueueDidDisappear();
                 viewController.enqueueDidAppear(animated);
+            }
+            if (this.delegate && this.delegate.navigationControllerDidShowViewController){
+                this.delegate.navigationControllerDidShowViewController(this, viewController);
             }
             fromViewController.view.removeFromSuperview();
             this.view.setNeedsLayout();
@@ -182,6 +201,9 @@ JSClass("UINavigationController", UIViewController, {
                 fromViewController.view.transform = JSAffineTransform.Identity;
                 viewController.shadowColor = null;
                 viewController.viewDidAppear(true);
+                if (navController.delegate && navController.delegate.navigationControllerDidShowViewController){
+                    navController.delegate.navigationControllerDidShowViewController(navController, viewController);
+                }
             });
             JSRunLoop.main.schedule(function(){
                 this.pushAnimator.start();
@@ -222,6 +244,9 @@ JSClass("UINavigationController", UIViewController, {
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
         }
+        if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+            this.delegate.navigationControllerWillShowViewController(this, viewController);
+        }
         this._viewControllers.splice(index + 1, this._viewControllers.length - index);
         this._navigationBar.popToItem(viewController.navigationItem, animated);
         this.view.insertSubviewBelowSibling(viewController.view, fromViewController.view);
@@ -229,6 +254,9 @@ JSClass("UINavigationController", UIViewController, {
             if (this._isVisible){
                 fromViewController.enqueueDidDisappear();
                 viewController.enqueueDidAppear();
+            }
+            if (this.delegate && this.delegate.navigationControllerDidShowViewController){
+                this.delegate.navigationControllerDidShowViewController(this, viewController);
             }
             fromViewController.view.removeFromSuperview();
             this.view.setNeedsLayout();
@@ -250,6 +278,9 @@ JSClass("UINavigationController", UIViewController, {
                 viewController.viewDidAppear(animated);
                 fromViewController.viewDidDisappear(animated);
                 fromViewController.view.transform = JSAffineTransform.Identity;
+                if (navController.delegate && navController.delegate.navigationControllerDidShowViewController){
+                    navController.delegate.navigationControllerDidShowViewController(navController, viewController);
+                }
             });
             JSRunLoop.main.schedule(function(){
                 this.popAnimator.start();

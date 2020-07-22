@@ -45,6 +45,13 @@ topics:
                 name: navigationBar
                 type: UINavigationBar
                 summary: The custom navigation bar to use
+          -
+            name: Delegate
+            members:
+              -
+                name: delegate
+                type: UINavigationControllerDelegate
+                summary: The navigation controller's delegate
   -
     name: Navigation Bar
     members:
@@ -56,6 +63,48 @@ topics:
         description: |
           The navigation bar's items are automatically set to match the
           child view controller in the navigation stack
+  -
+    name: Delegate
+    members:
+      -
+        name: UIViewControllerDelegate
+        kind: protocol
+        summary: A delgate interface for navigation events
+        topics:
+          -
+            name: Showing View Controllers
+            members:
+              -
+                name: navigationControllerWillShowViewController
+                kind: method
+                summary: Called just before a new view controller will be shown
+                arguments:
+                  -
+                    name: navigationController
+                    type: UINavigationController
+                    summary: The navigation controller making the call
+                  -
+                    name: viewController
+                    type: UIViewController
+                    summary: The view controller that will be shown
+              -
+                name: navigationControllerDidShowViewController
+                kind: method
+                summary: Called just after a new view controller was be shown
+                arguments:
+                  -
+                    name: navigationController
+                    type: UINavigationController
+                    summary: The navigation controller making the call
+                  -
+                    name: viewController
+                    type: UIViewController
+                    summary: The view controller that was shown
+      -
+        name: delegate
+        type: UIViewControllerDelegate
+        nullable: true
+        summary: This navigation controller's delegate
   -
     name: View Controllers
     members:
