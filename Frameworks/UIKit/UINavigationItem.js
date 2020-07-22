@@ -44,13 +44,13 @@ JSClass("UINavigationItem", JSObject, {
         this._rightBarItems = [];
         this._leftBarItems = [];
         var i, l;
-        var rightItems = spec.arrayForKey("rightBarItems");
+        var rightItems = spec.valueForKey("rightBarItems");
         if (rightItems !== null){
             for (i = 0, l = rightItems.length; i < l; ++i){
                 this._rightBarItems.push(rightItems.valueForKey(i, UINavigationBarItem));
             }
         }
-        var leftItems = spec.arrayForKey("rightBarItems");
+        var leftItems = spec.valueForKey("rightBarItems");
         if (leftItems !== null){
             for (i = 0, l = leftItems.length; i < l; ++i){
                 this._leftBarItems.push(leftItems.valueForKey(i, UINavigationBarItem));
