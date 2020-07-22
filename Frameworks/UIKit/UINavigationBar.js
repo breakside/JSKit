@@ -218,7 +218,7 @@ JSClass("UINavigationBar", UIView, {
 
 });
 
-UINavigationBar.Styler = Object.create({
+UINavigationBar.Styler = Object.create({}, {
 
     default: {
         configurable: true,
