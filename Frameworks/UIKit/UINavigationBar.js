@@ -28,6 +28,7 @@ JSClass("UINavigationBar", UIView, {
     coveredContentTopInset: JSReadOnlyProperty(),
 
     initWithRootItem: function(item, styler){
+        UINavigationBar.$super.init.call(this);
         if (styler === undefined){
             styler = null;
         }
@@ -253,18 +254,27 @@ JSClass("UINavigationBarStyler", JSObject, {
             this.coversContent = false;
         }
         if (spec.containsKey("titleFont")){
-            this.titleFont = spec.valueForKey("titleFont");
+            this.titleFont = spec.valueForKey("titleFont", JSFont);
         }
         if (spec.containsKey("itemFont")){
-            this.itemFont = spec.valueForKey("itemFont");
+            this.itemFont = spec.valueForKey("itemFont", JSFont);
+        }
+        if (spec.containsKey("height")){
+            this.height = spec.valueForKey("height");
         }
         this._fillInStyles();
     },
 
     _fillInStyles: function(){
-        this.titleFont = JSFont.systemFontOfSize(Math.round(JSFont.Size.normal * 1.3)).fontWithWeight(JSFont.Weight.semibold);
-        this.itemFont = JSFont.systemFontOfSize(JSFont.Size.normal);
-        this.height = this.titleFont.pointSize * 2;
+        if (this.titleFont === null){
+            this.titleFont = JSFont.systemFontOfSize(Math.round(JSFont.Size.normal * 1.3)).fontWithWeight(JSFont.Weight.semibold);
+        }
+        if (this.itemFont === null){
+            this.itemFont = JSFont.systemFontOfSize(JSFont.Size.normal);
+        }
+        if (this.height === 0){
+            this.height = this.titleFont.pointSize * 2;
+        }
     },
 
     initializeBar: function(navigationBar){
@@ -594,13 +604,11 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             var backItem = navigationBar.backItem;
             var backBarItem = null;
             if (backItem !== null){
-                backBarItem = backItem.backBarButtonItem;
-                if (backBarItem === null){
-                    backBarItem = UINavigationBarItem.initWithImage(this.backButtonImage);
-                    backBarItem.title = backItem.title;
-                }else if (backBarItem.image === null){
-                    backBarItem.image = this.backButtonImage;
+                if (backItem.backBarButtonItem !== null){
+                    backItem = backItem.backBarButtonItem;
                 }
+                backBarItem = UINavigationBarItem.initWithImage(this.backButtonImage);
+                backBarItem.title = backItem.title;
             }
 
             if (backBarItem !== null){

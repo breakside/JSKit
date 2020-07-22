@@ -40,6 +40,8 @@ JSClass("UINavigationController", UIViewController, {
         if (spec.containsKey("navigationBar")){
             this.navigationBar = spec.valueForKey("navigationBar", UINavigationBar);
             this.navigationBar.items = [this._viewControllers[0].navigationItem];
+        }else{
+            this.navigationBar = UINavigationBar.initWithRootItem(this._viewControllers[0].navigationItem);
         }
     },
 
@@ -291,7 +293,7 @@ JSClass("UINavigationController", UIViewController, {
         if (this._navigationBar.coversContent){
             y = barFrame.origin.y;
             if (this.automaticallyAdjustsInsets && view.isKindOfClass(UIScrollView)){
-                var insets = JSInsets(view.insets);
+                var insets = JSInsets(view.contentInsets);
                 insets.top = this._navigationBar.coveredContentTopInset;
                 view.contentInsets = insets;
             }
