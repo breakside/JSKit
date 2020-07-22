@@ -50,6 +50,20 @@ topics:
                       rgba: 164,164,164
                   ````
               -
+                introduced: 2020.29.1
+                name: automaticRenderMode
+                type: JSImage.RenderMode
+                summary: |
+                  The render mode to use for images that are set to
+                  `automatic`(JSImage.RenderMode.automatic)
+                description: |
+                  ````
+                  IconView:
+                    class: UIImageView
+                    image: Icon
+                    automaticRenderMode: template
+                  ````
+              -
                 name: scaleMode
                 type: ScaleMode
                 summary: The way to stretch or crop the image
@@ -61,6 +75,17 @@ topics:
                     class: UIImageView
                     image: DefaultPhoto
                     scaleMode: aspectFill
+                  ````
+              -
+                name: contentInsets
+                type: JSInsets
+                summary: The amount to inset the image from each edge of the view
+                description: |
+                  ````
+                  PhotoView:
+                    class: UIImageView
+                    image: DefaultPhoto
+                    contentInsets: 10,15
                   ````
   -
     name: Image
@@ -127,3 +152,7 @@ topics:
         name: scaleMode
         type: ScaleMode
         summary: The way to stretch or crop the image
+      -
+        name: contentInsets
+        type: JSInsets
+        summary: The amount to inset the image from each side of the view

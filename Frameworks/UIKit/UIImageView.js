@@ -38,6 +38,9 @@ JSClass("UIImageView", UIView, {
         if (spec.containsKey('templateColor')){
             this.templateColor = spec.valueForKey("templateColor", JSColor);
         }
+        if (spec.containsKey("automaticRenderMode")){
+            this.automaticRenderMode = spec.valueForKey("automaticRenderMode", JSImage.RenderMode);
+        }
         if (spec.containsKey("contentInsets")){
             this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
