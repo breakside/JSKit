@@ -1026,6 +1026,10 @@ topics:
                     name: Headers
                     members:
                       -
+                        name: headerFont
+                        type: JSFont
+                        summary: The font for header text
+                      -
                         name: headerTextColor
                         type: JSColor
                         summary: The color for header text
