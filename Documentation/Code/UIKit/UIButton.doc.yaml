@@ -656,6 +656,36 @@ topics:
 
                   Sets `disabledColor` to the normal color with 50%
                   transparency.
+              -
+                introduced: 2020.29.1
+                name: Spec File Properties
+                kind: spec
+                summary: The properties that can be specified in a spec file
+                  for a image button styler
+                description: |
+                  ````
+                  TestButton:
+                    class: UIButton
+                    title: Test
+                    styler:
+                      class: UIButtonImageStyler
+                      color:
+                        rgba: 0,24,204
+                  ````
+                topics:
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: color
+                        type: JSColor
+                        summary: The normal color for the image button
+                        description: |
+                          The active state color will be created by darkening the
+                          normal color by 20%.
+
+                          The disabled state color will be created by making the
+                          normal color 50% transparent.
           -
             name: State Colors
             members:

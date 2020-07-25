@@ -300,7 +300,7 @@ JSClass("UIButtonStyler", UIControlStyler, {
                     size.width += titleSize.width;
                 }
             }else if (image !== null){
-                size.width += Math.ceil(image.size.width * imageScale);
+                size.width += image.size.width;
             }
             return size;
         }
@@ -564,6 +564,13 @@ JSClass("UIButtonImageStyler", UIButtonStyler, {
 
     initWithColor: function(color){
         this.color = color;
+    },
+
+    initWithSpec: function(spec){
+        UIButtonImageStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("color")){
+            this.color = spec.valueForKey("color", JSColor);
+        }
     },
 
     setColor: function(color){
