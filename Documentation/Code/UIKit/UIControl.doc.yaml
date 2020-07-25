@@ -234,7 +234,6 @@ topics:
                   SearchField:
                     class: UITextField
                     placeholder: Search
-                    target: /MainViewController
                     actions:
                       - {action: searchEntered, event: editingDidBegin, target: /MainViewController}
                       - {action: searchExited, event: editingDidEnd, target: /MainViewController}
