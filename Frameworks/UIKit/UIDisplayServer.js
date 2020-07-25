@@ -269,7 +269,7 @@ JSClass("UIDisplayServer", JSObject, {
             completion = Promise.resolve();
         }
         if (descriptors.length === 0){
-            completion.call(target);
+            completion.call(target, null);
             return;
         }
         var remaining = descriptors.length;
