@@ -727,7 +727,7 @@ topics:
                   pasteboard representation of the cell.
               -
                 name: pasteboardItemsForListViewAtIndexPath
-                type: UIDraggingItem[]
+                type: UIDragItem[]
                 summary: Get the data items that correspond to the item at the
                   index path
                 arguments:
