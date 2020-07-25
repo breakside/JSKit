@@ -45,7 +45,7 @@ JSClass("UIAlertController", UIViewController, {
 
     addActionWithTitle: function(title, style, action, target){
         var _action = UIAlertAction.initWithTitle(title, style, action, target);
-        this._addAction(_action);
+        this.addAction(_action);
     },
 
     _padding: 10,
@@ -54,6 +54,7 @@ JSClass("UIAlertController", UIViewController, {
     _primaryStackView: null,
     _actionsStackView: null,
     _actionButtons: null,
+    _cancelAction: null,
 
     viewDidLoad: function(){
         UIAlertController.$super.viewDidLoad.call(this);
@@ -110,9 +111,7 @@ JSClass("UIAlertController", UIViewController, {
         insets.right += this._padding;
         button.titleInsets = insets;
         button.addAction(function(){
-            if (action.action){
-                action.action.call(action.target);
-            }
+            action.perform();
             this.dismiss();
         }, this);
         return button;
@@ -181,8 +180,8 @@ JSClass("_UIAlertPopupWindow", UIPopupWindow, {
     keyDown: function(event){
         if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
             var action = this.contentViewController._cancelAction;
-            if (action !== null && action.action !== null){
-                action.action.call(action.target);
+            if (action !== null){
+                action.perform();
             }
             this.contentViewController.dismiss();
         }else{

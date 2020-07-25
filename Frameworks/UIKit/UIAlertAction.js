@@ -28,7 +28,13 @@ JSClass("UIAlertAction", JSObject, {
     title: null,
     style: 0,
     action: null,
-    target: null
+    target: null,
+
+    perform: function(){
+        if (this.action){
+            this.action.call(this.target);
+        }
+    }
 
 });
 
