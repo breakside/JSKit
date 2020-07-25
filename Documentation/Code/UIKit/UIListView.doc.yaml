@@ -2348,6 +2348,35 @@ topics:
             summary: The animation to use for the deleted sections
         important: The section indexes provided should match the indexes that
           the sections have before any edits.
+      -
+        name: RowAnimation
+        type: enum
+        summary: The possible row animations
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: none
+                summary: No animation
+              -
+                name: default
+                summary: Depends on type of operation
+              -
+                name: push
+                summary: The affected rows appear to be pushed up by other rows
+              -
+                name: cover
+                summary: The affected rows appear to be covered by other rows
+              -
+                name: fold
+                summary: Consecutive affected rows all collapse to the same location
+              -
+                name: left
+                summary: The affected row animates to or from the left
+              -
+                name: right
+                summary: The affected row animates to or from the right
   -
     name: Selection
     members:
