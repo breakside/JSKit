@@ -216,6 +216,7 @@ JSClass("UIDisplayServer", JSObject, {
         this.layerRepositionQueue.remove(layer);
         if (layer.objectID in this.layerAnimationQueue){
             delete this.layerAnimationQueue[layer.objectID];
+            --this._animationCount;
         }
     },
 
