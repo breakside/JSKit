@@ -51,14 +51,8 @@ JSClass("AddCommand", Command, {
             }
             projectSettings.build_systems.push({
                 "name": projectName,
-                "cmd": ["npx", "jskit", "make", projectName],
-                "working_dir": "${project_path}",
-                "variants": [
-                    {
-                        "name": "debug",
-                        "cmd": ["npx", "jskit", "make", "--debug", projectName]
-                    }
-                ]
+                "cmd": ["npx", "jskit", "make", "--debug", projectName],
+                "working_dir": "${project_path}"
             });
         }
 
