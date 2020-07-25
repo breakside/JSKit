@@ -95,7 +95,43 @@ topics:
         type: String
         summary: The message for this alert
   -
-    name: Displaying the Action
+    name: Styling
+    members:
+      -
+        introduced: 2020.29.1
+        name: popupWindowStyler
+        type: UIPopupWindowStyler
+        summary: The styler to use for the alert's popup window
+        description: |
+          Defaults to `UIPopupWindow.Styler.default`
+      -
+        introduced: 2020.29.1
+        name: normalButtonStyler
+        type: UIButtonStyler
+        summary: The styler to use for the alert's normal buttons
+      -
+        introduced: 2020.29.1
+        name: destructiveButtonStyler
+        type: UIButtonStyler
+        summary: The styler to use for the alert's destructive buttons
+      -
+        introduced: 2020.29.1
+        name: cancelButtonStyler
+        type: UIButtonStyler
+        nullable: true
+        summary: The styler to use for the alert's cancel button
+        description:
+          If `null`, will fallback to the `normalButtonStyler`
+      -
+        introduced: 2020.29.1
+        name: defaultButtonStyler
+        type: UIButtonStyler
+        nullable: true
+        summary: The styler to use for the alert's default action button
+        description:
+          If `null`, will fallback to the `normalButtonStyler`
+  -
+    name: Displaying the Alert
     members:
       -
         name: popupAdjacentToView

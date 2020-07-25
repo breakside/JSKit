@@ -39,7 +39,7 @@ topics:
         summary: The title of the action
   -
     name: Style
-    memers:
+    members:
       -
         name: Style
         kind: enum

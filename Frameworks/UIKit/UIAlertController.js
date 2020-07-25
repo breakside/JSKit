@@ -29,6 +29,9 @@ JSClass("UIAlertController", UIViewController, {
         this.title = title;
         this.message = message;
         this._actions = [];
+        this.popupWindowStyler = UIPopupWindow.Styler.default;
+        this.normalButtonStyler = UIAlertController.ButtonStylers.normal;
+        this.destructiveButtonStyler = UIAlertController.ButtonStylers.destructive;
     },
 
     title: null,
@@ -47,6 +50,12 @@ JSClass("UIAlertController", UIViewController, {
         var _action = UIAlertAction.initWithTitle(title, style, action, target);
         this.addAction(_action);
     },
+
+    popupWindowStyler: null,
+    normalButtonStyler: null,
+    defaultButtonStyler: null,
+    cancelButtonStyler: null,
+    destructiveButtonStyler: null,
 
     _padding: 10,
     _titleLabel: null,
@@ -100,9 +109,13 @@ JSClass("UIAlertController", UIViewController, {
     },
 
     _createButtonForAction: function(action){
-        var styler = buttonStylers.default;
-        if (action.style === UIAlertAction.Style.destructive){
-            styler = buttonStylers.destructive;
+        var styler = this.normalButtonStyler;
+        if (action.style === UIAlertAction.Style.default && this.defaultButtonStyler !== null){
+            styler = this.defaultButtonStyler;
+        }else if (action.style === UIAlertAction.Style.cancel && this.cancelButtonStyler !== null){
+            styler = this.cancelButtonStyler;
+        }else if (action.style === UIAlertAction.Style.destructive){
+            styler = this.destructiveButtonStyler;
         }
         var button = UIButton.initWithStyler(styler);
         button.titleLabel.text = action.title;
@@ -159,7 +172,7 @@ JSClass("UIAlertController", UIViewController, {
     },
 
     _createPopupWindow: function(){
-        var popupWindow = _UIAlertPopupWindow.init();
+        var popupWindow = _UIAlertPopupWindow.initWithStyler(this.popupWindowStyler);
         popupWindow.contentViewController = this;
         popupWindow.escapeClosesWindow = this._cancelAction !== null;
         return popupWindow;
@@ -191,7 +204,7 @@ JSClass("_UIAlertPopupWindow", UIPopupWindow, {
 
 });
 
-var buttonStylers = Object.create({}, {
+UIAlertController.ButtonStylers = Object.create({}, {
 
     destructive: {
         configurable: true,
@@ -201,18 +214,24 @@ var buttonStylers = Object.create({}, {
             styler.normalTitleColor = JSColor.initWithRGBA(204/255,0,0);
             styler.activeTitleColor = styler.normalTitleColor.colorDarkenedByPercentage(0.2);
             styler.disabledTitleColor = styler.normalTitleColor.colorWithAlpha(0.5);
-            Object.defineProperty(this, 'destructive', {value: styler});
+            Object.defineProperty(this, 'destructive', {writable: true, value: styler});
             return styler;
+        },
+        set: function(styler){
+            Object.defineProperty(this, 'destructive', {writable: true, value: styler});
         }
     },
 
-    default: {
+    normal: {
         configurable: true,
         get: function(){
             var styler = UIButtonDefaultStyler.init();
             styler.font = styler.font.fontWithPointSize(JSFont.Size.detail);
-            Object.defineProperty(this, 'default', {value: styler});
+            Object.defineProperty(this, 'normal', {writable: true, value: styler});
             return styler;
+        },
+        set: function(styler){
+            Object.defineProperty(this, 'normal', {writable: true, value: styler});
         }
     }
 
