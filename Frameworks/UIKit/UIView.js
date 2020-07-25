@@ -20,6 +20,7 @@
 // #import "UIDraggingDestination.js"
 // #import "UILayoutConstraint.js"
 // #import "UITraitCollection.js"
+// #import "UICursor.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -109,6 +110,9 @@ JSClass('UIView', UIResponder, {
         }
         if (spec.containsKey("userInteractionEnabled")){
             this.userInteractionEnabled = spec.valueForKey("userInteractionEnabled");
+        }
+        if (spec.containsKey("cursor")){
+            this.cursor = spec.valueForKey("cursor", UICursor);
         }
         var i, l;
         if (spec.containsKey("subviews")){

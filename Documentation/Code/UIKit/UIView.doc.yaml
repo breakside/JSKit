@@ -340,7 +340,16 @@ topics:
                 name: subviews
                 type: UIView[]
                 summary: The child views of this view, in the order they
-                  should be stacked
+                  should be stacked'
+          -
+            name: Cursor
+            members:
+              -
+                introduced: 2020.29.1
+                name: cursor
+                type: UICursor
+                summary: The name of the cursor to use, one of the static properties
+                  on `UICursor`
   -
     name: Layer
     members:
