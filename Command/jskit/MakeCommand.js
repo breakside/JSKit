@@ -80,11 +80,21 @@ JSClass("MakeCommand", Command, {
             var commands = "$ " + this.builder.commands.join("\n$ ") + "\n";
             this.printer.print(commands, false, willWatch);
         }
+        var error = null;
         while (this.arguments.watch && this.builder.watchlist.length > 0){
-            this.printer.setStatus("Done (build: %s/%s).  Watching for file changes...".sprintf(this.builder.buildLabel, this.builder.buildId));
+            if (error !== null){
+                this.printer.setStatus("Failed (%s).  Watching for file changes...".sprintf(error.toString()));
+                error = null;
+            }else{
+                this.printer.setStatus("Done (build: %s/%s).  Watching for file changes...".sprintf(this.builder.buildLabel, this.builder.buildId));
+            }
             await this.watchForChanges(this.builder.watchlist);
-            project.reload();
-            await this.builder.build();
+            try{
+                project.reload();
+                await this.builder.build();
+            }catch (e){
+                error = e;
+            }
         }
         this.printer.print("");
     },

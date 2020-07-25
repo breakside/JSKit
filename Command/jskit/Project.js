@@ -332,10 +332,10 @@ JSClass("Project", JSObject, {
                         visited.frameworks.add(name);
                         let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
                         if (url === null){
-                            if (sourceURL){
-                                throw new Error('Cannot find framework %s, included from %s:%d'.sprintf(name, sourceURL, sourceLine));
+                            if (import_.sourceURL){
+                                throw new Error('Cannot find framework %s, included from %s:%d'.sprintf(name, import_.sourceURL, import_.sourceLine));
                             }
-                            throw new Error('Cannot find "%s"');
+                            throw new Error('Cannot find "%s"'.sprintf(name));
                         }
                         result.frameworks.push({name: name, url: url});
                     }
