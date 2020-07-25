@@ -2810,6 +2810,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     cellBackgroundColor: null,
     separatorInsets: null,
     imageSize: null,
+    imageTitleSpacing: null,
     accessorySize: null,
     accessoryInsets: null,
     accessoryColor: null,
@@ -2904,6 +2905,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (spec.containsKey('imageSize')){
             this.imageSize = spec.valueForKey("imageSize", JSSize);
+        }
+        if (spec.containsKey('imageTitleSpacing')){
+            this.imageTitleSpacing = spec.valueForKey("imageTitleSpacing");
         }
         if (spec.containsKey('accessorySize')){
             this.accessorySize = spec.valueForKey("accessorySize", JSSize);
@@ -3113,9 +3117,13 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
                 var imageHeight = cell._contentView.bounds.size.height - cell._titleInsets.left * 2;
                 imageSize = JSSize(imageHeight, imageHeight);
             }
+            var imageTitleSpacing = this.imageTitleSpacing;
+            if (imageTitleSpacing === null){
+                imageTitleSpacing = cell._titleInsets.left;
+            }
             cell._imageView.frame = JSRect(origin.x, (cell._contentView.bounds.size.height - imageSize.height) / 2, imageSize.width, imageSize.height);
-            origin.x += cell._titleInsets.left + imageSize.width;
-            size.width -= imageSize.width + cell._titleInsets.left;
+            origin.x += imageSize.width + imageTitleSpacing;
+            size.width -= imageSize.width + imageTitleSpacing;
         }
         if (cell._accessoryView !== null){
             var accessorySize = this.accessorySize;

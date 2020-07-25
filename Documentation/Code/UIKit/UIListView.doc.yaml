@@ -1065,6 +1065,14 @@ topics:
                         name: imageSize
                         type: JSSize
                         summary: The size of the cell's image
+                      -
+                        introduced: 2020.29.1
+                        name: imageTitleSpacing
+                        type: Number
+                        summary: The amount of spacing between the cell's imageSize
+                          and title
+                        description: |
+                          If not specified, defaults to the cell's `titleInsets`(UIListViewCell.titleInsets)`.left`()
                   -
                     name: Accessory
                     members:
@@ -1236,6 +1244,15 @@ topics:
                 name: imageSize
                 type: JSSize
                 summary: The size of the cell's image
+              -
+                introduced: 2020.29.1
+                name: imageTitleSpacing
+                type: Number
+                nullable: true
+                summary: The amount of spacing between the cell's imageSize
+                  and title
+                description: |
+                  If not specified, defaults to the cell's `titleInsets`(UIListViewCell.titleInsets)`.left`()
           -
             name: Accessory
             members:
