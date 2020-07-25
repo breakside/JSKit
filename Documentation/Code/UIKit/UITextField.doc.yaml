@@ -473,3 +473,53 @@ topics:
         name: pasteAndMatchStyle
         kind: method
         summary: Paste attributed text from the general pasteboard
+  -
+    name: Layout
+    members:
+      -
+        introduced: 2020.29.1
+        name: sizeToFitText
+        kind: method
+        summary: Size the text field to fit its text contents, up to a maximum size
+        arguments:
+          -
+            name: maximumSize
+            type: JSSize
+            summary: The maximum size the text field can be
+        description: |
+          Useful when making a text field grow and shrink with what the user
+          types.
+
+          ````
+          #import UIKit
+          'use strict';
+
+          JSClass("UserViewController", UIViewController, {
+
+            viewDidLoad: function(){
+              UserViewController.$super.viewDidLoad.call(this);
+
+              // 1. Create a single line text field
+              this.nameField = UITextField.init();
+              this.nameField.maximumNumberOfLines = 1;
+
+              // 2. Set ourself as the field's delegate so we get notified
+              //    whenever the field changes
+              this.nameField.delegate = this;
+            },
+
+            textFieldDidChange: function(textField){
+              if (textField === this.nameField){
+                // 3. Ask for a new layout whenever the field changes
+                this.view.setNeedsLayout();
+              }
+            },
+
+            viewDidLayoutSubviews: function(){
+              // 4. During layout, size the text field to fit its conents
+              this.nameField.sizeToFitText(this.view.bounds.width, Number.MAX_VALUE);
+              this.nameField.frame = JSRect(JSPoint.Zero, this.nameField.bound.size);
+            }
+
+          })
+          ````

@@ -116,7 +116,7 @@ JSClass("UITextField", UIControl, {
         this._localEditor.delegate = this;
         this._clipView.layer.addSublayer(this._textLayer);
         this.addSubview(this._clipView);
-        this._clipView.cursor = UICursor.iBeam;
+        this.cursor = UICursor.iBeam;
         if (this._styler === null){
             this._styler = UITextField.Styler.default;
         }
@@ -223,6 +223,8 @@ JSClass("UITextField", UIControl, {
         this._placeholderTextLayer.maximumNumberOfLines = 1;
         this._placeholderTextLayer.font = this._textLayer.font;
         this._placeholderTextLayer.hidden = true;
+        this._placeholderTextLayer.widthTracksText = true;
+        this._placeholderTextLayer.heightTracksText = true;
         if (this._placeholderColor === null){
             this._createPlaceholderColor();
         }
@@ -653,6 +655,27 @@ JSClass("UITextField", UIControl, {
         }
     },
 
+    sizeToFitText: function(maxSize){
+        this._textLayer.layoutIfNeeded();
+        var textLayer = this._textLayer;
+        if (this._isShowingPlaceholder){
+            this._placeholderTextLayer.layoutIfNeeded();
+            textLayer = this._placeholderTextLayer;
+        }
+        var size = JSSize(textLayer.bounds.size);
+        if (size.width > maxSize.width){
+            size.width = maxSize.width;
+        }
+        if (size.height > maxSize.height){
+            size.height = maxSize.height;
+        }
+        size.width += this._textInsets.width;
+        size.height += this._textInsets.height;
+        this.bounds = JSRect(JSPoint.Zero, size);
+        this.layoutIfNeeded();
+        this._adjustClipViewOrigin(this._clipView.bounds.origin);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Drawing
 
@@ -813,7 +836,7 @@ JSClass("UITextField", UIControl, {
             return UITextField.$super.mouseDragged.call(this, event);
         }
         if (!this._isDragging){
-            this._clipView.cursor.push();
+            this.cursor.push();
         }
         this._isDragging = true;
         var location = event.locationInView(this);
@@ -846,7 +869,7 @@ JSClass("UITextField", UIControl, {
 
     mouseUp: function(event){
         if (this._isDragging){
-            this._clipView.cursor.pop();
+            this.cursor.pop();
         }
         this._isDragging = false;
         this._lastDragEvent = null;
