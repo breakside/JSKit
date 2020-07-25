@@ -32,7 +32,7 @@ JSClass("InitCommand", Command, {
         var entries = await this.fileManager.contentsOfDirectoryAtURL(workspaceURL);
         for (let i = 0, l = entries.length; i < l && isEmpty; ++i){
             let entry = entries[i];
-            if (!entry.name.startsWith(".") && entry.name != 'node_modules' && entry.name != 'package-lock.json' && entry.name != 'package.json'){
+            if (!entry.name.startsWith(".") && entry.name != 'node_modules' && entry.name != 'package-lock.json' && entry.name != 'package.json' && entry.name.removingFileExtension() != "LICENSE"){
                 isEmpty = false;
             }
         }
