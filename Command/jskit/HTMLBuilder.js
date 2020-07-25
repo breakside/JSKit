@@ -541,34 +541,37 @@ JSClass("HTMLBuilder", Builder, {
     },
 
     buildCSS: async function(){
-        var fonts = [];
-        for (let i = 0, l = this.resources.metadata.length; i < l; ++i){
-            let metadata = this.resources.metadata[i];
-            if (metadata.font){
-                fonts.push(metadata);
-            }
-        }
-        if (fonts.length === 0){
-            return;
-        }
-        var lines = [];
-        let fontsCSSURL = this.cacheBustingURL.appendingPathComponent("fonts.css");
-        for (let i = 0, l = fonts.length; i < l; ++i){
-            let metadata = fonts[i];
-            let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
-            lines.push('@font-face {');
-            lines.push('  font-family: "%s";'.sprintf(metadata.font.family));
-            lines.push('  font-style: %s;'.sprintf(metadata.font.style));
-            // TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
-            lines.push('  font-weight: %s;'.sprintf(Math.floor((metadata.font.weight / 100) * 100)));
-            lines.push('  src: url("%s");'.sprintf(bundledURL.encodedStringRelativeTo(fontsCSSURL)));
-            lines.push('  font-display: block;');
-            lines.push('}');
-        }
-        let css = lines.join("\n");
-        await this.fileManager.createFileAtURL(fontsCSSURL, css.utf8());
-        let path = fontsCSSURL.encodedStringRelativeTo(this.wwwURL);
-        this.wwwCSSPaths.push(path);
+        // We used to add fonts in a CSS file, but now use the FontFace interface
+        // during application startup.
+        // Preserving for reference in case we need to add other kinds of css in the future
+        // var fonts = [];
+        // for (let i = 0, l = this.resources.metadata.length; i < l; ++i){
+        //     let metadata = this.resources.metadata[i];
+        //     if (metadata.font){
+        //         fonts.push(metadata);
+        //     }
+        // }
+        // if (fonts.length === 0){
+        //     return;
+        // }
+        // var lines = [];
+        // let fontsCSSURL = this.cacheBustingURL.appendingPathComponent("fonts.css");
+        // for (let i = 0, l = fonts.length; i < l; ++i){
+        //     let metadata = fonts[i];
+        //     let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+        //     lines.push('@font-face {');
+        //     lines.push('  font-family: "%s";'.sprintf(metadata.font.family));
+        //     lines.push('  font-style: %s;'.sprintf(metadata.font.style));
+        //     // TTF weights can be 1 to 1000, CSS weights can on be multiples of 100
+        //     lines.push('  font-weight: %s;'.sprintf(Math.floor((metadata.font.weight / 100) * 100)));
+        //     lines.push('  src: url("%s");'.sprintf(bundledURL.encodedStringRelativeTo(fontsCSSURL)));
+        //     lines.push('  font-display: block;');
+        //     lines.push('}');
+        // }
+        // let css = lines.join("\n");
+        // await this.fileManager.createFileAtURL(fontsCSSURL, css.utf8());
+        // let path = fontsCSSURL.encodedStringRelativeTo(this.wwwURL);
+        // this.wwwCSSPaths.push(path);
     },
 
     buildWorker: async function(){

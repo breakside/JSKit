@@ -265,20 +265,28 @@ JSClass("UIDisplayServer", JSObject, {
     // MARK: - Fonts
 
     registerFontDescriptors: function(descriptors, completion, target){
+        if (!completion){
+            completion = Promise.resolve();
+        }
         if (descriptors.length === 0){
             completion.call(target);
             return;
         }
         var remaining = descriptors.length;
-        var handleRegistration = function(){
+        var firstError = null;
+        var handleRegistration = function(error){
+            if (error !== null && firstError === null){
+                firstError = error;
+            }
             --remaining;
             if (remaining === 0){
-                completion.call(target);
+                completion.call(target, firstError);
             }
         };
         for (var i = 0, l = descriptors.length; i < l; ++i){
             this.registerFontDescriptor(descriptors[i], handleRegistration, this);
         }
+        return completion.promise;
     },
 
     registerFontDescriptor: function(descriptor, completion, target){

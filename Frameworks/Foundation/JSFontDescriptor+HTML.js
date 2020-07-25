@@ -38,7 +38,7 @@ JSFontDescriptor.definePropertiesFromExtensions({
 
     htmlFontFace: function(){
         var url = this.htmlURLString();
-        if (url){
+        if (window.FontFace && url){
             return new FontFace(this._family, 'url("%s")'.sprintf(url), {
                 style: this._style,
                 weight: this._weight
@@ -83,7 +83,7 @@ JSDataFontDescriptor.definePropertiesFromExtensions({
     },
 
     htmlFontFace: function(){
-        if (!this._htmlFontFace){
+        if (window.FontFace && !this._htmlFontFace){
             this._htmlFontFace = new FontFace(this._family, this.data, {
                 style: this._style,
                 weight: this._weight

@@ -25,9 +25,9 @@ var logger = JSLog("uikit", "application");
 
 UIApplication.definePropertiesFromExtensions({
 
-    setup: function(){
+    setup: function(completion, target){
         this._baseURL = JSURL.initWithString(window.location.origin + window.location.pathname);
-        originalSetup.call(this);
+        originalSetup.call(this, completion, target);
     },
 
     launchOptions: function(){

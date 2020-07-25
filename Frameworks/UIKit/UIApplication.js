@@ -54,10 +54,18 @@ JSClass('UIApplication', UIResponder, {
         return {};
     },
 
-    setup: function(){
+    setup: function(completion, target){
         logger.info("Setup");
-        this.setupFonts();
-        this.setupDelegate();
+        this.setupFonts(function(error){
+            if (error === null){
+                try{
+                    this.setupDelegate();
+                }catch (e){
+                    error = e;
+                }
+            }
+            completion.call(target, error);
+        }, this);
     },
 
     setupLogging: function(){
@@ -67,7 +75,7 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
-    setupFonts: function(){
+    setupFonts: function(completion, target){
         logger.info("Setup fonts");
         var descriptors = JSFont.registerBundleFonts(this.bundle);
         var systemFontName = this.bundle.info[UIApplication.InfoKeys.systemFont];
@@ -76,15 +84,15 @@ JSClass('UIApplication', UIResponder, {
         }else{
             logger.warn("No system font name");
         }
-        for (var i = 0, l = descriptors.length; i < l; ++i){
-            this.windowServer.displayServer.registerBundleFontDescriptor(descriptors[i]);
-        }
         if (this.windowServer.device.primaryPointerType === UIUserInterface.PointerType.touch){
             logger.info("Touch device, increasing font sizes by 120%");
             for (var size in JSFont.Size){
                 JSFont.Size[size] = Math.round(JSFont.Size[size] * 1.2);
             }
         }
+        this.windowServer.displayServer.registerFontDescriptors(descriptors, function(error){
+            completion.call(target, error);
+        }, this);
     },
 
     setupDelegate: function(){
@@ -194,20 +202,25 @@ JSClass('UIApplication', UIResponder, {
     },
 
     _launch: function(callback){
-        this.setup();
-        var launchOptions = this.launchOptions();
-        if (!this.delegate){
-            throw new Error("No application delegate defined");
-        }
-        if (!this.delegate.applicationDidFinishLaunching){
-            throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
-        }
-        logger.info("Calling delegate.applicationDidFinishLaunching");
-        this.delegate.applicationDidFinishLaunching(this, launchOptions);
-        if (this.windowServer.windowStack.length === 0){
-            throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
-        }
-        callback(null);
+        this.setup(function(error){
+            if (error !== null){
+                callback(error);
+                return;
+            }
+            var launchOptions = this.launchOptions();
+            if (!this.delegate){
+                throw new Error("No application delegate defined");
+            }
+            if (!this.delegate.applicationDidFinishLaunching){
+                throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
+            }
+            logger.info("Calling delegate.applicationDidFinishLaunching");
+            this.delegate.applicationDidFinishLaunching(this, launchOptions);
+            if (this.windowServer.windowStack.length === 0){
+                throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+            }
+            callback(null);
+        }, this);
     },
 
     // MARK: - Managing Windows

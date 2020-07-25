@@ -94,16 +94,13 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _registeredFontCSSRules: null,
 
-    registerBundleFontDescriptor: function(descriptor){
-        // bundle fonts rules are already in a linked 
-        var name = "%s|%s|%d".sprintf(descriptor.family, descriptor.style, Math.floor(descriptor.weight));
-        this._registeredFontCSSRules[name] = null;
-    },
-
     registerFontDescriptor: function(descriptor, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNull);
+        }
         var name = "%s|%s|%d".sprintf(descriptor.family, descriptor.style, Math.floor(descriptor.weight));
         if (name in this._registeredFontCSSRules){
-            completion.call(target);
+            completion.call(target, null);
             return;
         }
         var font = descriptor.htmlFontFace();
@@ -111,10 +108,10 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         if (font){
             font.load().then(function(){
                 doc.fonts.add(font);
-                completion.call(target);
+                completion.call(target, null);
             }, function(e){
                 logger.error("Failed to load font");
-                completion.call(target);
+                completion.call(target, e);
             });
             this._registeredFontCSSRules[name] = font;
         }else{
@@ -130,9 +127,18 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }else{
                 this._registeredFontCSSRules[name] = null;
             }
-            // TODO: need to force load the font by using it somewhere
-            JSRunLoop.main.schedule(completion, target);
+            if (document.fonts){
+                document.fonts.load(descriptor.cssString(14, 17)).then(function(){
+                    completion.call(target, null);
+                }, function(error){
+                    completion.call(target, error);
+                });
+            }else{
+                // TODO: need to force load the font by using it somewhere
+                JSRunLoop.main.schedule(completion, target, null);
+            }
         }
+        return completion.promise;
     },
 
     // -------------------------------------------------------------------------
