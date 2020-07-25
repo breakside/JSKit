@@ -837,8 +837,14 @@ JSClass("HTMLBuilder", Builder, {
         var builder = this;
         return new Promise(function(resolve, reject){
             docker.on('close', function(code){
+                if (code === 1 && err.startsWith("Cannot connect to the Docker daemon")){
+                    builder.printer.print("Warning: Docker not running, skipping `docker build`.  Please start docker to use this feature.\n");
+                    resolve();
+                    return;
+                }
                 if (code !== 0){
-                    reject(new Error("Error building docker: " + err));
+                    reject(new Error("Failed to build docker image\n" + err));
+                    return;
                 }
                 var localWWWPath = builder.fileManager.pathForURL(builder.wwwURL);
                 var remoteWWWPath = builder.wwwURL.encodedStringRelativeTo(builder.bundleURL.removingLastPathComponent());
@@ -856,6 +862,7 @@ JSClass("HTMLBuilder", Builder, {
                 resolve();
             });
             docker.on('error',function(){
+                builder.printer.print("Warning: Docker not available, skipping `docker build`.  You'll need to install docker to use this feature.\n");
                 resolve();
             });
         });
