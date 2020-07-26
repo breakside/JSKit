@@ -42,9 +42,18 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // frame that's in a view that itself has been removed from the document.
         // After we're done making calls, we'll add it back to the original parent
         // in its original location.
+        //
+        // UPDATE 2020-07-26 - When text frames are drawn inside a scaled or rotated
+        // view, the getBoundingClientRect() based calculations return transformed
+        // values, which we don't want.  The quickest fix is to ALWAYS remove the
+        // frame element from its parent and attach it to the document body so
+        // it will be untransformed.  This doesn't appear to be a major performance
+        // issue, but it would be nice to find another way around.  For now, I'm
+        // preserving the original code with the addition of `true || ` to always
+        // enter the conditional.
         var originalParent = null;
         var originalSibling = null;
-        if (!this.element.isConnected){
+        if (true || !this.element.isConnected){
             originalParent = this.element.parentNode;
             originalSibling = this.element.nextSibling;
             this.element.ownerDocument.body.appendChild(this.element);
