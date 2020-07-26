@@ -114,6 +114,20 @@ JSClass('JSColor', JSObject, {
                     parseInt(rgba.substringInRange(JSRange(5,2)) || "0", 16),
                     (parseInt(rgba.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
                 ];
+            }else if (rgba.match(/^[0-9A-Fa-f]{6}$/)){
+                components = [
+                    parseInt(rgba.substringInRange(JSRange(0,2)), 16),
+                    parseInt(rgba.substringInRange(JSRange(2,2)), 16),
+                    parseInt(rgba.substringInRange(JSRange(4,2)), 16),
+                    1
+                ];
+            }else if (rgba.match(/^[0-9A-Fa-f]{8}$/)){
+                components = [
+                    parseInt(rgba.substringInRange(JSRange(0,2)), 16),
+                    parseInt(rgba.substringInRange(JSRange(2,2)), 16),
+                    parseInt(rgba.substringInRange(JSRange(4,2)), 16),
+                    (parseInt(rgba.substringInRange(JSRange(6,2)), 16)) / 255
+                ];
             }else{
                 components = rgba.parseNumberArray();
             }

@@ -65,6 +65,38 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertEquals(color.components[1], 0.4);
         TKAssertEquals(color.components[2], 0.2);
         TKAssertEquals(color.components[3], 0.5);
+
+        spec = JSSpec.initWithDictionary({rgba: "#12aB34"});
+        color = JSColor.initWithSpec(spec);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0x12/255.0);
+        TKAssertFloatEquals(color.components[1], 0xab/255.0);
+        TKAssertFloatEquals(color.components[2], 0x34/255.0);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        spec = JSSpec.initWithDictionary({rgba: "#12aB34Ce"});
+        color = JSColor.initWithSpec(spec);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0x12/255.0);
+        TKAssertFloatEquals(color.components[1], 0xab/255.0);
+        TKAssertFloatEquals(color.components[2], 0x34/255.0);
+        TKAssertFloatEquals(color.components[3], 0xce/255.0);
+
+        spec = JSSpec.initWithDictionary({rgba: "12aB34"});
+        color = JSColor.initWithSpec(spec);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0x12/255.0);
+        TKAssertFloatEquals(color.components[1], 0xab/255.0);
+        TKAssertFloatEquals(color.components[2], 0x34/255.0);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        spec = JSSpec.initWithDictionary({rgba: "12aB34Ce"});
+        color = JSColor.initWithSpec(spec);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0x12/255.0);
+        TKAssertFloatEquals(color.components[1], 0xab/255.0);
+        TKAssertFloatEquals(color.components[2], 0x34/255.0);
+        TKAssertFloatEquals(color.components[3], 0xce/255.0);
     },
 
     testColorWithAlpha: function(){
