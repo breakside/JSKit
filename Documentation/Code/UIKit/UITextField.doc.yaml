@@ -243,7 +243,7 @@ topics:
         name: UITextFieldDelegate
         kind: protocol
         summary: An interface that text field delegates can implement
-        members:
+        topics:
           -
             name: Field Changes
             members:
