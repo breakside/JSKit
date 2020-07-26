@@ -169,7 +169,8 @@ UIToolbar.Styler = Object.create({}, {
     default: {
         configurable: true,
         get: function UIToolbarStyler_getDefault(){
-            var styler = UIButtonCustomStyler.initWithItemColor(JSColor.initWithWhite(0.2));
+            var styler = UIToolbarCustomStyler.initWithItemColor(JSColor.initWithWhite(0.2));
+            styler.itemSpacing = 7;
             Object.defineProperty(this, 'default', {writable: true, value: styler});
             return styler;
         },

@@ -726,6 +726,9 @@ topics:
               -
                 name: custom
                 summary: A blank styler
+              -
+                name: toolbar
+                summary: The default `UIKit` styler for toolbar items with `UIButton` views
       -
         name: styler
         type: UIButtonStyler

@@ -242,6 +242,20 @@ UIButton.Styler = Object.create({}, {
             Object.defineProperty(this, 'custom', {writable: true, value: styler});
             return styler;
         }
+    },
+    toolbar: {
+        configurable: true,
+        get: function UIButton_getToolbarStyler(){
+            var styler = UIButtonDefaultStyler.init();
+            styler.borderWidth = 0.5;
+            styler.shadowColor = null;
+            styler.titleInsets = JSInsets(4, 10);
+            Object.defineProperty(this, 'toolbar', {writable: true, value: styler});
+            return styler;
+        },
+        set: function UIButton_setToolbarStyler(styler){
+            Object.defineProperty(this, 'toolbar', {writable: true, value: styler});
+        }
     }
 });
 
