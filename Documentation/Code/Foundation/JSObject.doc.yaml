@@ -712,6 +712,16 @@ topics:
         kind: method
         type: boolean
         summary: Checks if the object can perform the named action
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The action name
+          -
+            name: sender
+            type: any
+            nullable: true
+            summary: The object sending the action, if any
         description: |
           The default implementation returns `true` if the object has an
           instance method matching the action name.
