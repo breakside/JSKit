@@ -232,7 +232,7 @@ UIButton.Styler = Object.create({}, {
             return styler;
         },
         set: function UIButton_setDefaultStyler(defaultStyler){
-            Object.defineProperty(this, 'defaultStyler', {writable: true, value: defaultStyler});
+            Object.defineProperty(this, 'default', {writable: true, value: defaultStyler});
         }
     },
     custom: {
