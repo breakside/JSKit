@@ -154,6 +154,13 @@ topics:
             name: maxSize
             type: JSSize
             summary: Limits the size that can be returned
+      -
+        name: autoPositionWindow
+        type: Boolean
+        summary: Automatically sizes and positions the window in the center of the
+          screen
+        description: |
+          Defaults to `true`
   -
     name: Responder
     members:
