@@ -355,6 +355,11 @@ var addMetadata = {
 
     '.svg': async function(name, contents, metadata){
         var xml = contents.stringByDecodingUTF8();
+        // SVG icons from fontawesome don't start with xml prologue, so 
+        // add one if it looks to be missing
+        if (xml.startsWith("<svg ")){
+            xml = '<?xml version="1.0" encoding="utf-8"?>\n' + xml;
+        }
         if (!xml.startsWith("<?xml")){
             return;
         }
@@ -400,8 +405,14 @@ var addMetadata = {
                             attrs[attr.name] = attr.value;
                         }
                     }
-                    metadata.image.width = px(attrs.width);
-                    metadata.image.height = px(attrs.height);
+                    if (attrs.width && attrs.height){
+                        metadata.image.width = px(attrs.width);
+                        metadata.image.height = px(attrs.height);
+                    }else if (attrs.viewBox){
+                        var box = attrs.viewBox.split(/\s+/).map(n => parseInt(n));
+                        metadata.image.width = box[2];
+                        metadata.image.height = box[3];
+                    }
                 }
                 parser.stop();
             }
