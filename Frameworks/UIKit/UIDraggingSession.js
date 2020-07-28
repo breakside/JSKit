@@ -64,7 +64,7 @@ JSClass("UIDraggingSession", JSObject, {
 
     setIsActive: function(isActive){
         this._isActive = isActive;
-        if (this.source !== null && this.source.draggingSessionDidBecomeActive){
+        if (this._isActive && this.source !== null && this.source.draggingSessionDidBecomeActive){
             this.source.draggingSessionDidBecomeActive(this);
         }
     },
