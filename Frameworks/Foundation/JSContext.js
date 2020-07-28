@@ -554,7 +554,7 @@ JSClass("JSContext", JSObject, {
     },
 
     rotateByDegrees: function(degrees){
-        this.rotate(degrees / 180 * Math.PI);
+        this.rotateBy(degrees / 180 * Math.PI);
     },
 
     translateBy: function(tx, ty){

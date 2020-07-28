@@ -965,7 +965,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.lineCap = lineCap;
         }
-        this._state.lineWidth = lineCap;
+        this._state.lineCap = lineCap;
     },
 
     setLineJoin: function(lineJoin){
