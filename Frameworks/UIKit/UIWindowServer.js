@@ -461,7 +461,6 @@ JSClass("UIWindowServer", JSObject, {
     isRightMouseDown: false,
     mouseDownCount: 0,
     mouseEventWindow: null,
-    mouseDownLocation: null,
     _leftClickCount: 0,
     _rightClickCount: 0,
     _previousLeftClickTimestamp: 0,
@@ -507,8 +506,6 @@ JSClass("UIWindowServer", JSObject, {
                 this.hideTooltip();
             }
             if (this.mouseDownCount === 0 && this._draggingSession === null){
-                this.mouseDownLocation = JSPoint(this.mouseLocation);
-                this._isMouseDragging = false;
                 this.mouseEventWindow = this.windowForEventAtLocation(location);
                 if (this.mouseEventWindow !== this._previousMouseEventWindow){
                     this._leftClickCount = 0;
@@ -607,8 +604,6 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    _isMouseDragging: false,
-
     mouseDidMove: function(timestamp){
         this._mouseIdleTimer.invalidate();
         this._leftClickCount = 0;
@@ -623,15 +618,11 @@ JSClass("UIWindowServer", JSObject, {
                     this.updateTooltip();
                 }
             }else{
-                var distance = this.mouseDownLocation.distanceToPoint(this.mouseLocation);
-                if (this._isMouseDragging || distance > 0){
-                    this._isMouseDragging = true;
-                    if (this.isLeftMouseDown){
-                        this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
-                    }
-                    if (this.isRightMouseDown){
-                        this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
-                    }
+                if (this.isLeftMouseDown){
+                    this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
+                }
+                if (this.isRightMouseDown){
+                    this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
                 }
             }
         }
