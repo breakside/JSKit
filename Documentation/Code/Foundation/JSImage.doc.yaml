@@ -128,6 +128,10 @@ topics:
             type: JSData
             summary: The data that specifies the image
           -
+            name: size
+            type: JSSize
+            summary: The size of the image in pixels
+          -
             name: scale
             type: Number
             default: "1"

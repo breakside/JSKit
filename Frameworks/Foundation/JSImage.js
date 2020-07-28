@@ -43,8 +43,8 @@ JSClass('JSImage', JSObject, {
         return _JSResourceImage.initWithResourceMetadata(metadata, bundle);
     },
 
-    initWithData: function(data, scale){
-        return _JSDataImage.initWithData(data, scale);
+    initWithData: function(data, size, scale){
+        return _JSDataImage.initWithData(data, size, scale);
     },
 
     initWithURL: function(url, size, scale){
@@ -245,12 +245,11 @@ JSClass("_JSDataImage", JSImage, {
 
     data: null,
 
-    initWithData: function(data, scale){
+    initWithData: function(data, size, scale){
         if (data === null){
             return null;
         }
         this.data = data;
-        var size = JSSize.Zero;
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
     },
 

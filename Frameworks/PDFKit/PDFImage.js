@@ -350,8 +350,7 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
         value: function PDFImage_load(completion, target){
             this._getImageData(function(data){
                 if (data !== null){
-                    this.foundationImage = JSImage.initWithData(data);
-                    this.foundationImage._size = JSSize(this.Width, this.Height);
+                    this.foundationImage = JSImage.initWithData(data, JSSize(this.Width, this.Height));
                 }
                 completion.call(target, null);
             }, this);
