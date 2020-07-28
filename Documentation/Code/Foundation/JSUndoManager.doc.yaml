@@ -91,11 +91,11 @@ topics:
         arguments:
           -
             name: target
-            kind: object
+            type: object
             summary: The object to use as `this` when invoking `action`
           -
             name: action
-            kind: function
+            type: function
             summary: The function to call when and `undo()` or `redo()` is invoked
               for this item
           -

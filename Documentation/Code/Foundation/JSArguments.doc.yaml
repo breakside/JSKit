@@ -49,7 +49,7 @@ topics:
         arguments:
           -
             name: options
-            kind: dictionary
+            type: dictionary
             summary: A map of `String:``Option` where the keys are argument
               names and the values are option definitions
         description: |

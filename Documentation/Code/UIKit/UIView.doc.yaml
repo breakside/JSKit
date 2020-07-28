@@ -1199,12 +1199,12 @@ topics:
         arguments:
           -
             name: items
-            kind: UIDragItem[]
+            type: UIDragItem[]
             summary: The items to add to a `UIPasteboard` for the dragging
               session
           -
             name: event
-            kind: UIEvent
+            type: UIEvent
             summary: The event that started the dragging
         description: |
           Typically called by a view when handling a `mouseDragged` event.

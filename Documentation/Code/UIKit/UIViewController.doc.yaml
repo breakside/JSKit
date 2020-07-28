@@ -303,7 +303,7 @@ topics:
         arguments:
           -
             name: parentViewController
-            kind: UIViewController
+            type: UIViewController
             summary: The new parent
         description: |
           Gives this view controller a chance to make any adjustments
@@ -316,7 +316,7 @@ topics:
         arguments:
           -
             name: parentViewController
-            kind: UIViewController
+            type: UIViewController
             summary: The new parent
         description: |
           Gives this view controller a chance to make any adjustments

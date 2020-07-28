@@ -175,7 +175,7 @@ topics:
                   ````
               -
                 name: ImageStates
-                kind: dictionary
+                type: dictionary
                 summary: A object that specifies images for multiple button states
                 description: |
                   All states are optional.
