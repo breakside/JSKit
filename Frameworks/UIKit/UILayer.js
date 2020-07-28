@@ -681,7 +681,7 @@ JSClass("UILayer", JSObject, {
                 if (!sublayer.hidden){
                     context.save();
                     transform = sublayer._presentationTransformFromSuperlayer();
-                    context.concatCTM(transform);
+                    context.concatenate(transform);
                     sublayer.renderInContext(context);
                     context.restore();
                 }
@@ -822,6 +822,8 @@ JSContext.definePropertiesFromExtensions({
         // Custom Drawing
         this.save();
         if (layer._clipsToBounds){
+            this.beginPath();
+            this.addRect(layer.bounds);
             this.clip();
         }
         layer._drawInContext(this);
