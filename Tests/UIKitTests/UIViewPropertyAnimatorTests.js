@@ -45,9 +45,11 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
         animator.addAnimations(function(){
             view.position = JSPoint(100, 0);
             animationsRun = true;
+            TKAssertUndefined(this);
         });
         animator.addCompletion(function(){
             animationsComplete = true;
+            TKAssertUndefined(this);
         });
         TKAssert(!animationsRun);
         TKAssert(!animationsComplete);
@@ -460,5 +462,49 @@ JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
         TKAssertFloatEquals(view.layer.presentation.position.x, 100);
         TKAssert(animationsComplete);
     },
+
+    testBlockTarget: function(){
+        var window = UIRootWindow.init();
+        window.contentView = UIView.init();
+        var view = UIView.init();
+        view.position = JSPoint(0, 0);
+        window.contentView.addSubview(view);
+        window.makeKeyAndOrderFront();
+
+        var animator = UIViewPropertyAnimator.initWithDuration(0.25);
+        var animationsRun = false;
+        var animationsComplete = false;
+        var target = {};
+        animator.addAnimations(function(){
+            view.position = JSPoint(100, 0);
+            animationsRun = true;
+            TKAssertExactEquals(this, target);
+        }, target);
+        animator.addCompletion(function(){
+            animationsComplete = true;
+            TKAssertExactEquals(this, target);
+        }, target);
+        TKAssert(!animationsRun);
+        TKAssert(!animationsComplete);
+        animator.start();
+        TKAssert(animationsRun);
+        this.windowServer.displayServer.updateDisplay(1);
+        TKAssertFloatEquals(view.position.x, 100);
+        TKAssertFloatEquals(view.layer.presentation.position.x, 0);
+        TKAssert(!animationsComplete);
+        this.windowServer.displayServer.updateDisplay(1.1);
+        TKAssertFloatEquals(view.position.x, 100);
+        TKAssertFloatEquals(view.layer.presentation.position.x, 40);
+        TKAssert(!animationsComplete);
+        this.windowServer.displayServer.updateDisplay(1.2);
+        TKAssertFloatEquals(view.position.x, 100);
+        TKAssertFloatEquals(view.layer.presentation.position.x, 80);
+        TKAssert(!animationsComplete);
+        this.windowServer.displayServer.updateDisplay(1.25);
+        TKAssertFloatEquals(view.position.x, 100);
+        TKAssertFloatEquals(view.layer.presentation.position.x, 100);
+        TKAssertExactEquals(view.layer.animationCount, 0);
+        TKAssert(animationsComplete);
+    }
 
 });

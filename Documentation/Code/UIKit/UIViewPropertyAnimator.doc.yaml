@@ -69,6 +69,11 @@ topics:
             name: animations
             type: function
             summary: A function that moves views to their final states
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `animations`()
         description: |
           The provided function will be called in a `UIAnimationTransaction`
           when `start()` is called.
@@ -96,6 +101,11 @@ topics:
             name: completion
             type: function
             summary: A function that will be called at the end of the animation
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
         description: |
           The provided function will be called after the animation completes.
 

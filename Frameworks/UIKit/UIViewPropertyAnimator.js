@@ -49,24 +49,26 @@ JSClass("UIViewPropertyAnimator", JSObject, {
         this._transaction.percentComplete = percentComplete;
     },
 
-    addAnimations: function(animations){
+    addAnimations: function(animations, target){
         if (this._transaction !== null){
             throw new Error("Cannot add animations after animator has started");
         }
-        this.animationBlocks.push(animations);
+        this.animationBlocks.push({animations: animations, target: target});
     },
 
-    addCompletion: function(completion){
+    addCompletion: function(completion, target){
         if (this._transaction !== null){
             throw new Error("Cannot add completion block after animator has started");
         }
-        this.completionBlocks.push(completion);
+        this.completionBlocks.push({completion: completion, target: target});
     },
 
     _completeAnimations: function(){
         this._transaction = null;
+        var block;
         for (var i = 0, l = this.completionBlocks.length; i < l; ++i){
-            this.completionBlocks[i]();
+            block = this.completionBlocks[i];
+            block.completion.call(block.target);
         }
     },
 
@@ -79,8 +81,10 @@ JSClass("UIViewPropertyAnimator", JSObject, {
         transaction.duration = this._duration;
         transaction.timingFunction = this._timingFunction;
         transaction.completionFunction = this._completeAnimationsBound;
+        var block;
         for (var i = 0, l = this.animationBlocks.length; i < l; ++i){
-            this.animationBlocks[i]();
+            block = this.animationBlocks[i];
+            block.animations.call(block.target);
         }
         this._transaction = transaction;
         UIAnimationTransaction.commit();
