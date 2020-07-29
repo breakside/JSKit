@@ -391,6 +391,8 @@ topics:
                     or suffix for specifying a value transformer (see [Binding & Observing](Binding)).
                   * `transformer`: An optional `object` representing a value transformer instance,
                     if the transformer cannot be specified via the shorthand syntax in `value`
+                  * `nullPlaceholder`: An optional `object` representing a fallback value to use when the
+                    observed value is `null`
 
                   An example binding could be:
 
@@ -523,6 +525,7 @@ topics:
               * `valueTransformer` - A simple `object` that contains a
                 `transformedValue()` method.  Several standard options
                 exist such as `JSIsNullValueTransformer` or `JSIsNotEmptyValueTransformer`
+              * `nullPlaceholder` - A fallback value to use when the observed value is `null`
       -
         name: unbind
         kind: method

@@ -256,6 +256,9 @@ JSClass("JSSpec", JSObject, {
         if (descriptor.containsKey('transformer')){
             options.valueTransformer = descriptor.valueForKey('transformer');
         }
+        if (descriptor.containsKey("nullPlaceholder")){
+            options.nullPlaceholder = descriptor.valueForKey("nullPlaceholder");
+        }
         var to = descriptor.valueForKey('to');
         var keyPath = descriptor.valueForKey('value');
         obj.bind(binding, to, keyPath, options);
