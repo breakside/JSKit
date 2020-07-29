@@ -14,11 +14,13 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "IKBitmap.js"
 'use strict';
 
 JSClass("IKBitmapContext", JSContext, {
 
     initWithPixelSize: function(size){
+        IKBitmap.$super.init.call(this);
         this.size = JSSize(Math.ceil(size.width), Math.ceil(size.height));
     },
 
@@ -27,7 +29,11 @@ JSClass("IKBitmapContext", JSContext, {
     bitmap: function(){
     },
 
-    image: function(){
-    }
+    image: function(scale){
+        var bitmap = this.bitmap();
+        var png = bitmap.encodedData(IKBitmap.Format.png);
+        var image = JSImage.initWithData(png, this.size, scale);
+        return image;
+    },
 
 });

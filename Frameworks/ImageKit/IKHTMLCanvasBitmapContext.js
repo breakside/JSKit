@@ -23,8 +23,6 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
 
     canvasElement: null,
     canvasContext: null,
-    state: null,
-    stack: null,
 
     // ----------------------------------------------------------------------
     // MARK: - Creating a Context
@@ -35,8 +33,6 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         this.canvasElement.width = this.size.width;
         this.canvasElement.height = this.size.height;
         this.canvasContext = this.canvasElement.getContext('2d');
-        this.stack = [];
-        this.state = Object.create(StatePrototype);
     },
 
     bitmap: function(){
@@ -55,56 +51,53 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // ----------------------------------------------------------------------
     // MARK: - Constructing Paths
 
-    _currentPath: null,
-
     /// Starts a new path, discarding any previous path
     beginPath: function(){
         this.canvasContext.beginPath();
-        this._currentPath = [];
-    },
-
-    _discardPath: function(){
-        this._currentPath = null;
     },
 
     moveToPoint: function(x, y){
         this.canvasContext.moveTo(x, y);
-        this._currentPath.push({method: this.canvasContext.moveTo, arguments: [x, y]});
     },
 
     addLineToPoint: function(x, y){
         this.canvasContext.lineTo(x, y);
-        this._currentPath.push({method: this.canvasContext.lineTo, arguments: [x, y]});
     },
 
     addRect: function(rect){
         this.canvasContext.rect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-        this._currentPath.push({method: this.canvasContext.rect, arguments: [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height]});
+    },
+
+    addRoundedRect: function(rect, cornerRadius){
+        var path = JSPath.init();
+        path.addRoundedRect(rect, cornerRadius);
+        this.addPath(path);
     },
 
     addArc: function(center, radius, startAngle, endAngle, clockwise){
         this.canvasContext.arc(center.x, center.y, radius, startAngle, endAngle, !clockwise);
-        this._currentPath.push({method: this.canvasContext.arc, arguments: [center.x, center.y, radius, startAngle, endAngle, !clockwise]});
     },
 
     addArcUsingTangents: function(tangent1End, tangent2End, radius){
         this.canvasContext.arcTo(tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius);
-        this._currentPath.push({method: this.canvasContext.arcTo, arguments: [tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius]});
     },
 
     addCurveToPoint: function(point, control1, control2){
         this.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
-        this._currentPath.push({method: this.canvasContext.bezierCurveTo, arguments: [control1.x, control1.y, control2.x, control2.y, point.x, point.y]});
     },
 
     addQuadraticCurveToPoint: function(point, control){
         this.canvasContext.quadraticCurveTo(control.x, control.y, point.x, point.y);
-        this._currentPath.push({method: this.canvasContext.quadraticCurveTo, arguments: [control.x, control.y, point.x, point.y]});
+    },
+
+    addEllipseInRect: function(rect){
+        var path = JSPath.init();
+        path.addEllipseInRect(rect);
+        this.addPath(path);
     },
 
     closePath: function(){
         this.canvasContext.closePath();
-        this._currentPath.push({method: this.canvasContext.closePath, arguments: []});
     },
 
     // ----------------------------------------------------------------------
@@ -130,20 +123,6 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                 this.canvasContext.stroke();
                 break;
         }
-        this.beginPath();
-    },
-
-    fillPath: function(fillRule){
-        if (fillRule == JSContext.FillRule.evenOdd){
-            this.canvasContext.fill('evenodd');
-        }else{
-            this.canvasContext.fill();
-        }
-        this.beginPath();
-    },
-
-    strokePath: function(){
-        this.canvasContext.stroke();
         this.beginPath();
     },
 
@@ -234,21 +213,9 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    setTextMatrix: function(textMatrix){
-        this.state.textMatrix = JSAffineTransform(textMatrix);
-    },
-
-    setCharacterSpacing: function(spacing){
-        this.state.characterSpacing = spacing;
-    },
-
     setFont: function(font){
-        this.state.font = font;
+        IKHTMLCanvasBitmapContext.$super.setFont.call(this, font);
         this.canvasContext.font = font ? font.cssString() : "";
-    },
-
-    setTextDrawingMode: function(textDrawingMode){
-        this.state.textDrawingMode = textDrawingMode;
     },
 
     showGlyphs: function(glyphs){
@@ -422,25 +389,15 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // MARK: - Graphics State
 
     save: function(){
+        IKHTMLCanvasBitmapContext.$super.save.call(this);
         this.canvasContext.save();
-        this.stack.push(this.state);
-        this.state = Object.create(this.state);
     },
 
     restore: function(){
+        IKHTMLCanvasBitmapContext.$super.restore.call(this);
         this.canvasContext.restore();
-        if (this.stack.length > 0){
-            this.state = this.stack.pop();
-        }
     },
 
 });
-
-var StatePrototype = {
-    font: null,
-    textMatrix: JSAffineTransform.Identity,
-    characterSpacing: 0,
-    textDrawingMode: JSContext.TextDrawingMode.fill,
-};
 
 })();

@@ -61,11 +61,6 @@ JSClass("PDFContext", JSContext, {
     initWithStream: function(stream, mediaBox){
         PDFContext.$super.init.call(this);
         this._fontInfo = {};
-        this._stack = [];
-        this._state = {
-            textMatrix: JSAffineTransform.Scaled(1, -1),
-            font: null,
-        };
         this._imageInfo = {};
         if (mediaBox === undefined){
             mediaBox = JSRect(0, 0, this._dpi * this._defaultPageWidthInInches, this._dpi * this._defaultPageHeightInInches);
@@ -257,34 +252,12 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Constructing Paths
 
+    createPath: function(){
+        return PDFContextPath.initWritingToPDFContext(this);
+    },
+
     beginPath: function(){
         PDFContext.$super.beginPath.call(this);
-        this._writeStreamData("n ");
-    },
-
-    moveToPoint: function(x, y){
-        PDFContext.$super.moveToPoint.call(this, x, y);
-        this._writeStreamData("%n %n m ", x, y);
-    },
-
-    addLineToPoint: function(x, y){
-        PDFContext.$super.addLineToPoint.call(this, x, y);
-        this._writeStreamData("%n %n l ", x, y);
-    },
-
-    addRect: function(rect){
-        this._rememberPoint(rect.origin);
-        this._writeStreamData("%n %n %n %n re ", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-    },
-
-    addCurveToPoint: function(point, control1, control2){
-        PDFContext.$super.addCurveToPoint.call(this, point, control1, control2);
-        this._writeStreamData("%n %n %n %n %n %n c ", control1.x, control1.y, control2.x, control2.y, point.x, point.y);
-    },
-
-    closePath: function(){
-        PDFContext.$super.closePath.call(this);
-        this._writeStreamData("h ");
     },
 
     // ----------------------------------------------------------------------
@@ -308,21 +281,7 @@ JSClass("PDFContext", JSContext, {
                 this._writeStreamData("B* ");
                 break;
         }
-        this._discardPath();
-    },
-
-    fillPath: function(fillRule){
-        if (fillRule == JSContext.FillRule.evenOdd){
-            this._writeStreamData("f* ");
-        }else{
-            this._writeStreamData("f ");
-        }
-        this._discardPath();
-    },
-
-    strokePath: function(){
-        this._writeStreamData("S ");
-        this._discardPath();
+        this.beginPath();
     },
 
     // ----------------------------------------------------------------------
@@ -374,36 +333,23 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    setTextMatrix: function(tm){
-        this._state.textMatrix = tm;
-    },
-
-    setFont: function(font){
-        this._state.font = font;
-    },
-
     setTextDrawingMode: function(textDrawingMode){
         this._writeStreamData("%n Tr ", textDrawingMode);
     },
 
     showGlyphs: function(glyphs){
         // TODO: if any glyphs are bitmaps (like in emoji fonts), might need to draw them as images
-        var chars = this._state.font.charactersForGlyphs(glyphs);
-        var info = this._infoForFont(this._state.font);
+        var chars = this.state.font.charactersForGlyphs(glyphs);
+        var info = this._infoForFont(this.state.font);
         var encoded = this._encodedString(chars, info);
-        var tm = this._state.textMatrix;
+        var tm = this.state.textMatrix;
         info.useGlyphs(glyphs);
         info.hasMacEncoding = info.hasMacEncoding || encoded.isMacEncoding;
         info.hasUTF16Encoding = info.hasUTF16Encoding || !encoded.isMacEncoding;
-        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this._state.font.pointSize);
+        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this.state.font.pointSize);
         this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
         this._writeStreamData("%S Tj ", encoded.string);
         this._writeStreamData("ET ");
-    },
-
-    showText: function(text){
-        var glyphs = this._state.font.glyphsForString(text);
-        this.showGlyphs(glyphs);
     },
 
     _encodedString: function(chars, info){
@@ -432,20 +378,24 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Fill, Stroke, Shadow Colors
 
     setAlpha: function(alpha){
+        PDFContext.$super.setAlpha.call(this, alpha);
         // TODO: adjust state parameter dictionary with alpha
     },
 
     setFillColor: function(fillColor){
+        PDFContext.$super.setFillColor.call(this, fillColor);
         this._writeStreamData(fillColor.pdfFillColorCommand());
         // TODO: adjust state parameter dictionary with alpha
     },
 
     setStrokeColor: function(strokeColor){
+        PDFContext.$super.setStrokeColor.call(this, strokeColor);
         this._writeStreamData(strokeColor.pdfStrokeColorCommand());
         // TODO: adjust state parameter dictionary with alpha
     },
 
     setShadow: function(offset, blur, color){
+        PDFContext.$super.setShadow.call(this, offset, blur, color);
         // Doesn't seem to be a supported operation in PDF
     },
 
@@ -464,6 +414,7 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Transformations
 
     concatenate: function(tm){
+        PDFContext.$super.concatenate.call(this, tm);
         this._writeStreamData("%n %n %n %n %n %n cm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
     },
 
@@ -471,10 +422,12 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Drawing Options
 
     setLineWidth: function(lineWidth){
+        PDFContext.$super.setLineWidth.call(this, lineWidth);
         this._writeStreamData("%s w ".sprintf(lineWidth));
     },
 
     setLineCap: function(lineCap){
+        PDFContext.$super.setLineCap.call(this, lineCap);
         switch (lineCap){
             case JSContext.LineCap.butt:
                 this._writeStreamData("0 J ");
@@ -489,6 +442,7 @@ JSClass("PDFContext", JSContext, {
     },
 
     setLineJoin: function(lineJoin){
+        PDFContext.$super.setLineJoin.call(this, lineJoin);
         switch (lineJoin){
             case JSContext.LineJoin.miter:
                 this._writeStreamData("0 j ");
@@ -503,10 +457,12 @@ JSClass("PDFContext", JSContext, {
     },
 
     setMiterLimit: function(miterLimit){
+        PDFContext.$super.setMiterLimit.call(this, miterLimit);
         this._writeStreamData("%n M ", miterLimit);
     },
 
     setLineDash: function(phase, lengths){
+        PDFContext.$super.setLineDash.call(this, phase, lengths);
         var lengthsStr = "";
         for (var i = 0, l = lengths.length; i < l; ++i){
             lengthsStr += this._writer.format("%n ", lengths[i]);
@@ -518,15 +474,13 @@ JSClass("PDFContext", JSContext, {
     // MARK: - Graphics State
 
     save: function(){
+        PDFContext.$super.save.call(this);
         this._writeStreamData("q ");
-        this._stack.push(this._state);
     },
 
     restore: function(){
+        PDFContext.$super.restore.call(this);
         this._writeStreamData("Q ");
-        if (this._stack.length > 0){
-            this._state = this._stack.pop();
-        }
     },
 
     // ----------------------------------------------------------------------
@@ -678,5 +632,35 @@ PDFJob.prototype = {
         this.queue._jobDidError();
     }
 };
+
+JSClass("PDFContextPath", JSPath, {
+
+    initWritingToPDFContext: function(context){
+        PDFContextPath.$super.init.call(this);
+        this.context = context;
+        this.context._writeStreamData("n ");
+    },
+
+    moveToPoint: function(point, transform){
+        PDFContextPath.$super.moveToPoint.call(this, point, transform);
+        this.context._writeStreamData("%n %n m ", point.x, point.y);
+    },
+
+    addLineToPoint: function(point, transform){
+        PDFContextPath.$super.addLineToPoint.call(this, point, transform);
+        this.context._writeStreamData("%n %n l ", point.x, point.y);
+    },
+
+    addCurveToPoint: function(point, control1, control2, transform){
+        PDFContextPath.$super.addCurveToPoint.call(this, point, control1, control2, transform);
+        this.context._writeStreamData("%n %n %n %n %n %n c ", control1.x, control1.y, control2.x, control2.y, point.x, point.y);
+    },
+
+    closeSubpath: function(){
+        PDFContextPath.$super.closeSubpath.call(this);
+        this.context._writeStreamData("h ");
+    }
+
+});
 
 })();
