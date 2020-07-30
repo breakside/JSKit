@@ -100,7 +100,7 @@ JSCubicBezier.prototype = {
     },
 
     boundingPoints: function(){
-        var points = [this.cp1, this.cp2];
+        var points = [this.p1, this.p2];
         // find other bounding points by solving where the derivative of our cubic equation equals zero
         // equation for the derivative
         // t^2 * (-3 * p1 + 9 * c1 - 9 * c2 + 3 * p2) + t * (6 * p1 - 12 * c1 + 6 * c2) + (-3 * p1 + 3 * c1);
