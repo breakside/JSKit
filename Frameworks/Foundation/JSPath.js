@@ -37,7 +37,21 @@ JSClass("JSPath", JSObject, {
             copy.currentSubpath = copy.subpaths[copy.subpaths.length - 1];
         }
         copy.currentPoint = JSPoint(this.currentPoint);
+        copy.empty = this.empty;
         return copy;
+    },
+
+    empty: JSReadOnlyProperty(undefined, undefined, 'isEmpty'),
+
+    isEmpty: function(){
+        var subpath;
+        for (var i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath = this.subpaths[i];
+            if (subpath.segments.length > 0 || subpath.closed){
+                return false;
+            }
+        }
+        return true;
     },
 
     subpaths: null,
@@ -378,6 +392,7 @@ JSClass("JSPath", JSObject, {
 
     closeSubpath: function(){
         if (this.currentSubpath !== null){
+            this.currentPoint = this.currentSubpath.firstPoint;
             this.currentSubpath.closed = true;
             this.currentSubpath = null;
         }
@@ -526,13 +541,13 @@ JSClass("JSPath", JSObject, {
     },
 
     _calculateBoundingRect: function(){
-        var boundingRect = null;
+        var min = null;
+        var max = null;
         var includePoint = function(point){
-            if (boundingRect === null){
-                boundingRect = JSRect(point, JSSize.Zero);
+            if (min === null){
+                min = JSPoint(point);
+                max = JSPoint(point);
             }else{
-                var min = JSPoint(boundingRect.origin);
-                var max = boundingRect.origin.adding(JSPoint(boundingRect.size.width, boundingRect.size.height));
                 if (point.x < min.x){
                     min.x = point.x;
                 }
@@ -545,7 +560,6 @@ JSClass("JSPath", JSObject, {
                 if (point.y > max.y){
                     max.y = point.y;
                 }
-                boundingRect = JSRect(min, JSSize(max.x - min.x, max.y - min.y));
             }
         };
         var i, l;
@@ -555,9 +569,9 @@ JSClass("JSPath", JSObject, {
         var segment;
         for (i = 0, l = this.subpaths.length; i < l; ++i){
             subpath = this.subpaths[i];
+            includePoint(subpath.firstPoint);
             for (j = 0, k = subpath.segments.length; j < k; ++j){
-                segment = subpath.segments[i];
-                includePoint(segment.firstPoint);
+                segment = subpath.segments[j];
                 if (segment.type == JSPath.SegmentType.line){
                     includePoint(segment.end);
                 }else if (segment.type == JSPath.SegmentType.curve){
@@ -568,7 +582,10 @@ JSClass("JSPath", JSObject, {
                 }
             }
         }
-        return boundingRect;
+        if (min === null){
+            return null;
+        }
+        return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
     }
 
 });
