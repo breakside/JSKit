@@ -54,6 +54,9 @@ JSClass("JSURL", JSObject, {
     _hasAuthority: false,
 
     initWithString: function(str, baseURL){
+        if (str === undefined || str === null){
+            return null;
+        }
         var data = str.utf8();
         var url = this.initWithData(data);
         if (url === null){
@@ -77,6 +80,9 @@ JSClass("JSURL", JSObject, {
     },
 
     initWithData: function(data){
+        if (data === undefined || data === null){
+            return null;
+        }
         var parser = JSURLParser(this);
         try{
             parser.parse(data);

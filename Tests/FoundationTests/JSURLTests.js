@@ -23,6 +23,14 @@ JSClass('JSURLTests', TKTestSuite, {
         var urlString = "http://google.com";
         var url = JSURL.initWithString(urlString);
         TKAssertNotNull(url);
+
+        urlString = null;
+        url = JSURL.initWithString(urlString);
+        TKAssertNull(url);
+
+        urlString = undefined;
+        url = JSURL.initWithString(urlString);
+        TKAssertNull(url);
     },
 
     testNonASCIIStringConstructor: function(){
@@ -35,6 +43,14 @@ JSClass('JSURLTests', TKTestSuite, {
         var urlString = "http://google.com";
         var url = JSURL.initWithData(urlString.utf8());
         TKAssertNotNull(url);
+
+        var data = null;
+        url = JSURL.initWithString(data);
+        TKAssertNull(url);
+
+        data = undefined;
+        url = JSURL.initWithString(data);
+        TKAssertNull(url);
     },
 
     testNonASCIIDataConstructor: function(){

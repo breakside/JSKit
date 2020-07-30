@@ -588,6 +588,31 @@ JSClass("JSObjectTests", TKTestSuite, {
         });
     },
 
+    testBindNullPlaceholder: function(){
+        var A = JSObject.$extend({
+            name: null,
+            count: 0
+        }, "A");
+
+        var B = JSObject.$extend({
+            value: null
+        }, "B");
+
+        var a = A.init();
+        var b = B.init();
+        b.bind('value', a, 'name', {nullPlaceholder: "the value is null"});
+        TKAssertExactEquals(b.value, "the value is null");
+        a.name = "test1";
+        TKAssertExactEquals(b.value, "test1");
+
+        b.value = "test2";
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test1");
+        b.didChangeValueForBinding("value");
+        TKAssertExactEquals(b.value, "test2");
+        TKAssertExactEquals(a.name, "test2");
+    },
+
     _testReadOnlyBind: function(){
     },
 

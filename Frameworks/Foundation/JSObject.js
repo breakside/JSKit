@@ -314,6 +314,11 @@ JSObject.definePropertiesFromExtensions({
         if (bindingInfo.options.valueTransformer){
             value = bindingInfo.options.valueTransformer.transformValue(value);
         }
+        if (value === null){
+            if (bindingInfo.options && bindingInfo.options.nullPlaceholder){
+                value = bindingInfo.options.nullPlaceholder;
+            }
+        }
         if (bindingInfo.isBoolean){
             var nextValue;
             while (value === true && bindingInfo.next !== null){
