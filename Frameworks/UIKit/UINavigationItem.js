@@ -50,7 +50,7 @@ JSClass("UINavigationItem", JSObject, {
                 this._rightBarItems.push(rightItems.valueForKey(i, UINavigationBarItem));
             }
         }
-        var leftItems = spec.valueForKey("rightBarItems");
+        var leftItems = spec.valueForKey("leftBarItems");
         if (leftItems !== null){
             for (i = 0, l = leftItems.length; i < l; ++i){
                 this._leftBarItems.push(leftItems.valueForKey(i, UINavigationBarItem));

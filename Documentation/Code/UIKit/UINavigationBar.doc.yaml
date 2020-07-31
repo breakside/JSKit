@@ -220,6 +220,12 @@ topics:
                         name: disabledItemColor
                         type: JSColor
                         summary: The color of the bar's items when disabled
+                      -
+                        introduced: 2020.30.3
+                        name: itemTitleInsets
+                        type: JSInsets
+                        summary: The title insets for buttons that are created
+                          for bar items
                   -
                     name: Back Button
                     members:
@@ -227,6 +233,23 @@ topics:
                         name: backButtonImage
                         type: JSImage
                         summary: The image to use on the bar's back button
+                      -
+                        introduced: 2020.30.3
+                        name: backButtonColor
+                        type: JSColor
+                        summary: The color of the bar's back button
+                      -
+                        introduced: 2020.30.3
+                        name: backButtonActiveColor
+                        type: JSColor
+                        summary: The color of the bar's items when
+                          active/pressed
+                      -
+                        introduced: 2020.30.3
+                        name: backButtonTitleInsets
+                        type: JSInsets
+                        summary: The title insets for buttons that are created
+                          for bar items
           -
             name: Background
             members:

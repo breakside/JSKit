@@ -305,7 +305,12 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     activeItemColor: null,
     disabledItemColor: null,
     itemInsets: null,
+    itemTitleInsets: null,
+    backButtonTitleInsets: null,
     backButtonImage: null,
+    backButtonColor: null,
+    backButtonActiveColor: null,
+    _backButtonStyler: null,
     _buttonStyler: null,
 
     init: function(){
@@ -345,6 +350,12 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (spec.containsKey("disabledItemColor")){
             this.disabledItemColor = spec.valueForKey("disabledItemColor", JSColor);
         }
+        if (spec.containsKey("backButtonColor")){
+            this.backButtonColor = spec.valueForKey("backButtonColor", JSColor);
+        }
+        if (spec.containsKey("backButtonActiveColor")){
+            this.backButtonActiveColor = spec.valueForKey("backButtonActiveColor", JSColor);
+        }
         if (spec.containsKey("backButtonImage")){
             this.backButtonImage = spec.valueForKey("backButtonImage", JSImage);
         }
@@ -352,6 +363,12 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             this.itemInsets = spec.valueForKey("itemInsets", JSInsets);
         }else{
             this.itemInsets = JSInsets.Zero;
+        }
+        if (spec.containsKey("itemTitleInsets")){
+            this.itemTitleInsets = spec.valueForKey("itemTitleInsets", JSInsets);
+        }
+        if (spec.containsKey("backButtonTitleInsets")){
+            this.backButtonTitleInsets = spec.valueForKey("backButtonTitleInsets", JSInsets);
         }
         this._fillInDefaultStyles();
     },
@@ -372,12 +389,38 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (this.backButtonImage === null){
             this.backButtonImage = images.back;
         }
+
+        if (this.backButtonColor === null){
+            this.backButtonColor = this.itemColor;
+            if (this.backButtonActiveColor === null){
+                this.backButtonActiveColor = this.activeItemColor;
+            }
+        }
+
+        if (this.backButtonActiveColor === null){
+            this.backButtonActiveColor = this.backButtonColor.colorWithAlpha(0.6);
+        }
+
+        if (this.itemTitleInsets === null){
+            this.itemTitleInsets = JSInsets(10);
+        }
+
+        if (this.backButtonTitleInsets === null){
+            this.backButtonTitleInsets = JSInsets(this.itemTitleInsets);
+        }
+
+        this._backButtonStyler = UIButtonCustomStyler.init();
+        this._backButtonStyler.font = this.itemFont;
+        this._backButtonStyler.normalTitleColor = this.backButtonColor;
+        this._backButtonStyler.activeTitleColor = this.backButtonActiveColor;
+        this._backButtonStyler.titleInsets = this.backButtonTitleInsets;
+
         this._buttonStyler = UIButtonCustomStyler.init();
         this._buttonStyler.font = this.itemFont;
         this._buttonStyler.normalTitleColor = this.itemColor;
         this._buttonStyler.activeTitleColor = this.activeItemColor;
         this._buttonStyler.disabledTitleColor = this.disabledItemColor;
-        this._buttonStyler.titleInsets = JSInsets(10);
+        this._buttonStyler.titleInsets = this.itemTitleInsets;
     },
 
     initializeBar: function(navigationBar){
@@ -406,7 +449,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     },
 
     createBackButton: function(navigationBar){
-        var button = UIButton.initWithStyler(this._buttonStyler);
+        var button = UIButton.initWithStyler(this._backButtonStyler);
         button.addAction("_popNavigation", navigationBar);
         return button;
     },
@@ -623,13 +666,13 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             var barItemView;
             for (i = 0, l = item.leftBarItems.length; i < l; ++i){
                 barItem = item.leftBarItems[i];
-                barItemView = this.viewForBarItem(item);
+                barItemView = this.viewForBarItem(barItem);
                 props.leftBarItemViews.push(barItemView);
                 navigationBar.insertSubviewBelowSibling(barItemView, props.titleLabel);
             }
             for (i = 0, l = item.rightBarItems.length; i < l; ++i){
                 barItem = item.rightBarItems[i];
-                barItemView = this.viewForBarItem(item);
+                barItemView = this.viewForBarItem(barItem);
                 props.rightBarItemViews.push(barItemView);
                 navigationBar.insertSubviewBelowSibling(barItemView, props.titleLabel);
             }
@@ -660,17 +703,17 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (!barItemView.hidden){
             xLeft += barItemView.bounds.size.width;
         }
-        for (i = props.leftBarItemViews.length; i < l; ++i){
+        for (i = 0, l = props.leftBarItemViews; i < l; ++i){
             barItemView = props.leftBarItemViews[i];
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
             barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
             xLeft += barItemView.bounds.size.width;
         }
-        for (i = props.rightBarItemViews.length; i < l; ++i){
+        for (i = props.rightBarItemViews.length - 1; i >= 0; --i){
             barItemView = props.rightBarItemViews[i];
-            xRight -= barItemView.bounds.size.width;
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
-            barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
+            xRight -= barItemView.bounds.size.width;
+            barItemView.frame = JSRect(JSPoint(xRight, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
             barItemView.hidden = xRight < xLeft;
         }
 
