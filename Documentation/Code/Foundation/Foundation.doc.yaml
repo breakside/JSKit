@@ -66,6 +66,7 @@ topics:
       #- JSCubicBezier
       - JSGradient
       - JSImage
+      - JSPath
   -
     name: Filesystem
     summary: Files and file system operations

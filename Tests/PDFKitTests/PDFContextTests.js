@@ -142,7 +142,7 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 100 200 300 400 re f Q \n");
+        TKAssertEquals(streams[0], "q n 100 200 m 400 200 l 400 600 l 100 600 l h f n Q \n");
     },
 
     testCircle: function(){
@@ -162,7 +162,7 @@ JSClass("PDFContextTests", TKTestSuite, {
 
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 150 200 m 177.5892 200 200 222.4108 200 250 c 200 277.5892 177.5892 300 150 300 c 122.4108 300 100 277.5892 100 250 c 100 222.4108 122.4108 200 150 200 c h f Q \n");
+        TKAssertEquals(streams[0], "q n 150 200 m 177.5892 200 200 222.4108 200 250 c 200 277.5892 177.5892 300 150 300 c 122.4108 300 100 277.5892 100 250 c 100 222.4108 122.4108 200 150 200 c h f n Q \n");
     },
 
     testRoundedRect: function(){
@@ -183,7 +183,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
 
-        TKAssertEquals(streams[0], "q n 100 220 m 100 208.96432 108.96432 200 120 200 c 180 200 l 191.03568 200 200 208.96432 200 220 c 200 280 l 200 291.03568 191.03568 300 180 300 c 120 300 l 108.96432 300 100 291.03568 100 280 c h f Q \n");
+        TKAssertEquals(streams[0], "q n 100 220 m 100 208.96432 108.96432 200 120 200 c 180 200 l 191.03568 200 200 208.96432 200 220 c 200 280 l 200 291.03568 191.03568 300 180 300 c 120 300 l 108.96432 300 100 291.03568 100 280 c h f n Q \n");
     },
 
     testArc: function(){
@@ -196,6 +196,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         context.beginPage({usePDFCoordinates: true});
         var center = JSPoint(100, 200);
         var radius = 50;
+        context.beginPath();
         context.addArc(center, radius, 0, Math.PI / 4, true);
         context.strokePath();
         context.endPage();
@@ -203,7 +204,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q 150 200 m 150 213.260824492 144.7321579817 225.9785201369 135.3553390593 235.3553390593 c S Q \n");
+        TKAssertEquals(streams[0], "q n 150 200 m 150 213.260824492 144.7321579817 225.9785201369 135.3553390593 235.3553390593 c S n Q \n");
     },
 
     debugArcUsingTangents: function(){
@@ -317,7 +318,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         var streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 50 50 m 50 75 m 50 75 l 50 88.7946 61.2054 100 75 100 c S Q \n");
+        TKAssertEquals(streams[0], "q n 50 50 m 50 75 m 50 75 l 50 88.7946 61.2054 100 75 100 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -332,7 +333,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 50 75 m 57.3223304703 82.3223304703 m 57.3223304703 82.3223304703 l 67.0765856741 92.0765856741 82.9234143259 92.0765856741 92.6776695297 82.3223304703 c S Q \n");
+        TKAssertEquals(streams[0], "q n 50 75 m 57.3223304703 82.3223304703 m 57.3223304703 82.3223304703 l 67.0765856741 92.0765856741 82.9234143259 92.0765856741 92.6776695297 82.3223304703 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -347,7 +348,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 50 100 m 75 100 m 75 100 l 88.7946 100 100 88.7946 100 75 c S Q \n");
+        TKAssertEquals(streams[0], "q n 50 100 m 75 100 m 75 100 l 88.7946 100 100 88.7946 100 75 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -362,7 +363,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 100 100 m 107.3223304703 92.6776695297 m 107.3223304703 92.6776695297 l 117.0765856741 82.9234143259 117.0765856741 67.0765856741 107.3223304703 57.3223304703 c S Q \n");
+        TKAssertEquals(streams[0], "q n 100 100 m 107.3223304703 92.6776695297 m 107.3223304703 92.6776695297 l 117.0765856741 82.9234143259 117.0765856741 67.0765856741 107.3223304703 57.3223304703 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -377,7 +378,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 100 100 m 100 75 m 100 75 l 100 61.2054 88.7946 50 75 50 c S Q \n");
+        TKAssertEquals(streams[0], "q n 100 100 m 100 75 m 100 75 l 100 61.2054 88.7946 50 75 50 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -392,7 +393,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 100 75 m 92.6776695297 67.6776695297 m 92.6776695297 67.6776695297 l 82.9234143259 57.9234143259 67.0765856741 57.9234143259 57.3223304703 67.6776695297 c S Q \n");
+        TKAssertEquals(streams[0], "q n 100 75 m 92.6776695297 67.6776695297 m 92.6776695297 67.6776695297 l 82.9234143259 57.9234143259 67.0765856741 57.9234143259 57.3223304703 67.6776695297 c S n Q \n");
 
         stream = PDFContextTestsStringStream.init();
         context = PDFContext.initWithStream(stream);
@@ -407,7 +408,7 @@ JSClass("PDFContextTests", TKTestSuite, {
         TKAssert(isClosed);
         streams = stream.getStreams();
         TKAssertEquals(streams.length, 1);
-        TKAssertEquals(streams[0], "q n 75 50 m 67.6776695297 57.3223304703 m 67.6776695297 57.3223304703 l 57.9234143259 67.0765856741 57.9234143259 82.9234143259 67.6776695297 92.6776695297 c S Q \n");
+        TKAssertEquals(streams[0], "q n 75 50 m 67.6776695297 57.3223304703 m 67.6776695297 57.3223304703 l 57.9234143259 67.0765856741 57.9234143259 82.9234143259 67.6776695297 92.6776695297 c S n Q \n");
     }
 
 });

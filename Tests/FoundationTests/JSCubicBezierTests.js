@@ -140,6 +140,183 @@ JSClass("JSCubicBezierTests", TKTestSuite, {
         y = curve.yForX(81);
         TKAssertEquals(y.length, 1);
         TKAssertFloatEquals(y[0], 86, 0.01);
+    },
+
+    testBoundingPoints: function(){
+        // Vertical S
+        var p1 = JSPoint(3, 4);
+        var p2 = JSPoint(3, 5);
+        var c1 = JSPoint(3.2, 4.2);
+        var c2 = JSPoint(2.8, 4.8);
+        var curve = JSCubicBezier(p1, c1, c2, p2);
+        var points = curve.boundingPoints();
+        TKAssertEquals(points.length, 4);
+        var rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 2.9422649);
+        TKAssertFloatEquals(rect.origin.y, 4);
+        TKAssertFloatEquals(rect.size.width, 0.1154700);
+        TKAssertFloatEquals(rect.size.height, 1);
+
+        // Horizontal S
+        p1 = JSPoint(4, 3);
+        p2 = JSPoint(5, 3);
+        c1 = JSPoint(4.2, 3.2);
+        c2 = JSPoint(4.8, 2.8);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 4);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 4);
+        TKAssertFloatEquals(rect.origin.y, 2.9422649);
+        TKAssertFloatEquals(rect.size.width, 1);
+        TKAssertFloatEquals(rect.size.height, 0.1154700);
+
+        // Vertical C
+        p1 = JSPoint(3, 4);
+        p2 = JSPoint(3, 5);
+        c1 = JSPoint(2.8, 4.2);
+        c2 = JSPoint(2.8, 4.8);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 3);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 2.85);
+        TKAssertFloatEquals(rect.origin.y, 4);
+        TKAssertFloatEquals(rect.size.width, 0.15);
+        TKAssertFloatEquals(rect.size.height, 1);
+
+        // Horizontal U
+        p1 = JSPoint(4, 3);
+        p2 = JSPoint(5, 3);
+        c1 = JSPoint(4.2, 3.2);
+        c2 = JSPoint(4.8, 3.2);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 3);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 4);
+        TKAssertFloatEquals(rect.origin.y, 3);
+        TKAssertFloatEquals(rect.size.width, 1);
+        TKAssertFloatEquals(rect.size.height, 0.15);
+
+        // Vertical C flipped
+        p1 = JSPoint(3, 4);
+        p2 = JSPoint(3, 5);
+        c1 = JSPoint(3.2, 4.2);
+        c2 = JSPoint(3.2, 4.8);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 3);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 3);
+        TKAssertFloatEquals(rect.origin.y, 4);
+        TKAssertFloatEquals(rect.size.width, 0.15);
+        TKAssertFloatEquals(rect.size.height, 1);
+
+        // Horizontal U Flipped
+        p1 = JSPoint(4, 3);
+        p2 = JSPoint(5, 3);
+        c1 = JSPoint(4.2, 2.8);
+        c2 = JSPoint(4.8, 2.8);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 3);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 4);
+        TKAssertFloatEquals(rect.origin.y, 2.85);
+        TKAssertFloatEquals(rect.size.width, 1);
+        TKAssertFloatEquals(rect.size.height, 0.15);
+
+        // Exactly vertical
+        p1 = JSPoint(3, 4);
+        p2 = JSPoint(3, 5);
+        c1 = JSPoint(3, 4.2);
+        c2 = JSPoint(3, 4.8);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 2);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 3);
+        TKAssertFloatEquals(rect.origin.y, 4);
+        TKAssertFloatEquals(rect.size.width, 0);
+        TKAssertFloatEquals(rect.size.height, 1);
+
+        // Exactly horizontal
+        p1 = JSPoint(4, 3);
+        p2 = JSPoint(5, 3);
+        c1 = JSPoint(4.2, 3);
+        c2 = JSPoint(4.8, 3);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 2);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 4);
+        TKAssertFloatEquals(rect.origin.y, 3);
+        TKAssertFloatEquals(rect.size.width, 1);
+        TKAssertFloatEquals(rect.size.height, 0);
+
+        // Exaggerated C
+        p1 = JSPoint(3, 4);
+        p2 = JSPoint(3, 5);
+        c1 = JSPoint(2.8, 3.8);
+        c2 = JSPoint(2.8, 5.2);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 5);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 2.85);
+        TKAssertFloatEquals(rect.origin.y, 3.980384);
+        TKAssertFloatEquals(rect.size.width, 0.15);
+        TKAssertFloatEquals(rect.size.height, 1.0392304);
+
+        // Exaggerated U
+        p1 = JSPoint(4, 3);
+        p2 = JSPoint(5, 3);
+        c1 = JSPoint(3.8, 3.2);
+        c2 = JSPoint(5.2, 3.2);
+        curve = JSCubicBezier(p1, c1, c2, p2);
+        points = curve.boundingPoints();
+        TKAssertEquals(points.length, 5);
+        rect = this.rectIncludingPoints(points);
+        TKAssertNotNull(rect);
+        TKAssertFloatEquals(rect.origin.x, 3.980384);
+        TKAssertFloatEquals(rect.origin.y, 3);
+        TKAssertFloatEquals(rect.size.width, 1.0392304);
+        TKAssertFloatEquals(rect.size.height, 0.15);
+    },
+
+    rectIncludingPoints: function(points){
+        if (points.length === 0){
+            return null;
+        }
+        var min = JSPoint(points[0]);
+        var max = JSPoint(points[0]);
+        var point;
+        for (var i = 1, l = points.length; i < l; ++i){
+            point = points[i];
+            if (point.x < min.x){
+                min.x = point.x;
+            }
+            if (point.y < min.y){
+                min.y = point.y;
+            }
+            if (point.x > max.x){
+                max.x = point.x;
+            }
+            if (point.y > max.y){
+                max.y = point.y;
+            }
+        }
+        return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
     }
 
 });

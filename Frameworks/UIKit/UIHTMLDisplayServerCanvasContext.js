@@ -60,13 +60,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._canvasElements = [];
         this._externalElements = [];
         this._previousExternalElements = [];
-        this._currentPath = [];
-        this._stack = [];
-        this._state = Object.create(StatePrototype, {
-            clips: {
-                value: []
-            }
-        });
         this.bounds = JSRect.Zero;
     },
 
@@ -78,6 +71,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.style.boxSizing = 'border-box';
         this.style.mozBoxSizing = 'border-box';
         this.style.touchAction = 'none';
+        this.state.clips = [];
     },
 
     // --------------------------------------------------------------------
@@ -410,12 +404,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             //   we need to make sure its state agrees with the state of the
             //   previous canvas
             var i, l;
-            for (i = 0, l = this._stack.length; i < l; ++i){
-                this._canvasContextAdoptState(this._canvasContext, this._stack[i], scale);
+            for (i = 0, l = this.stack.length; i < l; ++i){
+                this._canvasContextAdoptState(this._canvasContext, this.stack[i], scale);
                 this._canvasContext.save();
                 this._canvasContext._restoreCount++;
             }
-            this._canvasContextAdoptState(this._canvasContext, this._state, scale);
+            this._canvasContextAdoptState(this._canvasContext, this.state, scale);
         }
         return this._canvasContext;
     },
@@ -432,8 +426,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         context.lineCap = state.lineCap;
         context.lineJoin = state.lineJoin;
         context.miterLimit = state.miterLimit;
-        context.lineDashOffset = state.lineDash[0];
-        context.setLineDash(state.lineDash[1]);
+        context.lineDashOffset = state.lineDashPhase;
+        context.setLineDash(state.lineDashArray);
         var transform = state.transform.concatenatedWith(JSAffineTransform.Scaled(scale, scale));
         context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
         context.font = state.font ? state.font.cssString() : '';
@@ -540,50 +534,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Constructing Paths
 
-    beginPath: function(){
-        this.canvasContext.beginPath();
-        this._currentPath = [];
-    },
-
-    moveToPoint: function(x, y){
-        this.canvasContext.moveTo(x, y);
-        this._currentPath.push({method: this.canvasContext.moveTo, arguments: [x, y]});
-    },
-
-    addLineToPoint: function(x, y){
-        this.canvasContext.lineTo(x, y);
-        this._currentPath.push({method: this.canvasContext.lineTo, arguments: [x, y]});
-    },
-
-    addRect: function(rect){
-        this.canvasContext.rect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-        this._currentPath.push({method: this.canvasContext.rect, arguments: [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height]});
-    },
-
-    addArc: function(center, radius, startAngle, endAngle, clockwise){
-        this.canvasContext.arc(center.x, center.y, radius, startAngle, endAngle, !clockwise);
-        this._currentPath.push({method: this.canvasContext.arc, arguments: [center.x, center.y, radius, startAngle, endAngle, !clockwise]});
-
-    },
-
-    addArcUsingTangents: function(tangent1End, tangent2End, radius){
-        this.canvasContext.arcTo(tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius);
-        this._currentPath.push({method: this.canvasContext.arcTo, arguments: [tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius]});
-    },
-
-    addCurveToPoint: function(point, control1, control2){
-        this.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
-        this._currentPath.push({method: this.canvasContext.bezierCurveTo, arguments: [control1.x, control1.y, control2.x, control2.y, point.x, point.y]});
-    },
-
-    addQuadraticCurveToPoint: function(point, control){
-        this.canvasContext.quadraticCurveTo(control.x, control.y, point.x, point.y);
-        this._currentPath.push({method: this.canvasContext.quadraticCurveTo, arguments: [control.x, control.y, point.x, point.y]});
-    },
-
-    closePath: function(){
-        this.canvasContext.closePath();
-        this._currentPath.push({method: this.canvasContext.closePath, arguments: []});
+    createPath: function(){
+        return UIHTMLDisplayServerCanvasContextPath.initWritingToContext(this);
     },
 
     // ----------------------------------------------------------------------
@@ -612,20 +564,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.beginPath();
     },
 
-    fillPath: function(fillRule){
-        if (fillRule == JSContext.FillRule.evenOdd){
-            this.canvasContext.fill('evenodd');
-        }else{
-            this.canvasContext.fill();
-        }
-        this.beginPath();
-    },
-
-    strokePath: function(){
-        this.canvasContext.stroke();
-        this.beginPath();
-    },
-
     // ----------------------------------------------------------------------
     // MARK: - Drawing Shapes
 
@@ -648,7 +586,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         imageElement.style.maskSize = '100% 100%';
         imageElement.style.webkitMaskImage = cssURL;
         imageElement.style.webkitMaskSize = '100% 100%';
-        imageElement.style.backgroundColor = this._state.fillColor ? this._state.fillColor.cssString() : '';
+        imageElement.style.backgroundColor = this.state.fillColor ? this.state.fillColor.cssString() : '';
         this._insertChildElement(imageElement);
     },
 
@@ -672,7 +610,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             // Better long term solution is likely to have image data
             // already prepped so we can do sync drawing for all images,
             // regardless of clipping path
-            if (this._state.isClipped){
+            if (this.state.isClipped){
                 var img = this.element.ownerDocument.createElement('img');
                 this._canvasContext = null;
                 var context = this.canvasContext;
@@ -728,7 +666,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     _positionImageElement: function(imageElement, image, rect){
         var boundsTransform = JSAffineTransform.Translated(-this.bounds.origin.x, -this.bounds.origin.y);
-        var transform = this._state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
+        var transform = this.state.transform.translatedBy(rect.origin.x, rect.origin.y).concatenatedWith(boundsTransform);
         var size = JSSize(image.size);
         if (image.capInsets){
             size.width = rect.size.width;
@@ -758,43 +696,31 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Text
 
     setFont: function(font){
-        this._state.font = font;
+        UIHTMLDisplayServerCanvasContext.$super.setFont.call(this, font);
         if (this._canvasContext){
             this._canvasContext.font = font ? font.cssString() : '';
         }
     },
 
-    setCharacterSpacing: function(spacing){
-        this._state.characterSpacing = spacing;
-    },
-
-    setTextMatrix: function(textMatrix){
-        this._state.textMatrix = textMatrix;
-    },
-
-    setTextDrawingMode: function(textDrawingMode){
-        this._state.textDrawingMode = textDrawingMode;
-    },
-
     showGlyphs: function(glyphs){
-        var tm = this._state.textMatrix;
+        var tm = this.state.textMatrix;
         var width;
         var glyph;
         var text;
-        var font = this._state.font;
+        var font = this.state.font;
         this.save();
         this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
         this.concatenate(tm);
         for (var i = 0, l = glyphs.length; i < l; ++i){
             glyph = glyphs[i];
             text = font.stringForGlyphs([glyph]);
-            if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.fillText(text, 0, 0);
             }
-            if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.strokeText(text, 0, 0);
             }
-            width = font.widthOfGlyph(glyph) + this._state.characterSpacing;
+            width = font.widthOfGlyph(glyph) + this.state.characterSpacing;
             this.translateBy(width, 0);
         }
         this.restore();
@@ -807,14 +733,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // glyph.
         //
         // Disabled until we have the font cmap stuff working correctly for pdf fonts
-        if (this._state.characterSpacing !== 0){
+        if (this.state.characterSpacing !== 0){
             this._showSpacedText(text);
             return;
         }
 
         // If character spacing is zero, then it's far more effient to just paint
         // the text we were given all at once.
-        var tm = this._state.textMatrix;
+        var tm = this.state.textMatrix;
         var nonIdentityMatrix = !tm.isIdentity;
         if  (nonIdentityMatrix){
             // Canvas2D doens't have a concept of a text transform, so we'll just
@@ -824,16 +750,16 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
             this.concatenate(tm);
         }
-        if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
             this.canvasContext.fillText(text, 0, 0);
         }
-        if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
             this.canvasContext.strokeText(text, 0, 0);
         }
         // Debugging
         // this.canvasContext.save();
         // this.setFillColor(JSColor.initWithRGBA(1,0,0,0.4));
-        // this.fillRect(JSRect(0, -this._state.font.ascender, this._state.font.lineHeight, this._state.font.lineHeight));
+        // this.fillRect(JSRect(0, -this.state.font.ascender, this.state.font.lineHeight, this.state.font.lineHeight));
         // this.canvasContext.restore();
         if (nonIdentityMatrix){
             this.restore();
@@ -841,21 +767,21 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     _showSpacedText: function(text){
-        var tm = this._state.textMatrix;
+        var tm = this.state.textMatrix;
         var width;
-        var font = this._state.font;
+        var font = this.state.font;
         this.save();
         this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
         this.concatenate(tm);
         var iterator = text.unicodeIterator();
         while (iterator.character !== null){
-            if (this._state.textDrawingMode == JSContext.TextDrawingMode.fill || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.fillText(iterator.character.utf16, 0, 0);
             }
-            if (this._state.textDrawingMode == JSContext.TextDrawingMode.stroke || this._state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+            if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.strokeText(iterator.character.utf16, 0, 0);
             }
-            width = font.widthOfCharacter(iterator.character) + this._state.characterSpacing;
+            width = font.widthOfCharacter(iterator.character) + this.state.characterSpacing;
             this.translateBy(width, 0);
             iterator.increment();
         }
@@ -865,12 +791,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Fill, Stroke, Shadow Colors
 
-    getAlpha: function(){
-        return this.canvasContext.globalAlpha;
-    },
-
     setAlpha: function(alpha){
-        this._state.alpha = alpha;
+        UIHTMLDisplayServerCanvasContext.$super.setAlpha.call(this, alpha);
         if (this._canvasContext){
              this._canvasContext.globalAlpha = alpha;
         }
@@ -881,7 +803,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
         }
-        this._state.fillColor = fillColor;
     },
 
     setStrokeColor: function(strokeColor){
@@ -889,19 +810,16 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
         }
-        this._state.strokeColor = strokeColor;
     },
 
     setShadow: function(offset, blur, color){
+        UIHTMLDisplayServerCanvasContext.$super.setShadow.call(this, offset, blur, color);
         if (this._canvasContext){
             this._canvasContext.shadowOffsetX = offset.x;
             this._canvasContext.shadowOffsetY = offset.y;
             this._canvasContext.shadowBlur = blur * this.deviceScale;
             this._canvasContext.shadowColor = color ? color.cssString() : '';
         }
-        this._state.shadowOffset = offset;
-        this._state.shadowBlur = blur;
-        this._state.shadowColor = color;
     },
 
     // ----------------------------------------------------------------------
@@ -915,128 +833,158 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.canvasContext.clip();
         }
-        this._state.clips.push({arguments: args, operations: JSCopy(this._currentPath)});
-        this._state.isClipped = true;
-        this.beginPath();
+        if (this.path !== null){
+            this.state.clips.push({arguments: args, operations: this.path.canvasOperations(this.canvasContext, this.state.transform)});
+            this.state.isClipped = true;
+            this.beginPath();
+        }
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Transformations
 
-    scaleBy: function(sx, sy){
-        if (this._canvasContext){
-            this._canvasContext.scale(sx, sy);
-        }
-        this._state.transform = this._state.transform.scaledBy(sx, sy);
-    },
-
-    rotateBy: function(angle){
-        if (this._canvasContext){
-            this._canvasContext.rotate(angle);
-        }
-        this._state.transform = this._state.transform.rotatedBy(angle);
-    },
-
-    translateBy: function(tx, ty){
-        if (this._canvasContext){
-            this._canvasContext.translate(tx, ty);
-        }
-        this._state.transform = this._state.transform.translatedBy(tx, ty);
-    },
-
     concatenate: function(transform){
+        UIHTMLDisplayServerCanvasContext.$super.concatenate.call(this, transform);
         if (this._canvasContext){
             this._canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
         }
-        this._state.transform = transform.concatenatedWith(this._state.transform);
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Drawing Options
 
     setLineWidth: function(lineWidth){
+        UIHTMLDisplayServerCanvasContext.$super.setLineWidth.call(this, lineWidth);
         if (this._canvasContext){
             this._canvasContext.lineWidth = lineWidth;
         }
-        this._state.lineWidth = lineWidth;
     },
 
     setLineCap: function(lineCap){
+        UIHTMLDisplayServerCanvasContext.$super.setLineCap.call(this, lineCap);
         if (this._canvasContext){
             this._canvasContext.lineCap = lineCap;
         }
-        this._state.lineCap = lineCap;
     },
 
     setLineJoin: function(lineJoin){
+        UIHTMLDisplayServerCanvasContext.$super.setLineJoin.call(this, lineJoin);
         if (this._canvasContext){
             this._canvasContext.lineJoin = lineJoin;
         }
-        this._state.lineJoin = lineJoin;
     },
 
     setMiterLimit: function(miterLimit){
+        UIHTMLDisplayServerCanvasContext.$super.setMiterLimit.call(this, miterLimit);
         if (this._canvasContext){
             this._canvasContext.miterLimit = miterLimit;
         }
-        this._state.miterLimit = miterLimit;
     },
 
     setLineDash: function(phase, lengths){
+        UIHTMLDisplayServerCanvasContext.$super.setLineDash.call(this, phase, lengths);
         if (this._canvasContext){
             this._canvasContext.lineDashOffset = phase;
             this._canvasContext.setLineDash(lengths);
         }
-        this._state.lineDash = [phase, lengths];
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Graphics State
 
     save: function(){
+        UIHTMLDisplayServerCanvasContext.$super.save.call(this);
         if (this._canvasContext){
             this._canvasContext.save();
             this._canvasContext._restoreCount++;
         }
-        this._stack.push(this._state);
-        this._state = Object.create(this._state, {
-            clips: {
-                value: []
-            }
-        });
+        this.state.clips = [];
     },
 
     restore: function(){
+        UIHTMLDisplayServerCanvasContext.$super.restore.call(this);
         if (this._canvasContext){
             this._canvasContext.restore();
             this._canvasContext._restoreCount--;
-        }
-        if (this._stack.length > 0){
-            this._state = this._stack.pop();
         }
     },
 
 });
 
-var StatePrototype = {
-    alpha: 1,
-    font: null,
-    transform: JSAffineTransform.Identity,
-    textMatrix: JSAffineTransform.Identity,
-    characterSpacing: 0,
-    textDrawingMode: JSContext.TextDrawingMode.fill,
-    fillColor: JSColor.black,
-    strokeColor: JSColor.black,
-    shadowOffset: JSPoint.Zero,
-    shadowBlur: 0,
-    shadowColor: null,
-    lineWidth: 0,
-    miterLimit: 10,
-    lineCap: JSContext.LineCap.butt,
-    lineJoin: JSContext.LineJoin.miter,
-    lineDash: [0, []],
-    clips: null,
-    isClipped: false
-};
+UIHTMLDisplayServerCanvasContext.State = Object.create(JSContext.State, {
+
+    clips: {
+        writable: true,
+        value: null,
+    },
+
+    isClipped: {
+        writable: true,
+        value: false
+    }
+
+});
+
+JSClass("UIHTMLDisplayServerCanvasContextPath", JSPath, {
+
+    initWritingToContext: function(context){
+        UIHTMLDisplayServerCanvasContextPath.$super.init.call(this);
+        this.context = context;
+        this.context.canvasContext.beginPath();
+    },
+
+    moveToPoint: function(point, transform){
+        UIHTMLDisplayServerCanvasContextPath.$super.moveToPoint.call(this, point, transform);
+        this.context.canvasContext.moveTo(point.x, point.y);
+    },
+
+    addLineToPoint: function(point, transform){
+        UIHTMLDisplayServerCanvasContextPath.$super.addLineToPoint.call(this, point, transform);
+        this.context.canvasContext.lineTo(point.x, point.y);
+    },
+
+    addCurveToPoint: function(point, control1, control2, transform){
+        UIHTMLDisplayServerCanvasContextPath.$super.addCurveToPoint.call(this, point, control1, control2, transform);
+        this.context.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
+    },
+
+    closeSubpath: function(){
+        UIHTMLDisplayServerCanvasContextPath.$super.closeSubpath.call(this);
+        this.context.canvasContext.closePath();
+    },
+
+    canvasOperations: function(prototype, transform){
+        var operations = [];
+        var i, l;
+        var j, k;
+        var subpath;
+        var segment;
+        var point;
+        var cp1;
+        var cp2;
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath = this.subpaths[i];
+            point = transform.convertPointToTransform(subpath.firstPoint);
+            operations.push({method: prototype.moveTo, arguments: [point.x, point.y]});
+            for (j = 0, k = subpath.segments.length; j < k; ++j){
+                segment = subpath.segments[j];
+                if (segment.type === JSPath.SegmentType.line){
+                    point = transform.convertPointToTransform(segment.end);
+                    operations.push({method: prototype.lineTo, arguments: [point.x, point.y]});
+                }else if (segment.type === JSPath.SegmentType.curve){
+                    point = transform.convertPointToTransform(segment.curve.p2);
+                    cp1 = transform.convertPointToTransform(segment.curve.cp1);
+                    cp2 = transform.convertPointToTransform(segment.curve.cp2);
+                    operations.push({method: prototype.bezierCurveTo, arguments: [cp1.x, cp1.y, cp2.x, cp2.y, point.x, point.y]});
+                }
+            }
+            if (subpath.closed){
+                operations.push({method: prototype.closePath, arguments: []});
+            }
+        }
+        return operations;
+    }
+
+});
 
 })();
