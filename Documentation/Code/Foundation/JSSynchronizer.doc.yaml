@@ -1,0 +1,178 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.30.3
+inherits: JSObject
+summary: Runs a single asynchronous action without overlapping calls 
+description: |
+  Useful for a situations like saving local changes to a remote server when
+  saves are automatically triggered by UI changes rather than an explicit save
+  button.
+
+  A `JSSynchronizer`
+  * Can dealy the server call to collect many rapid changes in one call
+  * Ensures that only one call runs at a time
+  * Is easily bound to a UI control that indicates sync status
+topics:
+  -
+    name: Creating a Syncrhonizer
+    members:
+      -
+        name: initWithAction
+        kind: init
+        summary: Create a synchronizer that calls the given action
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: syncContext
+                  type: JSSynchronizer.Context
+                  summary: The context object used to communicate progress back
+                    to the synchronizer
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `action`()
+      -
+        name: Context
+        kind: class
+        anonymous: true
+        summary: Used for communication between the synchronizer and its action
+        topics:
+          -
+            name: Updates
+            members:
+              -
+                name: started
+                kind: method
+                summary: Call when the action begins its asynchronous work
+                description: |
+                  If `started()` is not called by the time the `action`()
+                  returns, the synchronizer will revert to the `idle` state.
+
+                  Typically this will be called at the top of the `action`()
+                  method, but can also be placed after short-circuit checks
+                  that bail out of the action without doing any work.
+              -
+                name: completed
+                kind: method
+                summary: Called whent the action completes successfully
+              -
+                name: completed
+                suffix: error
+                kind: method
+                summary: Called when the action encounters an error
+                arguments:
+                  -
+                    name: error
+                    type: Error
+                    summary: The error
+  -
+    name: State
+    members:
+      -
+        name: state
+        type: State
+        summary: The state this synchronizer is in
+      -
+        name: error
+        type: Error
+        nullable: true
+        summary: The error, if any, from the most recent sync
+        description: |
+          Only set in the `error`(State.error) state
+      -
+        name: State
+        suffix: enum
+        kind: enum
+        summary: The possible states a synchronizer can be in
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: idle
+                summary: The synchronizer is waiting for a call to `sync()`
+              -
+                name: pending
+                summary: A `sync()` has been requested, but the `pendingInterval`
+                  has not yet elapsed
+                description: |
+                  If the `pendingInterval` is `0`, the syncrhonizer will skip this
+                  `pending` state.
+              -
+                name: working
+                summary: The synchronizer's `action`() has been called and is
+                  awaiting an asynchronous response
+              -
+                name: success
+                summary: The synchronizer's `action`() returned a success response
+                  within the past `successInterval` seconds
+                description: |
+                  After entering the `success` state, the synchronizer will
+                  automatically change back to `idle` after `successInterval`
+                  seconds.
+
+                  This allows for a UI to display a success indication that
+                  automatically disappears after a short time.
+
+                  If the `successInterval` is `0`, the synchronizer will skip this
+                  `success` state and go straight back to `idle`
+              -
+                name: error
+                summary: The synchronizer's action returned an error response
+                description: |
+                  Unlike `success`, the `error` state will remain until a new
+                  `sync()` is requested.
+  -
+    name: Configuration
+    members:
+      -
+        name: pendingInterval
+        type: Number
+        summary: The number of seconds to wait after a `sync()` call before
+          calling the syncrhonizer's `action`()
+        description: |
+          Useful if you expect the user to make a lot of rapid changes, each
+          calling for a `sync()`.  With a `pendingInterval` of `2`, the actual
+          synchronize action won't be called until 2 seconds have passed since
+          the most recent `sync()` call.
+
+          Set to `0` to call the action immediately upon calling `sync()`,
+          or as soon as possible if the action is in the middle of running.
+      -
+        name: successInterval
+        type: Number
+        summary: The number of seconds to remain in the `success` state before
+          reverting to `idle`
+        description: |
+          Useful if you want to show a brief success indicator that automatically
+          disappears.
+
+          Set to `0` to skip the `success` state and go to `idle` immediately after
+          a successful call.
+  -
+    name: Synchronizing
+    members:
+      -
+        name: sync
+        kind: method
+        summary: Request that the syncrhonizer's action be called
+        description: |
+          Will wait at least `pendingInterval` before calling the action, and
+          will not call the action more than once at a time.
+      -
+        name: syncImmediately
+        kind: method
+        summary: Request that the syncrhonizer's action be called immediately
+        description: |
+          Will ignore `pendingInterval` and cal the action as soon as possible,
+          still taking care not to call the action more than once at a time.
+      -
+        name: cancel
+        kind: method
+        summary: Cancel a pending action call
+        description: |
+          Only relevant when the synchronizer is in the `pending` state.
