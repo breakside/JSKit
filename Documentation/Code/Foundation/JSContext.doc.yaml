@@ -200,6 +200,19 @@ topics:
             name: control
             type: JSPoint
             summary: The single control point for the curve
+      -
+        introduced: 2020.30.3
+        name: addPath
+        kind: method
+        summary: Add the path to the current path
+        arguments:
+          -
+            name: path
+            type: JSPath
+            summary: The path to add
+        description: |
+          The path's segments will be added to the current path or, if no
+          current path exists, a new one will be created.
   -
     name: Painting
     members:

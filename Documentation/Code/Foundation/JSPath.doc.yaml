@@ -243,14 +243,14 @@ topics:
             type: JSAffineTransform
             default: JSAffineTransform.Identity
             summary: The transform to apply to the arc
-        -
-          name: closeSubpath
-          kind: method
-          summary: Close the current subpath by adding a line segment from the
-            current point back to the starting point of the subpath
-          description: |
-            Any subsequent path construction operations will result in a new
-            supath being created.
+      -
+        name: closeSubpath
+        kind: method
+        summary: Close the current subpath by adding a line segment from the
+          current point back to the starting point of the subpath
+        description: |
+          Any subsequent path construction operations will result in a new
+          supath being created.
   -
     name: Point Checking
     members:
