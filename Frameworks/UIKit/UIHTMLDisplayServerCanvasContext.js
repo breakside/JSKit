@@ -696,7 +696,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Text
 
     setFont: function(font){
-        UIHTMLDisplayServerCanvasContext.$super.setFont.call(this);
+        UIHTMLDisplayServerCanvasContext.$super.setFont.call(this, font);
         if (this._canvasContext){
             this._canvasContext.font = font ? font.cssString() : '';
         }
@@ -834,7 +834,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.canvasContext.clip();
         }
         if (this.path !== null){
-            this.state.clips.push({arguments: args, path: this.path.canvasOperations(this.canvasContext)});
+            this.state.clips.push({arguments: args, operations: this.path.canvasOperations(this.canvasContext, this.state.transform)});
             this.state.isClipped = true;
             this.beginPath();
         }
@@ -953,21 +953,29 @@ JSClass("UIHTMLDisplayServerCanvasContextPath", JSPath, {
         this.context.canvasContext.closePath();
     },
 
-    canvasOperations: function(prototype){
+    canvasOperations: function(prototype, transform){
         var operations = [];
         var i, l;
         var j, k;
         var subpath;
         var segment;
+        var point;
+        var cp1;
+        var cp2;
         for (i = 0, l = this.subpaths.length; i < l; ++i){
             subpath = this.subpaths[i];
-            operations.push({method: prototype.moveTo, arguments: [subpath.firstPoint.x, subpath.firstPoint.y]});
+            point = transform.convertPointToTransform(subpath.firstPoint);
+            operations.push({method: prototype.moveTo, arguments: [point.x, point.y]});
             for (j = 0, k = subpath.segments.length; j < k; ++j){
                 segment = subpath.segments[j];
                 if (segment.type === JSPath.SegmentType.line){
-                    operations.push({method: prototype.lineTo, arguments: [segment.end.x, segment.end.y]});
+                    point = transform.convertPointToTransform(segment.end);
+                    operations.push({method: prototype.lineTo, arguments: [point.x, point.y]});
                 }else if (segment.type === JSPath.SegmentType.curve){
-                    operations.push({method: prototype.bezierCurveTo, arguments: [segment.curve.cp1.x, segment.curve.cp1.y, segment.curve.cp2.x, segment.curve.cp2.y, segment.curve.p2.x, segment.curve.p2.y]});
+                    point = transform.convertPointToTransform(segment.curve.p2);
+                    cp1 = transform.convertPointToTransform(segment.curve.cp1);
+                    cp2 = transform.convertPointToTransform(segment.curve.cp2);
+                    operations.push({method: prototype.bezierCurveTo, arguments: [cp1.x, cp1.y, cp2.x, cp2.y, point.x, point.y]});
                 }
             }
             if (subpath.closed){
