@@ -37,7 +37,6 @@ JSClass("JSPath", JSObject, {
             copy.currentSubpath = copy.subpaths[copy.subpaths.length - 1];
         }
         copy.currentPoint = JSPoint(this.currentPoint);
-        copy.empty = this.empty;
         return copy;
     },
 
@@ -445,50 +444,109 @@ JSClass("JSPath", JSObject, {
         var j, k;
         var subpath;
         var segment;
+        var pointBeforeLast;
         var lastPoint;
-        var cross;
+        var lastDirection;
+        var check;
+
+        // return 0 for no cross
+        // return 1 for left-to-right cross
+        // return -1 for right-to-left cross
+        // return 2 for on segment
+        var checkLine = function(start, end, previous){
+            // vertical line
+            if (start.x == end.x){
+                // ...are we on it?
+                if (point.x == start.x){
+                    if (start.y <= end.y){
+                        if (point.y >= start.y && point.y <= end.y){
+                            return 2;
+                        }
+                        return 0;
+                    }
+                    if (point.y >= end.y && point.y <= start.y){
+                        return 2;
+                    }
+                    return 0;
+                }
+                return 0;
+            }
+
+            // figure out where the line's y value is at our x value
+            var slope = (end.y - start.y) / (end.x - start.x);
+            var y = start.y + (point.x - start.x) * slope;
+            var dy = y - point.y;
+
+            // on the line (within a tiny tolerance for float erros)
+            if (Math.abs(dy) < 0.0000000001){
+                // left to right (including endpoints)
+                if (start.x < end.x){
+                    if (point.x >= start.x && point.x <= end.x){
+                        return 2;
+                    }
+                    return 0;
+                }
+
+                // right to left (including endpoints)
+                if (point.x >= end.x && point.x <= start.x){
+                    return 2;
+                }
+                return 0;
+            }
+
+            // no cross
+            if (dy < 0){
+                return 0;
+            }
+
+            // left to right
+            if (start.x < end.x){
+                if (!previous || previous.x < start.x){
+                    // if we're moving the same direction as the previous segment
+                    // don't double count the starting point
+                    if (point.x > start.x && point.x <= end.x){
+                        return 1;
+                    }
+                    return 0;
+                }
+                if (point.x >= start.x && point.x <= end.x){
+                    return 1;
+                }
+                return 0;
+            }
+
+            // right to left
+            if (!previous || previous.x > start.x){
+                // if we're moving int he same direction as the previous segment
+                // don't double count the starting point
+                if (point.x < start.x && point.x >= end.x){
+                    return -1;
+                }
+                return 0;
+            }
+            if (point.x <= start.x && point.x >= end.x){
+                return -1;
+            }
+            return 0;
+        };
+
         for (i = 0, l = this.subpaths.length; i < l; ++i){
             subpath = this.subpaths[i];
             lastPoint = subpath.firstPoint;
+            pointBeforeLast = null;
             for (j = 0, k  = subpath.segments.length; j < k; ++j){
                 segment = subpath.segments[j];
                 if (segment.type === JSPath.SegmentType.line){
-                    // line is exactly vertical...are we on the segment?
-                    if (lastPoint.x === segment.end.x){
-                        if (point.x == segment.end.x){
-                            if (lastPoint.y < segment.end.y){
-                                if (point.y >= lastPoint.y && point.y <= segment.end.y){
-                                    return true;
-                                }
-                            }else{
-                                if (point.y <= lastPoint.y && point.y >= segment.end.y){
-                                    return true;
-                                }
-                            }
-                        }
-                    }else{
-                        cross = lastPoint.y + (point.x - lastPoint.x) * (segment.end.y - lastPoint.y);
-                        // If our point is exactly on a line, then we're in the path
-                        if (cross == point.y){
-                            return true;
-                        }
-                        // If our point is above the line
-                        if (cross > point.y){
-                            // going left to right
-                            if (lastPoint.x < segment.end.x){
-                                // and between the end points
-                                if (point.x >= lastPoint.x && point.x <= segment.end.x){
-                                    ++ltr;
-                                }
-                            // going right to left
-                            }else if (lastPoint.x > segment.end.x){
-                                // and between the end points
-                                if (point.x <= lastPoint.x && point.x >= segment.end.x){
-                                    ++rtl;
-                                }
-                            }
-                        }
+                    check = checkLine(lastPoint, segment.end, pointBeforeLast);
+                    if (check === 2){
+                        return true;
                     }
+                    if (check === 1){
+                        ++ltr;
+                    }else if (check === -1){
+                        ++rtl;
+                    }
+                    pointBeforeLast = lastPoint;
                     lastPoint = segment.end;
                 }else if (segment.type === JSPath.SegmentType.curve){
                     var t = segment.curve.intervalsForX(point.x);
@@ -496,37 +554,26 @@ JSClass("JSPath", JSObject, {
                     var p2;
                     var p3;
                     if (t.length > 0){
-                        p1 = segment.curve.pointAtInterval(t[0]);
-                        if (p1.y == point.y){
-                            return true;
-                        }
-                        if (p1.y > point.y){
-                            p2 = segment.curve.pointAtInterval(t[0] - 0.01);
-                            p3 = segment.curve.pointAtInterval(t[0] + 0.01);
-                            if (p3.x > p1.x && p1.x > p2.x){
-                                ++ltr;
-                            }else if (p3.x < p1.x && p1.x < p2.x){
-                                ++rtl;
-                            }else{
-                                // switching directions, don't care/cancels out
-                            }
-                        }
-                        if (t.length > 1){
-                            p1 = segment.curve.pointAtInterval(t[1]);
+                        if (t[0] < 1){
+                            p1 = segment.curve.pointAtInterval(t[0]);
                             if (p1.y == point.y){
                                 return true;
                             }
                             if (p1.y > point.y){
-                                p2 = segment.curve.pointAtInterval(t[1] - 0.01);
-                                p3 = segment.curve.pointAtInterval(t[1] + 0.01);
+                                p2 = segment.curve.pointAtInterval(t[0] - 0.01);
+                                p3 = segment.curve.pointAtInterval(t[0] + 0.01);
                                 if (p3.x > p1.x && p1.x > p2.x){
                                     ++ltr;
                                 }else if (p3.x < p1.x && p1.x < p2.x){
                                     ++rtl;
+                                }else{
+                                    // switching directions, don't care/cancels out
                                 }
                             }
-                            if (t.length > 2){
-                                p1 = segment.curve.pointAtInterval(t[2]);
+                        }
+                        if (t.length > 1){
+                            if (t[1] < 1){
+                                p1 = segment.curve.pointAtInterval(t[1]);
                                 if (p1.y == point.y){
                                     return true;
                                 }
@@ -540,8 +587,26 @@ JSClass("JSPath", JSObject, {
                                     }
                                 }
                             }
+                            if (t.length > 2){
+                                if (t[2] < 1){
+                                    p1 = segment.curve.pointAtInterval(t[2]);
+                                    if (p1.y == point.y){
+                                        return true;
+                                    }
+                                    if (p1.y > point.y){
+                                        p2 = segment.curve.pointAtInterval(t[2] - 0.01);
+                                        p3 = segment.curve.pointAtInterval(t[2] + 0.01);
+                                        if (p3.x > p1.x && p1.x > p2.x){
+                                            ++ltr;
+                                        }else if (p3.x < p1.x && p1.x < p2.x){
+                                            ++rtl;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
+                    pointBeforeLast = segment.curve.cp2;
                     lastPoint = segment.curve.p2;
                 }
             }
@@ -549,43 +614,14 @@ JSClass("JSPath", JSObject, {
             // Don't forget the straight line back to the first point of the subpath,
             // even if the subpath isn't closed, there's such an imaginary line for the
             // purposes of determining what is in or out of the path
-            if (!lastPoint.isEqual(subpath.firstPoint)){
-                // line is exactly vertical...are we on the segment?
-                if (lastPoint.x === subpath.firstPoint.x){
-                    if (point.x == subpath.firstPoint.x){
-                        if (lastPoint.y < subpath.firstPoint.y){
-                            if (point.y >= lastPoint.y && point.y <= subpath.firstPoint.y){
-                                return true;
-                            }
-                        }else{
-                            if (point.y <= lastPoint.y && point.y >= subpath.firstPoint.y){
-                                return true;
-                            }
-                        }
-                    }
-                }else{
-                    cross = lastPoint.y + (point.x - lastPoint.x) * (segment.end.y - lastPoint.y);
-                    // If our point is exactly on a line, then we're in the path
-                    if (cross == point.y){
-                        return true;
-                    }
-                    // If our point is above the line
-                    if (cross > point.y){
-                        // going left to right
-                        if (lastPoint.x < subpath.firstPoint.x){
-                            // and between the end points
-                            if (point.x >= lastPoint.x && point.x <= subpath.firstPoint.x){
-                                ++ltr;
-                            }
-                        // going right to left
-                        }else if (lastPoint.x > subpath.firstPoint.x){
-                            // and between the end points
-                            if (point.x <= lastPoint.x && point.x >= subpath.firstPoint.x){
-                                ++rtl;
-                            }
-                        }
-                    }
-                }
+            check = checkLine(lastPoint, subpath.firstPoint, pointBeforeLast);
+            if (check === 2){
+                return true;
+            }
+            if (check === 1){
+                ++ltr;
+            }else if (check === -1){
+                ++rtl;
             }
         }
         if (fillRule === JSContext.FillRule.winding){
