@@ -330,7 +330,7 @@ JSGlobalObject.PDFImage.prototype = Object.create(PDFXObject.prototype, {
                 // Checksum and combine all chunk data
                 var chunk;
                 var dataChunks = [];
-                for (i = 0, l = this.chunks.length; i < l; ++i){
+                for (i = 0, l = chunks.length; i < l; ++i){
                     chunk = chunks[i];
                     chunk.calculateChecksum();
                     dataChunks.push(chunk.data);

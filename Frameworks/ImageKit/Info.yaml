@@ -3,6 +3,8 @@ JSBundleIdentifier: io.breakside.JSKit.ImageKit
 JSBundleVersion: 2020.30.2
 JSDevelopmentLanguage: en
 JSCopyright: Copyright © 2020 Breakside Inc.
+JSBundleEnvironments:
+  html: ImageKit+HTML.js
 JSLicenseNotice: |
    Licensed under the Breakside Public License, Version 1.0 (the "License");
    you may not use this file except in compliance with the License.
