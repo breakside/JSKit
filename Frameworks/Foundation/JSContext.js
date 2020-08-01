@@ -16,6 +16,7 @@
 // #import "JSObject.js"
 // #import "JSColor.js"
 // #import "JSPath.js"
+// #import "JSFont.js"
 'use strict';
 
 (function(){
@@ -44,44 +45,60 @@ JSClass("JSContext", JSObject, {
         this.path = this.createPath();
     },
 
+    beginPathIfNeeded: function(){
+        if (this.path === null){
+            this.beginPath();
+        }
+    },
+
     moveToPoint: function(x, y){
+        this.beginPathIfNeeded();
         this.path.moveToPoint(JSPoint(x, y), this.state.transform);
     },
 
     addLineToPoint: function(x, y){
+        this.beginPathIfNeeded();
         this.path.addLineToPoint(JSPoint(x, y), this.state.transform);
     },
 
     addRect: function(rect){
+        this.beginPathIfNeeded();
         this.path.addRect(rect, this.state.transform);
     },
 
     addRoundedRect: function(rect, cornerRadius){
+        this.beginPathIfNeeded();
         this.path.addRoundedRect(rect, cornerRadius, this.state.transform);
     },
 
     addArc: function(center, radius, startAngle, endAngle, clockwise){
+        this.beginPathIfNeeded();
         this.path.addArc(center, radius, startAngle, endAngle, clockwise, this.state.transform);
     },
 
     addArcUsingTangents: function(tangent1End, tangent2End, radius){
+        this.beginPathIfNeeded();
         this.path.addArcUsingTangents(tangent1End, tangent2End, radius, this.state.transform);
     },
 
     addCurveToPoint: function(point, control1, control2){
+        this.beginPathIfNeeded();
         this.path.addCurveToPoint(point, control1, control2, this.state.transform);
     },
 
     addQuadraticCurveToPoint: function(point, control){
+        this.beginPathIfNeeded();
         // FIXME: not exactly a quadradic
-        this.addCurveToPoint(point, control, point);
+        this.path.addCurveToPoint(point, control, point, this.state.transform);
     },
 
     addEllipseInRect: function(rect){
+        this.beginPathIfNeeded();
         this.path.addEllipseInRect(rect, this.state.transform);
     },
 
     addPath: function(path){
+        this.beginPathIfNeeded();
         var i, l;
         var j, k;
         var subpath;
@@ -104,7 +121,9 @@ JSClass("JSContext", JSObject, {
     },
 
     closePath: function(){
-        this.path.closeSubpath();
+        if (this.path !== null){
+            this.path.closeSubpath();
+        }
     },
 
     // ----------------------------------------------------------------------
