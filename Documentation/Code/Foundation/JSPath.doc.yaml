@@ -1,0 +1,279 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.30.3
+inherits: JSObject
+summary: Represents a drawing path of lines and curves
+description: |
+  A `JSPath` is a vector representation of a shape constructed with
+  straight lines and Bézier curves.
+
+  The class provides convenience methods for constructing common shapes
+  such as ellipses (`addEllipseInRect()`), arcs (`addArc()`, and rounded rectangles
+  (`addRoundedRect()`).
+
+  Typically you won't need to work with paths directly because you'll be using
+  `JSContext` to draw shapes to an output device (screen, PDF, bitmap), and
+  `JSContext` provides path construction methods of its own that use features
+  of the context's state, such as its transform, to create the correct path.
+topics:
+  -
+    name: Creating a path
+    members:
+      -
+        name: init
+        kind: init
+        summary: Create an empty path
+        description: |
+          The path's initial point will be `JSPoint.Zero`
+      -
+        name: copy
+        kind: method
+        type: JSPath
+        summary: Create a copy of this path
+        description: |
+          The copy will be identical to this path, and will not be affected if
+          you continue to perform operations on this path
+  -
+    name: Properties
+    members:
+      -
+        name: empty
+        type: Boolean
+        summary: Indicates if the path is empty
+        description: |
+          To qualify as non-empty, the path must have at least one subpath that
+          either a) is closed or b) contains at least one segment.
+      -
+        name: currentPoint
+        type: JSPoint
+        summary: The path's current point
+        description: |
+          Initially set to `JSPoint.Zero`, the path's current point changes
+          after every path construction operation to be the end point of 
+          the added segment or the moved to point
+      -
+        name: boundingRect
+        type: JSRect
+        nullable: true
+        summary: The rectangle that encompasses all of the path's segments
+        description: |
+          Includes any area that would need to be filled in a drawing operation.
+
+          Will be `null` for empty paths.
+  -
+    name: Path Construction
+    members:
+      -
+        name: moveToPoint
+        kind: method
+        summary: Move to the given point without making a line
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: Where to move to
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the point
+      -
+        name: addLineToPoint
+        kind: method
+        summary: Add a line from the current point to the given point
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The end point of the line segment
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the point
+      -
+        name: addCurveToPoint
+        kind: method
+        summary: Add a Bézier curve from the current point to the given point, using
+          the control points to specify the shape of the curve
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The end point of the curve
+          -
+            name: controlPoint1
+            type: JSPoint
+            summary: The first control point
+          -
+            name: controlPoint2
+            type: JSPoint
+            summary: The second control point
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the points
+      -
+        name: addRect
+        kind: method
+        summary: Add a rectangle in a new subpath
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to add
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the rectangle
+        description: |
+          Equivalent to:
+
+          ````
+          var p1 = rect.origin;
+          var p2 = rect.origin.adding(JSPoint(rect.size.width, 0));
+          var p3 = rect.origin.adding(JSPoint(rect.size.width, rect.size.height));
+          var p4 = rect.origin.adding(JSPoint(0, rect.size.height));
+          path.moveToPoint(p1, transform);
+          path.addLineToPoint(p2, transform);
+          path.addLineToPoint(p3, transform);
+          path.addLineToPoint(p4, transform);
+          path.closeSubpath();
+          ````
+        note: |
+          Adding a rectangle begins and closes a new subpath
+      -
+        name: addRoundedRect
+        kind: method
+        summary: Add a rectangle with rounded corners in a new subpath
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle to add
+          -
+            name: cornerRadius
+            type: Number
+            summary: The size of the rounded corners
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the rectangle
+        description: |
+          Adds a rectangle with all corners rounded by the given radius.
+
+          The radius will be automatically capped at half the length of each side.
+        note: |
+          Adding a rounded rectangle begins and closes a new subpath
+      -
+        name: addEllipseInRect
+        kind: method
+        summary: Add an ellipse inscribed in the given rect
+        arguments:
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle in which to add an ellipse
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the rectangle
+        description: |
+          Adds an ellipse inside the given rectangle.  Using a square as the
+          rectangle results in a circle.
+        note: |
+          Adding an ellipse begins and closes a new subpath
+      -
+        name: addArc
+        kind: method
+        summary: Add an arc to the based on a center point and radius
+        arguments:
+          -
+            name: center
+            type: JSPoint
+            summary: The center of the circle contains the arc
+          -
+            name: radius
+            type: Number
+            summary: The radius of the circle contains the arc
+          -
+            name: startAngle
+            type: Number
+            summary: An angle in radians that defines the starting point of the arc
+          -
+            name: endAngle
+            type: Number
+            summary: An angle in radians that defines the ending point of the arc
+          -
+            name: clockwise
+            type: Boolean
+            default: "false"
+            summary: Indicates which direction the arc should sweep from start
+              to end angles
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the arc
+      -
+        name: addArcUsingTangents
+        kind: method
+        summary: Add an arc using two line segments as tangent lines for the arc
+        arguments:
+          -
+            name: tangent1End
+            type: JSPoint
+            summary: A point that defines the end of a line segment starting
+              at the current path's most recent point.
+          -
+            name: tangent2End
+            type: JSPoint
+            summary: A point that defines the end of a line segment starting
+              at `tangent1End`
+          -
+            name: radius
+            type: Number
+            summary: The radius of the arc
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the arc
+        -
+          name: closeSubpath
+          kind: method
+          summary: Close the current subpath by adding a line segment from the
+            current point back to the starting point of the subpath
+          description: |
+            Any subsequent path construction operations will result in a new
+            supath being created.
+  -
+    name: Point Checking
+    members:
+      -
+        name: containsPoint
+        kind: method
+        type: Boolean
+        summary: Tells if a point is inside or outside of a path
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point to check
+          -
+            name: fillRule
+            type: JSContext.FillRule
+            default: JSContext.FillRule.winding
+            summary: The fill rule to use when determining inside-ness
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The transform to apply to the point
+        description: |
+          A point is considered to be inside a path if it that point should be
+          filled using the given `fillRule`().

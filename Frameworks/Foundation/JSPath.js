@@ -24,7 +24,7 @@ JSClass("JSPath", JSObject, {
 
     init: function(){
         this.subpaths = [];
-        this.currentPoint = JSPoint.Zero;
+        this._currentPoint = JSPoint.Zero;
     },
 
     copy: function(){
@@ -36,7 +36,7 @@ JSClass("JSPath", JSObject, {
         if (this.currentSubpath !== null){
             copy.currentSubpath = copy.subpaths[copy.subpaths.length - 1];
         }
-        copy.currentPoint = JSPoint(this.currentPoint);
+        copy._currentPoint = JSPoint(this._currentPoint);
         return copy;
     },
 
@@ -54,7 +54,7 @@ JSClass("JSPath", JSObject, {
     },
 
     subpaths: null,
-    currentPoint: null,
+    currentPoint: JSReadOnlyProperty('_currentPoint', null),
     currentSubpath: null,
     boundingRect: JSDynamicProperty('_boundingRect', null),
 
@@ -66,7 +66,7 @@ JSClass("JSPath", JSObject, {
         }
         this.currentSubpath = new Subpath(point);
         this.subpaths.push(this.currentSubpath);
-        this.currentPoint = point;
+        this._currentPoint = point;
         this._invalidateBoundingRect();
     },
 
@@ -78,7 +78,7 @@ JSClass("JSPath", JSObject, {
         }
         this._createSubpathIfNeeded();
         this.currentSubpath.segments.push({type: JSPath.SegmentType.line, end: point});
-        this.currentPoint = point;
+        this._currentPoint = point;
         this._invalidateBoundingRect();
     },
 
@@ -89,9 +89,9 @@ JSClass("JSPath", JSObject, {
             control2 = transform.convertPointFromTransform(control2);
         }
         this._createSubpathIfNeeded();
-        var curve = JSCubicBezier(this.currentPoint, control1, control2, point);
+        var curve = JSCubicBezier(this._currentPoint, control1, control2, point);
         this.currentSubpath.segments.push({type: JSPath.SegmentType.curve, curve: curve});
-        this.currentPoint = point;
+        this._currentPoint = point;
         this._invalidateBoundingRect();
     },
 
@@ -268,7 +268,7 @@ JSClass("JSPath", JSObject, {
         }
 
         // Setup our three main points that create two interescting tangent lines
-        var p0 = transform ? transform.convertPointToTransform(this.currentPoint) : JSPoint(this.currentPoint);
+        var p0 = transform ? transform.convertPointToTransform(this._currentPoint) : JSPoint(this._currentPoint);
         var p1 = JSPoint(tangent1End);
         var p2 = JSPoint(tangent2End);
 
@@ -391,7 +391,7 @@ JSClass("JSPath", JSObject, {
 
     closeSubpath: function(){
         if (this.currentSubpath !== null){
-            this.currentPoint = this.currentSubpath.firstPoint;
+            this._currentPoint = this.currentSubpath.firstPoint;
             this.currentSubpath.closed = true;
             this.currentSubpath = null;
         }
@@ -435,6 +435,9 @@ JSClass("JSPath", JSObject, {
         //
         // For the even-odd fill rule, we're inside if the total number of
         // crossings is odd, and outside if it's even.
+        if (fillRule === undefined){
+            fillRule = JSContext.FillRule.winding;
+        }
         if (transform){
             point = transform.convertPointFromTransform(point);
         }
@@ -632,7 +635,7 @@ JSClass("JSPath", JSObject, {
 
     _createSubpathIfNeeded: function(){
         if (this.currentSubpath === null){
-            this.currentSubpath = new Subpath(this.currentPoint);
+            this.currentSubpath = new Subpath(this._currentPoint);
             this.subpaths.push(this.currentSubpath);
         }
     },
