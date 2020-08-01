@@ -108,6 +108,7 @@ topics:
       - JSMediaType
       - JSMIMEHeader
       - JSMIMEHeaderMap
+      - JSSynchronizer
   -
     name: Text & Typesetting
     summary: Text layout & font management
