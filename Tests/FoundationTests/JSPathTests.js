@@ -617,7 +617,426 @@ JSClass("JSPathTests", TKTestSuite, {
         TKAssertFloatEquals(path.boundingRect.size.height, 5);
     },
 
-    _testContainsPoint: function(){
+    testContainsPointRectangle: function(){
+        // Rectangle in the normal direction
+        var path = JSPath.init();
+        path.moveToPoint(JSPoint(1, 2));
+        path.addLineToPoint(JSPoint(4, 2));
+        path.addLineToPoint(JSPoint(4, 6));
+        path.addLineToPoint(JSPoint(1, 6));
+        path.closeSubpath();
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+
+        // Rectangle in the reverse direction
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(1, 2));
+        path.addLineToPoint(JSPoint(1, 6));
+        path.addLineToPoint(JSPoint(4, 6));
+        path.addLineToPoint(JSPoint(4, 2));
+        path.closeSubpath();
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+
+        // Rectangle open left edge
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(1, 2));
+        path.addLineToPoint(JSPoint(4, 2));
+        path.addLineToPoint(JSPoint(4, 6));
+        path.addLineToPoint(JSPoint(1, 6));
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+
+        // Rectangle open top edge
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(4, 2));
+        path.addLineToPoint(JSPoint(4, 6));
+        path.addLineToPoint(JSPoint(1, 6));
+        path.addLineToPoint(JSPoint(1, 2));
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+
+        // Rectangle open right edge
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(4, 6));
+        path.addLineToPoint(JSPoint(1, 6));
+        path.addLineToPoint(JSPoint(1, 2));
+        path.addLineToPoint(JSPoint(4, 2));
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+
+        // Rectangle open bottom edge
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(1, 6));
+        path.addLineToPoint(JSPoint(1, 2));
+        path.addLineToPoint(JSPoint(4, 2));
+        path.addLineToPoint(JSPoint(4, 6));
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.winding));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.winding));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(2, 4), JSContext.FillRule.evenOdd));
+        // ....corners
+        TKAssert(path.containsPoint(JSPoint(1, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 6), JSContext.FillRule.evenOdd));
+        // ....edge midpoints
+        TKAssert(path.containsPoint(JSPoint(2.5, 2), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 6), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 4), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(2, 1), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(2, 7), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 4), JSContext.FillRule.evenOdd));
+    },
+
+    testContainsPointRectangleHole: function(){
+        // Rectangle in the normal direction, inner in same direction
+        var path = JSPath.init();
+        path.moveToPoint(JSPoint(-4, -4));
+        path.addLineToPoint(JSPoint(4, -4));
+        path.addLineToPoint(JSPoint(4, 4));
+        path.addLineToPoint(JSPoint(-4, 4));
+        path.closeSubpath();
+        path.moveToPoint(JSPoint(-1, -1));
+        path.addLineToPoint(JSPoint(1, -1));
+        path.addLineToPoint(JSPoint(1, 1));
+        path.addLineToPoint(JSPoint(-1, 1));
+        path.closeSubpath();
+        // ..winding rule
+        // ....center
+        TKAssert(path.containsPoint(JSPoint(0, 0), JSContext.FillRule.winding));
+        // ....outside corners
+        TKAssert(path.containsPoint(JSPoint(-4, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(-4, 4), JSContext.FillRule.winding));
+        // ....inside corners
+        TKAssert(path.containsPoint(JSPoint(-1, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(-1, 1), JSContext.FillRule.winding));
+        // ....outside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.winding));
+        // ....inside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.winding));
+        // ....between innter and outer edges
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 2.5), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(0, -5), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 0), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 5), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(-5, 0), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(!path.containsPoint(JSPoint(0, 0), JSContext.FillRule.evenOdd));
+        // ....outside corners
+        TKAssert(path.containsPoint(JSPoint(-4, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(-4, 4), JSContext.FillRule.evenOdd));
+        // ....inside corners
+        TKAssert(path.containsPoint(JSPoint(-1, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(-1, 1), JSContext.FillRule.evenOdd));
+        // ....outside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.evenOdd));
+        // ....inside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.evenOdd));
+        // ....between innter and outer edges
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 2.5), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(0, -5), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 0), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 5), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(-5, 0), JSContext.FillRule.evenOdd));
+
+        // Rectangle in the normal direction, inner in opposite direction
+        path = JSPath.init();
+        path.moveToPoint(JSPoint(-4, -4));
+        path.addLineToPoint(JSPoint(4, -4));
+        path.addLineToPoint(JSPoint(4, 4));
+        path.addLineToPoint(JSPoint(-4, 4));
+        path.closeSubpath();
+        path.moveToPoint(JSPoint(-1, -1));
+        path.addLineToPoint(JSPoint(-1, 1));
+        path.addLineToPoint(JSPoint(1, 1));
+        path.addLineToPoint(JSPoint(1, -1));
+        path.closeSubpath();
+        // ..winding rule
+        // ....center
+        TKAssert(!path.containsPoint(JSPoint(0, 0), JSContext.FillRule.winding));
+        // ....outside corners
+        TKAssert(path.containsPoint(JSPoint(-4, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(-4, 4), JSContext.FillRule.winding));
+        // ....inside corners
+        TKAssert(path.containsPoint(JSPoint(-1, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(-1, 1), JSContext.FillRule.winding));
+        // ....outside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(4, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 4), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.winding));
+        // ....inside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(1, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 1), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.winding));
+        // ....between innter and outer edges
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(2.5, 0), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, 2.5), JSContext.FillRule.winding));
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.winding));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(0, -5), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(5, 0), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(0, 5), JSContext.FillRule.winding));
+        TKAssert(!path.containsPoint(JSPoint(-5, 0), JSContext.FillRule.winding));
+        // ..even odd rule
+        // ....center
+        TKAssert(!path.containsPoint(JSPoint(0, 0), JSContext.FillRule.evenOdd));
+        // ....outside corners
+        TKAssert(path.containsPoint(JSPoint(-4, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(-4, 4), JSContext.FillRule.evenOdd));
+        // ....inside corners
+        TKAssert(path.containsPoint(JSPoint(-1, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(-1, 1), JSContext.FillRule.evenOdd));
+        // ....outside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(4, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 4), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -4), JSContext.FillRule.evenOdd));
+        // ....inside edge midpoints
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(1, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 1), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -1), JSContext.FillRule.evenOdd));
+        // ....between innter and outer edges
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(2.5, 0), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, 2.5), JSContext.FillRule.evenOdd));
+        TKAssert(path.containsPoint(JSPoint(0, -2.5), JSContext.FillRule.evenOdd));
+        // ....outside
+        TKAssert(!path.containsPoint(JSPoint(0, -5), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(5, 0), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(0, 5), JSContext.FillRule.evenOdd));
+        TKAssert(!path.containsPoint(JSPoint(-5, 0), JSContext.FillRule.evenOdd));
     },
 
     _testCopy: function(){

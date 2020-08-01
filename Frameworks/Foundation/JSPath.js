@@ -428,7 +428,7 @@ JSClass("JSPath", JSObject, {
         // number of times our line crosses a path segment.
         //
         // For simplicity, we'll choose a line that starts at the point and goes
-        // vertical to -Infinity (straight up).
+        // vertical to Infinity (straight down).
         //
         // For the winding fill rule, we count the number of times a crossing
         // segment goes left to right and subtract the number of times a crosssing
@@ -446,20 +446,47 @@ JSClass("JSPath", JSObject, {
         var subpath;
         var segment;
         var lastPoint;
+        var cross;
         for (i = 0, l = this.subpaths.length; i < l; ++i){
             subpath = this.subpaths[i];
             lastPoint = subpath.firstPoint;
             for (j = 0, k  = subpath.segments.length; j < k; ++j){
                 segment = subpath.segments[j];
                 if (segment.type === JSPath.SegmentType.line){
-                    // If the segment crosses above point
-                    if (lastPoint.y + (point.x - lastPoint.x) * (segment.end.y - lastPoint.y) >= point.y){
-                        if (lastPoint.x < segment.end.x){
-                            // left to right
-                            ++ltr;
-                        }else if (lastPoint.x > segment.end.x){
-                            // right to left
-                            ++rtl;
+                    // line is exactly vertical...are we on the segment?
+                    if (lastPoint.x === segment.end.x){
+                        if (point.x == segment.end.x){
+                            if (lastPoint.y < segment.end.y){
+                                if (point.y >= lastPoint.y && point.y <= segment.end.y){
+                                    return true;
+                                }
+                            }else{
+                                if (point.y <= lastPoint.y && point.y >= segment.end.y){
+                                    return true;
+                                }
+                            }
+                        }
+                    }else{
+                        cross = lastPoint.y + (point.x - lastPoint.x) * (segment.end.y - lastPoint.y);
+                        // If our point is exactly on a line, then we're in the path
+                        if (cross == point.y){
+                            return true;
+                        }
+                        // If our point is above the line
+                        if (cross > point.y){
+                            // going left to right
+                            if (lastPoint.x < segment.end.x){
+                                // and between the end points
+                                if (point.x >= lastPoint.x && point.x <= segment.end.x){
+                                    ++ltr;
+                                }
+                            // going right to left
+                            }else if (lastPoint.x > segment.end.x){
+                                // and between the end points
+                                if (point.x <= lastPoint.x && point.x >= segment.end.x){
+                                    ++rtl;
+                                }
+                            }
                         }
                     }
                     lastPoint = segment.end;
@@ -467,33 +494,48 @@ JSClass("JSPath", JSObject, {
                     var t = segment.curve.intervalsForX(point.x);
                     var p1;
                     var p2;
+                    var p3;
                     if (t.length > 0){
                         p1 = segment.curve.pointAtInterval(t[0]);
-                        if (p1.y >= point.y){
-                            p2 = segment.curve.pointAtInterval(t[0] + 0.01);
-                            if (p1.x < p2.x){
+                        if (p1.y == point.y){
+                            return true;
+                        }
+                        if (p1.y > point.y){
+                            p2 = segment.curve.pointAtInterval(t[0] - 0.01);
+                            p3 = segment.curve.pointAtInterval(t[0] + 0.01);
+                            if (p3.x > p1.x && p1.x > p2.x){
                                 ++ltr;
-                            }else{
+                            }else if (p3.x < p1.x && p1.x < p2.x){
                                 ++rtl;
+                            }else{
+                                // switching directions, don't care/cancels out
                             }
                         }
                         if (t.length > 1){
                             p1 = segment.curve.pointAtInterval(t[1]);
-                            if (p1.y >= point.y){
-                                p2 = segment.curve.pointAtInterval(t[1] + 0.01);
-                                if (p1.x < p2.x){
+                            if (p1.y == point.y){
+                                return true;
+                            }
+                            if (p1.y > point.y){
+                                p2 = segment.curve.pointAtInterval(t[1] - 0.01);
+                                p3 = segment.curve.pointAtInterval(t[1] + 0.01);
+                                if (p3.x > p1.x && p1.x > p2.x){
                                     ++ltr;
-                                }else{
+                                }else if (p3.x < p1.x && p1.x < p2.x){
                                     ++rtl;
                                 }
                             }
                             if (t.length > 2){
                                 p1 = segment.curve.pointAtInterval(t[2]);
-                                if (p1.y >= point.y){
-                                    p2 = segment.curve.pointAtInterval(t[1] + 0.01);
-                                    if (p1.x < p2.x){
+                                if (p1.y == point.y){
+                                    return true;
+                                }
+                                if (p1.y > point.y){
+                                    p2 = segment.curve.pointAtInterval(t[1] - 0.01);
+                                    p3 = segment.curve.pointAtInterval(t[1] + 0.01);
+                                    if (p3.x > p1.x && p1.x > p2.x){
                                         ++ltr;
-                                    }else{
+                                    }else if (p3.x < p1.x && p1.x < p2.x){
                                         ++rtl;
                                     }
                                 }
@@ -503,15 +545,45 @@ JSClass("JSPath", JSObject, {
                     lastPoint = segment.curve.p2;
                 }
             }
-            if (subpath.closed){
-                // If the segment crosses above point
-                if (lastPoint.y + (point.x - lastPoint.x) * (subpath.firstPoint.y - lastPoint.y) >= point.y){
-                    if (lastPoint.x < subpath.firstPoint.x){
-                        // left to right
-                        ++ltr;
-                    }else if (lastPoint.x > subpath.firstPoint.x){
-                        // right to left
-                        ++rtl;
+
+            // Don't forget the straight line back to the first point of the subpath,
+            // even if the subpath isn't closed, there's such an imaginary line for the
+            // purposes of determining what is in or out of the path
+            if (!lastPoint.isEqual(subpath.firstPoint)){
+                // line is exactly vertical...are we on the segment?
+                if (lastPoint.x === subpath.firstPoint.x){
+                    if (point.x == subpath.firstPoint.x){
+                        if (lastPoint.y < subpath.firstPoint.y){
+                            if (point.y >= lastPoint.y && point.y <= subpath.firstPoint.y){
+                                return true;
+                            }
+                        }else{
+                            if (point.y <= lastPoint.y && point.y >= subpath.firstPoint.y){
+                                return true;
+                            }
+                        }
+                    }
+                }else{
+                    cross = lastPoint.y + (point.x - lastPoint.x) * (segment.end.y - lastPoint.y);
+                    // If our point is exactly on a line, then we're in the path
+                    if (cross == point.y){
+                        return true;
+                    }
+                    // If our point is above the line
+                    if (cross > point.y){
+                        // going left to right
+                        if (lastPoint.x < subpath.firstPoint.x){
+                            // and between the end points
+                            if (point.x >= lastPoint.x && point.x <= subpath.firstPoint.x){
+                                ++ltr;
+                            }
+                        // going right to left
+                        }else if (lastPoint.x > subpath.firstPoint.x){
+                            // and between the end points
+                            if (point.x <= lastPoint.x && point.x >= subpath.firstPoint.x){
+                                ++rtl;
+                            }
+                        }
                     }
                 }
             }
