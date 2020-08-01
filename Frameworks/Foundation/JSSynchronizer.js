@@ -33,6 +33,7 @@ JSClass("JSSynchronizer", JSObject, {
         this._completions = [];
     },
 
+    state: null,
     pendingInterval: JSTimeInterval.seconds(2),
     successInterval: JSTimeInterval.seconds(2),
 
@@ -89,7 +90,7 @@ JSClass("JSSynchronizer", JSObject, {
                     controller._syncQueued = false;
                     controller._sync();
                 }else{
-                    if (error === null){
+                    if (error === null || error === undefined){
                         controller._setState(JSSynchronizer.State.success);
                     }else{
                         controller._setState(JSSynchronizer.State.error);
@@ -143,7 +144,6 @@ JSClass("JSSynchronizer", JSObject, {
                 this._successTimer = null;
             }
         }
-        this.didChangeValueForBinding("state");
     },
 
     _callCompletions: function(){
