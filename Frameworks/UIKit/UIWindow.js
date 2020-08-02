@@ -549,7 +549,7 @@ JSClass('UIWindow', UIView, {
     // MARK: - First Responder
 
     firstResponder: JSDynamicProperty('_firstResponder', null),
-    _initialFirstResponder: null,
+    initialFirstResponder: JSDynamicProperty('_initialFirstResponder', null),
 
     canBecomeFirstResponder: function(){
         return true;

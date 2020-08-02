@@ -34,10 +34,12 @@ JSClass('UILabel', UIView, {
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
+        this.userInteractionEnabled = false;
         this.maximumNumberOfLines = 1;
     },
 
     initWithSpec: function(spec){
+        this.userInteractionEnabled = false;
         UILabel.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("font")){
             this.font = spec.valueForKey("font", JSFont);
@@ -85,6 +87,7 @@ JSClass('UILabel', UIView, {
     setAllowsSelection: function(allowsSelection){
         this._allowsSelection = allowsSelection;
         if (this._allowsSelection){
+            this.userInteractionEnabled = true;
             this.cursor = UICursor.iBeam;
         }else{
             this.cursor = null;

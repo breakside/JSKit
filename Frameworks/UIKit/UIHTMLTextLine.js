@@ -26,12 +26,14 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     emptyTextNode: null,
     attachments: null,
     overflowed: false,
+    fontLineHeight: 0,
 
     initWithElementAndFont: function(element, font, height, location){
         UIHTMLTextLine.$super.initWithHeight.call(this, height, -font.displayDescender, location);
         this.element = element;
         element.style.font = font.cssString(height);
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
+        this.fontLineHeight = font.displayLineHeight;
         this.attachments = [];
     },
 
@@ -91,20 +93,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     },
 
     rectForEmptyCharacter: function(){
-        if (this.emptyTextNode === null){
-            return UIHTMLTextLine.$super.rectForEmptyCharacter.call(this);
-        }
-        var range = this.emptyTextNode.ownerDocument.createRange();
-        range.setStart(this.emptyTextNode, 0);
-        range.setEnd(this.emptyTextNode, 0);
-        var clientRect = range.getClientRects()[0];
-        var elementClientRect = this.element.getBoundingClientRect();
-        return JSRect(
-            clientRect.left - elementClientRect.left,
-            clientRect.top - elementClientRect.top,
-            clientRect.width,
-            clientRect.height
-        );
+        return JSRect(0, 0, 0, this.fontLineHeight);
     }
 
 });
