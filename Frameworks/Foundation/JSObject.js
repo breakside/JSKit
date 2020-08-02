@@ -755,6 +755,9 @@ JSObject.definePropertiesFromExtensions({
 
     defineObservablePropertyForKey: function(key, value){
         var silentKey = this.$class.nameOfSilentPropertyForKey(key);
+        if (silentKey in this){
+            throw new Error("Cannot observe property %s.%s.  To fix, rename %s.%s".sprintf(this.$class.className, key, this.$class.className, silentKey));
+        }
         Object.defineProperty(this, silentKey, {
             configurable: true,
             enumerable: false,
