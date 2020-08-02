@@ -143,7 +143,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         return this.range.location + min;
     },
 
-    widthOfRange: function(range){
+    _textFrameConstructionWidthOfRange: function(range){
+        // during construction, we can measure this.element directly because
+        // we know it's not transformed
         if (range.length === 0){
             return 0;
         }
@@ -160,36 +162,53 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     },
 
     rectForCharacterAtIndex: function(index){
+        // attachment run
         if (this.textNode === null){
-            var boundingRect = this.element.getBoundingClientRect();
             if (index === 0){
-                return JSRect(0, 0, boundingRect.width, boundingRect.height);
+                return JSRect(0, 0, this.size.width, this.size.height);
             }
             if (index === 1){
-                return JSRect(boundingRect.width, 0, 0, boundingRect.height);
+                return JSRect(this.size.width, 0, 0, this.size.height);
             }
             return JSRect.Zero;
         }
+
+        // at end, which we know without measuring
+        if (index >= this.range.length){
+            return JSRect(this.size.width, 0, 0, this.size.height);
+        }
+
+        // We need a different element for measuring because we don't know
+        // how our element has been transformed and need to do measurements
+        // in an untransformed environment
+        this.updateSharedElementForSizing();
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;
         index *= this._maskFactor;
-        if (index < this.textNode.nodeValue.length){
-            var iterator = this.textNode.nodeValue.userPerceivedCharacterIterator(index);
-            sharedDomRange.setStart(this.textNode, iterator.range.location);
-            sharedDomRange.setEnd(this.textNode, iterator.range.end);
-        }else{
-            sharedDomRange.setStart(this.textNode, this.textNode.nodeValue.length);
-            sharedDomRange.setEnd(this.textNode, this.textNode.nodeValue.length);
-        }
+        var iterator = sharedElementForSizing.firstChild.nodeValue.userPerceivedCharacterIterator(index);
+        sharedDomRange.setStart(sharedElementForSizing.firstChild, iterator.range.location);
+        sharedDomRange.setEnd(sharedElementForSizing.firstChild, iterator.range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
-        // The rect reported by the DOM range is relative to the client window, so we
-        // need to convert it to a JSRect relative to the text container origin
         if (clientRect === undefined){
             return JSRect.Zero;
         }
-        rect = this._rectInElementForDOMClientRect(clientRect);
-        return rect;
+        var elementClientRect = sharedElementForSizing.getBoundingClientRect();
+        return JSRect(clientRect.left - elementClientRect.left, 0, clientRect.width, this.size.height);
+    },
+
+    updateSharedElementForSizing: function(){
+        if (sharedElementForSizing === null){
+            sharedElementForSizing = this.element.ownerDocument.createElement("span");
+            sharedElementForSizing.appendChild(sharedElementForSizing.ownerDocument.createTextNode(""));
+            sharedElementForSizing.style.visibility = "hidden";
+            sharedElementForSizing.style.position = "absolute";
+            sharedElementForSizing.style.zIndex = -100;
+            sharedElementForSizing.style.right = "0";
+            sharedElementForSizing.ownerDocument.body.appendChild(sharedElementForSizing);
+        }
+        sharedElementForSizing.style.font = this.element.style.font;
+        sharedElementForSizing.firstChild.nodeValue = this.textNode.nodeValue;
     },
 
     _pickCorrectClientRectFromRects: function(rects){
@@ -201,18 +220,10 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             return rects[1];
         }
         return rects[0];
-    },
-
-    _rectInElementForDOMClientRect: function(domClientRect){
-        var elementClientRect = this.element.getBoundingClientRect();
-        return JSRect(
-            domClientRect.left - elementClientRect.left,
-            domClientRect.top - elementClientRect.top,
-            domClientRect.width,
-            domClientRect.height
-        );
     }
 
 });
+
+var sharedElementForSizing = null;
 
 })();

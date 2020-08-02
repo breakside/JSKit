@@ -108,7 +108,7 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
                 }
                 if (!iterator.isWhiteSpace){
                     iterator.increment();
-                    line._trailingWhitespaceWidth += run.widthOfRange(JSRange(iterator.index, run.textNode.nodeValue.length - iterator.index));
+                    line._trailingWhitespaceWidth += run._textFrameConstructionWidthOfRange(JSRange(iterator.index, run.textNode.nodeValue.length - iterator.index));
                     break;
                 }
             }
