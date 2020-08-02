@@ -254,6 +254,8 @@ JSClass('UIApplication', UIResponder, {
         return null;
     },
 
+    shortcutMenu: null,
+
     // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
@@ -261,6 +263,11 @@ JSClass('UIApplication', UIResponder, {
             var mainMenu = this.mainMenu;
             if (mainMenu){
                 if (mainMenu.performKeyEquivalent(event)){
+                    return;
+                }
+            }
+            if (this.shortcutMenu !== null){
+                if (this.shortcutMenu.performKeyEquivalent(event)){
                     return;
                 }
             }

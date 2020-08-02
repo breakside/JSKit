@@ -133,6 +133,16 @@ topics:
         name: mainMenu
         type: UIMenu
         summary: The application's menu that gets shown in the main menu bar
+      -
+        introduced: 2020.30.3
+        name: shortcutMenu
+        type: UIMenu
+        summary: For applications that don't show a main menu, but still want to
+          allow keyboard shortcuts that work anywhere
+        description: |
+          The user never sees this menu, but any shortcut key combinations that
+          the menu's items define will be processed just like those for a
+          visible `mainMenu`
   -
     name: Opening URLs
     members:
