@@ -324,6 +324,180 @@ topics:
     name: Style
     members:
       -
+        name: Styler
+        suffix: enum
+        kind: enum
+        summary: The built-in stylers for text fields
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: default
+                summary: A `UITextFieldDefaultStyler`
+                description: |
+                  Set to make your own styler the default
+              -
+                name: custom
+                summary: A `UITextFieldCustomStyler` that starts out compeltely blank
+      -
+        name: UITextFieldStyler
+        kind: class
+        summary: The abstract base class for all text field stylers
+        topics:
+          -
+            name: Creating a text field styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The styler properties that can be set in a spec file
+                topics:
+                  -
+                    name: Cursor
+                    members:
+                      -
+                        name: localCursorColor
+                        type: JSColor
+                        summary: The color to use for the local user's cursor
+                  -
+                    name: Accessory Views
+                    members:
+                      -
+                        name: leftAccessoryColor
+                        type: JSColor
+                        summary: The color for the left accessory view
+                      -
+                        name: rightAccessoryColor
+                        type: JSColor
+                        summary: The color for the left accessory view
+          -
+            name: Cursor
+            members:
+              -
+                name: localCursorColor
+                type: JSColor
+                summary: The color to use for the local user's cursor
+          -
+            name: Accessory Views
+            members:
+              -
+                name: leftAccessoryColor
+                type: JSColor
+                summary: The color for the left accessory view
+              -
+                name: rightAccessoryColor
+                type: JSColor
+                summary: The color for the left accessory view
+      -
+        name: UITextFieldDefaultStyler
+        inherits: UITextFieldStyler
+        kind: class
+        summary: The default styler class for `UIKit` text fields
+        description: |
+          Shows a line along the bottom of the text field
+        topics:
+          -
+            name: Line
+            members:
+              -
+                name: activeColor
+                type: JSColor
+                summary: The color of the line when the text field is active
+              -
+                name: inactiveColor
+                type: JSColor
+                summary: The color of the line when the text field is inactive
+          -
+            name: Text
+            members:
+              -
+                name: textInsets
+                type: JSInsets
+                summary: The amount to inset text from the edges
+      -
+        name: UITextFieldCustomStyler
+        inherits: UITextFieldStyler
+        kind: class
+        summary: A customizable styler class for `UIKit` text fields
+        topics:
+          -
+            name: Creating a custom styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The custom text styler properties that can be set in a spec
+                members:
+                  -
+                    name: Background
+                    members:
+                      -
+                        name: backgroundColor
+                        type: JSColor
+                        summary: The color of the field's background when inactive
+                      -
+                        name: activeBackgroundColor
+                        type: JSColor
+                        summary: The color of the field's background when active
+                      -
+                        name: disabledBackgroundColor
+                        type: JSColor
+                        summary: The color of the field's background when disabled
+                      -
+                        name: cornerRadius
+                        type: JSColor
+                        summary: The amount to round the corners of the text field
+                  -
+                    name: Text
+                    members:
+                      -
+                        name: textColor
+                        type: JSColor
+                        summary: The color of the text
+                      -
+                        name: placeholderColor
+                        type: JSColor
+                        summary: The color of the placeholder text
+                      -
+                        name: textInsets
+                        type: JSInsets
+                        summary: The amount to inset text from the edges
+          -
+            name: Background
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The color of the field's background when inactive
+              -
+                name: activeBackgroundColor
+                type: JSColor
+                summary: The color of the field's background when active
+              -
+                name: disabledBackgroundColor
+                type: JSColor
+                summary: The color of the field's background when disabled
+              -
+                name: cornerRadius
+                type: JSColor
+                summary: The amount to round the corners of the text field
+          -
+            name: Text
+            members:
+              -
+                name: textColor
+                type: JSColor
+                summary: The color of the text
+              -
+                name: placeholderColor
+                type: JSColor
+                summary: The color of the placeholder text
+              -
+                name: textInsets
+                type: JSInsets
+                summary: The amount to inset text from the edges
+      -
         name: font
         type: JSFont
         summary: The font to use for the text
