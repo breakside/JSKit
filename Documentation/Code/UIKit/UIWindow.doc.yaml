@@ -652,6 +652,13 @@ topics:
         type: UIResponder
         summary: The responder that will receive key events and menu actions
       -
+        introduced: 2020.30.3
+        name: initialFirstResponder
+        type: UIResponder
+        nullable: true
+        summary: The responder to set as the `firstResponder` when the window
+          opens
+      -
         name: setFirstResponderToKeyViewAfterView
         kind: method
         summary: Move forward through the key view loop to the next available
