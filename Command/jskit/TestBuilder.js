@@ -99,7 +99,7 @@ JSClass("TestBuilder", Builder, {
         await this.buildNode();
         await this.buildWWW();
         await this.copyLicense();
-        await this.copyInfo();
+        await this.bundleInfo();
     },
 
     findImports: async function(){
@@ -430,12 +430,6 @@ JSClass("TestBuilder", Builder, {
 
     // -----------------------------------------------------------------------
     // MARK: - Info & License
-
-    copyInfo: async function(){
-        var infoName = this.project.infoURL.lastPathComponent;
-        var infoURL = this.bundleURL.appendingPathComponent(infoName);
-        await this.fileManager.copyItemAtURL(this.project.infoURL, infoURL);
-    },
 
     copyLicense: async function(){
         var licenseName = this.project.licenseFilename;

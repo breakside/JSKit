@@ -69,6 +69,16 @@ topics:
         see:
           - --debug
   -
+    name: Automated Builds
+    members:
+      -
+        introduced: 2020.31.0
+        name: --bundle-version
+        type: String
+        summary: The bundle version to use, overriding the project's Info file
+        description: |
+          Useful for build systems that automatically generate a version number
+  -
     name: HTML Specific Arguments
     summary: For use when calling `make` on projects that have an `html` type
     members:

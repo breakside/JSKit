@@ -97,7 +97,7 @@ JSClass("NodeBuilder", Builder, {
         await this.buildNPM();
         await this.copyLicense();
         await this.copyReadme();
-        await this.copyInfo();
+        await this.bundleInfo();
         await this.buildDocker();
         await this.finish();
     },
@@ -368,12 +368,6 @@ JSClass("NodeBuilder", Builder, {
 
     // -----------------------------------------------------------------------
     // MARK: - Info & License
-
-    copyInfo: async function(){
-        var infoName = this.project.infoURL.lastPathComponent;
-        var infoURL = this.bundleURL.appendingPathComponent(infoName);
-        await this.fileManager.copyItemAtURL(this.project.infoURL, infoURL);
-    },
 
     copyLicense: async function(){
         var licenseName = this.project.licenseFilename;

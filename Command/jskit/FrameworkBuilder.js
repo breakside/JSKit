@@ -81,7 +81,7 @@ JSClass("FrameworkBuilder", Builder, {
         await this.bundleResources();
         await this.findImports();
         await this.bundleJavascript();
-        await this.copyInfo();
+        await this.bundleInfo();
         await this.copyLicense();
         await this.finish();
     },
@@ -235,12 +235,6 @@ JSClass("FrameworkBuilder", Builder, {
             }
         }
         return sources;
-    },
-
-    copyInfo: async function(){
-        var infoName = this.project.infoURL.lastPathComponent;
-        var infoURL = this.bundleURL.appendingPathComponent(infoName);
-        await this.fileManager.copyItemAtURL(this.project.infoURL, infoURL);
     },
 
     copyLicense: async function(){

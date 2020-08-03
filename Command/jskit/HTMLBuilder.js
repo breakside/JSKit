@@ -121,7 +121,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.buildServiceWorker();
         await this.bundleConf();
         await this.copyLicense();
-        await this.copyInfo();
+        await this.bundleInfo();
         await this.buildDocker();
         await this.finish();
     },
@@ -765,13 +765,6 @@ JSClass("HTMLBuilder", Builder, {
 
     // -----------------------------------------------------------------------
     // MARK: - Info & License
-
-    copyInfo: async function(){
-        this.printer.setStatus("Copying Info...");
-        var infoName = this.project.infoURL.lastPathComponent;
-        var infoURL = this.bundleURL.appendingPathComponent(infoName);
-        await this.fileManager.copyItemAtURL(this.project.infoURL, infoURL);
-    },
 
     copyLicense: async function(){
         this.printer.setStatus("Copying license...");

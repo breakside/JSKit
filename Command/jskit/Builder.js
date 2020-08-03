@@ -54,6 +54,7 @@ JSClass("Builder", JSObject, {
     fileManager: null,
     workingDirectoryURL: null,
     debug: false,
+    bundleVersion: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Project & Dependencies
@@ -96,6 +97,9 @@ JSClass("Builder", JSObject, {
         var gitRevision = await this.getGitRevision();
         if (gitRevision !== null){
             this.project.info.GitRevision = gitRevision;
+        }
+        if (this.bundleVersion !== null){
+            this.project.info.JSBundleVersion = this.bundleVersion;
         }
     },
 
@@ -225,6 +229,15 @@ JSClass("Builder", JSObject, {
     },
 
     replaceTemplateText: function(text, parameters){
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Info
+
+    bundleInfo: async function(){
+        var infoURL = this.bundleURL.appendingPathComponent("Info.json");
+        var json = JSON.stringify(this.project.info, null, 2);
+        await this.fileManager.createFileAtURL(infoURL, json.utf8());
     },
 
     // -----------------------------------------------------------------------
