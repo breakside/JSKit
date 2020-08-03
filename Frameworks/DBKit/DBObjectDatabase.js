@@ -18,6 +18,7 @@
 // #import "DBRemoteStore.js"
 // #import "DBMemoryStore.js"
 // #import "DBEphemeralObjectStore.js"
+/* global DBSecureObjectDatabase */
 'use strict';
 
 (function(){
@@ -67,7 +68,15 @@ JSClass("DBObjectDatabase", JSObject, {
     },
 
     object: function(id, completion, target){
-        return this.store.object(id, completion, target);
+        if (!completion){
+            completion = Promise.completion();
+        }
+        if (!this.isValidId(id)){
+            completion.call(target, null);
+            return;
+        }
+        this.store.object(id, completion, target);
+        return completion.promise;
     },
 
     requiredObject: function(id, errorfn, errorArg1){
@@ -84,12 +93,24 @@ JSClass("DBObjectDatabase", JSObject, {
     },
 
     save: function(obj, completion, target){
-        return this.store.save(obj, completion, target);
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!this.isValidId(obj.id)){
+            completion.call(target, false);
+            return;
+        }
+        this.store.save(obj, completion, target);
+        return completion.promise;
     },
 
     saveExpiring: function(obj, lifetimeInSeconds, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!this.isValidId(obj.id)){
+            completion.call(target, false);
+            return;
         }
         if (this.store.isKindOfClass(DBEphemeralObjectStore)){
             this.store.saveExpiring(obj, lifetimeInSeconds, completion, target);
@@ -101,7 +122,41 @@ JSClass("DBObjectDatabase", JSObject, {
     },
 
     delete: function(id, completion, target){
-        return this.store.delete(id, completion, target);
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!this.isValidId(id)){
+            completion.call(target, false);
+            return;
+        }
+        this.store.delete(id, completion, target);
+        return completion.promise;
+    },
+
+    secure: JSReadOnlyProperty('_secure', null),
+
+    setKeystore: function(keystore){
+        if (keystore === null){
+            this._secure = null;
+        }else{
+            this._secure = DBSecureObjectDatabase.initWithKeystore(keystore, this.store);
+        }
+    },
+
+    isValidId: function(id){
+        if (id === undefined){
+            return false;
+        }
+        if (id === null){
+            return false;
+        }
+        if (typeof(id) !== "string"){
+            return false;
+        }
+        if (id.length === 0){
+            return false;
+        }
+        return true;
     }
 
 });

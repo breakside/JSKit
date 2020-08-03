@@ -29,6 +29,10 @@ JSClass("JSEnvironment", JSObject, {
         }
     },
 
+    initWithDictionary: function(dictionary){
+        this._valuesByName = dictionary;
+    },
+
     _parseLine: function(line){
         if (line.startsWith("#")){
             return;
@@ -54,3 +58,5 @@ JSClass("JSEnvironment", JSObject, {
     }
 
 });
+
+JSEnvironment.current = JSEnvironment.initWithDictionary({});

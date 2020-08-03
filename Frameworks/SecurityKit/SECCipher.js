@@ -121,6 +121,27 @@ JSClass("SECCipher", JSObject, {
         return completion.promise;
     },
 
+    createKeyWithName: function(name, keystore, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        keystore.keyDataForName(name, function(keyData){
+            if (keyData === null){
+                completion.call(target, null);
+                return;
+            }
+            this.createKeyWithData(keyData, function(key){
+                keyData.zero();
+                if (key === null){
+                    completion.call(target, null);
+                    return;
+                }
+                completion.call(target, key);
+            }, this);
+        }, this);
+        return completion.promise;
+    },
+
     createKeyWithPassphrase: function(passphrase, salt, iterations, hash, completion, target){
         if (typeof(iterations) == 'function'){
             target = hash;

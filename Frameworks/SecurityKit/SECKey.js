@@ -21,4 +21,7 @@ JSClass("SECKey", JSObject, {
     getData: function(completion, target){
     },
 
+    destroy: function(){
+    }
+
 });

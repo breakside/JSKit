@@ -25,10 +25,6 @@ SKApplication.definePropertiesFromExtensions({
 
     _getWorkingDirectoryURL: function(){
         return JSFileManager.shared.urlForPath(process.cwd(), null, true);
-    },
-
-    _getDefaultEnvironment: function(){
-        return process.env;
     }
 
 });

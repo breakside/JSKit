@@ -21,7 +21,7 @@ JSClass("SECDataKey", SECKey, {
     keyData: null,
 
     initWithData: function(data){
-        this.keyData = data;
+        this.keyData = JSData.initWithCopyOfData(data);
     },
 
     getData: function(completion, target){
@@ -30,6 +30,10 @@ JSClass("SECDataKey", SECKey, {
         }
         JSRunLoop.main.schedule(completion, target, this.keyData);
         return completion.promise;
+    },
+
+    destroy: function(){
+        this.keyData.zero();
     }
 
 });

@@ -13,14 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
+// #import "JSEnvironment.js"
+// jshint node: true
+'use strict';
 
-// #import "SECCipher.js"
-// #import "SECHash.js"
-// #import "SECVerify.js"
-// #import "SECKeychain.js"
-// #import "SECJSONWebToken.js"
-// #import "SECPassword.js"
-// #import "SECDER.js"
-// #import "SECOneTimePassword.js"
-// #import "SECKeystore.js"
+JSEnvironment.current = JSEnvironment.initWithDictionary(process.env);
