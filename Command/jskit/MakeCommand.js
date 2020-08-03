@@ -39,6 +39,7 @@ JSClass("MakeCommand", Command, {
         'include':      {multiple: true, default: [],   help: "Extra include directory, can be specified multiple times."},
         'builds-root':  {default: null,                 help: "Root folder for builds"},
         'project':      {kind: "positional",            help: "The project to build"},
+        'bundle-version': {default: null,               help: "The bundle version to use, overriding the project's Info file"},
         'subargs':      {kind: "unknown",               help: "Additional arguments for specific project types"}
     },
 
@@ -65,6 +66,7 @@ JSClass("MakeCommand", Command, {
         this.builder.printer = this.printer;
         this.builder.debug = this.arguments.debug;
         this.builder.shouldTag = !this.arguments['no-tag'];
+        this.builder.bundleVersion = this.arguments['bundle-version'];
         if (this.arguments['builds-root']){
             this.builder.buildsRootURL = this.fileManager.urlForPath(this.arguments['builds-root'], this.workingDirectoryURL, true);
         }else{
