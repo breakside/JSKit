@@ -592,6 +592,9 @@ JSClass('UIWindow', UIView, {
         if (this.viewController !== null){
             return this.viewController;
         }
+        if (this.isKeyWindow && this.windowServer.mainWindow !== null && this.windowServer.mainWindow !== this){
+            return this.windowServer.mainWindow;
+        }
         return this._application;
     },
 
