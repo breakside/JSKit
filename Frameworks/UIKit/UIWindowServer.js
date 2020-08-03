@@ -114,7 +114,9 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     makeWindowKey: function(window){
-        this.makeWindowMain(window);
+        if (window !== null){
+            this.makeWindowMain(window);
+        }
         if (this.keyWindow === window){
             return;
         }
