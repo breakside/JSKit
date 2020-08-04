@@ -280,8 +280,10 @@ JSClass('UIApplication', UIResponder, {
 
     firstTargetForAction: function(action, target, sender){
         if (target === null){
-            if (this.mainWindow !== null){
-                target = this.mainWindow.firstResponder || this.mainWindow || this;
+            if (this.keyWindow !== null){
+                target = this.keyWindow.firstResponder || this.keyWindow;
+            }else if (this.mainWindow !== null){
+                target = this.mainWindow.firstResponder || this.mainWindow;
             }else{
                 target = this;
             }
