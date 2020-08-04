@@ -125,7 +125,7 @@ JSClass("SECCipher", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        keystore.keyDataForName(name, function(keyData){
+        keystore.keyForName(name, function(keyData){
             if (keyData === null){
                 completion.call(target, null);
                 return;

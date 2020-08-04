@@ -30,7 +30,7 @@ JSClass("JSEnvironment", JSObject, {
     },
 
     initWithDictionary: function(dictionary){
-        this._valuesByName = dictionary;
+        this._valuesByName = JSCopy(dictionary);
     },
 
     _parseLine: function(line){
