@@ -16,9 +16,22 @@
 // #import Foundation
 'use strict';
 
+(function(){
+
 JSClass("SECVerify", JSObject, {
 
     initWithAlgorithm: function(algorithm){
+    },
+
+    initForJWK: function(jwk){
+        if (jwk.kty != "RSA"){
+            return null;
+        }
+        var algorithm = jwkAlgorithm[jwk.alg];
+        if (!algorithm){
+            return null;
+        }
+        this.initWithAlgorithm(algorithm);
     },
 
     update: function(data){
@@ -37,3 +50,11 @@ SECVerify.Algorithm = {
     rsaSHA384: "rsa.sha384",
     rsaSHA512: "rsa.sha512",
 };
+
+var jwkAlgorithm = {
+    "RS256": SECVerify.rsaSHA256,
+    "RS384": SECVerify.rsaSHA384,
+    "RS512": SECVerify.rsaSHA512
+};
+
+})();

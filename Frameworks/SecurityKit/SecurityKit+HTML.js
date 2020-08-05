@@ -19,4 +19,5 @@
 // #import "SECSign+HTML.js"
 // #import "SECVerify+HTML.js"
 // #import "SECPassword+HTML.js"
+// #import "SECHTMLDevice.js"
 // #import "SECHTMLKey.js"
