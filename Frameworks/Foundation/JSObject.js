@@ -197,7 +197,7 @@ JSObject.definePropertiesFromExtensions({
         }
         this._observers[key].push(observerInfo);
         if (keyParts.length){
-            var value = this.valueForKey(keyParts[0]);
+            var value = this.valueForKey(key);
             if (value){
                 value.addObserverForKeyPath(this, keyParts.join('.'), options, observerInfo);
             }
