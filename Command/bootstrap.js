@@ -173,6 +173,7 @@ var command = MakeCommand.initInWorkingDirectory(rootDirectory);
 command.arguments = {
     project: "Command/jskit",
     debug: true,
+    "bundle-version": null,
     subargs: []
 };
 command.run();
