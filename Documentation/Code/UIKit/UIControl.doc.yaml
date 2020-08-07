@@ -538,9 +538,14 @@ topics:
           });
           ````
       -
+        introduced: 2020.31.3
+        name: removeAllActions
+        kind: method
+        summary: Remove all actions that were previously added
+      -
         name: removeAction
         kind: method
-        summary: Remove an action that was previous added
+        summary: Remove an action that was previously added
         arguments:
           -
             name: action
@@ -560,7 +565,7 @@ topics:
         name: removeAction
         suffix: function
         kind: method
-        summary: Remove an action function that was previous added
+        summary: Remove an action function that was previously added
         arguments:
           -
             name: action
