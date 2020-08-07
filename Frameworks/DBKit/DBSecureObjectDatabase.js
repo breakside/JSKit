@@ -65,11 +65,10 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
         return completion.promise;
     },
 
-    encryptObject: function(obj, completion, target){
+    encryptObject: function(obj, keyName, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var keyName = this.defaultKeyName;
         var cipher = SECCipher.initWithAlgorithm(this.defaultAlgorithm, this.defaultKeyBitLength);
         cipher.createKeyForName(keyName, this.keystore, function(key){
             if (key === null){
@@ -112,10 +111,14 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
     },
 
     save: function(obj, completion, target){
+        return this.saveUsingKey(obj, this.defaultKeyName, completion, target);
+    },
+
+    saveUsingKey: function(obj, keyName, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this.encryptObject(obj, function(encryptedObject){
+        this.encryptObject(obj, keyName, function(encryptedObject){
             if (encryptedObject === null){
                 completion.call(target, false);
                 return;
@@ -126,11 +129,15 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
     },
 
     saveExpiring: function(obj, lifetimeInSeconds, completion, target){
+        return this.saveExpiringUsingKey(obj, lifetimeInSeconds, this.defaultKeyName, completion, target);
+    },
+
+    saveExpiringUsingKey: function(obj, lifetimeInSeconds, keyName, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (this.store.isKindOfClass(DBEphemeralObjectStore)){
-            this.encryptObject(obj, function(encryptedObject){
+            this.encryptObject(obj, keyName, function(encryptedObject){
                 if (encryptedObject === null){
                     completion.call(target, false);
                     return;
