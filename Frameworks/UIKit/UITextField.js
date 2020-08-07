@@ -590,7 +590,7 @@ JSClass("UITextField", UIControl, {
     pasteAndMatchStyle: function(){
         if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
             var text = UIPasteboard.general.stringForType(UIPasteboard.ContentType.plainText);
-            this._localEditor.insertText(text);
+            this.insertText(text);
         }
     },
 
@@ -886,7 +886,7 @@ JSClass("UITextField", UIControl, {
     },
 
     _sanitizedText: function(text){
-        if (this._multiline){
+        if (!this._multiline){
             return text.replace(/\r\n/g, ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/g, ' ');
         }
         return text;
