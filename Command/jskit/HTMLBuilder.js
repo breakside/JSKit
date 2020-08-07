@@ -781,9 +781,6 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Docker
 
     buildDocker: async function(){
-        if (this.arguments['no-docker']){
-            return;
-        }
         if (!this.needsDockerBuild){
             return;
         }
@@ -802,6 +799,10 @@ JSClass("HTMLBuilder", Builder, {
         dockerfile = dockerfile.replacingTemplateParameters(params);
         var url = this.buildURL.appendingPathComponent("Dockerfile");
         await this.fileManager.createFileAtURL(url, dockerfile);
+
+        if (this.arguments['no-docker']){
+            return;
+        }
 
         var makeTag = function(tag){
             return "%s%s:%s".sprintf(prefix ? prefix + '/' : '', image, tag).toLowerCase();
