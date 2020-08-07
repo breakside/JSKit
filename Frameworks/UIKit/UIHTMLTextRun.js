@@ -191,7 +191,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         sharedDomRange.setEnd(sharedElementForSizing.firstChild, iterator.range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
         if (clientRect === undefined){
-            return JSRect.Zero;
+            return JSRect(0, 0, 0, this.size.height);
         }
         var elementClientRect = sharedElementForSizing.getBoundingClientRect();
         return JSRect(clientRect.left - elementClientRect.left, 0, clientRect.width, this.size.height);
