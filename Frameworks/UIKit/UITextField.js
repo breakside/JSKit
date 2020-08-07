@@ -55,6 +55,9 @@ JSClass("UITextField", UIControl, {
         if (spec.containsKey("multiline")){
             this.multiline = spec.valueForKey("multiline");
         }
+        if (spec.containsKey("textAlignment")){
+            this.textAlignment = spec.valueForKey("textAlignment", JSTextAlignment);
+        }
         if (spec.containsKey('leftImage')){
             this.leftImage = spec.valueForKey("leftImage", JSImage);
         }else if (spec.containsKey('leftAccessoryView')){
@@ -223,7 +226,7 @@ JSClass("UITextField", UIControl, {
         this._placeholderTextLayer.maximumNumberOfLines = 1;
         this._placeholderTextLayer.font = this._textLayer.font;
         this._placeholderTextLayer.hidden = true;
-        this._placeholderTextLayer.widthTracksText = true;
+        this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
         this._placeholderTextLayer.heightTracksText = true;
         if (this._placeholderColor === null){
             this._createPlaceholderColor();
@@ -279,9 +282,21 @@ JSClass("UITextField", UIControl, {
     // --------------------------------------------------------------------
     // MARK: - Styling
 
+    textAlignment: JSDynamicProperty(),
     textColor: JSDynamicProperty(),
     localCursorColor: JSDynamicProperty(),
     font: JSDynamicProperty(),
+
+    setTextAlignment: function(textAlignment){
+        this._textLayer.textAlignment = textAlignment;
+        if (this._placeholderTextLayer !== null){
+            this._placeholderTextLayer.textAlignment = textAlignment;
+        }
+    },
+
+    getTextAlignment: function(){
+        return this._textLayer.textAlignment;
+    },
 
     setTextColor: function(textColor){
         this._textLayer.textColor = textColor;
@@ -328,6 +343,9 @@ JSClass("UITextField", UIControl, {
         this._multiline = multiline;
         this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
         this._textLayer.widthTracksText = !multiline;
+        if (this._placeholderTextLayer !== null){
+            this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
+        }
         this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
     },
 
@@ -600,17 +618,34 @@ JSClass("UITextField", UIControl, {
     layoutSublayersOfLayer: function(layer){
         if (layer === this.layer){
             this.layoutSubviews();
+            if (!this._multiline){
+                this._textLayer.layoutIfNeeded();
+            }
+            var clipSize = this._clipView.bounds.size;
+            var textSize = this._textLayer.bounds.size;
             if (this._multiline){
-                this._textLayer.frame = JSRect(this._textLayer.bounds.origin, JSSize(
-                    this._clipView.bounds.size.width,
-                    this._textLayer.frame.size.height
-                ));
+                this._textLayer.frame = JSRect(0, 0, clipSize.width, textSize.height);
+            }else if (this._textLayer.textAlignment == JSTextAlignment.center){
+                this._textLayer.frame = JSRect(Math.max(0, (clipSize.width - textSize.width) / 2), 0, textSize.width, textSize.height);
+            }else if (this._textLayer.textAlignment == JSTextAlignment.right){
+                this._textLayer.frame = JSRect(Math.max(0, clipSize.width - textSize.width), 0, textSize.width, textSize.height);
+            }else{
+                this._textLayer.frame = JSRect(JSPoint.Zero, textSize);
             }
             if (this._placeholderTextLayer !== null){
-                this._placeholderTextLayer.frame = JSRect(this._textLayer.bounds.origin, JSSize(
-                    this._clipView.bounds.size.width,
-                    this._placeholderTextLayer.frame.size.height
-                ));
+                if (!this._multiline){
+                    this._placeholderTextLayer.layoutIfNeeded();
+                }
+                var placeholderSize = this._placeholderTextLayer.bounds.size;
+                if (this._multiline){
+                    this._placeholderTextLayer.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
+                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.center){
+                    this._placeholderTextLayer.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
+                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.right){
+                    this._placeholderTextLayer.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
+                }else{
+                    this._placeholderTextLayer.frame = JSRect(JSPoint.Zero, placeholderSize);
+                }
             }
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
@@ -767,9 +802,9 @@ JSClass("UITextField", UIControl, {
     },
 
     _adjustClipViewOrigin: function(origin){
-        var size = this._textLayer.frame.size;
-        if (origin.x > size.width - this._clipView.bounds.size.width){
-            origin.x = size.width - this._clipView.bounds.size.width;
+        var maxX = this._textLayer.frame.origin.x + this._textLayer.frame.size.width;
+        if (origin.x > maxX - this._clipView.bounds.size.width){
+            origin.x = maxX - this._clipView.bounds.size.width;
         }
         if (origin.x < 0){
             origin.x = 0;
