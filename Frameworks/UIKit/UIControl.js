@@ -164,6 +164,10 @@ JSClass("UIControl", UIView, {
         }
     },
 
+    removeAllActions: function(){
+        this._actionsByEvent = {};
+    },
+
     sendActionsForEvents: function(controlEvents, uiEvent){
         var event = 0x1;
         while (controlEvents > 0){
