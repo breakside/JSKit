@@ -137,7 +137,7 @@ JSClass("HTMLBuilder", Builder, {
     _workingDirectoryEnvironment: null,
 
     setupEnvironment: async function(){
-        this._workingDirectoryEnvironment = {};
+        this._workingDirectoryEnvironment = JSEnvironment.current;
         var url;
         if (this.arguments.env){
             url = this.workingDirectoryURL.appendingPathComponent(this.arguments.env);
