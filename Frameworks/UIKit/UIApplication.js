@@ -207,17 +207,22 @@ JSClass('UIApplication', UIResponder, {
                 callback(error);
                 return;
             }
-            var launchOptions = this.launchOptions();
-            if (!this.delegate){
-                throw new Error("No application delegate defined");
-            }
-            if (!this.delegate.applicationDidFinishLaunching){
-                throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
-            }
-            logger.info("Calling delegate.applicationDidFinishLaunching");
-            this.delegate.applicationDidFinishLaunching(this, launchOptions);
-            if (this.windowServer.windowStack.length === 0){
-                throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+            try{
+                var launchOptions = this.launchOptions();
+                if (!this.delegate){
+                    throw new Error("No application delegate defined");
+                }
+                if (!this.delegate.applicationDidFinishLaunching){
+                    throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
+                }
+                logger.info("Calling delegate.applicationDidFinishLaunching");
+                this.delegate.applicationDidFinishLaunching(this, launchOptions);
+                if (this.windowServer.windowStack.length === 0){
+                    throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
+                }
+            }catch (e){
+                callback(e);
+                return;
             }
             callback(null);
         }, this);
