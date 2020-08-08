@@ -18,6 +18,7 @@
 // #import "UIHTMLDisplayServerSVGContext.js"
 // #import "UIHTMLTextFramesetter.js"
 // #import "UITextAttachmentView.js"
+// #import "UIHTMLElementLayer.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
@@ -253,6 +254,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             context = this.contextClass.initForScreenContext(this.screenContext);
             context.displayServer = this;
             this.associateContextWithLayer(context, layer);
+            if (layer.isKindOfClass(UIHTMLElementLayer)){
+                layer.createElement(context.element.ownerDocument);
+            }
         }
         return context;
     },
@@ -448,6 +452,9 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         }
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
+            if (layer.isKindOfClass(UIHTMLElementLayer)){
+                layer.willDestroyElement();
+            }
             context.destroy();
             context.displayServer = null;
             delete this.contextsByObjectID[layer.objectID];

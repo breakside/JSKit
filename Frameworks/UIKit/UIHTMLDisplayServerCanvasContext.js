@@ -205,8 +205,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     addExternalElementInRect: function(element, rect){
-        element.style.left = '%dpx'.sprintf(rect.origin.x);
-        element.style.top = '%dpx'.sprintf(rect.origin.y);
+        element.style.position = "absolute";
+        element.style.left = "%dpx".sprintf(rect.origin.x);
+        element.style.top = "%dpx".sprintf(rect.origin.y);
+        element.style.width = "%dpx".sprintf(rect.size.width);
+        element.style.height = "%dpx".sprintf(rect.size.height);
         this._externalElements.push(element);
         this._insertChildElement(element);
     },
