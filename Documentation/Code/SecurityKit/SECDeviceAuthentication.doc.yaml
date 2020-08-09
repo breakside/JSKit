@@ -1,0 +1,121 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.32.0
+summary: Use the local device to authenticate a user with a built-in authenticator
+  or an external security key
+description: |
+  A cipher is used to encrypt or decrypt data.
+
+  There are many different ways to encrypt data, and `SECCipher` includes
+  support for the latest best-practice algorithms.
+topics:
+  -
+    name: Creating an Authentication object
+    members:
+      -
+        name: shared
+        static: true
+        type: SECDeviceAuthentication
+        summary: The shared authentication instance
+  -
+    name: Public Key Authentication
+    members:
+      -
+        name: createPublicKey
+        kind: method
+        summary: Create a new public key using a callback for authenticating a user
+        arguments:
+          -
+            name: registration
+            type: PublicKeyRegistration
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: result
+                  type: PublicKeyResult
+                  nullable: true
+                  summary: The created key associated information, or `null` if
+                    a key could not be created
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      -
+        name: createPublicKey
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: PublicKeyResult
+            summary: The created key associated information
+        summary: Create a new public key using a promise for authenticating a user
+        arguments:
+          -
+            name: registration
+            type: PublicKeyRegistration
+      -
+        name: signChallenge
+        kind: method
+        summary: Authenticate a user by having the device sign some random challenge data
+        description: |
+          Ty
+      -
+        name: PublicKeyRegistration
+        kind: class
+        anonymous: true
+        summary: The registration object to use when creating a new public key
+          with `createPublicKey()`
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: providerName
+                type: String
+                nullable: true
+                summary: The display name identifying the entity that is requesting
+                  authentication, typically your company or app name
+              -
+                name: challengeData
+                type: JSData
+                nullable: true
+                summary: The random data to be signed by the private key counterpart
+                  to the returned public key
+                description: |
+                  Typically challenge data is provided by a server than can
+                  independently verify the signature
+              -
+                name: supportedAlgorithms
+                type: SECSign.Algorithm[]
+                nullable: true
+                summary: The the algorithms that can be used to create the new public key
+                description: |
+                  Priority is highest for the first item in the list and lowest for the last item.
+
+                  Defaults to:
+
+                  ````
+                  [
+                    SECSign.Algorithm.rsaSHA512,
+                    SECSign.Algorithm.rsaSHA384,
+                    SECSign.Algorithm.rsaSHA256
+                  ]
+                  ````
+              -
+                name: userId
+                type: String
+                nullable: true
+                summary: A unique id for the user that will be associated with this public key
+              -
+                name: accountName
+                type: String
+                nullable: true
+                summary: The display name for the user's account, to help distinguish it
+                  from other accounts
+                description: |
+                  Defaults to `providerName + " User"`

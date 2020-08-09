@@ -13,8 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "SECDevice.js"
+// #import "SECDeviceAuthentication.js"
+// #import "SECCipher.js"
 // #import "SECDER.js"
+// #import "SECCBOR.js"
 // #import "SECHash.js"
 // #import "SECJSONWebToken.js"
 // jshint browser: true
@@ -23,70 +25,18 @@
 
 (function(){
 
-JSClass("SECHTMLDevice", JSObject, {
+JSClass("SECHTMLDeviceAuthentication", JSObject, {
 
-    initWithCredentialStore: function(credentialStore, origin){
-        SECHTMLDevice.$super.init.call(this);
+    initWithCredentialStore: function(credentialStore){
+        SECHTMLDeviceAuthentication.$super.init.call(this);
         if (credentialStore !== undefined){
             this.credentialStore = credentialStore;
         }
-        this.origin = origin;
     },
 
     credentialStore: null,
-    origin: null,
 
-    passwordCredential: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        if (this.credentialStore === null){
-            JSRunLoop.main.schedule(completion, target, null);
-            return;
-        }
-        this.credentialStore.get({password: true}).then(function(credential){
-            if (!credential || credential.type != "password"){
-                completion.call(target, null);
-                return;
-            }
-            completion.call(target, {username: credential.id, password: credential.password});
-        }, function(error){
-            completion.call(target, null);
-        });
-        return completion.promise;
-    },
-
-    rememberPasswordCredential: function(login, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        if (this.credentialStore === null){
-            JSRunLoop.main.schedule(completion, target, false);
-            return;
-        }
-        var info = {
-            id: login.username,
-            password: login.password,
-            origin: this.origin
-        };
-        var credentialStore = this.credentialStore;
-        credentialStore.create({password: info}).then(function(credential){
-            if (!credential || credential.type  != "password"){
-                completion.call(target, false);
-                return;
-            }
-            credentialStore.store(credential).then(function(){
-                completion.call(target, true);
-            }, function(error){
-                completion.call(target, false);
-            });
-        }, function(error){
-            completion.call(target, false);
-        });
-        return completion.promise;
-    },
-
-    createPublicKeyForAuthentication: function(registration, completion, target){
+    createPublicKey: function(registration, completion, target){
         // Registration
         // providerName
         // userId
@@ -99,6 +49,19 @@ JSClass("SECHTMLDevice", JSObject, {
         if (this.credentialStore === null){
             JSRunLoop.main.schedule(completion, target, null);
             return;
+        }
+        registration = JSCopy(registration);
+        if (!registration.providerName){
+            registration.providerName = JSBundle.mainBundle.info.UIApplicationTitle || JSBundle.mainBundle.info.JSExecutableName || JSBundle.mainBundle.info.JSBundleIndentifier;
+        }
+        if (!registration.userId){
+            registration.userId = UUID();
+        }
+        if (!registration.accountName){
+            registration.accountName = "%s User".sprintf(registration.providerName);
+        }
+        if (!registration.challengeData){
+            registration.challengeData = SECCipher.getRandomData(32);
         }
         var info = {
             rp: {
@@ -115,17 +78,17 @@ JSClass("SECHTMLDevice", JSObject, {
                 residentKey: "required",
                 userVerification: "required"
             },
-            attestation: "none"
+            attestation: "direct"
         };
         if (registration.supportedAlgorithms){
             for (var i = 0, l = registration.supportedAlgorithms.length; i < l; ++i){
-                info.pubKeyCredParams.push({type: "public-key", alg: htmlPublicKeyAlgorithm[registration.supportedAlgorithms[i]]});
+                info.pubKeyCredParams.push({type: "public-key", alg: coseAlgorithmsBySignAlgorithm[registration.supportedAlgorithms[i]]});
             }
         }else{
             info.pubKeyCredParams = [
-                {type: "public-key", alg: htmlPublicKeyAlgorithm[SECDevice.Algorithm.rsa512]},
-                {type: "public-key", alg: htmlPublicKeyAlgorithm[SECDevice.Algorithm.rsa384]},
-                {type: "public-key", alg: htmlPublicKeyAlgorithm[SECDevice.Algorithm.rsa256]}
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512]},
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384]},
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256]}
             ];
         }
         this.credentialStore.create({publicKey: info}).then(function(credential){
@@ -146,15 +109,33 @@ JSClass("SECHTMLDevice", JSObject, {
                     jwk.e = sequence[1][1].base64URLStringRepresentation();
                 }
             }
-            completion.call(target, jwk);
+            var clientData = JSData.initWithBuffer(credential.response.clientDataJSON);
+            var authData = JSData.initWithBuffer(credential.response.authenticatorData);
+            var attestation = null;
+            var signature = null;
+            var chain = [];
+            try{
+                attestation = SECCBOR.parse(credential.response.attestationObject);
+                delete attestation.authData;
+            }catch (e){
+                // oh well
+            }
+            var result = {
+                jwk: jwk,
+                webauthn: {
+                    attestation: attestation,
+                    authData: authData,
+                    clientData: clientData
+                }
+            };
+            completion.call(target, result);
         }, function(error){
             completion.call(target, null);
         });
         return completion.promise;
-
     },
 
-    authenticateBySigningChallengeData: function(challengeData, completion, target){
+    signChallenge: function(challengeData, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
@@ -177,10 +158,11 @@ JSClass("SECHTMLDevice", JSObject, {
             var result = {
                 kid: credential.id,
                 webauthn: {
-                    appData: authData.base64URLStringRepresentation(),
-                    clientData: clientData.base64URLStringRepresentation()
+                    authData: authData,
+                    clientData: clientData
                 },
-                signature: JSData.initWithBuffer(credential.response.signature).base64URLStringRepresentation()
+                challenge: challengeData,
+                signature: JSData.initWithBuffer(credential.response.signature)
             };
             completion.call(target, result);
         }, function(error){
@@ -191,21 +173,21 @@ JSClass("SECHTMLDevice", JSObject, {
 
 });
 
-Object.defineProperties(SECDevice, {
+Object.defineProperties(SECDeviceAuthentication, {
     shared: {
         configurable: true,
-        get: function SECHTMLDevice_getShared(){
-            var device = SECHTMLDevice.initWithCredentialStore(navigator.credentials, location.origin);
-            Object.defineProperty(SECDevice, "shared", {value: device});
+        get: function SECHTMLDeviceAuthentication_getShared(){
+            var device = SECHTMLDeviceAuthentication.initWithCredentialStore(navigator.credentials);
+            Object.defineProperty(SECDeviceAuthentication, "shared", {value: device});
             return device;
         }
     }
 });
 
-var htmlPublicKeyAlgorithm = {};
-htmlPublicKeyAlgorithm[SECDevice.PublicKeyAlgorithm.rsa256] = -257;
-htmlPublicKeyAlgorithm[SECDevice.PublicKeyAlgorithm.rsa384] = -258;
-htmlPublicKeyAlgorithm[SECDevice.PublicKeyAlgorithm.rsa512] = -259;
+var coseAlgorithmsBySignAlgorithm = {};
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256] = -257;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384] = -258;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512] = -259;
 
 var jwkForCOSEAlgorithm = function(coseAlgorithm){
     switch (coseAlgorithm){

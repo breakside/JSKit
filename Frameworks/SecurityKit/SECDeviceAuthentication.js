@@ -16,25 +16,9 @@
 // #import Foundation
 'use strict';
 
-JSClass("SECDevice", JSObject, {
+JSClass("SECDeviceAuthentication", JSObject, {
 
-    passwordCredential: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        JSRunLoop.main.schedule(completion, target, null);
-        return completion.promise;
-    },
-
-    rememberPasswordCredential: function(login, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        JSRunLoop.main.schedule(completion, target, false);
-        return completion.promise;
-    },
-
-    createAuthenticatingPublicKey: function(registration, completion, target){
+    createPublicKey: function(registration, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
@@ -42,7 +26,7 @@ JSClass("SECDevice", JSObject, {
         return completion.promise;  
     },
 
-    authenticateBySigningChallengeData: function(challengeData, completion, target){
+    signChallenge: function(challengeData, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
@@ -52,10 +36,4 @@ JSClass("SECDevice", JSObject, {
 
 });
 
-SECDevice.PublicKeyAlgorithm = {
-    rsa256: "rsa256",
-    rsa384: "rsa384",
-    rsa512: "rsa512"
-};
-
-SECDevice.shared = null;
+SECDeviceAuthentication.shared = null;
