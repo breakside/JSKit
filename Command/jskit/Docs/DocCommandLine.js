@@ -51,6 +51,16 @@
         return elements;
     },
 
+    invocationName: function(){
+        var commands = [];
+        var component = this;
+        while (component !== null && component.kind == 'command'){
+            commands.unshift(component.name);
+            component = component.parent;
+        }
+        return commands.join(" ");
+    },
+
     invocationLines: function(){
         var commands = [];
         var component = this;

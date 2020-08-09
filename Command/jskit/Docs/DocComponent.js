@@ -166,6 +166,14 @@ JSClass("DocComponent", JSObject, {
         return component;
     },
 
+    inheritedCommand: function(){
+        var component = this.parent;
+        while (component !== null && component.kind != 'command'){
+            component = component.parent;
+        }
+        return component;
+    },
+
     inheritedIntroduced: function(){
         var component = this;
         while (component !== null && component.introduced === null){
@@ -457,6 +465,7 @@ JSClass("DocComponent", JSObject, {
         if (this.kind != 'document' && this.kind != 'index'){
             var environment = this.inheritedEnvironment();
             var framework = this.inheritedFramework();
+            var command = this.inheritedCommand();
             var introduced = this.inheritedIntroduced();
 
             let title = document.createElement('header');
@@ -514,6 +523,25 @@ JSClass("DocComponent", JSObject, {
                     }
                     aside.appendChild(line);
                 }
+            }else if (command && introduced){
+                title = document.createElement('header');
+                title.appendChild(document.createTextNode('Command'));
+                title.setAttribute('class', 'command');
+                aside.appendChild(title);
+                let line = document.createElement('div');
+                line.setAttribute('class', 'command');
+                line.appendChild(document.createTextNode(command.invocationName()));
+                aside.appendChild(line);
+
+
+                line = document.createElement('div');
+                line.setAttribute('class', 'versions');
+                line.appendChild(document.createTextNode(introduced));
+                if (this.deprecated){
+                    line.appendChild(document.createTextNode('-'));
+                    line.appendChild(document.createTextNode(this.deprecated));
+                }
+                aside.appendChild(line);
             }
         }
 

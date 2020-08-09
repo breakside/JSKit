@@ -4,6 +4,7 @@ summary: Command line utility for creating, building, testing, and documenting
   \`JSKit` based projects and code
 environment: node
 codeURL: Command/jskit/
+introduced: 2020.1.0
 description: |
   Installation
   ============

@@ -110,6 +110,14 @@ article.doc > aside.availability > div.framework{
     font-size: 80%;
 }
 
+article.doc > aside.availability > header.command:not(:first-child){
+    margin-top: 15px;
+}
+
+article.doc > aside.availability > div.command{
+    font-size: 80%;
+}
+
 article.doc > aside.availability > div.versions{
     color: rgb(164,164,164);
     font-size: 80%;
