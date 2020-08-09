@@ -95,6 +95,7 @@ JSClass("MakeCommand", Command, {
             await this.watchForChanges(this.builder.watchlist);
             try{
                 project.reload();
+                this.builder.buildLabel = this.arguments["build-label"];
                 await this.builder.build();
             }catch (e){
                 error = e;
