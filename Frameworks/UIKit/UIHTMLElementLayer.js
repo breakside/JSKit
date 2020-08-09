@@ -1,4 +1,5 @@
 // #import "UILayer.js"
+/* global UIHTMLDisplayServerCanvasContext */
 'use strict';
 
 JSClass("UIHTMLElementLayer", UILayer, {
@@ -44,7 +45,9 @@ JSClass("UIHTMLElementLayer", UILayer, {
     },
 
     drawInContext: function(context){
-        context.addExternalElementInRect(this.element, this.bounds.rectWithInsets(this.elementInsets));
+        if (context.isKindOfClass(UIHTMLDisplayServerCanvasContext)){
+            context.addExternalElementInRect(this.element, this.bounds.rectWithInsets(this.elementInsets));
+        }
     },
 
 });
