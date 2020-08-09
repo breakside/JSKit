@@ -92,6 +92,8 @@ JSClass("UIControl", UIView, {
     drawLayerInContext: function(layer, context){
         if (this._styler !== null){
             this._styler.drawControlLayerInContext(this, layer, context);
+        }else{
+            layer.drawInContext(context);
         }
     },
 
@@ -322,6 +324,7 @@ JSClass("UIControlStyler", JSObject, {
     },
 
     drawControlLayerInContext: function(control, layer, context){
+        layer.drawInContext(context);
     }
 
 });
