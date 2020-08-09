@@ -42,6 +42,7 @@ JSClass("HTMLBuilder", Builder, {
         'workers': {valueType: "integer", default: null, help: "The port on which the static http server will be configured (defaults: debug=1, release=Info.HTTPWorkerCount [3])"},
         'connections': {valueType: "integer", default: 1024, help: "The port on which the static http server will be configured"},
         'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"},
+        'docker-image': {default: null, help: "The name to use when building a docker image"},
         'no-docker': {kind: "flag", help: "Don't build the docker image"},
         'env': {default: null, help: "A file with environmental variables for this build"}
     },
@@ -809,7 +810,7 @@ JSClass("HTMLBuilder", Builder, {
         };
 
         var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
-        var image = this.project.lastIdentifierPart;
+        var image = this.arguments['docker-image'] || this.project.lastIdentifierPart;
         var identifier = makeTag(this.debug ? 'debug' : this.project.info.JSBundleVersion);
         var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
 

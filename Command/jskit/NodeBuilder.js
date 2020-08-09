@@ -33,6 +33,7 @@ JSClass("NodeBuilder", Builder, {
     options: {
         'debug-port':   {valueType: "integer", default: 8081,   help: "The port on which to bind during local debugging"},
         'docker-owner': {default: null,                         help: "The docker repo prefix to use when building a docker image"},
+        'docker-image': {default: null,                         help: "The name to use when building a docker image"},
         'no-docker':    {kind: "flag",                          help: "Don't build the docker image"}
     },
 
@@ -420,7 +421,7 @@ JSClass("NodeBuilder", Builder, {
         };
 
         var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
-        var image = this.project.lastIdentifierPart;
+        var image = this.arguments['docker-image'] || this.project.lastIdentifierPart;
         var identifier = makeTag(this.debug ? 'debug' : this.project.info.JSBundleVersion);
         var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
 
