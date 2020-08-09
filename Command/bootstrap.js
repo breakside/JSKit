@@ -174,6 +174,7 @@ command.arguments = {
     project: "Command/jskit",
     debug: true,
     "bundle-version": null,
+    "build-label": null,
     subargs: []
 };
 command.run();

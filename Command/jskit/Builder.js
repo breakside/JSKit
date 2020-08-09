@@ -82,14 +82,16 @@ JSClass("Builder", JSObject, {
 
     setup: async function(){
         var now = new Date();
-        this.buildLabel = "%04d-%02d-%02d-%02d-%02d-%02d".sprintf(
-            now.getFullYear(),
-            now.getMonth() + 1,
-            now.getDate(),
-            now.getHours(),
-            now.getMinutes(),
-            now.getSeconds()
-        );
+        if (this.buildLabel === null){
+            this.buildLabel = "%04d-%02d-%02d-%02d-%02d-%02d".sprintf(
+                now.getFullYear(),
+                now.getMonth() + 1,
+                now.getDate(),
+                now.getHours(),
+                now.getMinutes(),
+                now.getSeconds()
+            );
+        }
         this.buildId = JSSHA1Hash(this.buildLabel.utf8()).hexStringRepresentation();
         this.commands = [];
         this.watchlist = [];
