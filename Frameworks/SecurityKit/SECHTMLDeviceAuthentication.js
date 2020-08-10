@@ -78,7 +78,8 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 residentKey: "required",
                 userVerification: "required"
             },
-            attestation: "direct"
+            attestation: "direct",
+            timeout: 10000
         };
         if (registration.supportedAlgorithms){
             for (var i = 0, l = registration.supportedAlgorithms.length; i < l; ++i){
