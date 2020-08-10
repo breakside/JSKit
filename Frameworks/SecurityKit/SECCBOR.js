@@ -3,10 +3,12 @@
 
 (function(){
 
+var logger = JSLog("securitykit", "cbor");
+
 JSGlobalObject.SECCBOR = {
 
     parse: function(data){
-        var parser = SECCBORParser.initWithData();
+        var parser = SECCBORParser.initWithData(data);
         return parser.parse();
     }
 
@@ -71,19 +73,23 @@ JSClass("SECCBORParser", JSObject, {
             return (a << 24) | (b << 16) | (c << 8) | d;
         }
         if (info === 27){
-            // return 64-bit integers as data
-            return this.data.subdataInRange(JSRange(this.offset, 8));
+            var dataView = this.data.subdataInRange(JSRange(this.offset, 8)).dataView();
+            this.offset += 8;
+            a = dataView.getUint32(0);
+            b = dataView.getUint32(4);
+            c = Math.pow(2, 32) * a + b;
+            if (c > Number.MAX_SAFE_INTEGER){
+                logger.warn("cannot retain full precision of 64 bit integer");
+                // TODO: use BigInt if available
+            }
+            return c;
         }
         throw new Error("Unexpected info for unsigned integer at %d".sprintf(this.offset - 1));
     },
 
     readNegativeInteger: function(info){
         var n = this.readUnsignedInteger(info);
-        if (!(n instanceof JSData)){
-            return 1 - n;
-        }
-        // FIXME: what to do for negative 64 bit integers?
-        return n;
+        return -1 - n;
     },
 
     readByteString: function(info, forceData){
@@ -101,6 +107,7 @@ JSClass("SECCBORParser", JSObject, {
         }
         var length = this.readUnsignedInteger(info);
         var data = this.data.subdataInRange(JSRange(this.offset, length));
+        this.offset += length;
         if (!forceData && this.encodeDataAsBase64URL){
             return data.base64URLStringRepresentation();
         }
