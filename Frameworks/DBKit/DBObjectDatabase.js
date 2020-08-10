@@ -73,9 +73,9 @@ JSClass("DBObjectDatabase", JSObject, {
         }
         if (!this.isValidId(id)){
             completion.call(target, null);
-            return;
+        }else{
+            this.store.object(id, completion, target);
         }
-        this.store.object(id, completion, target);
         return completion.promise;
     },
 
@@ -83,7 +83,7 @@ JSClass("DBObjectDatabase", JSObject, {
         var errorArgs = Array.prototype.slice.call(arguments, 2);
         var db = this;
         return new Promise(function(resolve, reject){
-            resolve(db.object(id));
+            db.object(id).then(resolve);
         }).then(function(object){
             if (object === null){
                 throw errorfn.apply(undefined, errorArgs);

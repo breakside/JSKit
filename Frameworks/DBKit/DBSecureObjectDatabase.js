@@ -42,7 +42,7 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
             return;
         }
         var cipher = SECCipher.initWithAlgorithm(encryptedObject.algorithm, encryptedObject.keyBitLength);
-        cipher.createKeyForName(encryptedObject.keyName, this.keystore, function(key){
+        cipher.createKeyWithName(encryptedObject.keyName, this.keystore, function(key){
             if (key === null){
                 completion.call(target, null);
                 return;
@@ -70,7 +70,7 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         var cipher = SECCipher.initWithAlgorithm(this.defaultAlgorithm, this.defaultKeyBitLength);
-        cipher.createKeyForName(keyName, this.keystore, function(key){
+        cipher.createKeyWithName(keyName, this.keystore, function(key){
             if (key === null){
                 completion.call(target, false);
                 return;

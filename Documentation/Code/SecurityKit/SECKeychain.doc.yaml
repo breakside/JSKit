@@ -74,6 +74,25 @@ topics:
             type: String
             summary: The user-provided master password that is the only
               way to unlock the keychain
+      -
+        introduced: 2020.32.0
+        environment: html
+        name: device
+        static: true
+        type: SECKeychain
+        summary: A device-managed keychain
+        description: |
+          In the HTML environment, if a browser supports `PasswordCredential`()
+          from the [Credential Management API](http://www.w3.org/TR/credential-management-1/),
+          then the `device` keychain can be used to save and retrieve passwords
+          from the browser's secure storage area.
+
+          The HTML device keychain can only `add()` or `update()` items that 
+          have the following properties:
+
+          * `username`(): `String`
+          * `password`(): `String`
+          * `origin`(): `String?`
   -
     name: Locking & Unlocking
     members:

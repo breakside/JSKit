@@ -419,6 +419,36 @@ JSClass("SKValidatingObject", JSObject, {
             }
         }
         return items;
+    },
+
+    base64DataForKey: function(key, defaultValue){
+        var stringValue = this.valueProvider.stringForKey(key);
+        if (stringValue === undefined){
+            if (defaultValue === undefined){
+                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
+            }
+            return defaultValue;
+        }
+        try{
+            return stringValue.dataByDecodingBase64();
+        }catch (e){
+            throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "base64"});
+        }
+    },
+
+    base64URLDataForKey: function(key, defaultValue){
+        var stringValue = this.valueProvider.stringForKey(key);
+        if (stringValue === undefined){
+            if (defaultValue === undefined){
+                throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
+            }
+            return defaultValue;
+        }
+        try{
+            return stringValue.dataByDecodingBase64URL();
+        }catch (e){
+            throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "format", format: "base64URL"});
+        }
     }
 
 });

@@ -24,3 +24,5 @@
 // #import "SECDER.js"
 // #import "SECOneTimePassword.js"
 // #import "SECKeystore.js"
+// #import "SECDeviceAuthentication.js"
+// #import "SECCBOR.js"

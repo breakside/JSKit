@@ -34,6 +34,20 @@ JSClass("SECKeystore", JSObject, {
         this.keysByName[name] = keyData;
     },
 
+    setBase64EncodedKeyForName: function(base64Key, name){
+        if (base64Key === null){
+            return;
+        }
+        this.keysByName[name] = base64Key.dataByDecodingBase64();
+    },
+
+    setBase64URLEncodedJWKForName: function(base64URLJWK, name){
+        if (base64URLJWK === null){
+            return;
+        }
+        this.keysByName[name] = JSON.parse(String.initWithData(base64URLJWK.dataByDecodingBase64(), String.Encoding.utf8));
+    },
+
     keyForName: function(name, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
@@ -58,6 +72,9 @@ JSClass("SECAWSKeystore", JSObject, {
     },
 
     setEncryptedKeyForName: function(encryptedKeyInfo, name){
+        if (encryptedKeyInfo === null){
+            return;
+        }
         var semiIndex = encryptedKeyInfo.indexOf(';');
         if (semiIndex < 0){
             throw new Error("Invalid encrypted key info.  Expecting string with result from GenerateDataKeyWithoutPlainText combined into the format: KeyId;CiphertextBlob");

@@ -13,12 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "SECCipher+HTML.js"
-// #import "SECHash+HTML.js"
-// #import "SECHMAC+HTML.js"
-// #import "SECSign+HTML.js"
-// #import "SECVerify+HTML.js"
-// #import "SECPassword+HTML.js"
-// #import "SECHTMLDeviceAuthentication.js"
-// #import "SECHTMLKeychain.js"
-// #import "SECHTMLKey.js"
+// #import Foundation
+'use strict';
+
+JSClass("SECDeviceAuthentication", JSObject, {
+
+    createPublicKey: function(registration, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;  
+    },
+
+    signChallenge: function(challengeData, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;  
+    }
+
+});
+
+SECDeviceAuthentication.shared = null;
