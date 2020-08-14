@@ -694,8 +694,8 @@ JSClass('UIWindow', UIView, {
         }
         if (modal !== null){
             this.mouseEventView = null;
-            modal.makeKeyAndOrderFront();
             if (event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.leftMouseDragged || event.type == UIEvent.Type.rightMouseDown){
+                modal.makeKeyAndOrderFront();
                 modal.indicateModalStatus();
             }
             return;
