@@ -70,5 +70,8 @@ var htmlAlgorithms = {};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA256] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA384] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-384'};
 htmlAlgorithms[SECVerify.Algorithm.rsaSHA512] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-512'};
+htmlAlgorithms[SECVerify.Algorithm.ellipticCurveSHA256] = { name: 'ECDSA', hash: 'SHA-256', namedCurve: "P-256"};
+htmlAlgorithms[SECVerify.Algorithm.ellipticCurveSHA384] = { name: 'ECDSA', hash: 'SHA-384', namedCurve: "P-384"};
+htmlAlgorithms[SECVerify.Algorithm.ellipticCurveSHA512] = { name: 'ECDSA', hash: 'SHA-512', namedCurve: "P-521"};
 
 })();

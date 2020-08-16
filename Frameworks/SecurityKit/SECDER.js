@@ -65,6 +65,61 @@ SECDERInteger.prototype = {
 
 };
 
+JSGlobalObject.SECDEROctetString = function(data){
+    if (this === undefined){
+        return new SECDEROctetString(data);
+    }
+    this.data = data;
+    this.headerData = DERHeaderData(0x04, this.data.length);
+    this.length = this.headerData.length + this.data.length;
+};
+
+SECDEROctetString.prototype = {
+
+    copyTo: function(data, startIndex){
+        this.headerData.copyTo(data, startIndex);
+        startIndex += this.headerData.length;
+        this.data.copyTo(data, startIndex);
+    }
+
+};
+
+JSGlobalObject.SECDERObjectIdentifier = function(string){
+    if (this === undefined){
+        return new SECDERObjectIdentifier(string);
+    }
+    this.string = string;
+    var nodes = this.string.split(".");
+    var i, l;
+    for (i = 0, l = nodes.length; i < l; ++i){
+        nodes[i] = parseInt(nodes[i]);
+    }
+    var bytes = [nodes[0] * 40 + nodes[1]];
+    var node;
+    for (i = 2, l = nodes.length; i < l; ++i){
+        node = nodes[i];
+        if (node < 128){
+            bytes.push(node);
+        }else{
+            bytes.push(0x80 | ((node & 0x3F80) >> 7));
+            bytes.push(node & 0x7F);
+        }
+    }
+    this.data = JSData.initWithArray(bytes);
+    this.headerData = DERHeaderData(0x04, this.data.length);
+    this.length = this.headerData.length + this.data.length;
+};
+
+SECDERObjectIdentifier.prototype = {
+
+    copyTo: function(data, startIndex){
+        this.headerData.copyTo(data, startIndex);
+        startIndex += this.headerData.length;
+        this.data.copyTo(data, startIndex);
+    }
+
+};
+
 JSGlobalObject.SECDERSequence = function(values){
     if (this === undefined){
         return new SECDERSequence(values);
@@ -133,66 +188,30 @@ JSClass("SECDERParser", JSObject, {
     length: null,
     offset: 0,
 
-    parse: function(){
-        return this.parseValue();
+    read: function(){
+        return this.readNext();
     },
 
-    parseValue: function(){
+    readNext: function(){
         if (this.offset === this.length){
             throw new Error("Unexpected end of data");
         }
         var tag = this.data[this.offset++];
         switch (tag){
-            case 0x030:
-                return this.parseSequence();
             case 0x02:
-                return this.parseInteger();
+                return this.readInteger();
+            case 0x04:
+                return this.readOctetString();
+            case 0x06:
+                return this.readObjectIdentifier();
+            case 0x30:
+                return this.readSequence();
             default:
-                return this.parseUnknown();
+                return this.readUnknown();
         }
     },
 
-    parseSequence: function(){
-        var length = this.parseLength();
-        var end = this.offset + length;
-        if (end > this.length){
-            throw new Error("Unexpected end of data");
-        }
-        var values = [];
-        while (this.offset < end){
-            values.push(this.parseValue());
-        }
-        if (this.offset !== end){
-            throw new Error("Sequence length mismatch");
-        }
-        return values;
-    },
-
-    parseInteger: function(){
-        var length = this.parseLength();
-        var end = this.offset + length;
-        if (end > this.length){
-            throw new Error("Unexpected end of data");
-        }
-        if (this.data[this.offset] === 0){
-            ++this.offset;
-        }
-        var integerData = this.data.subdataInRange(JSRange(this.offset, end - this.offset));
-        this.offset = end;
-        return integerData;
-    },
-
-    parseUnknown: function(){
-        var length = this.parseLength();
-        var end = this.offset + length;
-        if (end > this.length){
-            throw new Error("Unexpected end of data");
-        }
-        this.offset = end;
-        return null;
-    },
-
-    parseLength: function(){
+    readLength: function(){
         if (this.offset === this.length){
             throw new Error("Unexpected end of data");
         }
@@ -225,6 +244,80 @@ JSClass("SECDERParser", JSObject, {
             return (a << 24) | (b << 16) | (c << 16) | d;
         }
         throw new Error("Length too large");
+    },
+
+    readOctetString: function(){
+        var length = this.readLength();
+        var end = this.offset + length;
+        if (end > this.length){
+            throw new Error("Unexpected end of data");
+        }
+        var data = this.data.subdataInRange(JSRange(this.offset, end - this.offset));
+        this.offset = end;
+        return data;
+    },
+
+    readInteger: function(){
+        var length = this.readLength();
+        var end = this.offset + length;
+        if (end > this.length){
+            throw new Error("Unexpected end of data");
+        }
+        if (this.data[this.offset] === 0){
+            ++this.offset;
+        }
+        var integerData = this.data.subdataInRange(JSRange(this.offset, end - this.offset));
+        this.offset = end;
+        return integerData;
+    },
+
+    readObjectIdentifier: function(){
+        var data = this.readOctetString();
+        var nodes = [];
+        nodes[0] = Math.floor(data[0] / 40);
+        nodes[1] = data[0] - nodes[0] * 40;
+        var a, b;
+        for (var i = 1, l = data.length; i < l; ++i){
+            a = data[i];
+            if (a < 128){
+                nodes.push(a);
+            }else{
+                ++i;
+                if (i < l){
+                    b = data[i];
+                    nodes.push(((a & 0x7F) << 7) | (b & 0x7F));
+                }else{
+                    throw new Error("Unexpected end of object identifier");
+                }
+            }
+        }
+        return nodes.join(".");
+    },
+
+    readSequence: function(){
+        var length = this.readLength();
+        var end = this.offset + length;
+        if (end > this.length){
+            throw new Error("Unexpected end of data");
+        }
+        var values = [];
+        while (this.offset < end){
+            values.push(this.readNext());
+        }
+        if (this.offset !== end){
+            throw new Error("Sequence length mismatch");
+        }
+        return values;
+    },
+
+    readUnknown: function(){
+        var length = this.readLength();
+        var end = this.offset + length;
+        if (end > this.length){
+            throw new Error("Unexpected end of data");
+        }
+        this.offset = end;
+        return null;
     }
 
 });
