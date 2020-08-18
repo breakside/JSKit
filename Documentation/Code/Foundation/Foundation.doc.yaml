@@ -85,6 +85,7 @@ topics:
       - JSUndoManager
       - JSNotificationCenter
       - JSNotification
+      - JSEnvironment
   -
     name: Logging
     summary: Logging, telemetry, and error reporting

@@ -1,0 +1,70 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.33.0
+inherits: JSObject
+summary: Allows read access to environmental variables, or the creation of a
+  private environment from a file of environment variables
+topics:
+  -
+    name: Creating an Environment
+    members:
+      -
+        name: current
+        type: JSEnvironment
+        summary: The current system's environmental varaibles
+        environment: node
+      -
+        name: initWithData
+        kind: init
+        summary: Create a private environment from the contents of an `.env`() file
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The contents of an `.env`() file 
+        description: |
+          An `.env`() file contains variable definitions, one per line, such as:
+
+          ````
+          API_KEY=abcdef123456
+          SERVER_URL=https://api.jskit.dev/
+          ````
+      -
+        name: initWithDictionary
+        kind: init
+        summary: Create a private environment from the given dictionary
+        arguments:
+          -
+            name: variables
+            type: dictionary
+            summary: A dictionary with keys and values defining variables
+  -
+    name: Reading Values
+    members:
+      -
+        name: get
+        kind: method
+        type: String
+        summary: Get the value for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `undefined`() for unknown name      
+      -
+        name: get
+        suffix: default
+        kind: method
+        type: String
+        summary: Get the value for the given name, or return a default value
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+          -
+            name: defaultValue
+            type: any
+            summary: The value to return if the variable is not found
