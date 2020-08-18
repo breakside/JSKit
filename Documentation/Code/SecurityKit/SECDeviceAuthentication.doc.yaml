@@ -1,14 +1,12 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 inherits: JSObject
-introduced: 2020.32.0
+introduced: 2020.33.0
 summary: Use the local device to authenticate a user with a built-in authenticator
   or an external security key
 description: |
-  A cipher is used to encrypt or decrypt data.
-
-  There are many different ways to encrypt data, and `SECCipher` includes
-  support for the latest best-practice algorithms.
+  Useful for two-factor authentation with a hardware device that can generate
+  keypairs for authentation.
 topics:
   -
     name: Creating an Authentication object
@@ -208,6 +206,7 @@ topics:
               -
                 name: attestation
                 type: RegistrationWebAuthnAttestation
+                summary: The webauthn attestation result
               -
                 name: clientData
                 type: JSData

@@ -276,6 +276,18 @@ topics:
               -
                 name: rsaSHA512
                 summary: The JWT is signed with a RSA using SHA512
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA256
+                summary: The JWT is signed with a RSA using SHA256
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA384
+                summary: The JWT is signed with a RSA using SHA384
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA512
+                summary: The JWT is signed with a RSA using SHA512
       -
         introduced: 2020.28.0
         name: KeyType
@@ -296,6 +308,24 @@ topics:
               -
                 name: ellipticCurve
                 summary: The key uses the Elliptic Curve algorithm
+      -
+        introduced: 2020.33.0
+        kind: enum
+        name: EllipticCurve
+        summary: The supported named curves
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: p256
+                summary: The `P-256`() curve, also known as `secp256r1`()
+              -
+                name: p384
+                summary: The `P-384`() curve, also known as `secp384r1`()
+              -
+                name: p521
+                summary: The `P-521`() curve, also known as `secp521r1`()
   -
     name: Deprecated
     members:

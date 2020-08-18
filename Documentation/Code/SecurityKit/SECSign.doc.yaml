@@ -24,6 +24,18 @@ topics:
               -
                 name: rsaSHA512
                 summary: The RSA-SHA512 hash
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA26
+                summary: The Elliptic Curve with SHA256 hash
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA384
+                summary: The Elliptic Curve with SHA384 hash
+              -
+                introduced: 2020.33.0
+                name: ellipticCurveSHA512
+                summary: The Elliptic Curve with SHA512 hash
   -
     name: Creating a Signer
     members:
