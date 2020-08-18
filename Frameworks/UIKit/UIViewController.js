@@ -251,7 +251,13 @@ JSClass("UIViewController", UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - State Restoration
 
-    restorationIdentifier: null
+    restorationIdentifier: null,
+
+    // MARK: - Localization
+
+    localizedString: function(key){
+        return JSBundle.mainBundle.localizedString(key, this.$class.className);
+    }
 
 
 });

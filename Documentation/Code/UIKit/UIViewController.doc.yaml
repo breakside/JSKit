@@ -381,3 +381,36 @@ topics:
         description: |
           If no navigation item has been set before this property is first
           accessed, an empty item will be created.
+  -
+    name: Localization
+    members:
+      -
+        name: localizedString
+        type: String
+        kind: method
+        summary: Get the localized string from the main bundle's lookup table
+          matching this controller's class name
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The key for the desired localized string
+        description: |
+          A shortcut for common calls into the view controller's localization table.
+
+          ````
+          JSClass("MessageViewController", UIViewController, {
+
+            viewDidLoad: function(){
+              MessageViewController.$super.viewDidLoad.call(this);
+
+              this.titleLabel.text = this.localizedString("title.text");
+              // equivalent to
+              // this.titleLabel.text = JSBundle.mainBundle.localizedString("title.text", "MessageViewController");
+            },
+
+            titleLabel: JSOutlet()
+
+          });
+
+          ````
