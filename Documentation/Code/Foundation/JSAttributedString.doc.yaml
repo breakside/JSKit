@@ -411,6 +411,37 @@ topics:
             summary: The new string and attributes to put in the place of the
               removed range
   -
+    name: Formats
+    members:
+      -
+        introduced: 2020.33.0
+        name: replaceFormat
+        kind: method
+        summary: Replace the format placeholder with attributed values
+        arguments:
+          -
+            name: formatArgument1
+            type: any
+            summary: The first value to replace a format placeholder
+          -
+            name: replacementAttributes1
+            type: dictionary
+            summary: The attributes to apply to replaced portion of the format
+          -
+            name: formatArgument2
+            type: any
+            variable: true
+            summary: The second value to replace a format placeholder
+        description: |
+          The arguments are alternating `formatArgument`() and `replacementAttributes`()
+          values.
+
+          ````
+          var attributedString = JSAttributedString.initWithString("Hello, %s!  It's %s to be here!");
+          attributedString.replaceFormat("world", {bold: true}, "great", {italic: true});
+
+          ````
+  -
     name: Substrings
     members:
       -

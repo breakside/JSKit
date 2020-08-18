@@ -385,6 +385,7 @@ topics:
     name: Localization
     members:
       -
+        introduced: 2020.33.0
         name: localizedString
         type: String
         kind: method
