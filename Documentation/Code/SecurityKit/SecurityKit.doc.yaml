@@ -40,15 +40,12 @@ topics:
                 type: SECKey
                 summary: The private key
   -
-    name: Signatures
+    name: Signatures & Hashes
     members:
+      - SECHash
       - SECHMAC
       - SECSign
       - SECVerify
-  -
-    name: Hashes
-    members:
-      - SECHash
   -
     name: Secure Storage
     members:
@@ -59,6 +56,7 @@ topics:
     members:
       - SECJSONWebToken
   -
-    name: One Time Passwords
+    name: Authentication
     members:
       - SECOneTimePassword
+      - SECDeviceAuthentication

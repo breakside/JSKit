@@ -111,13 +111,22 @@ JSClass("SECJSONWebToken", JSObject, {
                     this._verifyHMAC(SECHMAC.Algorithm.sha512, jwk, this._signedChunks, this.signature, veifyHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA256:
-                    this._verifyRSA(SECVerify.Algorithm.rsaSHA256, jwk, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    this._verifyAsymmetric(SECVerify.Algorithm.rsaSHA256, jwk, SECJSONWebToken.KeyType.rsa, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA384:
-                    this._verifyRSA(SECVerify.Algorithm.rsaSHA384, jwk, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    this._verifyAsymmetric(SECVerify.Algorithm.rsaSHA384, jwk, SECJSONWebToken.KeyType.rsa, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA512:
-                    this._verifyRSA(SECVerify.Algorithm.rsaSHA512, jwk, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    this._verifyAsymmetric(SECVerify.Algorithm.rsaSHA512, jwk, SECJSONWebToken.KeyType.rsa, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA256:
+                    this._verifyAsymmetric(SECVerify.Algorithm.ellipticCurveSHA256, jwk, SECJSONWebToken.KeyType.ellipticCurve, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA384:
+                    this._verifyAsymmetric(SECVerify.Algorithm.ellipticCurveSHA384, jwk, SECJSONWebToken.KeyType.ellipticCurve, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA512:
+                    this._verifyAsymmetric(SECVerify.Algorithm.ellipticCurveSHA512, jwk, SECJSONWebToken.KeyType.ellipticCurve, this._header.kid, this._signedChunks, this.signature, veifyHandler, this);
                     break;
                 default:
                     completion.call(target, null);
@@ -136,8 +145,8 @@ JSClass("SECJSONWebToken", JSObject, {
         }, this);
     },
 
-    _verifyRSA: function(algorithm, jwk, kid, chunks, signature, completion, target){
-        if (jwk.kty === SECJSONWebToken.KeyType.rsa){
+    _verifyAsymmetric: function(algorithm, jwk, kty, kid, chunks, signature, completion, target){
+        if (jwk.kty === kty){
             var verify = SECVerify.initWithAlgorithm(algorithm);
             var key = verify.createKeyFromJWK(jwk, function(key){
                 if (key === null){
@@ -186,13 +195,22 @@ JSClass("SECJSONWebToken", JSObject, {
                     this._signHMAC(SECHMAC.Algorithm.sha512, jwk, this._signedChunks, signatureHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA256:
-                    this._signRSA(SECVerify.Algorithm.rsaSHA256, jwk, this._signedChunks, signatureHandler, this);
+                    this._signAsymmetric(SECVerify.Algorithm.rsaSHA256, jwk, this._signedChunks, signatureHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA384:
-                    this._signRSA(SECVerify.Algorithm.rsaSHA384, jwk, this._signedChunks, signatureHandler, this);
+                    this._signAsymmetric(SECVerify.Algorithm.rsaSHA384, jwk, this._signedChunks, signatureHandler, this);
                     break;
                 case SECJSONWebToken.Algorithm.rsaSHA512:
-                    this._signRSA(SECVerify.Algorithm.rsaSHA512, jwk, this._signedChunks, signatureHandler, this);
+                    this._signAsymmetric(SECVerify.Algorithm.rsaSHA512, jwk, this._signedChunks, signatureHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA256:
+                    this._signAsymmetric(SECVerify.Algorithm.ellipticCurveSHA256, jwk, this._signedChunks, signatureHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA384:
+                    this._signAsymmetric(SECVerify.Algorithm.ellipticCurveSHA384, jwk, this._signedChunks, signatureHandler, this);
+                    break;
+                case SECJSONWebToken.Algorithm.ellipticCurveSHA512:
+                    this._signAsymmetric(SECVerify.Algorithm.ellipticCurveSHA512, jwk, this._signedChunks, signatureHandler, this);
                     break;
                 default:
                     completion.call(target, null);
@@ -226,7 +244,7 @@ JSClass("SECJSONWebToken", JSObject, {
         }
     },
 
-    _signRSA: function(algorithm, jwk, chunks, completion, target){
+    _signAsymmetric: function(algorithm, jwk, chunks, completion, target){
         var sign = SECSign.initWithAlgorithm(algorithm);
         var key = sign.createKeyFromJWK(jwk, function(key){
             if (key === null){
@@ -253,6 +271,9 @@ SECJSONWebToken.Algorithm = {
     rsaSHA256: "RS256",
     rsaSHA384: "RS384",
     rsaSHA512: "RS512",
+    ellipticCurveSHA256: "ES256",
+    ellipticCurveSHA384: "ES384",
+    ellipticCurveSHA512: "ES512",
 
 };
 
@@ -260,6 +281,12 @@ SECJSONWebToken.KeyType = {
     symmetric: "oct",
     rsa: "RSA",
     ellipticCurve: "EC"
+};
+
+SECJSONWebToken.EllipticCurve = {
+    p256: "P-256",
+    p384: "P-384",
+    p521: "P-521"
 };
 
 var dot = JSData.initWithArray([0x2E]);

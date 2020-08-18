@@ -15,7 +15,6 @@
 
 // #import "SECDeviceAuthentication.js"
 // #import "SECCipher.js"
-// #import "SECDER.js"
 // #import "SECCBOR.js"
 // #import "SECHash.js"
 // #import "SECJSONWebToken.js"
@@ -38,6 +37,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
 
     createPublicKey: function(registration, completion, target){
         // Registration
+        // domain
         // providerName
         // userId
         // accountName
@@ -52,7 +52,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         }
         registration = JSCopy(registration);
         if (!registration.providerName){
-            registration.providerName = JSBundle.mainBundle.info.UIApplicationTitle || JSBundle.mainBundle.info.JSExecutableName || JSBundle.mainBundle.info.JSBundleIndentifier;
+            registration.providerName = JSBundle.mainBundle.localizedStringForInfoKey("UIApplicationTitle") || JSBundle.mainBundle.info.JSExecutableName || JSBundle.mainBundle.info.JSBundleIndentifier;
         }
         if (!registration.userId){
             registration.userId = UUID();
@@ -75,59 +75,60 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             challenge: registration.challengeData,
             pubKeyCredParams: [],
             authenticatorSelection: {
-                residentKey: "required",
-                userVerification: "required"
+                // Browser support for resident keys is spotty:
+                // - Chrome works, requiring the user to set a PIN, but can't share with others
+                // - Safari works, no PIN required, but can't share with others
+                // - Safari will get PIN support in Safari 14
+                // - Firefox doesn't work on macOS, but supposedly works on windows with a PIN
+                // Without a resident key, we need something like a username that the user can
+                // provide so we can lookup allowed key IDs on a server and send them back to
+                // the client before authenticating
+                requireResidentKey: false,
+                residentKey: "discouraged",
+                userVerification: "discouraged"
             },
-            attestation: "direct",
+            attestation: "none",
             timeout: 10000
         };
+        if (registration.domain !== undefined){
+            info.rp.id = registration.domain;
+        }
         if (registration.supportedAlgorithms){
             for (var i = 0, l = registration.supportedAlgorithms.length; i < l; ++i){
                 info.pubKeyCredParams.push({type: "public-key", alg: coseAlgorithmsBySignAlgorithm[registration.supportedAlgorithms[i]]});
             }
         }else{
             info.pubKeyCredParams = [
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA512]},
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA384]},
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA256]},
                 {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512]},
                 {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384]},
-                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256]}
+                {type: "public-key", alg: coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256]},
             ];
         }
+        var credentials = this.credentialStore;
         this.credentialStore.create({publicKey: info}).then(function(credential){
             if (!credential || credential.type != "public-key"){
                 completion.call(target, null);
                 return;
             }
-            var jwk = jwkForCOSEAlgorithm(credential.response.getPublicKeyAlgorithm());
-            if (jwk !== null){
-                jwk.kid = credential.id;
-                jwk.key_ops = ["verify"];
-                if (jwk.kty == SECJSONWebToken.KeyType.rsa){
-                    var der = JSData.initWithBuffer(credential.response.getPublicKey());
-                    var parser = SECDERParser.initWithData(der);
-                    var sequence = parser.parse();
-                    // sequence 0 is algorithm, which we already know
-                    jwk.n = sequence[1][0].base64URLStringRepresentation();
-                    jwk.e = sequence[1][1].base64URLStringRepresentation();
-                }
-            }
             var clientData = JSData.initWithBuffer(credential.response.clientDataJSON);
-            var authData = JSData.initWithBuffer(credential.response.authenticatorData);
-            var attestation = null;
-            var signature = null;
-            var chain = [];
-            try{
-                attestation = SECCBOR.parse(credential.response.attestationObject);
-                delete attestation.authData;
-            }catch (e){
-                // oh well
-            }
+            var attestationCBOR = JSData.initWithBuffer(credential.response.attestationObject);
+            var attestation = SECCBOR.parse(attestationCBOR);
+            var authData = attestation.authData;
+            var length = (authData[53] << 8) | authData[54];
+            var keyParser = SECCBORParser.initWithData(authData);
+            keyParser.offset = 55 + length;
+            var coseKey = keyParser.readNext();
+            var jwk = jwkForCoseKey(coseKey, credential.id);
             var result = {
                 jwk: jwk,
                 webauthn: {
                     attestation: attestation,
-                    authData: authData,
                     clientData: clientData
-                }
+                },
+                challenge: registration.challengeData
             };
             completion.call(target, result);
         }, function(error){
@@ -136,7 +137,11 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         return completion.promise;
     },
 
-    signChallenge: function(challengeData, completion, target){
+    authenticate: function(request, completion, target){
+        // Request
+        // challengeData
+        // domain
+        // allowedKeyIds
         if (!completion){
             completion = Promise.completion();
         }
@@ -144,11 +149,24 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
-        var request = {
-            challenge: challengeData,
-            userVerification: "required"
+        var info = {
+            challenge: request.challengeData,
+            userVerification: "discouraged",
+            timeout: 10000,
+            allowCredentials: []
         };
-        this.credentialStore.get({publicKey: request}).then(function(credential){
+        if (request.domain){
+            info.rpId = request.domain;
+        }
+        if (request.allowedKeyIds){
+            for (var i = 0, l = request.allowedKeyIds.length; i < l; ++i){
+                info.allowCredentials.push({
+                    type: "public-key",
+                    id: request.allowedKeyIds[i].dataByDecodingBase64URL()
+                });
+            }
+        }
+        this.credentialStore.get({publicKey: info}).then(function(credential){
             if (!credential || credential.type != "public-key"){
                 completion.call(target, null);
                 return;
@@ -162,7 +180,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                     authData: authData,
                     clientData: clientData
                 },
-                challenge: challengeData,
+                challenge: request.challengeData,
                 signature: JSData.initWithBuffer(credential.response.signature)
             };
             completion.call(target, result);
@@ -189,18 +207,83 @@ var coseAlgorithmsBySignAlgorithm = {};
 coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256] = -257;
 coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384] = -258;
 coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512] = -259;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA256] = -7;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA384] = -35;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA512] = -36;
 
-var jwkForCOSEAlgorithm = function(coseAlgorithm){
-    switch (coseAlgorithm){
-        case -257:
-            return {kty: SECJSONWebToken.KeyType.rsa, alg: SECJSONWebToken.Algorithm.rsaSHA256};
-        case -258:
-            return {kty: SECJSONWebToken.KeyType.rsa, alg: SECJSONWebToken.Algorithm.rsaSHA384};
-        case -259:
-            return {kty: SECJSONWebToken.KeyType.rsa, alg: SECJSONWebToken.Algorithm.rsaSHA512};
-        default:
-            return null;
+var remap = function(dictionary, keyMap){
+    var copy = {};
+    for (var k in dictionary){
+        copy[keyMap[k] || k] = dictionary[k];
     }
+    return copy;
+};
+
+var jwkForCoseKey = function(coseKey, kid){
+    coseKey = remap(coseKey, {
+        "1": "kty",
+        "2": "kid",
+        "3": "alg",
+        "-1": "crv",
+        "-2": "x",
+        "-3": "y",
+        "-4": "d"
+    });
+    var jwk = {
+        kid: kid,
+        key_ops: ["verify"]
+    };
+    if (coseKey.kty == 2){
+        jwk.kty = SECJSONWebToken.KeyType.ellipticCurve;
+        switch (coseKey.alg){
+            case -7:
+                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA256;
+                break;
+            case -35:
+                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA384;
+                break;
+            case -36:
+                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA512;
+                break;
+            default:
+                return null;
+        }
+        switch (coseKey.crv){
+            case 1:
+                jwk.crv = "P-256";
+                break;
+            case 2:
+                jwk.crv = "P-384";
+                break;
+            case 3:
+                jwk.crv = "P-512";
+                break;
+            default:
+                return null;
+        }
+        jwk.x = coseKey.x.base64URLStringRepresentation();
+        jwk.y = coseKey.y.base64URLStringRepresentation();
+        return jwk;
+    }
+    if (coseKey.kty == 0){ // RSA
+        jwk.kty = SECJSONWebToken.KeyType.rsa;
+        switch (coseKey.alg){
+            case -257:
+                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA256;
+                break;
+            case -258:
+                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA384;
+                break;
+            case -259:
+                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA512;
+                break;
+            default:
+                return null;
+        }
+        // TODO: jwk.n, jwk.e
+        return jwk;
+    }
+    return null;
 };
 
 })();

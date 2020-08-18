@@ -49,12 +49,18 @@ SECVerify.Algorithm = {
     rsaSHA256: "rsa.sha256",
     rsaSHA384: "rsa.sha384",
     rsaSHA512: "rsa.sha512",
+    ellipticCurveSHA256: "ec.sha256",
+    ellipticCurveSHA384: "ec.sha384",
+    ellipticCurveSHA512: "ec.sha512"
 };
 
 var jwkAlgorithm = {
     "RS256": SECVerify.rsaSHA256,
     "RS384": SECVerify.rsaSHA384,
-    "RS512": SECVerify.rsaSHA512
+    "RS512": SECVerify.rsaSHA512,
+    "ES256": SECVerify.ellipticCurveSHA256,
+    "ES384": SECVerify.ellipticCurveSHA384,
+    "ES512": SECVerify.ellipticCurveSHA512
 };
 
 })();

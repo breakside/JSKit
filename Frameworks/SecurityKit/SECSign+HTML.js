@@ -42,9 +42,13 @@ SECSign.definePropertiesFromExtensions({
         var algorithm = {
             name: this.htmlAlgorithm.name,
             hash: this.htmlAlgorithm.hash,
-            modulusLength: options.modulusLength || 2048,
-            publicExponent: bigIntegerFromNumber(options.publicExponent || 0x10001)
         };
+        if (algorithm.name == "RSASSA-PKCS1-v1_5"){
+            algorithm.modulusLength = options.modulusLength || 2048;
+            algorithm.publicExponent = bigIntegerFromNumber(options.publicExponent || 0x10001);
+        }else if (algorithm.name == "ECDSA"){
+            algorithm.namedCurve = options.namedCurve || this.htmlAlgorithm.namedCurve;
+        }
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["sign", "verify"]).then(function(htmlPair){
             var pair = {
@@ -118,9 +122,12 @@ SECSign.definePropertiesFromExtensions({
 });
 
 var htmlAlgorithms = {};
-htmlAlgorithms[SECSign.Algorithm.rsaSHA256] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256'};
-htmlAlgorithms[SECSign.Algorithm.rsaSHA384] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-384'};
-htmlAlgorithms[SECSign.Algorithm.rsaSHA512] = { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-512'};
+htmlAlgorithms[SECSign.Algorithm.rsaSHA256] = { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256"};
+htmlAlgorithms[SECSign.Algorithm.rsaSHA384] = { name: "RSASSA-PKCS1-v1_5", hash: "SHA-384"};
+htmlAlgorithms[SECSign.Algorithm.rsaSHA512] = { name: "RSASSA-PKCS1-v1_5", hash: "SHA-512"};
+htmlAlgorithms[SECSign.Algorithm.ellipticCurveSHA256] = { name: "ECDSA", hash: "SHA-256", namedCurve: "P-256"};
+htmlAlgorithms[SECSign.Algorithm.ellipticCurveSHA384] = { name: "ECDSA", hash: "SHA-384", namedCurve: "P-384"};
+htmlAlgorithms[SECSign.Algorithm.ellipticCurveSHA512] = { name: "ECDSA", hash: "SHA-512", namedCurve: "P-521"};
 
 var bigIntegerFromNumber = function(n){
     var elements = [];
