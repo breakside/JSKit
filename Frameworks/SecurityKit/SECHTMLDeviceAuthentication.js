@@ -52,7 +52,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         }
         registration = JSCopy(registration);
         if (!registration.providerName){
-            registration.providerName = JSBundle.mainBundle.info.UIApplicationTitle || JSBundle.mainBundle.info.JSExecutableName || JSBundle.mainBundle.info.JSBundleIndentifier;
+            registration.providerName = JSBundle.mainBundle.localizedStringForInfoKey("UIApplicationTitle") || JSBundle.mainBundle.info.JSExecutableName || JSBundle.mainBundle.info.JSBundleIndentifier;
         }
         if (!registration.userId){
             registration.userId = UUID();
@@ -127,7 +127,8 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 webauthn: {
                     attestation: attestation,
                     clientData: clientData
-                }
+                },
+                challenge: registration.challengeData
             };
             completion.call(target, result);
         }, function(error){
