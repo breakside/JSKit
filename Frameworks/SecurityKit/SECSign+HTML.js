@@ -46,6 +46,8 @@ SECSign.definePropertiesFromExtensions({
         if (algorithm.name == "RSASSA-PKCS1-v1_5"){
             algorithm.modulusLength = options.modulusLength || 2048;
             algorithm.publicExponent = bigIntegerFromNumber(options.publicExponent || 0x10001);
+        }else if (algorithm.name == "ECDSA"){
+            algorithm.namedCurve = options.namedCurve || this.htmlAlgorithm.namedCurve;
         }
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["sign", "verify"]).then(function(htmlPair){

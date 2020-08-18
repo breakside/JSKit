@@ -15,7 +15,8 @@
 
 // #import "SECVerify.js"
 // #import "SECNodeKey.js"
-// #import "SECDER.js"
+// #import "SECASN1.js"
+// #import "SECJSONWebToken.js"
 // jshint node: true
 'use strict';
 
@@ -51,42 +52,82 @@ SECVerify.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
-        // RSA public key ASN.1 syntax:
-        // RSAPublicKey ::= SEQUENCE {
-        //     modulus           INTEGER,  -- n
-        //     publicExponent    INTEGER   -- e
-        // }
-        // 
+        var der, base64, pem, key;
+        if (jwk.kty == SECJSONWebToken.KeyType.rsa){
+            // RSA public key ASN.1 syntax:
+            // RSAPublicKey ::= SEQUENCE {
+            //     modulus           INTEGER,  -- n
+            //     publicExponent    INTEGER   -- e
+            // }
+            // 
 
-        if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string"){
+            if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string"){
+                try{
+                    var rsaPublicKey = SECASN1Sequence.initWithValues([
+                        SECASN1Integer.initWithData(jwk.n.dataByDecodingBase64URL()),
+                        SECASN1Integer.initWithData(jwk.e.dataByDecodingBase64URL())
+                    ]);
+                    pem = rsaPublicKey.pemRepresentation("RSA PUBLIC KEY");
+                    key = SECNodeKey.initWithData(pem.utf8());
+                    JSRunLoop.main.schedule(completion, target, key);
+                }catch (e){
+                    JSRunLoop.main.schedule(completion, target, null);
+                }
+            }else{
+                JSRunLoop.main.schedule(completion, target, null);
+            }
+        }else if (jwk.kty == SECJSONWebToken.KeyType.ellipticCurve){
+            // SPKI format
             try{
-                var rsaPublicKey = SECDERSequence([
-                    SECDERInteger(jwk.n.dataByDecodingBase64URL()),
-                    SECDERInteger(jwk.e.dataByDecodingBase64URL())
+                var derCurve;
+                switch (jwk.crv){
+                    case SECJSONWebToken.EllipticCurve.p256:
+                        derCurve = derNamedCurves[SECSign.EllipticCurve.p256];
+                        break;
+                    case SECJSONWebToken.EllipticCurve.p384:
+                        derCurve = derNamedCurves[SECSign.EllipticCurve.p384];
+                        break;
+                    case SECJSONWebToken.EllipticCurve.p384:
+                        derCurve = derNamedCurves[SECSign.EllipticCurve.p384];
+                        break;
+                    default:
+                        throw new Error("Unknown jwk.crv");
+                }
+                var publicKey = SECASN1Sequence.initWithValues([
+                    SECASN1Sequence.initWithValues([
+                        SECASN1ObjectIdentifier.initWithString("1.2.840.10045.2.1"),
+                        SECASN1ObjectIdentifier.initWithString(derCurve),
+                    ]),
+                    SECASN1BitString.initWithData(JSData.initWithChunks([
+                        JSData.initWithArray([0x4]), // uncompressed
+                        jwk.x.dataByDecodingBase64URL(),
+                        jwk.y.dataByDecodingBase64URL()
+                    ]), 0)
                 ]);
-
-                var der = JSData.initWithLength(rsaPublicKey.length);
-                rsaPublicKey.copyTo(der, 0);
-
-                var base64 = der.base64StringRepresentation(64);
-                var pem = "-----BEGIN RSA PUBLIC KEY-----\n";
-                pem += base64;
-                pem += "\n-----END RSA PUBLIC KEY-----\n";
-                var key = SECNodeKey.initWithData(pem.utf8());
+                pem = publicKey.pemRepresentation("PUBLIC KEY");
+                key = SECNodeKey.initWithData(pem.utf8());
                 JSRunLoop.main.schedule(completion, target, key);
             }catch (e){
-                completion.call(target, null);
+                JSRunLoop.main.schedule(completion, target, null);
             }
         }else{
-            completion.call(target, null);
+            JSRunLoop.main.schedule(completion, target, null);
         }
         return completion.promise;
     }
 
 });
 
+var derNamedCurves = {};
+derNamedCurves[SECSign.EllipticCurve.p256] = "1.2.840.10045.3.1.7";
+derNamedCurves[SECSign.EllipticCurve.p384] = "1.3.132.0.34";
+derNamedCurves[SECSign.EllipticCurve.p512] = "1.3.132.0.35";
+
 var nodeAlgorithms = {};
 nodeAlgorithms[SECVerify.Algorithm.rsaSHA256] = {name: 'rsa', hash: 'sha256'};
 nodeAlgorithms[SECVerify.Algorithm.rsaSHA384] = {name: 'rsa', hash: 'sha384'};
 nodeAlgorithms[SECVerify.Algorithm.rsaSHA512] = {name: 'rsa', hash: 'sha512'};
+nodeAlgorithms[SECVerify.Algorithm.ellipticCurveSHA256] = {name: 'ec', hash: 'sha256', namedCurve: "secp256r1"};
+nodeAlgorithms[SECVerify.Algorithm.ellipticCurveSHA384] = {name: 'ec', hash: 'sha384', namedCurve: "secp384r1"};
+nodeAlgorithms[SECVerify.Algorithm.ellipticCurveSHA512] = {name: 'ec', hash: 'sha512', namedCurve: "secp521r1"};
 

@@ -26,7 +26,7 @@ JSClass("SECDeviceAuthentication", JSObject, {
         return completion.promise;  
     },
 
-    signChallenge: function(challengeData, completion, target){
+    authenticate: function(request, completion, target){
         if (!completion){
             completion = Promise.completion();
         }

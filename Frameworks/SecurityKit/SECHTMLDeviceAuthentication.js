@@ -15,7 +15,6 @@
 
 // #import "SECDeviceAuthentication.js"
 // #import "SECCipher.js"
-// #import "SECDER.js"
 // #import "SECCBOR.js"
 // #import "SECHash.js"
 // #import "SECJSONWebToken.js"
@@ -38,6 +37,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
 
     createPublicKey: function(registration, completion, target){
         // Registration
+        // domain
         // providerName
         // userId
         // accountName
@@ -75,12 +75,24 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             challenge: registration.challengeData,
             pubKeyCredParams: [],
             authenticatorSelection: {
-                residentKey: "required",
-                userVerification: "required"
+                // Browser support for resident keys is spotty:
+                // - Chrome works, requiring the user to set a PIN, but can't share with others
+                // - Safari works, no PIN required, but can't share with others
+                // - Safari will get PIN support in Safari 14
+                // - Firefox doesn't work on macOS, but supposedly works on windows with a PIN
+                // Without a resident key, we need something like a username that the user can
+                // provide so we can lookup allowed key IDs on a server and send them back to
+                // the client before authenticating
+                requireResidentKey: false,
+                residentKey: "discouraged",
+                userVerification: "discouraged"
             },
             attestation: "none",
             timeout: 10000
         };
+        if (registration.domain !== undefined){
+            info.rp.id = registration.domain;
+        }
         if (registration.supportedAlgorithms){
             for (var i = 0, l = registration.supportedAlgorithms.length; i < l; ++i){
                 info.pubKeyCredParams.push({type: "public-key", alg: coseAlgorithmsBySignAlgorithm[registration.supportedAlgorithms[i]]});
@@ -124,7 +136,11 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         return completion.promise;
     },
 
-    signChallenge: function(challengeData, completion, target){
+    authenticate: function(request, completion, target){
+        // Request
+        // challengeData
+        // domain
+        // allowedKeyIds
         if (!completion){
             completion = Promise.completion();
         }
@@ -132,11 +148,24 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
-        var request = {
-            challenge: challengeData,
-            userVerification: "required"
+        var info = {
+            challenge: request.challengeData,
+            userVerification: "discouraged",
+            timeout: 10000,
+            allowCredentials: []
         };
-        this.credentialStore.get({publicKey: request}).then(function(credential){
+        if (request.domain){
+            info.rpId = request.domain;
+        }
+        if (request.allowedKeyIds){
+            for (var i = 0, l = request.allowedKeyIds.length; i < l; ++i){
+                info.allowCredentials.push({
+                    type: "public-key",
+                    id: request.allowedKeyIds[i].dataByDecodingBase64URL()
+                });
+            }
+        }
+        this.credentialStore.get({publicKey: info}).then(function(credential){
             if (!credential || credential.type != "public-key"){
                 completion.call(target, null);
                 return;
@@ -150,7 +179,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                     authData: authData,
                     clientData: clientData
                 },
-                challenge: challengeData,
+                challenge: request.challengeData,
                 signature: JSData.initWithBuffer(credential.response.signature)
             };
             completion.call(target, result);
@@ -251,12 +280,6 @@ var jwkForCoseKey = function(coseKey, kid){
                 return null;
         }
         // TODO: jwk.n, jwk.e
-        // var der = JSData.initWithBuffer(credential.response.getPublicKey());
-        // var parser = SECDERParser.initWithData(der);
-        // var sequence = parser.parse();
-        // // sequence 0 is algorithm, which we already know
-        // jwk.n = sequence[1][0].base64URLStringRepresentation();
-        // jwk.e = sequence[1][1].base64URLStringRepresentation();
         return jwk;
     }
     return null;

@@ -48,3 +48,9 @@ SECSign.Algorithm = {
     ellipticCurveSHA384: "ec.sha384",
     ellipticCurveSHA512: "ec.sha512"
 };
+
+SECSign.EllipticCurve = {
+    p256: "P-256",
+    p384: "P-384",
+    p521: "P-521"
+};

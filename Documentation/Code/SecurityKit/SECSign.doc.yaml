@@ -68,6 +68,9 @@ topics:
         description: |
           For RSA signing, the `options`() argument must be an `RSAOptions`
           object
+
+          For Elliptic Curve signing, the `options`() argument must be an
+          `EllipticCurveOptions` object.
       -
         name: createKeyPair
         suffix: promise
@@ -86,6 +89,9 @@ topics:
         description: |
           For RSA signing, the `options`() argument must be an `RSAOptions`
           object
+
+          For Elliptic Curve signing, the `options`() argument must be an
+          `EllipticCurveOptions` object.
       -
         introduced: 2020.28.0
         name: createJWKPair
@@ -112,7 +118,10 @@ topics:
             summary: The object to use as `this` in the completion function call
         description: |
           For RSA signing, the `options`() argument must be an `RSAOptions`
-          object
+          object.
+
+          For Elliptic Curve signing, the `options`() argument must be an
+          `EllipticCurveOptions` object.
       -
         introduced: 2020.28.0
         name: createJWKPair
@@ -132,6 +141,9 @@ topics:
         description: |
           For RSA signing, the `options`() argument must be an `RSAOptions`
           object
+
+          For Elliptic Curve signing, the `options`() argument must be an
+          `EllipticCurveOptions` object.
       -
         introduced: 2020.28.0
         name: createKeyFromJWK
@@ -189,6 +201,42 @@ topics:
                 name: publicExponent
                 type: Number
                 summary: The public exponent.  Defaults to `0x10001`.
+      -
+        introduced: 2020.33.0
+        name: EllipticCurveOptions
+        kind: class
+        anonymous: true
+        summary: The options when generating an Elliptic Curve key
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: namedCurve
+                type: EllipticCurve
+                summary: The named curve to use.  Defaults to the curve commonly used with the signing algorithm.
+                description: |
+                  - Defaults to `p256` when using the `ellipticCurveSHA256` algorithm
+                  - Defaults to `p384` when using the `ellipticCurveSHA384` algorithm
+                  - Defaults to `p521` when using the `ellipticCurveSHA512` algorithm
+      -
+        introduced: 2020.33.0
+        kind: enum
+        name: EllipticCurve
+        summary: The supported named curves
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: p256
+                summary: The `P-256`() curve, also known as `secp256r1`()
+              -
+                name: p384
+                summary: The `P-384`() curve, also known as `secp384r1`()
+              -
+                name: p521
+                summary: The `P-521`() curve, also known as `secp521r1`()
       -
         introduced: 2020.28.0
         name: JWKKeyPair

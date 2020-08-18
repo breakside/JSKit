@@ -283,6 +283,12 @@ SECJSONWebToken.KeyType = {
     ellipticCurve: "EC"
 };
 
+SECJSONWebToken.EllipticCurve = {
+    p256: "P-256",
+    p384: "P-384",
+    p521: "P-521"
+};
+
 var dot = JSData.initWithArray([0x2E]);
 
 })();
