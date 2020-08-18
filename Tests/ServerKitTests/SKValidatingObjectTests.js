@@ -537,6 +537,52 @@ JSClass("SKValidatingObjectTests", TKTestSuite, {
         TKAssertThrows(function(){ validator.arrayForKey("boolKey"); });
     },
 
+    testObjectBase64DataForKey: function(){
+        var input = {data: JSData.initWithArray([0,1,2,3]).base64StringRepresentation()};
+        var validator = SKValidatingObject.initWithObject(input);
+        var result = validator.base64DataForKey("data");
+        TKAssert(result instanceof JSData);
+        TKAssertEquals(result.length, 4);
+        TKAssertEquals(result[0], 0);
+        TKAssertEquals(result[1], 1);
+        TKAssertEquals(result[2], 2);
+        TKAssertEquals(result[3], 3);
+
+        validator = SKValidatingObject.initWithObject(input);
+        var fallback = JSData.initWithLength(0);
+        result = validator.base64DataForKey("missing", fallback);
+        TKAssertExactEquals(result, fallback);
+
+        TKAssertThrows(function(){
+            var input = {data: "not!base64"};
+            var validator = SKValidatingObject.initWithObject(input);
+            var result = validator.base64DataForKey("data");
+        });
+    },
+
+    testObjectBase64URLDataForKey: function(){
+        var input = {data: JSData.initWithArray([0,1,2,3]).base64URLStringRepresentation()};
+        var validator = SKValidatingObject.initWithObject(input);
+        var result = validator.base64URLDataForKey("data");
+        TKAssert(result instanceof JSData);
+        TKAssertEquals(result.length, 4);
+        TKAssertEquals(result[0], 0);
+        TKAssertEquals(result[1], 1);
+        TKAssertEquals(result[2], 2);
+        TKAssertEquals(result[3], 3);
+
+        validator = SKValidatingObject.initWithObject(input);
+        var fallback = JSData.initWithLength(0);
+        result = validator.base64URLDataForKey("missing", fallback);
+        TKAssertExactEquals(result, fallback);
+
+        TKAssertThrows(function(){
+            var input = {data: "not!base64url"};
+            var validator = SKValidatingObject.initWithObject(input);
+            var result = validator.base64URLDataForKey("data");
+        });
+    },
+
     testFormStringForKey: function(){
         var input = JSFormFieldMap();
         input.add("stringKey", "testing");
@@ -1114,6 +1160,54 @@ JSClass("SKValidatingObjectTests", TKTestSuite, {
         TKAssertNull(result);
 
         TKAssertThrows(function(){ validator.arrayForKey("missingKey"); });
+    },
+
+    testFormBase64DataForKey: function(){
+        var input = JSFormFieldMap();
+        input.add("data", JSData.initWithArray([0,1,2,3]).base64StringRepresentation());
+        var validator = SKValidatingObject.initWithForm(input);
+        var result = validator.base64DataForKey("data");
+        TKAssert(result instanceof JSData);
+        TKAssertEquals(result.length, 4);
+        TKAssertEquals(result[0], 0);
+        TKAssertEquals(result[1], 1);
+        TKAssertEquals(result[2], 2);
+        TKAssertEquals(result[3], 3);
+
+        validator = SKValidatingObject.initWithForm(input);
+        var fallback = JSData.initWithLength(0);
+        result = validator.base64DataForKey("missing", fallback);
+        TKAssertExactEquals(result, fallback);
+
+        TKAssertThrows(function(){
+            var input = JSFormFieldMap();
+            input.add("data", "not!base64");
+            var validator = SKValidatingObject.initWithForm(input);
+            var result = validator.base64DataForKey("data");
+        });
+    },
+
+    testFormBase64URLDataForKey: function(){
+        var input = {data: JSData.initWithArray([0,1,2,3]).base64URLStringRepresentation()};
+        var validator = SKValidatingObject.initWithObject(input);
+        var result = validator.base64URLDataForKey("data");
+        TKAssert(result instanceof JSData);
+        TKAssertEquals(result.length, 4);
+        TKAssertEquals(result[0], 0);
+        TKAssertEquals(result[1], 1);
+        TKAssertEquals(result[2], 2);
+        TKAssertEquals(result[3], 3);
+
+        validator = SKValidatingObject.initWithObject(input);
+        var fallback = JSData.initWithLength(0);
+        result = validator.base64URLDataForKey("missing", fallback);
+        TKAssertExactEquals(result, fallback);
+
+        TKAssertThrows(function(){
+            var input = {data: "not!base64url"};
+            var validator = SKValidatingObject.initWithObject(input);
+            var result = validator.base64URLDataForKey("data");
+        });
     },
 
 });

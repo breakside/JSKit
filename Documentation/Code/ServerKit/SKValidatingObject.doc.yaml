@@ -792,6 +792,63 @@ topics:
 
           If the key is missing entirely, the `defaultValue`() will be returned.
   -
+    name: Data Properties
+    members:
+      -
+        introduced: 2020.33.0
+        name: base64DataForKey
+        kind: method
+        type: JSData
+        summary: Get the data that is base64-encoded in the given key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+      -
+        introduced: 2020.33.0
+        name: base64DataForKey
+        suffix: default
+        kind: method
+        type: JSData
+        summary: Get the data that is base64-encoded in the given key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: defaultValue
+            type: boolean
+            summary: The value to return if the key is not in the object
+      -
+        introduced: 2020.33.0
+        name: base64URLDataForKey
+        kind: method
+        type: JSData
+        summary: Get the data that is base64url-encoded in the given key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+      -
+        introduced: 2020.33.0
+        name: base64URLDataForKey
+        suffix: default
+        kind: method
+        type: JSData
+        summary: Get the data that is base64url-encoded in the given key
+        arguments:
+          -
+            name: key
+            type: String
+            summary: The name of property to validate
+          -
+            name: defaultValue
+            type: boolean
+            summary: The value to return if the key is not in the object
+  -
     name: Wrapped Arrays
     members:
       -
