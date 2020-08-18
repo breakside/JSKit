@@ -403,6 +403,7 @@ JSClass('UIWindow', UIView, {
         }
         if (this._parent){
             this._parent._modal = null;
+            this._parent._flushTrackingEvents();
         }
     },
 
@@ -694,11 +695,15 @@ JSClass('UIWindow', UIView, {
         }
         if (modal !== null){
             this.mouseEventView = null;
-            if (event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.leftMouseDragged || event.type == UIEvent.Type.rightMouseDown){
+            if (event.type == UIEvent.Type.mouseEntered || event.type == UIEvent.Type.mouseExited || event.type == UIEvent.mouseMoved){
+                this._enqueueTrackingEvent(event);
+                return;
+            }
+            if (event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.leftMouseDragged || event.type == UIEvent.Type.rightMouseDown || event.type == UIEvent.Type.rightMouseDragged){
                 modal.makeKeyAndOrderFront();
                 modal.indicateModalStatus();
+                return;
             }
-            return;
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
             this.mouseEventView = this.hitTest(event.locationInWindow);
@@ -752,6 +757,26 @@ JSClass('UIWindow', UIView, {
                 break;
         }
 
+    },
+
+    _trackingEventQueue: null,
+
+    _enqueueTrackingEvent: function(event){
+        if (this._trackingEventQueue === null){
+            this._trackingEventQueue = [];
+        }
+        this._trackingEventQueue.push(event);
+    },
+
+    _flushTrackingEvents: function(){
+        if (this._trackingEventQueue !== null){
+            var event;
+            for (var i = 0, l = this._trackingEventQueue.length; i < l; ++i){
+                event = this._trackingEventQueue[i];
+                this.sendEvent(event);
+            }
+            this._trackingEventQueue = null;
+        }
     },
 
     _sendScrollEvent: function(event){
