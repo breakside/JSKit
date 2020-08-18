@@ -262,3 +262,7 @@ topics:
     name: Web Views
     members:
       - UIWebView
+  -
+    name: Specialized HTML Views
+    members:
+      - UIHTMLElementLayer

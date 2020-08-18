@@ -1,0 +1,119 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.33.0
+environment: html
+inherits: UILayer
+summary: A layer for showing custom HTML elements
+description: |
+  While most types of interface objects can be represents with `UILayer` and/or
+  `UIView`, some specialized HTML views just need to be drawn with
+  custom DOM elements.
+
+  For example, third party HTML libraries that don't know about `UIKit` might
+  only be attachable via direct DOM access.
+
+  `UIHTMLElementLayer` provides access to a DOM element when `UIKit` is rendered
+  in an HTML environment.
+
+  The easiest way to use `UIHTMLElementLayer` is to create a custom view that
+  is backed by `UIHTMLElementLayer`.
+
+  Here's an approximation of how `UIWebView` works:
+
+  ````
+  #import UIKit
+  'use strict';
+
+  JSClass("WebView", UIView, {
+
+    iframe: null,
+
+    elementNameForLayer: function(layer){
+      return "iframe";
+    }
+
+    layerDidCreateElement: function(layer){
+      this.iframe = layer.element;
+      this.iframe.addEventListener("load", this);
+    },
+
+    layerWillDestroyElement: function(layer){
+      this.iframe.removeEventListener("load", this);
+    },
+
+    loadURL: function(url){
+      this.iframe.src = url.encodedString;
+    },
+
+    handleEvent: function(e){
+      this[e.type](e);
+    },
+
+    load: function(){
+      // notify delegate of load complete
+    }
+
+  });
+
+  WebView.layerClass = UIHTMLElementLayer;
+  ````
+topics:
+  -
+    name: DOM Element
+    members:
+      -
+        name: element
+        type: DOMElement
+        summary: The DOM element for this layer
+      -
+        name: elementInsets
+        type: JSInsets
+        summary: The amount to inset the element from the layer's bounds
+  -
+    name: Delegate
+    members:
+      -
+        name: UIHTMLElementLayerDelegate
+        kind: protocol
+        inherits: UILayerDelegate
+        topics:
+          -
+            name: Creating the Element
+            members:
+              -
+                name: elementNameForLayer
+                kind: method
+                type: String
+                summary: Return the name of the element to create
+                arguments:
+                  -
+                    name: layer
+                    type: UIHTMLElementLayer
+                    summary: The calling layer
+                description: |
+                  If not provided, `"div"` will be used.
+              -
+                name: layerDidCreateElement
+                kind: method
+                summary: Called immediately after the element is created to
+                  allow for further setup
+                arguments:
+                  -
+                    name: layer
+                    type: UIHTMLElementLayer
+                    summary: The calling layer
+                description: |
+                  Useful for adding child elements, adding event listeners, or
+                  styling
+              -
+                name: layerWillDestroyElement
+                kind: method
+                summary: Called immediately before the element will be removed
+                  from the DOM
+                arguments:
+                  -
+                    name: layer
+                    type: UIHTMLElementLayer
+                    summary: The calling layer
+                description: |
+                  Useful for cleanup tasks like removing event listeners
