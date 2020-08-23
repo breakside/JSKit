@@ -31,7 +31,6 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
     },
 
     _write: function(data){
-        logger.info("%{public} Sending: %{public}", this.tag, data.hexStringRepresentation());
         this._nodeSocket.write(data.nodeBuffer());
     },
 
