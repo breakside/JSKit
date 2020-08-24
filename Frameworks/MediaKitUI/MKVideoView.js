@@ -25,13 +25,6 @@ JSClass("MKVideoView", UIView, {
 
     pause: function(){
     },
-
-    touchesBegan: function(touches, event){
-    },
-
-    touchesEnded: function(touches, event){
-        this.play();
-    }
     
 });
 
