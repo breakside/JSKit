@@ -16,15 +16,35 @@
 // #import UIKit
 'use strict';
 
+JSProtocol("MKVideoViewDelegate", JSProtocol, {
+    videoViewDidChangeResolution: function(videoView){}
+});
+
 JSClass("MKVideoView", UIView, {
 
     playbackState: JSReadOnlyProperty('_playbackState', 0),
+
+    delegate: null,
 
     play: function(){
     },
 
     pause: function(){
     },
+
+    mute: function(){
+    },
+
+    asset: null,
+
+    videoResolution: null,
+
+    getIntrinsicSize: function(){
+        if (this.videoResolution !== null){
+            return this.videoResolution;
+        }
+        return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
+    }
     
 });
 

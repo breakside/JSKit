@@ -22,9 +22,38 @@ JSClass("MKHTMLStream", MKStream, {
 
     initWithHTMLMediaStream: function(htmlMediaStream){
         this.htmlMediaStream = htmlMediaStream;
+        this.htmlVideoTrack = htmlMediaStream.getVideoTracks()[0] || null;
+        this.htmlAudioTrack = htmlMediaStream.getAudioTracks()[0] || null;
+    },
+
+    muteAudio: function(){
+        if (this.htmlAudioTrack !== null){
+            this.htmlAudioTrack.enabled = false;
+        }
+    },
+
+    unmuteAudio: function(){
+        if (this.htmlAudioTrack !== null){
+            this.htmlAudioTrack.enabled = true;
+        }
+    },
+
+    videoResolution: JSLazyInitProperty('_getVideoResolution'),
+
+    _getVideoResolution: function(){
+        var settings;
+        if (this.htmlVideoTrack !== null){
+            settings = this.htmlVideoTrack.getSettings();
+            if (settings.width !== 0 && settings.height !== 0){
+                return JSSize(settings.width, settings.height);
+            }
+        }
+        return null;
     },
 
     htmlMediaStream: null,
+    htmlVideoTrack: null,
+    htmlAudioTrack: null,
 
 });
 
@@ -33,7 +62,7 @@ MKStream.requestLocalVideo = function(completion, target){
         completion = Promise.completion();
     }
     var constraints = {
-        audio: false,
+        audio: true,
         video: true
     };
     navigator.mediaDevices.getUserMedia(constraints).then(function(htmlMediaStream){

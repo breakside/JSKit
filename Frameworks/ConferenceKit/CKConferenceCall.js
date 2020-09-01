@@ -21,7 +21,6 @@ JSClass("CKConferenceCall", JSObject, {
 
     init: function(){
         this.turnServices = [];
-        this.participants = [];
         this.connectionsByParticipantId = {};
     },
 
@@ -31,17 +30,35 @@ JSClass("CKConferenceCall", JSObject, {
     },
 
     turnServices: null,
-    participants: null,
     connectionsByParticipantId: null,
 
-    connectToParticipant: function(participant){
-        this.participants.push(participant);
+    connectToParticipant: function(participant, isCaller){
         var connection = CKParticipantConnection.createForParticipant(participant);
         connection.call = this;
         this.connectionsByParticipantId[participant.identifier] = connection;
-        connection.open();
+        connection.open(isCaller);
         if (this._localStream){
             connection.setLocalStream(this._localStream);
+        }
+    },
+
+    disconnectFromParticipant: function(participant){
+        this._closeConnectionForIdentifier(participant.identifier);
+    },
+
+    end: function(){
+        var ids = Object.keys(this.connectionsByParticipantId);
+        for (var i = 0, l = ids.length; i < l; ++i){
+            this._closeConnectionForIdentifier(ids[i]);
+        }
+    },
+
+    _closeConnectionForIdentifier: function(id){
+        var connection = this.connectionsByParticipantId[id];
+        if (connection){
+            connection.close();
+            connection.call = null;
+            delete this.connectionsByParticipantId[id];
         }
     },
 
@@ -67,14 +84,54 @@ JSClass("CKConferenceCall", JSObject, {
         return null;
     },
 
+    localMicrophoneMuted: JSReadOnlyProperty("_localMicrophoneMuted", false),
+
+    muteLocalMicrophone: function(){
+        this._localMicrophoneMuted = true;
+        this._updateLocalStreamMuted();
+    },
+
+    unmuteLocalMicrophone: function(){
+        this._localMicrophoneMuted = false;
+        this._updateLocalStreamMuted();
+    },
+
+    _updateLocalStreamMuted: function(){
+        if (this._localStream !== null){
+            if (this._localMicrophoneMuted){
+                this._localStream.muteAudio();
+            }else{
+                this._localStream.unmuteAudio();
+            }
+        }
+    },
+
     _localStream: null,
 
     setLocalStream: function(stream){
         this._localStream = stream;
+        this._updateLocalStreamMuted();
         var connection;
         for (var id in this.connectionsByParticipantId){
             connection = this.connectionsByParticipantId[id];
             connection.setLocalStream(stream);
+        }
+    },
+
+    remoteStreamForParticipant: function(participant){
+        var connection = this.connectionsByParticipantId[participant.identifier];
+        if (connection){
+            return connection.remoteStream;
+        }
+        return null;
+    },
+
+    updateAudioMuteForParticipant: function(muted, participant){
+        if (muted != participant.audioSoftMuted){
+            participant._setAudioSoftMuted(muted);
+            if (this.delegate && this.delegate.conferenceCallParticipantDidChangeMuteState){
+                this.delegate.conferenceCallParticipantDidChangeMuteState(this, participant);
+            }
         }
     }
 

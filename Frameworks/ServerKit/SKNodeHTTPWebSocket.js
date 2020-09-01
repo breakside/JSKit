@@ -62,7 +62,11 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
     },
 
     _handleDataEvent: function(buffer){
-        this._receive(JSData.initWithNodeBuffer(buffer));
+        try{
+            this._receive(JSData.initWithNodeBuffer(buffer));
+        }catch (e){
+            logger.error(e);
+        }
     },
 
     _handleCloseEvent: function(){

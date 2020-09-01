@@ -20,6 +20,7 @@ JSProtocol("CKConferenceCallDelegate", JSProtocol, {
 
     conferenceCallSendDescriptionToParticipant: function(call, description, participant){},
     conferenceCallSendCandidateToParticipant: function(call, candidate, participant){},
-    conferenceCallDidReceiveStreamFromParticipant: function(call, stream, participant){}
+    conferenceCallDidReceiveStreamFromParticipant: function(call, stream, participant){},
+    conferenceCallParticipantDidChangeMuteState: function(call, participant){}
 
 });

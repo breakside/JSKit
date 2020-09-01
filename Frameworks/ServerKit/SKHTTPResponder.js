@@ -167,6 +167,19 @@ JSClass("SKHTTPResponder", JSObject, {
         return Promise.reject(new Error("not implemented"));
     },
 
+    addAllowedOrigin: function(origin, methods, headers){
+        if (methods === undefined){
+            methods = ["*"];
+        }
+        if (headers === undefined){
+            headers = ["Authorization", "Content-Type"];
+        }
+        this.allowedOrigins[origin] = {
+            methods: methods,
+            headers: headers
+        };
+    },
+
     _setAccessHeaders: function(){
         var origin = this.request.origin;
         if (origin){
@@ -191,7 +204,7 @@ JSClass("SKHTTPResponder", JSObject, {
                 }
             }
         }
-    }
+    },
 
 });
 

@@ -115,6 +115,13 @@ JSClass('UIView', UIResponder, {
             this.cursor = spec.valueForKey("cursor", UICursor);
         }
         var i, l;
+        if (spec.containsKey("gestureRecognizers")){
+            var recognizers = spec.valueForKey("gestureRecognizers");
+            for (i = 0, l = recognizers.length; i < l; ++i){
+                var recognizer = recognizers.valueForKey(i);
+                this.addGestureRecognizer(recognizers);
+            }
+        }
         if (spec.containsKey("subviews")){
             var subviews = spec.valueForKey("subviews");
             for (i = 0, l = subviews.length; i < l; ++i){
@@ -140,6 +147,7 @@ JSClass('UIView', UIResponder, {
         this.subviews = [];
         this._registeredDraggedTypes = [];
         this._constraints = [];
+        this.gestureRecognizers = [];
     },
 
     // -------------------------------------------------------------------------
@@ -777,6 +785,84 @@ JSClass('UIView', UIResponder, {
             hit = this;
         }
         return hit;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Gestures
+
+    gestureRecognizers: null,
+
+    addGestureRecognizer: function(gestureRecognizer){
+        gestureRecognizer.view = this;
+        this.gestureRecognizers.push(gestureRecognizer);
+    },
+
+    removeGestureRecognizer: function(gestureRecognizer){
+        var index = this.gestureRecognizers.indexOf(gestureRecognizer);
+        if (index >= 0){
+            gestureRecognizer.view = null;
+            this.gestureRecognizers.splice(index, 1);
+        }
+    },
+
+    touchesBegan: function(touches, event){
+        var enabledGestureCount = 0;
+        var gestureRecognizer;
+        for (var i = 0, l = this.gestureRecognizers.length; i < l; ++i){
+            gestureRecognizer = this.gestureRecognizers[i];
+            if (gestureRecognizer.enabled){
+                ++enabledGestureCount;
+                gestureRecognizer.touchesBegan(touches, event);
+            }
+        }
+        if (enabledGestureCount === 0){
+            UIView.$super.touchesBegan.call(this, touches, event);
+        }
+    },
+
+    touchesEnded: function(touches, event){
+        var enabledGestureCount = 0;
+        var gestureRecognizer;
+        for (var i = 0, l = this.gestureRecognizers.length; i < l; ++i){
+            gestureRecognizer = this.gestureRecognizers[i];
+            if (gestureRecognizer.enabled){
+                ++enabledGestureCount;
+                gestureRecognizer.touchesEnded(touches, event);
+            }
+        }
+        if (enabledGestureCount === 0){
+            UIView.$super.touchesEnded.call(this, touches, event);
+        }
+    },
+
+    touchesMoved: function(touches, event){
+        var enabledGestureCount = 0;
+        var gestureRecognizer;
+        for (var i = 0, l = this.gestureRecognizers.length; i < l; ++i){
+            gestureRecognizer = this.gestureRecognizers[i];
+            if (gestureRecognizer.enabled){
+                ++enabledGestureCount;
+                gestureRecognizer.touchesMoved(touches, event);
+            }
+        }
+        if (enabledGestureCount === 0){
+            UIView.$super.touchesMoved.call(this, touches, event);
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        var enabledGestureCount = 0;
+        var gestureRecognizer;
+        for (var i = 0, l = this.gestureRecognizers.length; i < l; ++i){
+            gestureRecognizer = this.gestureRecognizers[i];
+            if (gestureRecognizer.enabled){
+                ++enabledGestureCount;
+                gestureRecognizer.touchesCanceled(touches, event);
+            }
+        }
+        if (enabledGestureCount === 0){
+            UIView.$super.touchesCanceled.call(this, touches, event);
+        }
     },
 
     // -------------------------------------------------------------------------

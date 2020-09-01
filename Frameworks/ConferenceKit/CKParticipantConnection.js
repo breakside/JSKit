@@ -24,6 +24,7 @@ JSClass("CKParticipantConnection", JSObject, {
 
     call: null,
     participant: null,
+    remoteStream: null,
 
     open: function(){
     },

@@ -18,6 +18,12 @@
 
 JSClass("MKStream", MKAsset, {
 
+    muteAudio: function(){
+    },
+
+    unmuteAudio: function(){
+    }
+
 });
 
 MKStream.requestLocalVideo = function(completion, target){

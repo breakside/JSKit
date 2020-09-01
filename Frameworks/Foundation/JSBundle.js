@@ -194,11 +194,13 @@ JSClass('JSBundle', JSObject, {
         var metadata;
         for (var i = 0, l = langs.length; i < l; ++i){
             lookup = this._dict.ResourceLookup[langs[i]];
-            hits = lookup[lookupKey];
-            if (hits !== undefined){
-                metadata = this._dict.Resources[hits[0]];
-                if (!filter || filter(metadata)){
-                    return metadata;
+            if (lookup !== undefined){
+                hits = lookup[lookupKey];
+                if (hits !== undefined){
+                    metadata = this._dict.Resources[hits[0]];
+                    if (!filter || filter(metadata)){
+                        return metadata;
+                    }
                 }
             }
         }

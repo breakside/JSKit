@@ -18,6 +18,10 @@
 // #import "MKVideoView.js"
 'use strict';
 
+JSProtocol("MKVideoPlayerDelegate", JSProtocol, {
+    videoPlayerDidChangeResolution: function(videoPlayer){}
+});
+
 JSClass("MKVideoPlayer", UIView, {
 
     initWithFrame: function(frame){
@@ -30,17 +34,29 @@ JSClass("MKVideoPlayer", UIView, {
         if (spec.containsKey("mirrored")){
             this.mirrored = spec.valueForKey("mirrored");
         }
+        if (spec.containsKey("delegate")){
+            this.delegate = spec.valueForKey("delegate");
+        }
         this.backgroundColor = JSColor.black;
     },
+
+    delegate: null,
 
     videoView: JSLazyInitProperty('_createVideoView'),
 
     _createVideoView: function(){
         var view = MKVideoView.init();
         view.backgroundColor = JSColor.black;
+        view.delegate = this;
         this.addSubview(view);
         this.setNeedsLayout();
         return view;
+    },
+
+    videoResolution: JSReadOnlyProperty(),
+
+    getVideoResolution: function(){
+        return this.videoView.videoResolution;
     },
 
     asset: JSDynamicProperty(),
@@ -69,15 +85,27 @@ JSClass("MKVideoPlayer", UIView, {
     },
 
     mute: function(){
+        this.videoView.mute();
     },
 
     layoutSubviews: function(){
-        this.videoView.frame = this.bounds;
+        this.videoView.bounds = JSRect(JSPoint.Zero, this.bounds.size);
+        this.videoView.position = this.bounds.center;
         if (this._mirrored){
-            this.videoView.transform = JSAffineTransform.Translated(this.videoView.bounds.size.width, 0).scaledBy(-1, 1);
+            this.videoView.transform = JSAffineTransform.Scaled(-1, 1);
         }else{
             this.videoView.transform = JSAffineTransform.Identity;
         }
-    }
+    },
+
+    getIntrinsicSize: function(){
+        return this.videoView.intrinsicSize;
+    },
+
+    videoViewDidChangeResolution: function(){
+        if (this.delegate && this.delegate.videoPlayerDidChangeResolution){
+            this.delegate.videoPlayerDidChangeResolution(this);
+        }
+    },
 
 });

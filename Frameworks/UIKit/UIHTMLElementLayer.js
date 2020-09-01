@@ -7,15 +7,11 @@ JSClass("UIHTMLElementLayer", UILayer, {
     init: function(){
         UIHTMLElementLayer.$super.init.call(this);
         this.elementInsets = JSInsets.Zero;
+        this.needsDisplayOnBoundsChange = true;
     },
 
     element: null,
     elementInsets: JSDynamicProperty('_elementInsets', null),
-
-    didChangeSize: function(){
-        UIHTMLElementLayer.$super.didChangeSize.call(this);
-        this.setNeedsDisplay();
-    },
 
     setElementInsets: function(elementInsets){
         this._elementInsets = JSInsets(elementInsets);
@@ -46,7 +42,7 @@ JSClass("UIHTMLElementLayer", UILayer, {
 
     drawInContext: function(context){
         if (context.isKindOfClass(UIHTMLDisplayServerCanvasContext)){
-            context.addExternalElementInRect(this.element, this.bounds.rectWithInsets(this.elementInsets));
+            context.addExternalElementInRect(this.element, this.presentation.bounds.rectWithInsets(this.elementInsets));
         }
     },
 

@@ -37,6 +37,13 @@ MKVideoView.definePropertiesFromExtensions({
         this._updatePlaybackState();
     },
 
+    muted: false,
+
+    mute: function(){
+        this.muted = true;
+        this._updateMuted();
+    },
+
     elementNameForLayer: function(layer){
         return "video";
     },
@@ -47,6 +54,7 @@ MKVideoView.definePropertiesFromExtensions({
         this.addEventListeners();
         this._updateVideoSource();
         this._updatePlaybackState();
+        this._updateMuted();
     },
 
     layerWillDestroyElement: function(layer){
@@ -89,6 +97,13 @@ MKVideoView.definePropertiesFromExtensions({
         }
     },
 
+    _updateMuted: function(){
+        if (this.videoElement === null){
+            return;
+        }
+        this.videoElement.muted = this.muted;
+    },
+
     // MARK: - Events
 
     handleEvent: function(e){
@@ -96,12 +111,28 @@ MKVideoView.definePropertiesFromExtensions({
     },
 
     addEventListeners: function(){
-        // this.videoElement.addEventListener("load", this);
+        this.videoElement.addEventListener("loadmetadata", this);
+        this.videoElement.addEventListener("resize", this);
     },
 
     removeEventListeners: function(){
-        // this.videoElement.removeEventListener("load", this);
-    }
+        this.videoElement.removeEventListener("loadmetadata", this);
+        this.videoElement.removeEventListener("resize", this);
+    },
+
+    _event_loadmetadata: function(){
+        this.videoResolution = JSSize(this.videoElement.videoWidth, this.videoElement.videoHeight);
+        if (this.delegate && this.delegate.videoViewDidChangeResolution){
+            this.delegate.videoViewDidChangeResolution(this);
+        }
+    },
+
+    _event_resize: function(){
+        this.videoResolution = JSSize(this.videoElement.videoWidth, this.videoElement.videoHeight);
+        if (this.delegate && this.delegate.videoViewDidChangeResolution){
+            this.delegate.videoViewDidChangeResolution(this);
+        }
+    },
 
 });
 

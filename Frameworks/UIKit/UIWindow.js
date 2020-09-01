@@ -360,6 +360,7 @@ JSClass('UIWindow', UIView, {
         }else{
             this.windowServer.windowRemoved(this);
         }
+        this._isOpen = false;
     },
 
     orderFront: function(){
@@ -401,7 +402,7 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewDidDisappear(false);
         }
-        if (this._parent){
+        if (this._parent && this._parent.modal === this){
             this._parent._modal = null;
             this._parent._flushTrackingEvents();
         }
@@ -430,7 +431,7 @@ JSClass('UIWindow', UIView, {
     parent: JSReadOnlyProperty('_parent'),
 
     setModal: function(modal){
-        if (this._modal !== null){
+        if (this._modal !== null && this._modal._isOpen){
             this._modal.modal = modal;
         }else{
             this._modal = modal;

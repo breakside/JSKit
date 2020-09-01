@@ -24,4 +24,44 @@ JSClass("CKParticipant", JSObject, {
 
     identifier: null,
 
+    videoSoftMuted: JSReadOnlyProperty('_videoSoftMuted', true),
+    audioSoftMuted: JSReadOnlyProperty('_audioSoftMuted', true),
+    videoStreamMuted: JSReadOnlyProperty('_videoStreamMuted', true),
+    audioStreamMuted: JSReadOnlyProperty('_audioStreamMuted', true),
+
+    videoMuted: JSReadOnlyProperty(),
+    audioMuted: JSReadOnlyProperty(),
+
+    getVideoMuted: function(){
+        return this._videoSoftMuted || this._videoStreamMuted;
+    },
+
+    getAudioMuted: function(){
+        return this._audioSoftMuted || this._audioStreamMuted;
+    },
+
+    _setAudioSoftMuted: function(muted){
+        this.willChangeValueForKey("audioMuted");
+        this._audioSoftMuted = muted;
+        this.didChangeValueForKey("audioMuted");
+    },
+
+    _setVideoSoftMuted: function(muted){
+        this.willChangeValueForKey("videoMuted");
+        this._videoSoftMuted = muted;
+        this.didChangeValueForKey("videoMuted");
+    },
+
+    _setAudioStreamMuted: function(muted){
+        this.willChangeValueForKey("audioMuted");
+        this._audioStreamMuted = muted;
+        this.didChangeValueForKey("audioMuted");
+    },
+
+    _setVideoStreamMuted: function(muted){
+        this.willChangeValueForKey("videoMuted");
+        this._videoStreamMuted = muted;
+        this.didChangeValueForKey("videoMuted");
+    }
+
 });
