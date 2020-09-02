@@ -27,6 +27,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "uiwindow");
+
 JSClass('UIWindow', UIView, {
 
     // -------------------------------------------------------------------------
@@ -360,6 +362,7 @@ JSClass('UIWindow', UIView, {
         }else{
             this.windowServer.windowRemoved(this);
         }
+        this._isOpen = false;
     },
 
     orderFront: function(){
@@ -401,7 +404,7 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewDidDisappear(false);
         }
-        if (this._parent){
+        if (this._parent && this._parent.modal === this){
             this._parent._modal = null;
             this._parent._flushTrackingEvents();
         }
@@ -430,7 +433,7 @@ JSClass('UIWindow', UIView, {
     parent: JSReadOnlyProperty('_parent'),
 
     setModal: function(modal){
-        if (this._modal !== null){
+        if (this._modal !== null && this._modal._isOpen){
             this._modal.modal = modal;
         }else{
             this._modal = modal;
@@ -811,42 +814,59 @@ JSClass('UIWindow', UIView, {
         if (this._modal !== null){
             return;
         }
-        var touches = event.touchesInWindow(this);
-        var touchesByView = {};
+        var i, l;
+        var j, k;
+        // We only dispatch the touches that changed in this version of the event.
+        // A view can get all the touches it wants from the event.
+        var touches = event.changedTouchesInWindow(this);
+        if (touches.length === 0){
+            return;
+        }
+        var touch;
         var view;
-        for (var i = 0, l = touches.length; i < l; ++i){
-            // We only dispatch the touches that changed in this version of the event.
-            // A view can get all the touches it wants from the event.
-            if (touches[i].timestamp == event.timestamp){
-                view = this.hitTest(touches[i].locationInWindow) || this;
-                if (!touchesByView[view.objectID]){
-                    touchesByView[view.objectID] = {view: view, touches: []};
+        var touchesByView = {};
+        for (i = 0, l = touches.length; i < l; ++i){
+            touch = touches[i];
+            if (touch.view){
+                if (!touchesByView[touch.view.objectID]){
+                    touchesByView[touch.view.objectID] = [];
                 }
-                touchesByView[view.objectID].touches.push(touches[i]);
+                touchesByView[touch.view.objectID].push(touch);
+            }
+        }
+        if (event.type === UIEvent.Type.touchesBegan){
+            for (i = 0, l = touches.length; i < l; ++i){
+                touch = touches[i];
+                if (touch.view !== null){
+                    logger.warn("beginning touch that already has a view");
+                    continue;
+                }
+                view = this.hitTest(touch.locationInWindow) || this;
+                if (!touchesByView[view.objectID]){
+                    touchesByView[view.objectID] = [];
+                }
+                if (view.isMultipleTouchEnabled || touchesByView[view.objectID].length === 0){
+                    touch.view = view;
+                    touchesByView[view.objectID].push(touch);
+                }
             }
         }
         for (var id in touchesByView){
-            view = touchesByView[id].view;
-            touches = touchesByView[id].touches;
-            if (!view.isMultipleTouchEnabled){
-                touches = [touches[0]];
-            }
-            this._sendEventTouchesToView(event, touches, touchesByView[id].view);
-        }
-    },
-
-    _sendEventTouchesToView: function(event, touches, view){
-        var touchesByPhase = {};
-        touchesByPhase[UITouch.Phase.began] = {method: 'touchesBegan', touches: []};
-        touchesByPhase[UITouch.Phase.moved] = {method: 'touchesMoved', touches: []};
-        touchesByPhase[UITouch.Phase.ended] = {method: 'touchesEnded', touches: []};
-        touchesByPhase[UITouch.Phase.canceled] = {method: 'touchesCanceled', touches: []};
-        for (var i = 0, l = touches.length; i < l; ++i){
-            touchesByPhase[touches[i].phase].touches.push(touches[i]);
-        }
-        for (var phase in touchesByPhase){
-            if (touchesByPhase[phase].touches.length > 0){
-                view[touchesByPhase[phase].method](touchesByPhase[phase].touches, event);
+            touches = touchesByView[id];
+            view = touches[0].view;
+            switch (event.type){
+                case UIEvent.Type.touchesBegan:
+                    view.touchesBegan(touches, event);
+                    break;
+                case UIEvent.Type.touchesMoved:
+                    view.touchesMoved(touches, event);
+                    break;
+                case UIEvent.Type.touchesCanceled:
+                    view.touchesCanceled(touches, event);
+                    break;
+                case UIEvent.Type.touchesEnded:
+                    view.touchesEnded(touches, event);
+                    break;
             }
         }
     },

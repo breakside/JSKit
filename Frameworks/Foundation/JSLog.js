@@ -269,6 +269,13 @@ JSLog.prototype = {
         }
     },
 
+    multiline: function(level, message){
+        var lines = message.split("\n");
+        for (var i = 0, l = lines.length; i < l; ++i){
+            this.write(level, lines[i], []);
+        }
+    },
+
     mark: function(name, level){
         if (this.write(level !== undefined ? level : JSLog.Level.log, "---- %{public}", [name])){
             performance.mark(name);

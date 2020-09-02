@@ -31,11 +31,13 @@ JSClass('UILabel', UIView, {
     maximumNumberOfLines: UIViewLayerProperty(),
     textInsets: UIViewLayerProperty(),
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
+    selectionColor: JSDynamicProperty("_selectionColor", null),
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
         this.userInteractionEnabled = false;
         this.maximumNumberOfLines = 1;
+        this._selectionColor = JSColor.white.colorWithAlpha(0.2);
     },
 
     initWithSpec: function(spec){
@@ -63,6 +65,14 @@ JSClass('UILabel', UIView, {
         }
         if (spec.containsKey("textInsets")){
             this.textInsets = spec.valueForKey("textInsets", JSInsets);
+        }
+        if (spec.containsKey("allowsSelection")){
+            this.allowsSelection = spec.valueForKey("allowsSelection");
+        }
+        if (spec.containsKey("selectionColor")){
+            this._selectionColor = spec.valueForKey("selectionColor");
+        }else{
+            this._selectionColor = JSColor.white.colorWithAlpha(0.2);
         }
     },
 
@@ -273,7 +283,7 @@ JSClass('UILabel', UIView, {
 
     _createSelectionHighlightLayer: function(){
         var layer = UILayer.init();
-        layer.backgroundColor = JSColor.white.colorWithAlpha(0.2);
+        layer.backgroundColor = this._selectionColor;
         this.layer.addSublayer(layer);
         return layer;
     },

@@ -88,6 +88,9 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
         var progress = this.timingFunction(this._state.currentPercentage);
         this.isComplete = this._state.isComplete();
         this._updateContext[this._updateProperty] = this.interpolation(this._fromValue, this._toValue, progress);
+        if (this._updateContext === this._layer.presentation && this._updateProperty === "bounds"){
+            this._layer.setNeedsDisplay();
+        }
     },
 
     _createInterpolation: function(){

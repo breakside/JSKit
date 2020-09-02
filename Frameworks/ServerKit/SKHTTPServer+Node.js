@@ -19,19 +19,28 @@
 'use strict';
 
 var http = require('http');
+var https = require('https');
 var os = require('os');
+var fs = require('fs');
 var logger = JSLog("serverkit", "http");
 
 SKHTTPServer.definePropertiesFromExtensions({
 
     _nodeHttpServer: null,
 
-    _extensionInit: function(port){
-        this._nodeHttpServer = http.createServer(this._handleNodeRequest.bind(this));
-        this._setupEventHandlers();
-    },
-
     run: function(){
+        var scheme = "http";
+        if (this._ssl){
+            scheme = "https";
+            var options = {
+                cert: this._ssl.cert,
+                key: this._ssl.key
+            };
+            this._nodeHttpServer = https.createServer(options, this._handleNodeRequest.bind(this));
+        }else{
+            this._nodeHttpServer = http.createServer(this._handleNodeRequest.bind(this));
+        }
+        this._setupEventHandlers();
         this._nodeHttpServer.listen(this.port);
         var networkInterfaces = os.networkInterfaces();
         var networkInterface;
@@ -41,7 +50,7 @@ SKHTTPServer.definePropertiesFromExtensions({
             for (var i = 0, l = networkInterface.length; i < l; ++i){
                 address = networkInterface[i];
                 if (address.family == 'IPv4'){
-                    logger.info("HTTP server listening on http://%{public}:%d", address.address, this.port);
+                    logger.info("HTTP server listening on %{public}://%{public}:%d", scheme, address.address, this.port);
                 }
             }
         }
@@ -54,6 +63,9 @@ SKHTTPServer.definePropertiesFromExtensions({
     _handleNodeRequest: function(nodeRequest, nodeResponse){
         try{
             var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
+            if (this._ssl){
+                request.url.scheme = "https";
+            }
             this.handleRequest(request);
         }catch (e){
             nodeRequest.socket.destroy();

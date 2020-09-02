@@ -86,6 +86,7 @@ JSClass("UILayer", JSObject, {
     animationCount:     0,
     _displayServer:     null,
     delegate:           null,
+    needsDisplayOnBoundsChange: false,
 
     init: function(){
         this.sublayers = [];
@@ -216,6 +217,9 @@ JSClass("UILayer", JSObject, {
     },
 
     didChangeSize: function(){
+        if (this.needsDisplayOnBoundsChange){
+            this.setNeedsDisplay();
+        }
         if (this.delegate && this.delegate.layerDidChangeSize){
             this.delegate.layerDidChangeSize(this);
         }

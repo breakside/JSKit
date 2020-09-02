@@ -22,29 +22,28 @@ JSClass("UITouch", JSObject, {
     phase: JSReadOnlyProperty('_phase', 0),
     timestamp: JSReadOnlyProperty('_timestamp', 0),
     window: JSReadOnlyProperty('_window', null),
+    view: null,
     locationInWindow: JSReadOnlyProperty('_locationInWindow', null),
+    changed: false,
 
     initWithIdentifier: function(identifier, timestamp, window, location){
         this._identifier = identifier;
         this._phase = UITouch.Phase.began;
         this._timestamp = timestamp;
         this._window = window;
-        this._locationInWindow = location;
+        this._locationInWindow = JSPoint(location);
+        this.changed = true;
     },
 
-    update: function(phase, timestamp, window, location){
+    update: function(phase, timestamp, location){
         this._phase = phase;
         this._timestamp = timestamp;
-        this._window = window;
-        this._locationInWindow = location;
+        this._locationInWindow = JSPoint(location);
+        this.changed = true;
     },
 
     locationInView: function(view){
         return this.window.convertPointToView(this._locationInWindow, view);
-    },
-
-    isActive: function(){
-        return this.phase == UITouch.Phase.began || this.phase == UITouch.Phase.moved;
     }
 
 });

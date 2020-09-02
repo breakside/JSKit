@@ -253,6 +253,20 @@ topics:
             variable: true
             summary: The values to format, if any
       -
+        introduced: 2020.35.0
+        name: multiline
+        kind: method
+        summary: Log each line of a multiline message
+        arguments:
+          - 
+            name: level
+            type: Level
+            summary: The level to use
+          -
+            name: message
+            type: String
+            summary: The multiline message
+      -
         name: Level
         kind: enum
         summary: The logging priority levels

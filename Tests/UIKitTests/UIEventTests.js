@@ -96,20 +96,16 @@ JSClass("UIEventTests", TKTestSuite, {
     testAddTouch: function(){
         var window = UIRootWindow.init();
         var event = UIEvent.initTouchEventWithType(UIEvent.Type.touchesBegan, 123);
-        TKAssertEquals(event.windows.length, 0);
+        TKAssertNull(event.window);
         TKAssertEquals(event.touches.length, 0);
         var touch1 = UITouch.initWithIdentifier(1, 123, window, JSPoint(5, 10));
         event.addTouch(touch1);
-        TKAssertEquals(event.windows.length, 1);
         TKAssertEquals(event.touches.length, 1);
-        TKAssertExactEquals(event.windows[0], window);
         TKAssertExactEquals(event.touches[0], touch1);
 
         var touch2 = UITouch.initWithIdentifier(2, 123, window, JSPoint(15, 110));
         event.addTouch(touch2);
-        TKAssertEquals(event.windows.length, 1);
         TKAssertEquals(event.touches.length, 2);
-        TKAssertExactEquals(event.windows[0], window);
         TKAssertExactEquals(event.touches[0], touch1);
         TKAssertExactEquals(event.touches[1], touch2);
     },
@@ -126,31 +122,19 @@ JSClass("UIEventTests", TKTestSuite, {
         TKAssertEquals(event.category, UIEvent.Category.touches);
         TKAssertEquals(event.type, UIEvent.Type.touchesBegan);
         TKAssertEquals(event.timestamp, 123);
-        TKAssertEquals(event.windows.length, 1);
-        TKAssertExactEquals(event.windows[0], window1);
         TKAssertEquals(event.touches.length, 1);
 
         event.addTouch(touch2);
         event.updateTouches(UIEvent.Type.touchesBegan, 124);
-        TKAssertEquals(event.windows.length, 1);
-        TKAssertExactEquals(event.windows[0], window1);
 
         event.addTouch(touch3);
         event.updateTouches(UIEvent.Type.touchesBegan, 125);
-        TKAssertEquals(event.windows.length, 2);
-        TKAssertExactEquals(event.windows[0], window1);
-        TKAssertExactEquals(event.windows[1], window2);
 
-        touch1.update(UITouch.Phase.moved, 126, window1, JSPoint(6, 9));
+        touch1.update(UITouch.Phase.moved, 126, JSPoint(6, 9));
         event.updateTouches(UIEvent.Type.touchesMoved, 126);
-        TKAssertEquals(event.windows.length, 2);
-        TKAssertExactEquals(event.windows[0], window1);
-        TKAssertExactEquals(event.windows[1], window2);
 
-        touch3.update(UITouch.Phase.moved, 127, window1, JSPoint(6, 9));
+        touch3.update(UITouch.Phase.moved, 127, JSPoint(6, 9));
         event.updateTouches(UIEvent.Type.touchesMoved, 127);
-        TKAssertEquals(event.windows.length, 1);
-        TKAssertExactEquals(event.windows[0], window1);
     },
 
     testTouchForIdentifier: function(){

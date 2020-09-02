@@ -175,34 +175,105 @@ JSClass("UIButton", UIControl, {
         }
     },
 
+    _handleMouseDragged: true,
+
     mouseDown: function(event){
-        if (this.enabled){
-            this.active = true;
-        }else{
+        var handled = this._press(event);
+        if (!handled){
+            this._handleMouseDragged = false;
             UIButton.$super.mouseDown.call(this, event);
         }
     },
 
+    mouseDragged: function(event){
+        var handled = false;
+        if (this._handleMouseDragged){
+            var location = event.locationInView(this);
+            handled = this._move(location, event);
+        }
+        if (!handled){
+            UIButton.$super.mouseDragged.call(this, event);
+        }
+    },
+
     mouseUp: function(event){
+        var location = event.locationInView(this);
+        var handled = this._release(location, event);
+        if (!handled){
+            UIButton.$super.mouseUp.call(this, event);
+        }
+        this._handleMouseDragged = true;
+    },
+
+    _handleTouchesMoved: true,
+
+    touchesBegan: function(touches, event){
+        var handled = this._press(event);
+        if (!handled){
+            this._handleTouchesMoved = false;
+            UIButton.$super.touchesBegan.call(this, touches, event);
+        }
+    },
+
+    touchesMoved: function(touches, event){
+        var handled = false;
+        if (this._handleTouchesMoved){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            handled = this._move(location, event);
+        }
+        if (!handled){
+            UIButton.$super.touchesMoved.call(this, touches, event);
+        }
+    },
+
+    touchesEnded: function(touches, event){
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var handled = this._release(location, event);
+        if (!handled){
+            UIButton.$super.touchesEnded.call(this, touches, event);
+        }
+        this._handleTouchesMoved = true;
+    },
+
+    touchesCanceled: function(touches, event){
+        this.active = false;
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var handled = this._release(location, event);
+        if (!handled){
+            UIButton.$super.touchesCanceled.call(this, touches, event);
+        }
+        this._handleTouchesMoved = true;
+    },
+
+    _press: function(event){
+        if (this.enabled){
+            this.active = true;
+            return true;
+        }
+        return false;
+    },
+
+    _move: function(location, event){
+        if (this.enabled){
+            this.active = this.containsPoint(location);
+            return true;
+        }
+        return false;
+    },
+
+    _release: function(location, event){
         if (this.enabled){
             if (this.active){
                 this.sendActionsForEvents(UIControl.Event.primaryAction, event);
                 this.active = false;
             }
-            var location = event.locationInView(this);
             this.over = this.window !== null && this.containsPoint(location);
-        }else{
-            UIButton.$super.mouseUp.call(this, event);
+            return true;
         }
-    },
-
-    mouseDragged: function(event){
-        if (this.enabled){
-            var location = event.locationInView(this);
-            this.active = this.containsPoint(location);
-        }else{
-            UIButton.$super.mouseDragged.call(this, event);
-        }
+        return false;
     },
 
     getFirstBaselineOffsetFromTop: function(){

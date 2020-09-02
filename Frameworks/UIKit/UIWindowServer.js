@@ -803,45 +803,66 @@ JSClass("UIWindowServer", JSObject, {
     activeTouchEvent: null,
 
     createTouchEvent: function(type, timestamp, changedTouchDescriptors){
-        var touchWindow = null;
+        var window;
         var touch;
         var descriptor;
         var location;
         var i, l;
+        var phase = this._touchPhaseForEventType(type);
+
+        // Create or update the active touch event
         if (this.activeTouchEvent === null){
+            if (type != UIEvent.Type.touchesBegan){
+                logger.warn("Ignoring touch event: %d", type);
+                return;
+            }
             this.activeTouchEvent = UIEvent.initTouchEventWithType(type, timestamp);
+        }else{
+            this.activeTouchEvent.updateTouches(type, timestamp);
         }
-        var applicationsById = {};
-        for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
-            descriptor = changedTouchDescriptors[i];
-            touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
-            touchWindow = this.windowForEventAtLocation(descriptor.location);
-            if (touchWindow === null){
-                touchWindow = touch.window;
-            }
-            location = touchWindow.convertPointFromScreen(descriptor.location);
-            if (touch === null){
-                touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, touchWindow, location);
+
+        // Add or update touches
+        if (type === UIEvent.Type.touchesBegan){
+            for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
+                descriptor = changedTouchDescriptors[i];
+                touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
+                if (touch !== null){
+                    logger.warn("multiple began events for touch %{public}", touch.identifier);
+                    continue;
+                }
+                window = this.windowForEventAtLocation(descriptor.location);
+                location = window.convertPointFromScreen(descriptor.location);
+                touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, window, location);
                 this.activeTouchEvent.addTouch(touch);
-            }else{
-                touch.update(this._touchPhaseForEventType(type), timestamp, touchWindow, location);
             }
-            applicationsById[touchWindow.application.objectID] = touchWindow.application;
+        }else{
+            for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
+                descriptor = changedTouchDescriptors[i];
+                touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
+                if (touch === null){
+                    logger.warn("no touch found for identifier %{public}", touch.identifier);
+                    continue;
+                }
+                location = touch.window.convertPointFromScreen(descriptor.location);
+                touch.update(phase, timestamp, location);
+            }
         }
-        this.activeTouchEvent.updateTouches(type, timestamp);
 
         // Dispatch the event to the application(s)
-        for (var id in applicationsById){
-            this._sendEventToApplication(this.activeTouchEvent, applicationsById[id]);
+        var touches = this.activeTouchEvent.touches;
+        var sentApplicationIds = new Set();
+        for (i = 0, l = touches.length; i < l; ++i){
+            touch = touches[i];
+            if (!sentApplicationIds.has(touch.window.application.objectID)){
+                this._sendEventToApplication(this.activeTouchEvent, touch.window.application);
+                sentApplicationIds.add(touch.window.application.objectID);
+            }
         }
 
         // Clear the active touch memeber if all touches have ended
-        if ((type === UIEvent.Type.touchesEnded) || (type === UIEvent.Type.touchesCanceled)){
-            var hasActiveTouch = false;
-            for (i = 0, l = this.activeTouchEvent.touches.length; i < l && !hasActiveTouch; ++i){
-                hasActiveTouch = this.activeTouchEvent.touches[i].isActive();
-            }
-            if (!hasActiveTouch){
+        if (type === UIEvent.Type.touchesCanceled || type === UIEvent.Type.touchesEnded){
+            this.activeTouchEvent.removeCompletedTouches();
+            if (this.activeTouchEvent.touches.length === 0){
                 this.activeTouchEvent = null;
             }
         }

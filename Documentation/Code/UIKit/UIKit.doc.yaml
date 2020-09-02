@@ -157,6 +157,11 @@ topics:
       - UIScreen
       - UICursor
   -
+    name: Touch Interfaces
+    members:
+      - UIGestureRecognizer
+      - UITapGestureRecognizer
+  -
     name: User Interface Traits
     members:
       - UIUserInterface

@@ -925,6 +925,29 @@ topics:
           This is set automatically when another view sets this view as its
           `nextKeyView`.
   -
+    name: Gestures
+    members:
+      -
+        introduced: 2020.35.0
+        name: addGestureRecognizer
+        kind: method
+        summary: Add a gesture recognizer to the view
+        arguments:
+          -
+            name: gestureRecognizer
+            type: UIGestureRecognizer
+            summary: The gesture recognizer to add
+      -
+        introduced: 2020.35.0
+        name: remoteGestureRecognizer
+        kind: method
+        summary: Remove a gesture recognizer from the view
+        arguments:
+          -
+            name: gestureRecognizer
+            type: UIGestureRecognizer
+            summary: The gesture recognizer to remove
+  -
     name: View Controller
     members:
       -

@@ -96,6 +96,19 @@ topics:
                 name: font
                 type: JSFont
                 summary: The font to use
+          -
+            name: Selection
+            members:
+              -
+                introduced: 2020.35.0
+                name: allowsSelection
+                type: boolean
+                summary: Indicate the user can select the label's text
+              -
+                introduced: 2020.35.0
+                name: selectionColor
+                type: JSColor
+                summary: The color of text selection background
   -
     name: Text
     members:
@@ -155,3 +168,8 @@ topics:
         name: allowsSelection
         type: boolean
         summary: Indicates if the user can select the label's text
+      -
+        introduced: 2020.35.0
+        name: selectionColor
+        type: JSColor
+        summary: The color of text selection background

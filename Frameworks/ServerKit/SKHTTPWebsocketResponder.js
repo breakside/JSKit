@@ -76,12 +76,12 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         this.websocketEstablished(this._socket);
     },
 
-    fail: function(){
+    fail: function(error){
         if (this._socket !== null){
             this._request.close();
             return;
         }
-        SKHTTPWebSocketResponder.$super.fail.call(this);
+        SKHTTPWebSocketResponder.$super.fail.call(this, error);
     },
 
     sendMessage: function(data){

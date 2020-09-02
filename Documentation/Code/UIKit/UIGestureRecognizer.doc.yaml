@@ -1,0 +1,243 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.35.0
+inherits: JSObect
+summary: Abstract base for classes used in touch interfaces to detect common
+  gesture interactions
+description: |
+  Gesture recognizers can be attached to views via `addGestureRecognizer()`(UIView.addGestureRecognizer).
+
+  Recognizers allow for reuse of gesture code that can be used with any view.
+
+  Standard subclasses include:
+  - `UITapGestureRecognizer`
+
+
+  Subclassing
+  ====
+
+  To make your own gesture recognizer, implement
+  - `touchesBegan()`
+  - `touchesEnded()`
+  - `touchesMoved()`
+  - `touchesCanceled()`
+
+  Updating `state` as appropriate for your recognizer
+topics:
+  -
+    name: Creating a Gesture Recognizer
+    members:
+      -
+        name: initWithAction
+        kind: init
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: sender
+                  type: UIGestureRecognizer
+                  summary: The recognizer making the call
+            summary: A function to call when the gesture's state changes
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+      -
+        name: initWithAction
+        kind: init
+        suffix: named
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The name of the action to invoke on the `target`() or the first responder
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The target to use when calling `sendAction()`(UIApplication.sendAction)
+  -
+    name: State
+    members:
+      -
+        name: state
+        type: State
+        summary: The state of the gesture recognizer
+        description: |
+          The recognizer's action fires each time the state changes, so
+          the handler must check the state to determine the appropriate behavior.
+
+          Typically, your action callback will only perform an action if the
+          `state` is `recognized`
+      -
+        name: State
+        suffix: enum
+        kind: enum
+        summary: The possible states of a gesture recognizer
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: possible
+                summary: The default state
+              -
+                name: began
+                summary: The gesture began, but has not yet completed
+              -
+                name: changed
+                summary: The gesture is in progress and has changed in some way,
+                  but is still not yet completed
+              -
+                name: canceled
+                summary: The gesture was canceled
+              -
+                name: failed
+                summary: The gesture failed
+              -
+                name: recognized
+                summary: The gesture was successfully completed
+      -
+        name: enabled
+        type: boolean
+        summary: Whether the gesture recognizer is enabled
+        description: |
+          Recognizers that are disabled will not trigger actions even if they
+          are still attached to views.
+  -
+    name: Actions
+    members:
+      -
+        name: addAction
+        kind: method
+        summary: Register the given action funcation as a callback
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: sender
+                  type: UIGestureRecognizer
+                  summary: The recognizer making the call
+            summary: A function to call when the gesture's state changes
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+      -
+        name: addAction
+        suffix: named
+        kind: method
+        summary: Register the given action name as a callback
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The name of the action to invoke on the `target`() or the first responder
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The target to use when calling `sendAction()`(UIApplication.sendAction)
+      -
+        name: removeAction
+        kind: method
+        summary: Register the given action funcation as a callback
+        arguments:
+          -
+            name: action
+            type:
+              arguments:
+                -
+                  name: sender
+                  type: UIGestureRecognizer
+                  summary: The recognizer making the call
+            summary: The function that was previously registered as an action
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The target used when registering the action
+      -
+        name: removeAction
+        suffix: named
+        kind: method
+        summary: Register the given action name as a callback
+        arguments:
+          -
+            name: action
+            type: String
+            summary: The name of the action that was previousl regsitered
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The target to used when registering the action
+  -
+    name: Sublassing
+    members:
+      -
+        name: touchesBegan
+        kind: method
+        summary: Handle an event when touches begin
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Must be implemented by sublcasses.
+      -
+        name: touchesEnded
+        kind: method
+        summary: Handle an event when touches end
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Must be implemented by sublcasses.
+      -
+        name: touchesMoved
+        kind: method
+        summary: Handle an event when touches move
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Must be implemented by sublcasses.
+      -
+        name: touchesCanceled
+        kind: method
+        summary: Handle an event when touches are canceled
+        arguments:
+          -
+            name: touches
+            type: UITouch[]
+            summary: The touches
+          -
+            name: event
+            type: UIEvent
+            summary: The touch event information
+        description: |
+          Must be implemented by sublcasses.
