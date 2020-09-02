@@ -21,8 +21,7 @@ JSClass('UIEvent', JSObject, {
 
     locationInWindow: JSReadOnlyProperty('_locationInWindow', null),
     timestamp: JSReadOnlyProperty('_timestamp', 0.0),
-    window: JSReadOnlyProperty(),
-    windows: JSReadOnlyProperty('_windows', null),
+    window: JSReadOnlyProperty('_window', null),
     category: JSReadOnlyProperty('_category', -1),
     type: JSReadOnlyProperty('_type', -1),
     key: JSReadOnlyProperty('_key', -1),
@@ -40,7 +39,7 @@ JSClass('UIEvent', JSObject, {
         this._category = UIEvent.Category.mouse;
         this._type = type;
         this._timestamp = timestamp;
-        this._windows = [window];
+        this._window = window;
         this._locationInWindow = location;
         this._touches = [];
         this._modifiers = modifiers || UIEvent.Modifier.none;
@@ -51,7 +50,7 @@ JSClass('UIEvent', JSObject, {
         this._category = UIEvent.Category.key;
         this._type = type;
         this._timestamp = timestamp;
-        this._windows = [window];
+        this._window = window;
         this._key = key;
         this._keyCode = keyCode;
         this._touches = [];
@@ -62,7 +61,6 @@ JSClass('UIEvent', JSObject, {
         this._category = UIEvent.Category.touches;
         this._type = type;
         this._timestamp = timestamp;
-        this._windows = [];
         this._touches = [];
     },
 
@@ -70,7 +68,7 @@ JSClass('UIEvent', JSObject, {
         this._category = UIEvent.Category.scroll;
         this._type = type;
         this._timestamp = timestamp;
-        this._windows = [window];
+        this._window = window;
         this._locationInWindow = location;
         this._scrollingDelta = JSPoint(deltaX, deltaY);
         this._touches = [];
@@ -81,7 +79,7 @@ JSClass('UIEvent', JSObject, {
         this._category = UIEvent.Category.gesture;
         this._type = type;
         this._timestamp = timestamp;
-        this._windows = [window];
+        this._window = window;
         this._locationInWindow = location;
         this._phase = phase;
         switch (type){
@@ -96,34 +94,32 @@ JSClass('UIEvent', JSObject, {
         this._modifiers = modifiers || UIEvent.Modifier.none;
     },
 
-    getWindow: function(){
-        if (this._windows.length === 1){
-            return this._windows[0];
-        }
-        return null;
-    },
-
     addTouch: function(touch){
         this._touches.push(touch);
-        var hasWindow = false;
-        for (var i = 0, l = this.windows.length && !hasWindow; i < l; ++i){
-            hasWindow = this.windows[i] === touch.window;
+    },
+
+    removeTouch: function(touch){
+        for (var i = this._touches.length - 1; i >= 0; --i){
+            if (this._touches[i].identifier == touch.identifier){
+                this._touches.splice(i, 1);
+                break;
+            }
         }
-        if (!hasWindow){
-            this._windows.push(touch.window);
+    },
+
+    removeCompletedTouches: function(){
+        for (var i = this._touches.length - 1; i >= 0; --i){
+            if (this._touches[i].phase == UITouch.Phase.ended || this._touches[i].phase == UITouch.Phase.canceled){
+                this._touches.splice(i, 1);
+            }
         }
     },
 
     updateTouches: function(type, timestamp){
         this._timestamp = timestamp;
         this._type = type;
-        this._windows = [];
-        var windowsById = {};
         for (var i = 0, l = this._touches.length; i < l; ++i){
-            if (!windowsById[this._touches[i].window.objectID]){
-                this._windows.push(this._touches[i].window);
-                windowsById[this._touches[i].window.objectID] = true;
-            }
+            this._touches[i].changed = false;
         }
     },
 
@@ -141,6 +137,16 @@ JSClass('UIEvent', JSObject, {
         for (var i = 0, l = this._touches.length; i < l; ++i){
             if (this._touches[i].window === window){
                 touches.push(this.touches[i]);
+            }
+        }
+        return touches;
+    },
+
+    changedTouchesInWindow: function(window){
+        var touches = this.touchesInWindow(window);
+        for (var i = touches.length - 1; i >= 0; --i){
+            if (!touches[i].changed){
+                touches.splice(i, 1);
             }
         }
         return touches;

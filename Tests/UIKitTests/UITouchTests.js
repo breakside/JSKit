@@ -36,30 +36,13 @@ JSClass("UITouchTests", TKTestSuite, {
         var window = UIRootWindow.init();
         var touch = UITouch.initWithIdentifier(2, 123, window, JSPoint(5, 10));
         TKAssertEquals(touch.identifier, 2);
-        touch.update(UITouch.Phase.moved, 124, window, JSPoint(6, 9));
+        touch.update(UITouch.Phase.moved, 124, JSPoint(6, 9));
         TKAssertEquals(touch.identifier, 2);
         TKAssertExactEquals(touch.window, window);
         TKAssertEquals(touch.locationInWindow.x, 6);
         TKAssertEquals(touch.locationInWindow.y, 9);
         TKAssertEquals(touch.timestamp, 124);
         TKAssertEquals(touch.phase, UITouch.Phase.moved);
-    },
-
-    testIsActive: function(){
-        var window = UIRootWindow.init();
-        var touch = UITouch.initWithIdentifier(2, 123, window, JSPoint(5, 10));
-        TKAssertEquals(touch.isActive(), true);
-        touch.update(UITouch.Phase.moved, 124, window, JSPoint(6, 9));
-        TKAssertEquals(touch.isActive(), true);
-        touch.update(UITouch.Phase.ended, 124, window, JSPoint(6, 9));
-        TKAssertEquals(touch.isActive(), false);
-
-        touch = UITouch.initWithIdentifier(2, 123, window, JSPoint(5, 10));
-        TKAssertEquals(touch.isActive(), true);
-        touch.update(UITouch.Phase.moved, 124, window, JSPoint(6, 9));
-        TKAssertEquals(touch.isActive(), true);
-        touch.update(UITouch.Phase.canceled, 124, window, JSPoint(6, 9));
-        TKAssertEquals(touch.isActive(), false);
     },
 
     testLocationInView: function(){

@@ -53,8 +53,6 @@ JSClass("UITapGestureRecognizer", UIGestureRecognizer, {
         var distance = location.distanceToPoint(this.beganLocation);
         if (distance > 10){
             this._setState(UIGestureRecognizer.State.failed);
-        }else if (!this.view.containsPoint(location)){
-            this._setState(UIGestureRecognizer.State.failed);
         }
     },
 

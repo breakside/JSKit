@@ -277,9 +277,19 @@ JSClass('UIApplication', UIResponder, {
                 }
             }
         }
-        var windows = event.windows;
-        for (var i = 0, l = windows.length; i < l; ++i){
-            windows[i].sendEvent(event);
+        if (event.category === UIEvent.Category.touches){
+            var sentWindowIds = new Set();
+            var window;
+            var touches = event.touches;
+            for (var i = 0, l = touches.length; i < l; ++i){
+                window = touches[i].window;
+                if (!sentWindowIds.has(window.objectID)){
+                    window.sendEvent(event);
+                    sentWindowIds.add(window.objectID);
+                }
+            }
+        }else{
+            event.window.sendEvent(event);
         }
     },
 
