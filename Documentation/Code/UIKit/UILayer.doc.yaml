@@ -869,6 +869,13 @@ topics:
         kind: method
         summary: Tell the display manager that this layer needs to draw
       -
+        introduced: 2020.35.0
+        name: needsDisplayOnBoundsChange
+        type: boolean
+        summary: Causes the layer to be redrawn whenever the bounds change
+        description: |
+          Automatically calls `setNeedsDisplay()` when the bounds size changes
+      -
         name: needsDisplay
         kind: method
         type: boolean

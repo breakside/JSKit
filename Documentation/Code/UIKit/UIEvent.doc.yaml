@@ -128,19 +128,6 @@ topics:
           - windows
           - locationInWindow
       -
-        name: windows
-        type: UIWindow[]
-        summary: The windows to which this event applies
-        description: |
-          Most event types except for touch events apply to a single window.
-          Touch events can have more than one window.
-
-          In order to support mutli-window events, this property returns the
-          full list of windows to which this event applies
-        see:
-          - window
-          - locationInWindow
-      -
         name: locationInWindow
         type: JSPoint
         summary: The point at which the event occurred in its window
@@ -452,3 +439,20 @@ topics:
 
           For example, a value of `0` is the original rotation.  A value of
           `Math.PI` is a 180 degree rotation.
+  -
+    name: Deprecated
+    members:
+      -
+        deprecated: 2020.35.0
+        name: windows
+        type: UIWindow[]
+        summary: The windows to which this event applies
+        description: |
+          Use the `category` to determine if this is a `touches` event, then
+          iterate over the `touches` to find each window.  Note multiple touches
+          may be associated with the same window.
+        see:
+          - window
+          - category
+          - touches
+          - locationInWindow

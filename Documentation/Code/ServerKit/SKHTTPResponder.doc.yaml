@@ -195,7 +195,54 @@ topics:
                 name: headers
                 type: String[]
                 summary: The list of headers the origin is allowed to provide
-
+      -
+        introduced: 2020.35.0
+        name: addAllowedOrigin
+        kind: method
+        summary: Add the allowed origin
+        arguments:
+          -
+            name: origin
+            type: String
+            summary: The origin, or `"*"` for all origins
+        description: |
+          Allows all methods and the `Authorization` and `Content-Type` headers.
+      -
+        introduced: 2020.35.0
+        name: addAllowedOrigin
+        kind: method
+        suffix: methods
+        summary: Add the allowed origin for the provided methods
+        arguments:
+          -
+            name: origin
+            type: String
+            summary: The origin, or `"*"` for all origins
+          -
+            name: methods
+            type: String[]
+            summary: The allowed methods
+        description: |
+          Allows the `Authorization` and `Content-Type` headers.
+      -
+        introduced: 2020.35.0
+        name: addAllowedOrigin
+        kind: method
+        suffix: headers
+        summary: Add the allowed origin for the provided methods and headers
+        arguments:
+          -
+            name: origin
+            type: String
+            summary: The origin, or `"*"` for all origins
+          -
+            name: methods
+            type: String[]
+            summary: The allowed methods
+          -
+            name: headers
+            type: String[]
+            summary: The allowed header names
       -
         name: allowedOrigins
         type: dictionary

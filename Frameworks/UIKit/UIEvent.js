@@ -158,6 +158,27 @@ JSClass('UIEvent', JSObject, {
 
     hasModifier: function(modifier){
         return (this._modifiers & modifier) == modifier;
+    },
+
+    // MARK: - Deprecated
+
+    windows: JSReadOnlyProperty(),
+
+    getWindows: function(){
+        if (this.category === UIEvent.Category.touches){
+            var windows = [];
+            var windowIDs = new Set();
+            var touch;
+            for (var i = 0, l = this.touches.length; i < l; ++i){
+                touch = this.touches[i];
+                if (!windowIDs.has(touch.window.objectID)){
+                    windows.push(touch.window);
+                    windowIDs.add(touch.window.objectID);
+                }
+            }
+            return windows;
+        }
+        return [this.window];
     }
 
 });
