@@ -47,6 +47,7 @@
 // #import "UIProgressIndicatorView.js"
 // #import "UIGestureRecognizer.js"
 // #import "UITapGestureRecognizer.js"
+// #import "UIPressGestureRecognizer.js"
 
 // #import "UIUserInterface.js"
 // #import "UITraitCollection.js"
