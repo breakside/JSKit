@@ -33,6 +33,7 @@ JSClass("SKHTTPServer", JSObject, {
     port: JSDynamicProperty('_port', 0),
     rootRoute: null,
     delegate: null,
+    healthCheckPath: "/.health-check",
 
     initWithPort: function(port){
         this._port = port;
@@ -58,18 +59,10 @@ JSClass("SKHTTPServer", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
 
         var responder = null;
         var server = this;
 
-        try{
-            if (server.delegate && server.delegate.serverDidReceiveRequest){
-                server.delegate.serverDidReceiveRequest(server, request);
-            }
-        }catch(e){
-            logger.error(e);
-        }
         var catcher = function(error){
             if (error && !(error instanceof SKHTTPError) && !(error instanceof SKValidatingObject.Error)){
                 logger.error("%{public} %{error}", request.tag, error);
@@ -77,6 +70,7 @@ JSClass("SKHTTPServer", JSObject, {
             var errorResonder = responder || SKHTTPResponder.initWithRequest(request);
             return errorResonder.fail(error) || Promise.resolve();
         };
+
         var finish = function(){
             try{
                 if (server.delegate && server.delegate.serverDidRespondToRequest){
@@ -87,6 +81,33 @@ JSClass("SKHTTPServer", JSObject, {
             }
             completion.call(target);
         };
+
+        // Health check requests get processed before any logging, otherwise logs get
+        // spammed with frequent health checks
+        if (this.healthCheckPath !== null && request.method.lowercaseString() == "get" && request.url.path == this.healthCheckPath){
+            try{
+                request.response.loggingEnabled = false;
+                request.response.contentLength = 0;
+                request.response.statusCode = SKHTTPResponse.StatusCode.ok;
+                request.response.complete();
+            }catch (e){
+                logger.error(e);
+                catcher(e);
+            }
+            completion.call(target);
+            return completion.promise;
+        }
+
+        logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
+
+        try{
+            if (server.delegate && server.delegate.serverDidReceiveRequest){
+                server.delegate.serverDidReceiveRequest(server, request);
+            }
+        }catch(e){
+            logger.error(e);
+        }
+
         try{
 
             // 1. Find a route for the request

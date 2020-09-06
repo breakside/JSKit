@@ -33,7 +33,9 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
     complete: function(){
         this.writeHeaderIfNeeded();
         this._nodeResponse.end();
-        logger.info("%{public} %d response complete", this.tag, this.statusCode);
+        if (this.loggingEnabled){
+            logger.info("%{public} %d response complete", this.tag, this.statusCode);
+        }
     },
 
     writeHeader: function(){

@@ -99,6 +99,7 @@ JSClass("SKHTTPResponse", JSObject, {
     lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),
     headerMap: JSReadOnlyProperty('_headerMap', null),
     tag: null,
+    loggingEnabled: true,
     _needsHeaderWrite: true,
 
     init: function(){
