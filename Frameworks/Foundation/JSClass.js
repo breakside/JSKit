@@ -15,6 +15,7 @@
 
 // #import "Javascript.js"
 // #import "String+JS.js"
+// #import "Promise+JS.js"
 // #feature Object.create
 // #feature Object.defineProperty
 // #feature Object.getPrototypeOf
@@ -173,6 +174,13 @@ JSClass.prototype = {
                 var result = obj[methodName].apply(obj, args);
                 if (result === undefined){
                     return obj;   
+                }
+                if (result instanceof Promise){
+                    return result.then(function(promiseResult){
+                        return promiseResult || obj;
+                    }, function(){
+                        return null;
+                    });
                 }
                 return result;
             }
