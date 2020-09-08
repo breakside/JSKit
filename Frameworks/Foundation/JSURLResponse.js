@@ -45,6 +45,7 @@ JSClass("JSURLResponse", JSObject, {
     },
 
     object: JSLazyInitProperty('_getObject'),
+    jsonMime: "application/json",
 
     _getObject: function(){
         if (this.data === null){
@@ -53,10 +54,10 @@ JSClass("JSURLResponse", JSObject, {
         if (!this.contentType){
             return null;
         }
-        if (this.contentType.mime != 'application/json'){
+        if (this.contentType.mime != this.jsonMime){
             return null;
         }
-        if (this.contentType.parameters.charset != String.Encoding.utf8){
+        if (this.contentType.parameters.charset !== undefined && this.contentType.parameters.charset != String.Encoding.utf8){
             return null;
         }
         var json = String.initWithData(this.data, this.contentType.parameters.charset);
