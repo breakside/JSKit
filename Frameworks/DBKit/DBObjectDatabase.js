@@ -31,15 +31,22 @@ JSClass("DBObjectDatabase", JSObject, {
 
     initWithURL: function(url, fileManager){
         fileManager = fileManager || JSFileManager.shared;
+        var store;
         if (fileManager.isFileURL(url)){
-            this.store = DBFileStore.initWithURL(url, fileManager);
+            store = DBFileStore.initWithURL(url, fileManager);
         }else{
-            this.store = DBRemoteStore.initWithURL(url);
+            store = DBRemoteStore.initWithURL(url);
         }
+        this.initWithObjectStore(store);
     },
 
     initInMemory: function(){
-        this.store = DBMemoryStore.init();
+        var store = DBMemoryStore.init();
+        this.initWithObjectStore(store);
+    },
+
+    initWithObjectStore: function(store){
+        this.store = store;
     },
 
     id: function(table){
@@ -65,6 +72,10 @@ JSClass("DBObjectDatabase", JSObject, {
         hash.finish();
         var hex = hash.digest().hexStringRepresentation();
         return table + '_' + hex;
+    },
+
+    tableForId: function(id){
+        return id.substr(0, id.length - 41);
     },
 
     object: function(id, completion, target){

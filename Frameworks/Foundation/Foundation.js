@@ -30,6 +30,7 @@
 // #import "JSClass.js"
 // #import "JSProtocol.js"
 // #import "JSObject.js"
+// #import "JSObjectGraph.js"
 
 // #import "JSLocale.js"
 // #import "JSAttributedString.js"

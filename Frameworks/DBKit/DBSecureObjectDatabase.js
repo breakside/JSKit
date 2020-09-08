@@ -24,8 +24,8 @@ var logger = JSLog("dbkit", "database");
 JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
 
     initWithKeystore: function(keystore, store){
+        this.initWithObjectStore(store);
         this.keystore = keystore;
-        this.store = store;
     },
 
     defaultKeyName: null,
