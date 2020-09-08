@@ -16,6 +16,10 @@
 // #import "MKVideoView.js"
 'use strict';
 
+(function(){
+
+var logger = JSLog("mediakit", "htmlvideo");
+
 MKVideoView.definePropertiesFromExtensions({
 
     asset: JSDynamicProperty('_asset', null),
@@ -24,8 +28,6 @@ MKVideoView.definePropertiesFromExtensions({
         this._asset = asset;
         this._updateVideoSource();
     },
-
-    playbackState: 0,
 
     play: function(){
         this._playbackState = MKVideoView.PlaybackState.playing;
@@ -88,6 +90,7 @@ MKVideoView.definePropertiesFromExtensions({
             case MKVideoView.PlaybackState.playing:
                 this.videoElement.play().then(function(){
                 }, function(error){
+                    logger.error(error);
                     view._playbackState = MKVideoView.PlaybackState.notPlaying;
                 });
                 break;
@@ -137,3 +140,5 @@ MKVideoView.definePropertiesFromExtensions({
 });
 
 MKVideoView.layerClass = UIHTMLElementLayer;
+
+})();
