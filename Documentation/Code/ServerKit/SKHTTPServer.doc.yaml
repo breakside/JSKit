@@ -103,6 +103,18 @@ topics:
                       /:                        RootResponder
                       /files/**fileComponents:  FileResponder
                   ````
+              -
+                introduced: 2020.36.0
+                name: healthCheckPath
+                type: String
+                summary: The path to use for heath check responses
+                description: |
+                  A responder for the health check path is automatically
+                  created by the server and processed separately from
+                  other requests to ensure that frequent health check requests 
+                  do not generate logging.
+
+                  Defaults to `"/.heath-check"`.
   -
     name: Routes
     members:
@@ -119,6 +131,18 @@ topics:
           until a match is found.
 
           If no matching route is found, the server returns a 404 response.
+      -
+        introduced: 2020.36.0
+        name: healthCheckPath
+        type: String
+        summary: The path to use for heath check responses
+        description: |
+          A responder for the health check path is automatically
+          created by the server and processed separately from
+          other requests to ensure that frequent health check requests 
+          do not generate logging.
+
+          Defaults to `"/.heath-check"`.
   -
     name: Delegate
     members:
