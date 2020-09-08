@@ -266,7 +266,7 @@ JSClass("UIDisplayServer", JSObject, {
 
     registerFontDescriptors: function(descriptors, completion, target){
         if (!completion){
-            completion = Promise.resolve();
+            completion = Promise.completion();
         }
         if (descriptors.length === 0){
             completion.call(target, null);
