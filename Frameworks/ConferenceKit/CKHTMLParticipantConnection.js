@@ -89,7 +89,12 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     updateDescription: function(description){
         logger.info("setting remote description %d", description.type);
         var htmlDescription = description.htmlDescription();
-        this.htmlPeerConnection.setRemoteDescription(htmlDescription.toJSON());
+        try{
+            this.htmlPeerConnection.setRemoteDescription(htmlDescription.toJSON());
+        }catch (e){
+            logger.error(e);
+            return;   
+        }
         if (description.type === CKSessionDescription.Type.offer){
             this.sendLocalDescription(CKSessionDescription.Type.answer);
         }
@@ -236,7 +241,11 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             logger.info("received remote %{public} track, creating stream", track.kind);
             this.htmlMediaStream = new MediaStream([track]);
             this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.htmlMediaStream);
-            this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
+            var notify = (function(){
+                track.removeEventListener("unmute", notify);
+                this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
+            }).bind(this);
+            track.addEventListener("unmute", notify);
         }else{
             logger.info("received remote %{public} track, adding to existing stream", track.kind);
             this.htmlMediaStream.addTrack(track);
