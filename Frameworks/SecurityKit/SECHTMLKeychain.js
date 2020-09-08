@@ -39,7 +39,7 @@ JSClass("SECHTMLKeychain", JSObject, {
 
     close: function(completion, target){
         if (!completion){
-            completion = Promise.resolve();
+            completion = Promise.completion();
         }
         JSRunLoop.main.schedule(completion, target);
         return completion.promise;
