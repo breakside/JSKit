@@ -1,0 +1,36 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.36.0
+inherits: UIGestureRecognizer
+summary: Watches for long press gestures
+description: |
+   A long press is recognized after the user has pressed and held a touch
+   for a minimum amount of time.
+topics:
+  -
+    name: Creating a Press Recognizer
+    members:
+      -
+        name: Spec File Properties
+        kind: spec
+        summary: The properties availble when creating a press recognizer in
+          a spec file
+        topics:
+          -
+            name: Timing
+            members:
+              -
+                name: minumumPressInterval
+                type: Number
+                summary: The number of seconds before a press is recognized
+                description: |
+                  Defaults to `1.0`
+  -
+    name: Timing
+    members:
+      -
+        name: minumumPressInterval
+        type: Number
+        summary: The number of seconds before a press is recognized
+        description: |
+          Defaults to `1.0`

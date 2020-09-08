@@ -161,6 +161,7 @@ topics:
     members:
       - UIGestureRecognizer
       - UITapGestureRecognizer
+      - UIPressGestureRecognizer
   -
     name: User Interface Traits
     members:

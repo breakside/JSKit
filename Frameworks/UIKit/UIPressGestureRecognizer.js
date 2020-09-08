@@ -18,7 +18,14 @@
 
 JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
 
-    minumumPressInterval: 1.0,
+    initWithSpec: function(spec){
+        UIPressGestureRecognizer.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("minimumPressInterval")){
+            this.minimumPressInterval = spec.valueForKey("minimumPressInterval");
+        }
+    },
+
+    minimumPressInterval: 1.0,
 
     // MARK: - Events
 
@@ -36,7 +43,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
             if (touches.length === 1){
                 this.beganTouchId = touches[0].identifier;
                 this.beganLocation = touches[0].locationInView(this.view);
-                this.pressTimer = JSTimer.scheduledTimerWithInterval(this.minumumPressInterval, this.minimumTimeReached, this);
+                this.pressTimer = JSTimer.scheduledTimerWithInterval(this.minimumPressInterval, this.minimumTimeReached, this);
                 this._setState(UIGestureRecognizer.State.began);
             }
         }else{
