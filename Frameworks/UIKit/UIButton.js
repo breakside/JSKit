@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 JSClass("UIButton", UIControl, {
@@ -175,6 +176,19 @@ JSClass("UIButton", UIControl, {
         }
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     _handleMouseDragged: true,
 
     mouseDown: function(event){
@@ -290,6 +304,25 @@ JSClass("UIButton", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return this._titleInsets.bottom;
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.enter){
+            this.active = true;
+        }else{
+            UIButton.$super.keyDown.call(this, event);
+        }
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.enter){
+            if (this.active){
+                this.sendActionsForEvents(UIControl.Event.primaryAction, event);
+                this.active = false;
+            }
+        }else{
+            UIButton.$super.keyUp.call(this, event);
+        }
     },
 
     // -------------------------------------------------------------------------

@@ -38,6 +38,7 @@ JSClass('UIApplication', UIResponder, {
         shared = this;
         this.windowServer = windowServer;
         this._windowsById = {};
+        // this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
 
     // MARK: - Initialization & Startup
@@ -377,6 +378,51 @@ JSClass('UIApplication', UIResponder, {
             return this.bundle.info.UIApplicationEnvironment[name];
         }
         return defaultValue;
+    },
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: null,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.application,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSReadOnlyProperty(),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+    accessibilityEnabled: null,
+
+    // Children
+    accessibilityParent: null,
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityFrame: function(){
+        return this.windowServer.screen.frame;
+    },
+
+    getAccessibilityLabel: function(){
+        return this.bundle.localizedStringForInfoKey("UIApplicationTitle");
+    },
+
+    getAccessibilityElements: function(){
+        return this.windows;
     }
 
 });

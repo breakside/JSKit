@@ -243,6 +243,7 @@ JSClass("UIControl", UIView, {
         if (!isEnabled && this.window && this.window.firstResponder === this){
             this.window.firstResponder = null;
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.enabledChanged);
     },
 
     isOver: function(){
@@ -306,6 +307,12 @@ JSClass("UIControl", UIView, {
     getAccessibilityElements: function(){
         return [];
     },
+
+    accessibilityEnabled: JSReadOnlyProperty(),
+
+    getAccessibilityEnabled: function(){
+        return this.enabled;
+    }
 
 });
 

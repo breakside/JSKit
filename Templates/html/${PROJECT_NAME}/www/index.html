@@ -82,9 +82,9 @@
   </style>
 </head>
 <body>
-  <div id="splash">
+  <div id="splash" role="none presentation">
     <div id="status"></div>
-    <div id="progress"><div id="progress-bar"></div></div>
+    <div id="progress" role="progressbar" aria-label="Application loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true"><div id="progress-bar"></div></div>
     <div id="details"></div>
   </div>
   <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
@@ -113,11 +113,13 @@
           statusLabel.innerHTML = 'Loading...';
           statusLabel.style.opacity = 1;
           progress.style.opacity = 1;
+          progress.removeAttribute("aria-hidden");
           break;
         case S.updating:
           statusLabel.innerHTML = 'Updating...';
           statusLabel.style.opacity = 1;
           progress.style.opacity = 1;
+          progress.removeAttribute("aria-hidden");
           break;
         case S.preflightLoading:
         case S.preflightRunning:
@@ -141,6 +143,7 @@
         case S.appLaunchFailure:
           statusLabel.style.opacity = 1;
           progress.style.opacity = 0;
+          progress.setAttribute("aria-hidden", "true");
           splash.className = 'error';
           statusLabel.innerHTML = "Apologies, but we couldn't start the application";
           detailsLabel.style.opacity = 1;
@@ -150,6 +153,7 @@
         case S.appRequiresNoOtherInstances:
           statusLabel.style.opacity = 1;
           progress.style.opacity = 0;
+          progress.setAttribute("aria-hidden", "true");
           splash.className = 'error';
           statusLabel.innerHTML = "Please close all other tabs running this application";
           detailsLabel.style.opacity = 1;
@@ -167,6 +171,7 @@
     };
     bootstrapper.onprogress = function(loaded, total){
       progressBar.style.width = (loaded * 100 / total) + '%';
+      progress.setAttribute("aria-valuenow", Math.round(loaded * 100 / total));
     };
     if (app.debug){
       bootstrapper.onlog = function(record){

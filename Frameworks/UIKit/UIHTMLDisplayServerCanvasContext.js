@@ -33,7 +33,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     initScreenInContainer: function(containerElement){
         this.initForDocument(containerElement.ownerDocument);
-        this.element.setAttribute("aria-role", "application");
         this.style.top = '0';
         this.style.left = '0';
         this.style.bottom = '0';
@@ -67,7 +66,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     initForDocument: function(document){
         UIHTMLDisplayServerCanvasContext.$super.init.call(this);
         this.element = document.createElement('div');
-        this.element.setAttribute("aria-role", "none presentation");
+        this.element.setAttribute("role", "none presentation");
         this.style = this.element.style;
         this.style.position = 'absolute';
         this.style.boxSizing = 'border-box';
@@ -129,7 +128,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             // TODO: could possibly use outline with a negative outline-offset value
             // instead of a separate element.  Needs investigation.  Browser support?  Behavior?
             this.borderElement = this.element.ownerDocument.createElement('div');
-            this.borderElement.setAttribute("aria-role", "none presentation");
+            this.borderElement.setAttribute("role", "none presentation");
             if (this.trackingElement !== null){
                 this.element.insertBefore(this.borderElement, this.trackingElement);
             }else{
@@ -367,7 +366,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _dequeueReusableCanvasElement: function(){
         if (this._canvasElementIndex == this._canvasElements.length){
             var canvasElement = this.element.ownerDocument.createElement('canvas');
-            canvasElement.setAttribute("aria-role", "none presentation");
+            canvasElement.setAttribute("role", "none presentation");
             canvasElement.style.position = 'absolute';
             canvasElement.style.width = '100%';
             canvasElement.style.height = '100%';
@@ -460,7 +459,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     startMouseTracking: function(trackingType, listener, layer){
         if (this.trackingElement === null){
             this.trackingElement = this.element.ownerDocument.createElement('div');
-            this.trackingElement.setAttribute("aria-role", "none presentation");
+            this.trackingElement.setAttribute("role", "none presentation");
             this.trackingElement.style.position = 'absolute';
             this.trackingElement.style.top = '0';
             this.trackingElement.style.left = '0';
@@ -651,7 +650,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _dequeueReusableImageElement: function(){
         if (this._imageElementIndex == this._imageElements.length){
             var imageElement = this.element.ownerDocument.createElement('div');
-            imageElement.setAttribute("aria-role", "none presentation");
+            imageElement.setAttribute("role", "none presentation");
             imageElement.style.position = 'absolute';
             imageElement.style.borderColor = 'transparent';
             imageElement.style.boxSizing = 'border-box';
@@ -904,14 +903,22 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     setAccessibility: function(accessibility){
         var ariaRole = ariaRoleForAccessibility(accessibility);
         if (ariaRole !== null){
-            this.element.setAttribute("aria-role", ariaRole);
+            this.element.setAttribute("role", ariaRole);
         }else{
-            this.element.removeAttribute("aria-role");
+            this.element.removeAttribute("role");
+        }
+        this.element.id = "accessibility-%d".sprintf(accessibility.objectID);
+        switch (ariaRole){
+            case "button":
+                this.element.setAttribute("tabindex", "0");
+                break;
         }
         this.updateAccessibilityLabel(accessibility);
         this.updateAccessibilityValue(accessibility);
         this.updateAccessibilitySelected(accessibility);
         this.updateAccessibilityExpanded(accessibility);
+        this.updateAccessibilityHidden(accessibility);
+        this.updateAccessibilityEnabled(accessibility);
         var menu = accessibility.accessibilityMenu;
         if (menu !== null && menu !== undefined){
             this.element.setAttribute("aria-haspopup", "menu");
@@ -919,6 +926,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var orientation = accessibility.accessibilityOrientation;
         if (orientation !== null && orientation !== undefined){
             this.element.setAttribute("aria-orientation", orientation === UIAccessibility.Orientation.horizontal ? "horizontal" : "vertical");
+        }
+        if (accessibility.accessibilityRole === UIAccessibility.Role.window && ariaRole == "application"){
+            this.element.setAttribute("aria-roledescription", "window");
+        }
+        var level = accessibility.accessibilityLevel;
+        if (level !== null && level !== undefined){
+            this.element.setAttribute("aria-level", level);
         }
     },
 
@@ -932,7 +946,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 label += ",  " + hint;
             }
         }
-        this.element.setAttribute("aria-label", label !== null ? label : "");
+        if (label !== null && label !== undefined){
+            this.element.setAttribute("aria-label", label);
+        }else{
+            this.element.removeAttribute("aria-label");
+        }
     },
 
     updateAccessibilityValue: function(accessibility){
@@ -1004,6 +1022,32 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             if (this.element.getAttribute("aria-expanded") !== value){
                 this.element.setAttribute("aria-expanded", value);
             }
+        }
+    },
+
+    updateAccessibilityEnabled: function(accessibility){
+        var enabled = accessibility.accessibilityEnabled;
+        if (enabled === false){
+            this.element.setAttribute("aria-disabled", "true");
+        }else{
+            this.element.removeAttribute("aria-disabled");
+        }
+    },
+
+    updateAccessibilityHidden: function(accessibility){
+        var hidden = accessibility.accessibilityHidden;
+        if (hidden === true){
+            this.element.setAttribute("aria-hidden", "true");
+        }else{
+            this.element.removeAttribute("aria-hidden");
+        }
+    },
+
+    updateAccessibilityFocus: function(focusedAccessibility){
+        if (focusedAccessibility === null || focusedAccessibility === undefined){
+            this.element.removeAttribute("aria-activedescendant");
+        }else{
+            this.element.setAttribute("aria-activedescendant", "#accessibility-%d".sprintf(focusedAccessibility.objectID));
         }
     },
 
@@ -1152,7 +1196,7 @@ var ariaRoleForAccessibility = function(accessibility){
                 case UIAccessibility.Subrole.tooltip:
                     return "tooltip";
             }
-            return "dialog"; // wish I could do "window", but it's abstract
+            return "application"; // wish I could do "window", but it's abstract
         case UIAccessibility.Role.popover:
             return "dialog";
         case UIAccessibility.Role.comboBox:

@@ -344,7 +344,8 @@ JSClass("UIMenu", JSObject, {
 
     // Visibility
     isAccessibilityElement: true,
-    isAccessibilityHidden: false,
+    accessibilityHidden: false,
+    accessibilityLayer: JSReadOnlyProperty(),
     accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
@@ -370,10 +371,23 @@ JSClass("UIMenu", JSObject, {
     accessibilityExpanded: null,
 
     // Children
+    accessibilityParent: null,
     accessibilityElements: JSReadOnlyProperty(),
 
+    getAccessibilityLayer: function(){
+        var window = this.styler.windowForMenu(this);
+        if (window !== null){
+            return window.layer;
+        }
+        return null;
+    },
+
     getAccessibilityFrame: function(){
-        return this.styler.frameForMenu(this);
+        var window = this.styler.windowForMenu(this);
+        if (window !== null){
+            return window.frame;
+        }
+        return null;
     },
 
     getAccessibilityElements: function(){
@@ -407,7 +421,10 @@ JSClass("UIMenuStyler", JSObject, {
         return JSPoint.Zero;
     },
 
-    frameForMenu: function(menu){
+    windowForMenu: function(menu){
+    },
+
+    viewForItemAtIndex: function(menu, itemIndex){
     }
 
 });
@@ -846,9 +863,15 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         return JSPoint(x, y);
     },
 
-    frameForMenu: function(menu){
-        if (menu.stylerProperties.window){
-            return menu.stylerProperties.window.frame;
+    windowForMenu: function(menu){
+        return menu.stylerProperties.window;
+    },
+
+    viewForItemAtIndex: function(menu, itemIndex){
+        var item = menu.items[itemIndex];
+        var window = this.windowForMenu(menu);
+        if (window !== null){
+            return window.viewForITem(item);
         }
         return null;
     }

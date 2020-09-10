@@ -110,6 +110,7 @@ JSClass("UIWindowServer", JSObject, {
             }
             if (this.mainWindow !== null){
                 this.mainWindow.becomeMain();
+                this.postNotificationForAccessibilityElement(UIAccessibility.Notification.mainWindowChanged, this.mainWindow);
             }
         }
     },
@@ -129,8 +130,9 @@ JSClass("UIWindowServer", JSObject, {
             }
             if (this.keyWindow !== null){
                 this.keyWindow.becomeKey();
+                this.postNotificationForAccessibilityElement(UIAccessibility.Notification.keyWindowChanged, this.keyWindow);
             }
-            this.textInputManager.windowDidChangeResponder(this.keyWindow);
+            this.windowDidChangeResponder(this.keyWindow);
         }
     },
 
@@ -205,7 +207,7 @@ JSClass("UIWindowServer", JSObject, {
             for (i = window.subviewIndex - 1; i >= 0; --i){
                 if (this.windowStack[i].canBecomeKeyWindow()){
                     newKeyWindow = this.windowStack[i];
-                    this.textInputManager.windowDidChangeResponder(this.keyWindow);
+                    this.windowDidChangeResponder(this.keyWindow);
                     break;
                 }
             }
@@ -293,6 +295,9 @@ JSClass("UIWindowServer", JSObject, {
 
     windowDidChangeResponder: function(window){
         this.textInputManager.windowDidChangeResponder(window);
+        if (window !== null){
+            this.postNotificationForAccessibilityElement(UIAccessibility.Notification.firstResponderChanged, window);
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -889,7 +894,27 @@ JSClass("UIWindowServer", JSObject, {
 
     postNotificationForAccessibilityElement: function(notificationName, accessibilityElement){
         this.accessibilityNotificationCenter.post(notificationName, accessibilityElement);
-    }
+    },
+
+    postNotificationsForAccessibilityElementCreated: function(element){
+        this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, element);
+        var children = element.accessibilityElements;
+        if (children !== null && children !== undefined){
+            for (var i = 0, l = children.length; i < l; ++i){
+                this.postNotificationsForAccessibilityElementCreated(children[i]);
+            }
+        }
+    },
+
+    postNotificationsForAccessibilityElementDestroyed: function(element){
+        this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, element);
+        var children = element.accessibilityElements;
+        if (children !== null && children !== undefined){
+            for (var i = 0, l = children.length; i < l; ++i){
+                this.postNotificationsForAccessibilityElementDestroyed(children[i]);
+            }
+        }
+    },
 
 });
 

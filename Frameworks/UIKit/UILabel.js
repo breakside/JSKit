@@ -38,6 +38,7 @@ JSClass('UILabel', UIView, {
         this.userInteractionEnabled = false;
         this.maximumNumberOfLines = 1;
         this._selectionColor = JSColor.white.colorWithAlpha(0.2);
+        this.accessibilityHidden = true;
     },
 
     initWithSpec: function(spec){
@@ -74,6 +75,7 @@ JSClass('UILabel', UIView, {
         }else{
             this._selectionColor = JSColor.white.colorWithAlpha(0.2);
         }
+        this.accessibilityHidden = true;
     },
 
     getIntrinsicSize: function(){
@@ -296,6 +298,7 @@ JSClass('UILabel', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Accessibility
 
+    isAccessibilityElement: true,
     accessibilityRole: UIAccessibility.Role.text
 
 });

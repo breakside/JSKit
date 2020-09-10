@@ -131,7 +131,8 @@ JSClass("UIMenuItem", JSObject, {
 
     // Visibility
     isAccessibilityElement: true,
-    isAccessibilityHidden: JSReadOnlyProperty(),
+    accessibilityHidden: JSReadOnlyProperty(),
+    accessibilityLayer: null,
     accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
@@ -157,6 +158,7 @@ JSClass("UIMenuItem", JSObject, {
     accessibilityOrientation: null,
 
     // Children
+    accessibilityParent: JSReadOnlyProperty(),
     accessibilityElements: JSReadOnlyProperty(),
 
     getAccessibilityLabel: function(){
@@ -185,6 +187,10 @@ JSClass("UIMenuItem", JSObject, {
     getAccessibilityChecked: function(){
         // TODO: distinguish between checkable items and not
         return null;        
+    },
+
+    getAccessibilityParent: function(){
+        return this.menu;
     }
 
 });

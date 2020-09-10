@@ -5,8 +5,8 @@ JSProtocol("UIAccessibility", JSProtocol, {
 
     // Visibility
     isAccessibilityElement: false,
-    isAccessibilityHidden: false,
-    accessibilityFrame: null,
+    accessibilityHidden: false,
+    accessibilityLayer: null,
 
     // Role
     accessibilityRole: null,
@@ -29,11 +29,12 @@ JSProtocol("UIAccessibility", JSProtocol, {
     accessibilitySelected: null,
     accessibilityExpanded: null,
     accessibilityOrientation: null,
+    accessibilityEnabled: false,
+    accessibilityLevel: null,
 
     // Children
+    accessibilityParent: null,
     accessibilityElements: [],
-
-
 
 });
 
@@ -210,5 +211,7 @@ UIAccessibility.Notification = {
     selectedChildrenChanged: "UIAccessibility.Notification.selectedChildrenChanged",
     selectedTextChanged: "UIAccessibility.Notification.selectedTextChanged",
     titleChanged: "UIAccessibility.Notification.titleChanged",
-    valueChanged: "UIAccessibility.Notification.valueChanged"
+    valueChanged: "UIAccessibility.Notification.valueChanged",
+    visibilityChanged: "UIAccessibility.Notification.visibilityChanged",
+    enabledChanged: "UIAccessibility.Notification.enabledChanged",
 };

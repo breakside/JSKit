@@ -843,7 +843,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
         this.accessibilityObservers.titleChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.titleChanged, null, this.handleAccessibilityTitleChanged, this);
         this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
+        this.accessibilityObservers.visibilityChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.visibilityChanged, null, this.handleAccessibilityVisibilityChanged, this);
+        this.accessibilityObservers.enabledChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.enabledChanged, null, this.handleAccessibilityEnabledChanged, this);
         this.accessibilityObservers.selectedChildrenChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.selectedChildrenChanged, null, this.handleAccessibilitySelectedChildrenChanged, this);
+        this.accessibilityObservers.firstResponderChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.firstResponderChanged, null, this.handleAccessibilityFirstResponderChanged, this);
     },
 
     stopObservingAccessibilityNotifications: function(){
@@ -858,8 +861,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     contextForAccessibilityElement: function(element){
-        if (element.isKindOfClass(UIView)){
-            return this.displayServer.contextForLayer(element.layer);
+        if (element.isKindOfClass(UIApplication)){
+            return this.displayServer.screenContext;
+        }
+        var layer = element.accessibilityLayer;
+        if (layer !== null){
+            return this.displayServer.contextForLayer(layer);
         }
         return null;
     },
@@ -869,6 +876,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.setAccessibility(element);
+            if (element.accessibilityRole === UIAccessibility.Role.scrollBar){
+                var parent = element.accessibilityParent;
+                if (parent !== null && parent.accessibilityRole === UIAccessibility.Role.scrollArea){
+                    context.element.setAttribute("aria-controls", "#accessibility-%d" + parent.objectID);
+                }
+            }
         }
     },
 
@@ -885,6 +898,22 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.updateAccessibilityValue(element);
+        }
+    },
+
+    handleAccessibilityVisibilityChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityHidden(element);
+        }
+    },
+
+    handleAccessibilityEnabledChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityEnabled(element);
         }
     },
 
@@ -914,6 +943,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             context.updateAccessibilityExpanded(element);
         }
     },
+
+    handleAccessibilityFirstResponderChanged: function(notification){
+        var window = notification.sender;
+        var context = this.contextForAccessibilityElement(window);
+        if (context !== null){
+            context.updateAccessibilityFocus(window.firstResponder || window);
+        }
+    }
 
 });
 

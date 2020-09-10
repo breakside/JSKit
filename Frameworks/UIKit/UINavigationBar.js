@@ -753,6 +753,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (barItem.title){
             button.titleLabel.text = barItem.title;
         }
+        button.accessibilityLabel = barItem.accessibilityTitle;
         if (barItem.image){
             button.setImageForState(barItem.image, UIControl.State.normal);
         }

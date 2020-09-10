@@ -396,6 +396,9 @@ JSClass('UIWindow', UIView, {
             this._initialFirstResponder = null;
             this.setFirstResponder(responder);
         }
+        if (this.isAccessibilityElement){
+            this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
+        }
     },
 
     didClose: function(){
@@ -407,6 +410,9 @@ JSClass('UIWindow', UIView, {
         if (this._parent && this._parent.modal === this){
             this._parent._modal = null;
             this._parent._flushTrackingEvents();
+        }
+        if (this.isAccessibilityElement){
+            this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, this);
         }
     },
 
@@ -544,6 +550,15 @@ JSClass('UIWindow', UIView, {
     keyDown: function(event){
         if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
             this.close();
+        }else if (event.key === UIEvent.Key.tab){
+            if (this.firstResponder !== null){
+                if (event.hasModifier(UIEvent.Modifier.shift)){
+                    this.setFirstResponderToKeyViewAfterView(this.firstResponder);
+                }else{
+                    this.setFirstResponderToKeyViewBeforeView(this.firstResponder);
+                }
+            }else{
+            }
         }else{
             UIWindow.$super.keyDown.call(this, event);
         }
@@ -941,7 +956,7 @@ JSClass('UIWindow', UIView, {
     accessibilityLabel: JSReadOnlyProperty(),
 
     getAccessibilityLabel: function(){
-        var label = UIWindow.$super.call.getAccessibilityLabel(this);
+        var label = UIWindow.$super.getAccessibilityLabel.call(this);
         if (label !== null){
             return label;
         }
@@ -962,6 +977,10 @@ JSClass('UIWindow', UIView, {
         }
         return elements;
     },
+
+    getAccessibilityParent: function(){
+        return this._application;
+    }
 
 });
 
@@ -999,7 +1018,10 @@ UIWindow.Styler = Object.create({}, {
 JSClass("UIRootWindow", UIWindow, {
 
     level: UIWindow.Level.back,
-    isAccessibilityElement: false,
+
+    getAccessibilityLabel: function(){
+        return this.application.accessibilityLabel;
+    }
 
 });
 

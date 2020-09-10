@@ -108,6 +108,8 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
         this.rootElement = rootElement;
         this.domWindow = this.rootElement.ownerDocument.defaultView;
         this.hiddenInputElement = rootElement.ownerDocument.createElement('textarea');
+        this.hiddenInputElement.setAttribute("role", "none presentation");
+        this.hiddenInputElement.setAttribute("aria-hidden", "true");
         this.rootElement.appendChild(this.hiddenInputElement);
         this.hiddenInputElement.style.position = 'absolute';
         // The positioning has some interesting quirks

@@ -779,6 +779,7 @@ JSClass("UITextField", UIControl, {
         this.sendActionsForEvents(UIControl.Event.editingChanged);
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('attributedText');
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){
@@ -928,6 +929,19 @@ JSClass("UITextField", UIControl, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.textField,
+
+    accessibilityValue: JSReadOnlyProperty(),
+
+    getAccessibilityValue: function(){
+        return this.text;
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - UITextInput Protocol
 
     insertText: function(text){
@@ -950,11 +964,11 @@ JSClass("UITextField", UIControl, {
     },
 
     insertTab: function(){
-        this.window.setFirstResponderToKeyViewAfterView(this);
+        // this.window.setFirstResponderToKeyViewAfterView(this);
     },
 
     insertBacktab: function(){
-        this.window.setFirstResponderToKeyViewBeforeView(this);
+        // this.window.setFirstResponderToKeyViewBeforeView(this);
     },
 
     deleteBackward: function(){

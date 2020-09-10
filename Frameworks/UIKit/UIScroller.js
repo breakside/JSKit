@@ -57,6 +57,7 @@ JSClass("UIScroller", UIControl, {
         if (value !== this._value){
             this._value = value;
             this.setNeedsLayout();
+            this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
         }
     },
 
@@ -227,11 +228,11 @@ JSClass("UIScroller", UIControl, {
     accessibilityRole: UIAccessibility.Role.scrollBar,
 
     accessibilityValue: JSReadOnlyProperty(),
-    accessibilityValueRange: JSRange(0, 1),
+    accessibilityValueRange: JSRange(0, 100),
     accessibilityOrientation: JSReadOnlyProperty(),
 
     getAccessibilityValue: function(){
-        return this._value;
+        return Math.round(this._value * 100);
     },
 
     getAccesibilityOrientation: function(){

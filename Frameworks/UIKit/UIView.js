@@ -173,6 +173,12 @@ JSClass('UIView', UIResponder, {
 
     layer: null,
 
+    layerDidChangeVisibility: function(layer){
+        if (layer === this.layer){
+            this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Superview
 
@@ -884,7 +890,8 @@ JSClass('UIView', UIResponder, {
 
     // Visibility
     isAccessibilityElement: false,
-    isAccessibilityHidden: false,
+    accessibilityHidden: JSDynamicProperty("_accessibilityHidden", false),
+    accessibilityLayer: JSReadOnlyProperty(),
     accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
@@ -908,9 +915,20 @@ JSClass('UIView', UIResponder, {
     accessibilityRowIndex: null,
     accessibilitySelected: null,
     accessibilityExpanded: null,
+    accessibilityEnabled: null,
+    accessibilityLevel: null,
 
     // Children
+    accessibilityParent: null,
     accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityParent: function(){
+        var superview = this.superview;
+        while (superview !== null && !superview.isAccessibilityElement){
+            superview = superview.superview;
+        }
+        return superview;
+    },
 
     getAccessibilityElements: function(){
         var elements = [];
@@ -926,6 +944,10 @@ JSClass('UIView', UIResponder, {
         return elements;
     },
 
+    getAccessibilityLayer: function(){
+        return this.layer;
+    },
+
     getAccessibilityFrame: function(){
         return this.convertRectToScreen(this.bounds);
     },
@@ -938,12 +960,21 @@ JSClass('UIView', UIResponder, {
         this._accessibilityLabel = accessibilityLabel;
     },
 
+    setAccessibilityHidden: function(accessibilityHidden){
+        this._accessibilityHidden = accessibilityHidden;
+        this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
+    },
+
+    getAccessibilityHidden: function(){
+        return this.hidden || this._accessibilityHidden;
+    },
+
     postAccessibilityNotification: function(notificationName){
         if (this._windowServer === null){
             return;
         }
         this._windowServer.postNotificationForAccessibilityElement(notificationName, this);
-    }
+    },
 
 });
 

@@ -115,7 +115,12 @@ JSClass("UISegmentedControl", UIControl, {
     },
 
     _insertItemAtIndex: function(item, index){
+        item._segmentedControl = this;
+        item.index = index;
         this._items.splice(index, 0, item);
+        for (var i = index + 1, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._insertItemViewAtIndex(index);
     },
 
@@ -124,7 +129,12 @@ JSClass("UISegmentedControl", UIControl, {
             this.selectedSegmentIndex = null;
         }
         var item = this._items[index];
+        item._segmentedControl = null;
+        item.index = -1;
         this._items.splice(index, 1);
+        for (var i = index, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._removeItemViewAtIndex(index);
     },
 
@@ -185,6 +195,7 @@ JSClass("UISegmentedControl", UIControl, {
             this._selectedItemView.item.selected = true;
             this._selectedItemView.update();
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.selectedChildrenChanged);
     },
 
     getSelectedSegmentTag: function(){
@@ -227,6 +238,13 @@ JSClass("UISegmentedControl", UIControl, {
         this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
+    viewForItem: function(item){
+        if (item.index >= 0){
+            return this._itemViews[item.index];
+        }
+        return null;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Events
 
@@ -264,9 +282,21 @@ JSClass("UISegmentedControl", UIControl, {
         return null;
     },
 
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.tabGroup,
+
+    getAccessibilityElements: function(){
+        return this.items;
+    },
+
 });
 
 JSClass("UISegmentedControlItem", JSObject, {
+    index: -1,
     title: null,
     image: null,
     selectedImage: null,
@@ -274,6 +304,7 @@ JSClass("UISegmentedControlItem", JSObject, {
     active: false,
     selected: false,
     enabled: true,
+    _segmentedControl: null,
 
     initWithSpec: function(spec){
         UISegmentedControlItem.$super.initWithSpec.call(this, spec);
@@ -289,6 +320,70 @@ JSClass("UISegmentedControlItem", JSObject, {
         if (spec.containsKey('tooltip')){
             this.tooltip = spec.valueForKey("tooltip");
         }
+    },
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.button,
+    accessibilitySubrole: UIAccessibility.Subrole.tab,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: JSReadOnlyProperty(),
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+
+    // Children
+    accessibilityParent: JSReadOnlyProperty(),
+    accessibilityElements: [],
+
+    getAccessibilityLayer: function(){
+        var view = this._segmentedControl.viewForItem(this);
+        if (view !== null){
+            return view.layer;
+        }
+        return null;
+    },
+
+
+    getAccessibilityFrame: function(){
+        var view = this._segmentedControl.viewForItem(this);
+        if (view !== null){
+            return view.convertRectToScreen(view.bounds);
+        }
+        return null;
+    },
+
+    getAccessibilityParent: function(){
+        return this._segmentedControl;
+    },
+
+    getAccesssibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this.title;
+    },
+
+    getAccessibilitySelected: function(){
+        return this.selected;
     }
 });
 
@@ -366,6 +461,34 @@ JSClass("UISegmentedControlItemView", UIView, {
 
     isLast: function(){
         return this.index === this.segmentControl._items.length - 1;
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: JSReadOnlyProperty(),
+
+    getAccessibilityRole: function(){
+        return this.item.accessibilityRole;
+    },
+
+    accessibilitySubrole: JSReadOnlyProperty(),
+
+    getAccessibilitySubrole: function(){
+        return this.item.accessibilitySubrole;
+    },
+
+    getAccessibilityLabel: function(){
+        return this.item.accessibilityLabel;
+    },
+
+    accessibilitySelected: JSReadOnlyProperty(),
+
+    getAccessibilitySelected: function(){
+        return this.item.accessibilitySelected;
+    },
+
+    getAccessibilityElements: function(){
+        return [];
     }
 
 });

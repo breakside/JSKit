@@ -62,6 +62,8 @@ JSClass("UITooltipWindow", UIWindow, {
         // contain any point.  That way, the window server won't ever consider
         // us a target
         return false;
-    }
+    },
+
+    accessibilitySubrole: UIAccessibility.Subrole.tooltip
 
 });

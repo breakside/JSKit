@@ -184,10 +184,10 @@ JSClass("UIProgressIndicatorView", UIView, {
 
     accessibilityValue: JSReadOnlyProperty(),
 
-    accessibilityValueRange: JSRange(0, 1),
+    accessibilityValueRange: JSRange(0, 100),
 
     getAccessibilityValue: function(){
-        return this._percentComplete;
+        return Math.round(this._percentComplete * 100);
     },
 
     getAccessibilityElements: function(){

@@ -22,6 +22,7 @@ JSClass("UIToolbarItem", JSObject, {
     toolbar: null,
     identifier: 0,
     title: JSDynamicProperty('_title', null),
+    accessibilityTitle: JSDynamicProperty('_accessibilityTitle', null),
     tooltip: JSDynamicProperty('_tooltip', null),
     image: JSDynamicProperty('_image', null),
     target: JSDynamicProperty('_target', null),

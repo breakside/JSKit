@@ -22,6 +22,7 @@
 JSClass("UINavigationBarItem", JSObject, {
 
     title: JSDynamicProperty('_title', null),
+    accessibilityTitle: JSDynamicProperty('_accessibilityTitle', null),
     image: JSDynamicProperty('_image', null),
     target: JSDynamicProperty('_target', null),
     action: JSDynamicProperty('_action', null),

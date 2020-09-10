@@ -106,6 +106,12 @@ JSClass("UIMenuWindow", UIWindow, {
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
         }
+        this.windowServer.postNotificationsForAcccessibilityElementCreated(this.menu);
+    },
+
+    didClose: function(){
+        UIMenuWindow.$super.didClose.call(this);
+        this.windowServer.postNotificationsForAccessibilityElementDestroyed(this.menu);
     },
 
     // -----------------------------------------------------------------------
@@ -198,6 +204,10 @@ JSClass("UIMenuWindow", UIWindow, {
             targetView = this.menuView.itemViews[itemViewIndex];
         }
         return this.convertPointFromView(JSPoint.Zero, targetView);
+    },
+
+    viewForItem: function(item){
+        return this._itemViewIndexesByItemId[item.objectID] || null;
     },
 
     // -----------------------------------------------------------------------
@@ -609,11 +619,7 @@ JSClass("UIMenuWindow", UIWindow, {
         return this;
     },
 
-    accessibilityRole: UIAccessibility.Role.menu,
-
-    getAccessibilityElements: function(){
-        return this.menuView.itemViews;
-    },
+    isAccessibilityElement: false
 
 });
 
@@ -935,40 +941,6 @@ JSClass("UIMenuItemView", UIView, {
         size.width = Math.ceil(size.width);
         size.height = Math.ceil(size.height);
         this.bounds = JSRect(JSPoint.Zero, size);
-    },
-
-    isAccessibilityElement: true,
-
-    accessibilityRole: JSReadOnlyProperty(),
-
-    getAccessibilityRole: function(){
-        return this._item.accessibilityRole;
-    },
-
-    accessibilitySubrole: JSReadOnlyProperty(),
-
-    getAccessibilitySubrole: function(){
-        return this._item.accessibilitySubrole;
-    },
-
-    accessibilityChecked: JSReadOnlyProperty(),
-
-    getAccessibilityChecked: function(){
-        return this._item.accessibilityChecked;
-    },
-
-    accessibilityMenu: JSReadOnlyProperty(),
-
-    getAccessibilityMenu: function(){
-        return this._item.accessibilityMenu;
-    },
-
-    getAccessibilityElements: function(){
-        return this._item.accessibilityElements;
-    },
-
-    getAccessibilityLabel: function(){
-        return this._item.accessibilityLabel;
     },
 
 });

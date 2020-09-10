@@ -76,6 +76,7 @@ JSClass("UIMenuBar", UIWindow, {
     _commonInit: function(){
         this._itemPadding = JSInsets(3, 7);
         this._edgeInsets = JSInsets(0, 10);
+        this._itemViewsByItemId = {};
         this._leftBarItems = [];
         this._rightBarItems = [];
         this._menuBarItems = [];
@@ -178,7 +179,9 @@ JSClass("UIMenuBar", UIWindow, {
 
     _updateItemViews: function(itemViews, items, viewClass){
         var itemView;
+        var item;
         for (var i = 0, l = items.length; i < l; ++i){
+            item = items[i];
             if (i < itemViews.length){
                 itemView = itemViews[i];
             }else{
@@ -187,7 +190,9 @@ JSClass("UIMenuBar", UIWindow, {
                 itemViews.push(itemView);
                 this._clipView.addSubview(itemView);
             }
-            itemView.setItem(items[i]);
+            this._itemViewsByItemId[item.objectID] = itemView;
+            item.accessibilityLayer = itemView;
+            itemView.setItem(item);
             itemView.update();
         }
         for (var j = itemViews.length - 1; j >= i; --j){
@@ -203,6 +208,12 @@ JSClass("UIMenuBar", UIWindow, {
         }
     },
 
+    _itemViewsByItemId: null,
+
+    viewForItem: function(item){
+        return this._itemViewsByItemId[item.objectID];
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Views & Layout
 
@@ -213,6 +224,7 @@ JSClass("UIMenuBar", UIWindow, {
     windowController: null,
 
     reload: function(){
+        this._itemViewsByItemId = {};
         this._updateItemViews(this._leftItemViews, this._leftBarItems, UIMenuBarButton);
         this._updateItemViews(this._menuItemViews, this._menuBarItems, UIMenuBarItemView);
         this._updateItemViews(this._rightItemViews, this._rightBarItems, UIMenuBarButton);
@@ -280,17 +292,9 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     rectForItem: function(item){
-        var index = this._leftItemViews.indexOf(item);
-        if (index > 0){
-            return JSRect(this._leftItemViews[index].frame);
-        }
-        index = this._menuItemViews.indexOf(item);
-        if (index > 0){
-            return JSRect(this._menuItemViews[index].frame);
-        }
-        index = this._rightItemViews.indexOf(item);
-        if (index > 0){
-            return JSRect(this._rightItemViews[index].frame);
+        var view = this.viewForItem(item);
+        if (view !== null){
+            return view.convertRectToView(view.bounds, this);
         }
         return JSRect.Zero(0, 0, 0, this.bounds.size.height);
     },
@@ -599,7 +603,8 @@ JSClass("UIMenuBar", UIWindow, {
     accessibilityRole: UIAccessibility.Role.menuBar,
 
     getAccessibilityElements: function(){
-        return this.leftBarItems.concat(this._menu.items).concat(this.rightBarItems);
+        var elements = JSCopy(this.leftBarItems);
+        return elements.concat(this._menu.items).concat(this.rightBarItems);
     }
 
 });
@@ -700,8 +705,9 @@ JSClass("UIMenuBarItem", JSObject, {
 
     // Visibility
     isAccessibilityElement: true,
-    isAccessibilityHidden: false,
-    accessibilityFrame: null,
+    accessibilityHidden: false,
+    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
     accessibilityRole: UIAccessibility.Role.menuBarItem,
@@ -726,10 +732,31 @@ JSClass("UIMenuBarItem", JSObject, {
     accessibilityExpanded: null,
 
     // Children
+    accessibilityParent: JSReadOnlyProperty(),
     accessibilityElements: [],
 
     getAccessibilityElements: function(){
         return [];
+    },
+
+    getAccessibilityLayer: function(){
+        if (this._menuBar !== null){
+            var view = this._menuBar.viewForItem(this);
+            if (view !== null){
+                return view.layer;
+            }
+        }
+        return null;
+    },
+
+    getAccessibilityFrame: function(){
+        if (this._menuBar !== null){
+            var view = this._menuBar.viewForItem(this);
+            if (view !== null){
+                return view.convertRectToScreen(view.bonds);
+            }
+        }
+        return null;
     },
 
     getAccessibilityMenu: function(){
@@ -741,6 +768,10 @@ JSClass("UIMenuBarItem", JSObject, {
             return this._accessibilityLabel;
         }
         return this._title;
+    },
+
+    getAccessibilityParent: function(){
+        return this._menuBar;
     }
 
 });
@@ -893,35 +924,7 @@ JSClass("UIMenuBarItemView", UIView, {
                 this._imageView.position = this.bounds.center;
             }
         }
-    },
-
-    isAccessibilityElement: true,
-
-    accessibilityRole: JSReadOnlyProperty(),
-
-    getAccessibilityRole: function(){
-        return this._item.accessibilityRole;
-    },
-
-    accessibilitySubrole: JSReadOnlyProperty(),
-
-    getAccessibilitySubrole: function(){
-        return this._item.accessibilitySubrole;
-    },
-
-    accessibilityMenu: JSReadOnlyProperty(),
-
-    getAccessibilityMenu: function(){
-        return this._item.accessibilityMenu;
-    },
-
-    getAccessibilityElements: function(){
-        return this._item.accessibilityElements;
-    },
-
-    getAccessibilityLabel: function(){
-        return this._item.accessibilityLabel;
-    },
+    }
 
 });
 

@@ -155,7 +155,14 @@ JSClass("UIToolbar", UIView, {
 
     getIntrinsicSize: function(){
         return this._styler.intrinsicSizeOfToolbar(this);
-    }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.toolbar,
 
 });
 
@@ -221,6 +228,10 @@ JSClass("UIToolbarItemView", UIView, {
                     this.contentView = UIImageView.initWithImage(item.image);
                     this.contentView.automaticRenderMode = JSImage.RenderMode.template;
                     this._handlesEvents = true;
+                    this.isAccessibilityElement = true;
+                    this.accessibilityLabel = item.accessibilityTitle || item.title;
+                    this.accessibilityRole = UIAccessibility.Role.button;
+                    this.accessibilitySubrole = UIAccessibility.Subrole.toolbarButton;
                     break;
             }
         }
@@ -306,7 +317,7 @@ JSClass("UIToolbarItemView", UIView, {
             this.active = false;
             this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
         }
-    }
+    },
 
 });
 

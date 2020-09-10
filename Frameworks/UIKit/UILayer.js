@@ -225,6 +225,18 @@ JSClass("UILayer", JSObject, {
         }
     },
 
+    setHidden: function(hidden){
+        if (hidden === this.model.hidden){
+            return;
+        }
+        this._addImplicitAnimationForKey("hidden");
+        this.model.hidden = hidden;
+        this.didChangeProperty("hidden");
+        if (this.delegate && this.delegate.layerDidChangeVisibility){
+            this.delegate.layerDidChangeVisibility(this);
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Shadows
 

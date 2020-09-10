@@ -179,6 +179,7 @@ JSClass("UIPopupButton", UIControl, {
                     this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
                     this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
                 }
+                this.menu.accessibilityParent = this;
                 this._isMenuOpen = true;
             }
         }else{
@@ -216,6 +217,7 @@ JSClass("UIPopupButton", UIControl, {
     menuDidClose: function(menu){
         this.active = false;
         this.menu.delegate = null;
+        this.menu.accessibilityParent = null;
         this._isMenuOpen = false;
     },
 
@@ -317,6 +319,13 @@ JSClass("UIPopupButton", UIControl, {
 
     getAccessibilityMenu: function(){
         return this._menu;
+    },
+
+    getAccessibilityElements: function(){
+        if (this._isMenuOpen){
+            return [this._menu];
+        }
+        return [];
     }
 
 });
