@@ -145,7 +145,12 @@ JSClass("UIImageView", UIView, {
             return size;
         }
         return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityRole: UIAccessibility.Role.image,
 });
 
 UIImageView.layerClass = UIImageLayer;

@@ -607,7 +607,13 @@ JSClass("UIMenuWindow", UIWindow, {
             return this.submenu.stylerProperties.window.deepestMenuWindow();
         }
         return this;
-    }
+    },
+
+    accessibilityRole: UIAccessibility.Role.menu,
+
+    getAccessibilityElements: function(){
+        return this.menuView.itemViews;
+    },
 
 });
 
@@ -709,6 +715,14 @@ JSClass("UIMenuItemSeparatorView", UIView, {
     layoutSubviews: function(){
         UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
         this.lineLayer.frame = JSRect(0, (this.bounds.size.height - this.size) / 2, this.bounds.size.width, this.size);
+    },
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.menuItem,
+    accessibilitySubrole: UIAccessibility.Subrole.separator,
+
+    getAccessibilityElements: function(){
+        return [];
     }
 
 });
@@ -921,7 +935,41 @@ JSClass("UIMenuItemView", UIView, {
         size.width = Math.ceil(size.width);
         size.height = Math.ceil(size.height);
         this.bounds = JSRect(JSPoint.Zero, size);
-    }
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: JSReadOnlyProperty(),
+
+    getAccessibilityRole: function(){
+        return this._item.accessibilityRole;
+    },
+
+    accessibilitySubrole: JSReadOnlyProperty(),
+
+    getAccessibilitySubrole: function(){
+        return this._item.accessibilitySubrole;
+    },
+
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    getAccessibilityChecked: function(){
+        return this._item.accessibilityChecked;
+    },
+
+    accessibilityMenu: JSReadOnlyProperty(),
+
+    getAccessibilityMenu: function(){
+        return this._item.accessibilityMenu;
+    },
+
+    getAccessibilityElements: function(){
+        return this._item.accessibilityElements;
+    },
+
+    getAccessibilityLabel: function(){
+        return this._item.accessibilityLabel;
+    },
 
 });
 

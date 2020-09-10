@@ -298,7 +298,14 @@ JSClass("UIControl", UIView, {
             this._hasSetInitialTracking = true;
         }
         UIControl.$super.setWindow.call(this, window);
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    getAccessibilityElements: function(){
+        return [];
+    },
 
 });
 

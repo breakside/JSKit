@@ -54,6 +54,7 @@ JSClass("UIWindowServer", JSObject, {
         this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this._mouseDidIdle, this);
         this.mouseLocation = JSPoint.Zero;
         this.device = UIDevice.shared;
+        this.accessibilityNotificationCenter = JSNotificationCenter.init();
     },
 
     stop: function(){
@@ -879,6 +880,15 @@ JSClass("UIWindowServer", JSObject, {
             case UIEvent.Type.touchesCanceled:
                 return UITouch.Phase.canceled;
         }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityNotificationCenter: null,
+
+    postNotificationForAccessibilityElement: function(notificationName, accessibilityElement){
+        this.accessibilityNotificationCenter.post(notificationName, accessibilityElement);
     }
 
 });

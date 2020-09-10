@@ -12,3 +12,9 @@ en:
         shift: Shift+
         control: Ctrl+
         command: Win+
+  accessibility:
+    checkbox:
+      value:
+        "on": "On"
+        "off": "Off"
+        mixed: Mixed

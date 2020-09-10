@@ -1,0 +1,71 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.36.0
+summary: Protocol for specifying accessibility properties
+topics:
+  -
+    name: Properties
+    members:
+      -
+        name: isAccessibilityElement
+        kind: property
+        type: boolean
+      -
+        name: accessibilityIdentifier
+        kind: property
+        type: String
+        nullable: true
+      -
+        name: accessibilityLabel
+        kind: property
+        type: String
+        nullable: true
+      -
+        name: accessibilityValue
+        kind: property
+        type: String
+        nullable: true
+      -
+        name: accessibilityHint
+        kind: property
+        type: String
+        nullable: true
+      -
+        name: accessibilityTextualContext
+        kind: property
+        type: TextualContext
+  -
+    name: Constants
+    members:
+      -
+        name: TextualContext
+        type: enum
+        summary: The possible textual contexts for an accessibility element
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: normal
+                summary: Normal text, the default value
+              -
+                name: console
+                summary: Console text
+              -
+                name: fileSystem
+                summary: File system text
+              -
+                name: messaging
+                summary: Messaging application text
+              -
+                name: narrative
+                summary: Narrative text
+              -
+                name: sourceCode
+                summary: Source code text
+              -
+                name: spreadsheet
+                summary: Spreadsheet text
+              -
+                name: wordProcessing
+                summary: Word processing text

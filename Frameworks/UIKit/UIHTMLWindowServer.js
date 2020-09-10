@@ -45,6 +45,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._cursorViewsById = {};
         this.setupRenderingEnvironment();
         this.setupEventListeners();
+        this.startObservingAccessibilityNotifications();
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.displayServer._windowServer = this;
         this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
@@ -253,6 +254,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     stop: function(){
         UIHTMLWindowServer.$super.stop.call(this);
         this.removeEventListeners();
+        this.stopObservingAccessibilityNotifications();
     },
 
     // --------------------------------------------------------------------
@@ -826,7 +828,92 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _updateScreenClientOrigin: function(){
         var clientRect = this.rootElement.getBoundingClientRect();
         this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
-    }
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityObservers: null,
+
+    startObservingAccessibilityNotifications: function(){
+        if (this.accessibilityObservers !== null){
+            return;
+        }
+        this.accessibilityObservers = {};
+        this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
+        this.accessibilityObservers.titleChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.titleChanged, null, this.handleAccessibilityTitleChanged, this);
+        this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
+        this.accessibilityObservers.selectedChildrenChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.selectedChildrenChanged, null, this.handleAccessibilitySelectedChildrenChanged, this);
+    },
+
+    stopObservingAccessibilityNotifications: function(){
+        if (this.accessibilityObservers === null){
+            return;
+        }
+        var listeners = JSCopy(this.accessibilityObservers);
+        this.accessibilityObservers = null;
+        for (var name in listeners){
+            this.accessibilityNotificationCenter.removeObserver(name, listeners[name]);
+        }
+    },
+
+    contextForAccessibilityElement: function(element){
+        if (element.isKindOfClass(UIView)){
+            return this.displayServer.contextForLayer(element.layer);
+        }
+        return null;
+    },
+
+    handleAccessibilityElementCreated: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.setAccessibility(element);
+        }
+    },
+
+    handleAccessibilityTitleChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityLabel(element);
+        }
+    },
+
+    handleAccessibilityValueChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityValue(element);
+        }
+    },
+
+    handleAccessibilitySelectedChildrenChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            var children = element.accessibilityElements;
+            for (var i = 0, l = children.length; i < l; ++i){
+                context.updateAccessibilitySelected(children[i]);   
+            }
+        }
+    },
+
+    handleAccessibilityRowExpanded: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityExpanded(element);
+        }
+    },
+
+    handleAccessibilityRowCollapsed: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityExpanded(element);
+        }
+    },
 
 });
 
@@ -1063,8 +1150,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             }
         }
         return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type);
-    }
-
+    },
 });
 
 

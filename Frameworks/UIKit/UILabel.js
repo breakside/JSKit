@@ -291,7 +291,12 @@ JSClass('UILabel', UIView, {
     resignFirstResponder: function(){
         this._selectionRange = null;
         this._updateSelectionHighlightLayers();
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityRole: UIAccessibility.Role.text
 
 });
 

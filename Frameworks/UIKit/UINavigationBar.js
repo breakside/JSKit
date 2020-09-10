@@ -443,6 +443,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
 
     createTitleLabel: function(){
         var label = UILabel.init();
+        label.isAccessibilityElement = true;
+        label.accessibilityRole = UIAccessibility.Role.header;
         label.font = this.titleFont;
         label.textColor = this.titleColor;
         return label;

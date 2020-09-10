@@ -290,7 +290,24 @@ JSClass("UIButton", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return this._titleInsets.bottom;
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.button,
+
+    getAccessibilityLabel: function(){
+        var label = UIButton.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
 
 });
 

@@ -62,12 +62,14 @@ JSClass("UIListViewCell", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
+        label.isAccessibilityElement = true;
         this.contentView.addSubview(label);
         return label;
     },
 
     _createDetailLabel: function(){
         var label = UILabel.init();
+        label.isAccessibilityElement = true;
         label.maximumNumberOfLines = this._numberOfDetailLines;
         label.font = label.font.fontWithPointSize(JSFont.Size.detail);
         this.contentView.addSubview(label);
@@ -192,7 +194,34 @@ JSClass("UIListViewCell", UIView, {
 
     setContextSelected: function(isContextSelected){
         this._toggleState(UIListViewCell.State.contextSelected, isContextSelected);
-    }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.cell,
+
+    getAccessibilityLabel: function(){
+        var label = UIListViewCell.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
+
+    getAccessibilityElements: function(){
+        return this._contentView.accessibilityElements;
+    },
+
+    accessibilitySelected: JSReadOnlyProperty(),
+
+    getAccessibilitySelected: function(){
+        return this.selected;
+    },
 
 });
 

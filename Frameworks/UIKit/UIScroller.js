@@ -220,6 +220,25 @@ JSClass("UIScroller", UIControl, {
 
     _setKnobActive: function(isKnobActive){
         this.toggleStates(UIScroller.State.knobActive, isKnobActive);
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.scrollBar,
+
+    accessibilityValue: JSReadOnlyProperty(),
+    accessibilityValueRange: JSRange(0, 1),
+    accessibilityOrientation: JSReadOnlyProperty(),
+
+    getAccessibilityValue: function(){
+        return this._value;
+    },
+
+    getAccesibilityOrientation: function(){
+        if (this._direction === UIScroller.Direction.horizontal){
+            return UIAccessibility.Orientation.horizontal;
+        }
+        return UIAccessibility.Orientation.vertical;
     }
 
 });

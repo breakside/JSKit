@@ -302,6 +302,8 @@ JSClass("UIPopupWindow", UIWindow, {
         this._modalAnimator.start();
     },
 
+    accessibilityRole: UIAccessibility.Role.popover
+
 });
 
 JSClass("UIPopupWindowStyler", UIWindowStyler, {

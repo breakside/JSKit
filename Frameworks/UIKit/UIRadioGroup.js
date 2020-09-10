@@ -73,6 +73,14 @@ JSClass("UIRadioGroup", UIControl, {
                 this.buttons[i].enabled = isEnabled;
             }
         }
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.radioGroup,
+
+    getAccessibilityElements: function(){
+        return this.buttons;
     }
 
 });
@@ -186,6 +194,19 @@ JSClass("UIRadioButton", UIControl, {
     setOn: function(isOn){
         this._isOn = isOn;
         this._styler.updateControl(this);
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.radioButton,
+
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    getAccessibilityChecked: function(){
+        if (this.on){
+            return UIAccessibility.Checked.on;
+        }
+        return UIAccessibility.Checked.off;
     }
 
 });

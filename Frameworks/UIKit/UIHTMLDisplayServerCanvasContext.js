@@ -33,6 +33,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     initScreenInContainer: function(containerElement){
         this.initForDocument(containerElement.ownerDocument);
+        this.element.setAttribute("aria-role", "application");
         this.style.top = '0';
         this.style.left = '0';
         this.style.bottom = '0';
@@ -66,6 +67,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     initForDocument: function(document){
         UIHTMLDisplayServerCanvasContext.$super.init.call(this);
         this.element = document.createElement('div');
+        this.element.setAttribute("aria-role", "none presentation");
         this.style = this.element.style;
         this.style.position = 'absolute';
         this.style.boxSizing = 'border-box';
@@ -127,6 +129,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             // TODO: could possibly use outline with a negative outline-offset value
             // instead of a separate element.  Needs investigation.  Browser support?  Behavior?
             this.borderElement = this.element.ownerDocument.createElement('div');
+            this.borderElement.setAttribute("aria-role", "none presentation");
             if (this.trackingElement !== null){
                 this.element.insertBefore(this.borderElement, this.trackingElement);
             }else{
@@ -364,6 +367,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _dequeueReusableCanvasElement: function(){
         if (this._canvasElementIndex == this._canvasElements.length){
             var canvasElement = this.element.ownerDocument.createElement('canvas');
+            canvasElement.setAttribute("aria-role", "none presentation");
             canvasElement.style.position = 'absolute';
             canvasElement.style.width = '100%';
             canvasElement.style.height = '100%';
@@ -456,6 +460,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     startMouseTracking: function(trackingType, listener, layer){
         if (this.trackingElement === null){
             this.trackingElement = this.element.ownerDocument.createElement('div');
+            this.trackingElement.setAttribute("aria-role", "none presentation");
             this.trackingElement.style.position = 'absolute';
             this.trackingElement.style.top = '0';
             this.trackingElement.style.left = '0';
@@ -646,6 +651,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _dequeueReusableImageElement: function(){
         if (this._imageElementIndex == this._imageElements.length){
             var imageElement = this.element.ownerDocument.createElement('div');
+            imageElement.setAttribute("aria-role", "none presentation");
             imageElement.style.position = 'absolute';
             imageElement.style.borderColor = 'transparent';
             imageElement.style.boxSizing = 'border-box';
@@ -893,6 +899,115 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    setAccessibility: function(accessibility){
+        var ariaRole = ariaRoleForAccessibility(accessibility);
+        if (ariaRole !== null){
+            this.element.setAttribute("aria-role", ariaRole);
+        }else{
+            this.element.removeAttribute("aria-role");
+        }
+        this.updateAccessibilityLabel(accessibility);
+        this.updateAccessibilityValue(accessibility);
+        this.updateAccessibilitySelected(accessibility);
+        this.updateAccessibilityExpanded(accessibility);
+        var menu = accessibility.accessibilityMenu;
+        if (menu !== null && menu !== undefined){
+            this.element.setAttribute("aria-haspopup", "menu");
+        }
+        var orientation = accessibility.accessibilityOrientation;
+        if (orientation !== null && orientation !== undefined){
+            this.element.setAttribute("aria-orientation", orientation === UIAccessibility.Orientation.horizontal ? "horizontal" : "vertical");
+        }
+    },
+
+    updateAccessibilityLabel: function(accessibility){
+        var label = accessibility.accessibilityLabel;
+        var hint = accessibility.accessibilityHint;
+        if (hint !== null && hint !== undefined){
+            if (label === null && label !== undefined){
+                label = hint;
+            }else{
+                label += ",  " + hint;
+            }
+        }
+        this.element.setAttribute("aria-label", label !== null ? label : "");
+    },
+
+    updateAccessibilityValue: function(accessibility){
+        var checked = accessibility.accessibilityChecked;
+        if (checked !== null && checked !== undefined){
+            switch (checked){
+                case UIAccessibility.Checked.on:
+                    this.element.removeAttribute("aria-valuemin");
+                    this.element.removeAttribute("aria-valuemax");
+                    this.element.removeAttribute("aria-valuenow");
+                    this.element.removeAttribute("aria-valuetext");
+                    this.element.setAttribute("aria-checked", "true");
+                    return;
+                case UIAccessibility.Checked.off:
+                    this.element.removeAttribute("aria-valuemin");
+                    this.element.removeAttribute("aria-valuemax");
+                    this.element.removeAttribute("aria-valuenow");
+                    this.element.removeAttribute("aria-valuetext");
+                    this.element.setAttribute("aria-checked", "false");
+                    return;
+                case UIAccessibility.Checked.mixed:
+                    this.element.removeAttribute("aria-valuemin");
+                    this.element.removeAttribute("aria-valuemax");
+                    this.element.removeAttribute("aria-valuenow");
+                    this.element.removeAttribute("aria-valuetext");
+                    this.element.setAttribute("aria-checked", "mixed");
+                    return;
+            }
+        }
+        var range = accessibility.valueRange;
+        var value = accessibility.accessibilityValue;
+        if (range !== null && range !== undefined && typeof(value) == "number"){
+            this.element.removeAttribute("aria-checked");
+            this.element.removeAttribute("aria-valuetext");
+            this.element.setAttribute("aria-valuemin", range.location);
+            this.element.setAttribute("aria-valuemax", range.end);
+            this.element.setAttribute("aria-valuenow", value);
+            return;
+        }
+        this.element.removeAttribute("aria-checked");
+        this.element.removeAttribute("aria-valuemin");
+        this.element.removeAttribute("aria-valuemax");
+        this.element.removeAttribute("aria-valuenow");
+        if (value !== null && value !== undefined){
+            this.element.setAttribute("aria-valuetext", value);
+        }else{
+            this.element.removeAttribute("aria-valuetext");
+        }
+    },
+
+    updateAccessibilitySelected: function(accessibility){
+        var selected = accessibility.accessibilitySelected;
+        if (selected === null || selected === undefined){
+            this.element.removeAttribute("aria-selected");
+        }else{
+            var value = selected ? "true" : "false";
+            if (this.element.getAttribute("aria-selected") !== value){
+                this.element.setAttribute("aria-selected", value);
+            }
+        }
+    },
+
+    updateAccessibilityExpanded: function(accessibility){
+        var expanded = accessibility.accessibilityExpanded;
+        if (expanded === null || expanded === undefined){
+            this.element.removeAttribute("aria-expanded");
+        }else{
+            var value = expanded ? "true" : "false";
+            if (this.element.getAttribute("aria-expanded") !== value){
+                this.element.setAttribute("aria-expanded", value);
+            }
+        }
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Graphics State
 
     save: function(){
@@ -989,5 +1104,173 @@ JSClass("UIHTMLDisplayServerCanvasContextPath", JSPath, {
     }
 
 });
+
+var ariaRoleForAccessibility = function(accessibility){
+    switch (accessibility.accessibilityRole){
+        case UIAccessibility.Role.application:
+            return "application";
+        case UIAccessibility.Role.activityIndicator:
+            return "progressbar";
+        case UIAccessibility.Role.button:
+            switch (accessibility.accessibilitySubrole){
+                case UIAccessibility.Subrole.tab:
+                    return "tab";
+            }
+            return "button";
+        case UIAccessibility.Role.checkbox:
+            return "checkbox";
+        case UIAccessibility.Role.image:
+            return "img";
+        case UIAccessibility.Role.list:
+            return "list";
+        case UIAccessibility.Role.menu:
+            return "menu";
+        case UIAccessibility.Role.menuBar:
+            return "menubar";
+        case UIAccessibility.Role.menuBarItem:
+            return "button";
+        case UIAccessibility.Role.menuItem:
+            switch (accessibility.accessibilitySubrole){
+                case UIAccessibility.Subrole.separator:
+                    return "separator";
+                case UIAccessibility.Subrole.menuItemRadio:
+                    return "menuitemradio";
+                case UIAccessibility.Subrole.menuItemCheckbox:
+                    return "menuitemcheckbox";
+            }
+            return "menuitem";
+        case UIAccessibility.Role.outline:
+            return "treegrid";
+        case UIAccessibility.Role.group:
+            return "group";
+        case UIAccessibility.Role.window:
+            switch (accessibility.accessibilitySubrole){
+                case UIAccessibility.Subrole.alert:
+                    return "alertdialog";
+                case UIAccessibility.Subrole.dialog:
+                    return "dialog";
+                case UIAccessibility.Subrole.tooltip:
+                    return "tooltip";
+            }
+            return "dialog"; // wish I could do "window", but it's abstract
+        case UIAccessibility.Role.popover:
+            return "dialog";
+        case UIAccessibility.Role.comboBox:
+            return "combobox";
+        case UIAccessibility.Role.grid:
+            return "grid";
+        case UIAccessibility.Role.cell:
+            return "gridcell";
+        case UIAccessibility.Role.progressIndicator:
+            return "progressbar";
+        case UIAccessibility.Role.scrollBar:
+            return "scrollbar";
+        case UIAccessibility.Role.radioButton:
+            return "radio";
+        case UIAccessibility.Role.radioGroup:
+            return "radiogroup";
+        case UIAccessibility.Role.textField:
+            switch (accessibility.accessibilitySubrole){
+                case UIAccessibility.Subrole.searchField:
+                    return "searchbox";
+                // "password" is part of ARIA 2.0
+                // case UIAccessibility.Subrole.secureTextField:
+                //     return "password";
+            }
+            return "textbox";
+        case UIAccessibility.Role.toolbar:
+            return "toolbar";
+        case UIAccessibility.Role.link:
+            return "link";
+        case UIAccessibility.Role.row:
+            return "row";
+        case UIAccessibility.Role.incrementor:
+            return "spinbutton";
+        case UIAccessibility.Role.popupButton:
+            // Button seems more correct than listbox
+            // since options are part of a menu that
+            // appears when the user presses the button
+            return "button";
+        case UIAccessibility.Role.disclosureTriangle:
+            return "button";
+        case UIAccessibility.Role.header:
+            // Button seems more correct than listbox
+            // since options are part of a menu that
+            // appears when the user presses the button
+            return "heading";
+        case UIAccessibility.Role.tabGroup:
+            return "tablist";
+        case UIAccessibility.Role.text:
+            return null;
+        case UIAccessibility.Role.browser:
+            // treegrid??
+        case UIAccessibility.Role.colorWell:
+            // button??
+        case UIAccessibility.Role.column:
+        case UIAccessibility.Role.drawer:
+        case UIAccessibility.Role.growArea:
+        case UIAccessibility.Role.handle:
+        case UIAccessibility.Role.helpTag:
+        case UIAccessibility.Role.layoutArea:
+        case UIAccessibility.Role.layoutItem:
+        case UIAccessibility.Role.levelIndicator:
+        case UIAccessibility.Role.matte:
+        case UIAccessibility.Role.menuButton:
+        case UIAccessibility.Role.pageRole:
+        case UIAccessibility.Role.relevanceIndicator:
+        case UIAccessibility.Role.ruler:
+        case UIAccessibility.Role.rulerMarker:
+        case UIAccessibility.Role.scrollArea:
+        case UIAccessibility.Role.sheet:
+        case UIAccessibility.Role.slider:
+        case UIAccessibility.Role.splitGroup:
+        case UIAccessibility.Role.splitter:
+        case UIAccessibility.Role.systemWide:
+        case UIAccessibility.Role.table:
+        case UIAccessibility.Role.textArea:
+        case UIAccessibility.Role.unknown:
+        case UIAccessibility.Role.valueIndicator:
+            break;
+    }
+    return null;
+};
+
+// Unused ARIA roles
+// alert
+// article
+// banner
+// columnheader
+// complementary
+// contentinfo
+// definition
+// directory
+// document
+// feed
+// figure
+// form
+// listbox
+// listitem
+// log
+// main
+// marquee
+// math
+// menuitemcheckbox
+// menuitemradio
+// navigation
+// note
+// option
+// region
+// rowgroup
+// rowheader
+// search
+// slider
+// status
+// switch
+// table
+// tabpanel
+// term
+// timer
+// tree
+// treeitem
 
 })();

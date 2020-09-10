@@ -86,12 +86,14 @@ JSClass("UICheckbox", UIControl, {
         this._isMixed = false;
         this._isOn = isOn;
         this._styler.updateControl(this);
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     setMixed: function(isMixed){
         this._isMixed = isMixed;
         this._isOn = false;
         this._styler.updateControl(this);
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     getFirstBaselineOffsetFromTop: function(){
@@ -108,6 +110,34 @@ JSClass("UICheckbox", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return 0;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.checkbox,
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
+
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    getAccessibilityChecked: function(){
+        if (this.mixed){
+            return UIAccessibility.Checked.mixed;
+        }
+        if (this.on){
+            return UIAccessibility.Checked.on;
+        }
+        return UIAccessibility.Checked.off;
     },
 
 });

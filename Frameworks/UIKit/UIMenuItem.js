@@ -125,6 +125,66 @@ JSClass("UIMenuItem", JSObject, {
         }else{
             this._tag = tag;
         }
+    },
+
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: true,
+    isAccessibilityHidden: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.menuItem,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: JSReadOnlyProperty(),
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+
+    // Children
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this._title;
+    },
+
+    getAccessibilityFrame: function(){
+        return this.styler.frameForMenu(this);
+    },
+
+    getAccessibilityElements: function(){
+        return [];
+    },
+
+    getAccessibilityHidden: function(){
+        return this._isHidden || this._isAlternate;
+    },
+
+    getAccessibilityMenu: function(){
+        return this._submenu;
+    },
+
+    getAccessibilityChecked: function(){
+        // TODO: distinguish between checkable items and not
+        return null;        
     }
 
 });

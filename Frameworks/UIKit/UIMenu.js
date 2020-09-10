@@ -19,6 +19,7 @@
 // #import "UIPlatform.js"
 // #import "UIEvent.js"
 // #import "UIWindow.js"
+// #import "UIAccessibility.js"
 /* global UIMenuWindow */
 'use strict';
 
@@ -339,6 +340,46 @@ JSClass("UIMenu", JSObject, {
         }, this);
     },
 
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: true,
+    isAccessibilityHidden: false,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: null,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: null,
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+    accessibilityOrientation: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+
+    // Children
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityFrame: function(){
+        return this.styler.frameForMenu(this);
+    },
+
+    getAccessibilityElements: function(){
+        return this._items;
+    },
+
 });
 
 UIMenu.Placement = {
@@ -364,6 +405,9 @@ JSClass("UIMenuStyler", JSObject, {
 
     getItemTitleOffset: function(menu){
         return JSPoint.Zero;
+    },
+
+    frameForMenu: function(menu){
     }
 
 });
@@ -800,6 +844,13 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         }
         var y = this._itemContentInsets.top;
         return JSPoint(x, y);
+    },
+
+    frameForMenu: function(menu){
+        if (menu.stylerProperties.window){
+            return menu.stylerProperties.window.frame;
+        }
+        return null;
     }
 
 });

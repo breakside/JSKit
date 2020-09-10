@@ -1729,6 +1729,7 @@ JSClass("UIListView", UIScrollView, {
                 this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
             }
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.selectedChildrenChanged);
     },
 
     getSelectedIndexPath: function(){
@@ -2508,6 +2509,16 @@ JSClass("UIListView", UIScrollView, {
         if (rect !== null){
             this.scrollToRect(rect, position);
         }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Acessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.grid,
+
+    getAccessibilityElements: function(){
+        return this._visibleItems;
     },
 
 });

@@ -294,6 +294,29 @@ JSClass("UIPopupButton", UIControl, {
 
     invalidateIntrinsicSize: function(){
         this._maxTitleWidth = null;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.popupButton,
+
+    getAccessibilityLabel: function(){
+        var label = UIButton.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
+
+    accessibilityMenu: JSReadOnlyProperty(),
+
+    getAccessibilityMenu: function(){
+        return this._menu;
     }
 
 });

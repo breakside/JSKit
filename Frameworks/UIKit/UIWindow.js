@@ -931,7 +931,37 @@ JSClass('UIWindow', UIView, {
                 this.isUsingAutosavedFrame = true;
             }
         }
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.window,
+    accessibilityLabel: JSReadOnlyProperty(),
+
+    getAccessibilityLabel: function(){
+        var label = UIWindow.$super.call.getAccessibilityLabel(this);
+        if (label !== null){
+            return label;
+        }
+        return this._title;
+    },
+
+    getAccessibilityElements: function(){
+        var elements = [];
+        if (this._toolbar !== null){
+            elements.push(this.toolbar);
+        }
+        if (this.contentView !== null){
+            if (this.contentView.isAccessibilityElement){
+                elements.push(this.contentView);
+            }else{
+                elements = elements.concat(this.contentView.accessibilityElements);
+            }
+        }
+        return elements;
+    },
 
 });
 
@@ -968,7 +998,8 @@ UIWindow.Styler = Object.create({}, {
 
 JSClass("UIRootWindow", UIWindow, {
 
-    level: UIWindow.Level.back
+    level: UIWindow.Level.back,
+    isAccessibilityElement: false,
 
 });
 

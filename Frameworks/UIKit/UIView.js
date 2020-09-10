@@ -21,6 +21,7 @@
 // #import "UILayoutConstraint.js"
 // #import "UITraitCollection.js"
 // #import "UICursor.js"
+// #import "UIAccessibility.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -324,6 +325,14 @@ JSClass('UIView', UIResponder, {
                 }
                 if (windowServer !== null){
                     windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
+                }
+            }
+            if (this.isAccessibilityElement){
+                if (this._windowServer !== null){
+                    this._windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, this);
+                }
+                if (windowServer !== null){
+                    windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
                 }
             }
             this._windowServer = windowServer;
@@ -869,6 +878,72 @@ JSClass('UIView', UIResponder, {
     // MARK: - Restoration
 
     restorationIdentifier: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: false,
+    isAccessibilityHidden: false,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: null,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+    accessibilityOrientation: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+
+    // Children
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityElements: function(){
+        var elements = [];
+        var subview;
+        for (var i = 0, l = this.subviews.length; i < l; ++i){
+            subview = this.subviews[i];
+            if (subview.isAccessibilityElement){
+                elements.push(subview);
+            }else{
+                elements = elements.concat(subview.accessibilityElements);
+            }
+        }
+        return elements;
+    },
+
+    getAccessibilityFrame: function(){
+        return this.convertRectToScreen(this.bounds);
+    },
+
+    getAccessibilityLabel: function(){
+        return this._accessibilityLabel;
+    },
+
+    setAccessibilityLabel: function(accessibilityLabel){
+        this._accessibilityLabel = accessibilityLabel;
+    },
+
+    postAccessibilityNotification: function(notificationName){
+        if (this._windowServer === null){
+            return;
+        }
+        this._windowServer.postNotificationForAccessibilityElement(notificationName, this);
+    }
 
 });
 

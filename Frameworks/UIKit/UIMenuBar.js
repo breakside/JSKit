@@ -594,6 +594,12 @@ JSClass("UIMenuBar", UIWindow, {
             return true;
         }
         return false;
+    },
+
+    accessibilityRole: UIAccessibility.Role.menuBar,
+
+    getAccessibilityElements: function(){
+        return this.leftBarItems.concat(this._menu.items).concat(this.rightBarItems);
     }
 
 });
@@ -690,6 +696,51 @@ JSClass("UIMenuBarItem", JSObject, {
 
     setActive: function(active){
         this._toggleState(UIMenuBarItem.State.active, active);
+    },
+
+    // Visibility
+    isAccessibilityElement: true,
+    isAccessibilityHidden: false,
+    accessibilityFrame: null,
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.menuBarItem,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+    accessibilityOrientation: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: JSReadOnlyProperty(),
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+
+    // Children
+    accessibilityElements: [],
+
+    getAccessibilityElements: function(){
+        return [];
+    },
+
+    getAccessibilityMenu: function(){
+        return this.menu;
+    },
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this._title;
     }
 
 });
@@ -842,7 +893,35 @@ JSClass("UIMenuBarItemView", UIView, {
                 this._imageView.position = this.bounds.center;
             }
         }
-    }
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: JSReadOnlyProperty(),
+
+    getAccessibilityRole: function(){
+        return this._item.accessibilityRole;
+    },
+
+    accessibilitySubrole: JSReadOnlyProperty(),
+
+    getAccessibilitySubrole: function(){
+        return this._item.accessibilitySubrole;
+    },
+
+    accessibilityMenu: JSReadOnlyProperty(),
+
+    getAccessibilityMenu: function(){
+        return this._item.accessibilityMenu;
+    },
+
+    getAccessibilityElements: function(){
+        return this._item.accessibilityElements;
+    },
+
+    getAccessibilityLabel: function(){
+        return this._item.accessibilityLabel;
+    },
 
 });
 

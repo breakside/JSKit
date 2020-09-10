@@ -103,6 +103,7 @@ JSClass("UIOutlineView", UIListView, {
         }
         if (visibleCell){
             this._updateCellState(visibleCell);
+            visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowExpanded);
         }
     },
 
@@ -138,6 +139,7 @@ JSClass("UIOutlineView", UIListView, {
         }
         if (visibleCell){
             this._updateCellState(visibleCell);
+            visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowCollapsed);
         }
     },
 
@@ -246,7 +248,12 @@ JSClass("UIOutlineView", UIListView, {
         }
         --row;
         return row;
-    }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Acessibility
+
+    accessibilityRole: UIAccessibility.Role.outline,
 
 });
 

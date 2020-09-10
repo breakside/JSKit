@@ -31,6 +31,7 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
         var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.black);
         this._disclosureButton = UIButton.initWithStyler(buttonStyler);
         this._disclosureButton.addAction("_toggleExpanded", this);
+        this._disclosureButton.accessibilityRole = UIAccessibility.Role.disclosureTriangle;
         this._contentView.addSubview(this._disclosureButton);
         this._titleInsets = JSInsets(0, 5, 0, 10);
     },
@@ -62,6 +63,15 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
         }else{
             this.outlineView._expandCell(this, recursive);
         }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityExpanded: JSReadOnlyProperty(),
+
+    getAccessibilityExpanded: function(){
+        return this.expanded;
     }
 
 });
