@@ -38,6 +38,7 @@ JSClass("UIWindowServer", JSObject, {
     screen: null,
     contrast: JSDynamicProperty('_contrast', UIUserInterface.Contrast.normal),
     mouseLocation: null,
+    accessibleKeyViewsEnabled: false,
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,

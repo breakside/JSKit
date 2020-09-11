@@ -404,6 +404,12 @@ JSClass('UIView', UIResponder, {
         return null;
     },
 
+    accessibleKeyViewsEnabled: JSReadOnlyProperty(),
+
+    getAccessibleKeyViewsEnabled: function(){
+        return this._windowServer !== null && this._windowServer.accessibleKeyViewsEnabled;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - View Controller
 

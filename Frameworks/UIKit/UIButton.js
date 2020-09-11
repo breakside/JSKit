@@ -180,7 +180,7 @@ JSClass("UIButton", UIControl, {
     // MARK: - Responder
 
     canBecomeFirstResponder: function(){
-        return this.enabled;
+        return this.enabled && this.accessibleKeyViewsEnabled;
     },
 
     becomeFirstResponder: function(){
