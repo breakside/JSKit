@@ -129,6 +129,8 @@ JSClass('UIWindow', UIView, {
                 this._styler = UIWindow.Styler.default;
             }
         }
+        this._traitCollection = UITraitCollection.initWithSize(this.frame.size);
+        this._traitCollection.accessibilityContrast = this.windowServer.contrast;
         this.stylerProperties = {};
         this._styler.initializeWindow(this);
     },

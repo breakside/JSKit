@@ -20,6 +20,7 @@
 // #import "UIView.js"
 // #import "UITooltipWindow.js"
 // #import "UIDraggingSession.js"
+// #import "UIUserInterface.js"
 'use strict';
 
 (function(){
@@ -35,6 +36,7 @@ JSClass("UIWindowServer", JSObject, {
     mainWindow: null,
     menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
+    contrast: JSDynamicProperty('_contrast', UIUserInterface.Contrast.normal),
     mouseLocation: null,
     _windowsById: null,
     _mouseIdleTimer: null,
@@ -43,6 +45,7 @@ JSClass("UIWindowServer", JSObject, {
     _draggingSession: null,
     activeEvent: JSReadOnlyProperty('_activeEvent', null),
     _normalLevelRange: null,
+    highContrastEnabled: false,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Window Server
@@ -915,6 +918,24 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
     },
+
+    setContrast: function(contrast){
+        if (contrast === this._contrast){
+            return;
+        }
+        this._contrast = contrast;
+        var window;
+        for (var i = 0, l = this.windowStack.length; i < l; ++i){
+            this.updateContrastTraitForView(this.windowStack[i]);
+        }
+    },
+
+    updateContrastTraitForView: function(view){
+        view._setTraitCollection(view.traitCollection.traitsWithContrast(this._contrast));
+        for (var i = 0, l = view.subviews.length; i < l; ++i){
+            this.updateContrastTraitForView(view.subviews[i]);
+        }
+    }
 
 });
 

@@ -342,6 +342,9 @@ JSClass('UIView', UIResponder, {
                 }
             }
             this._windowServer = windowServer;
+            if (this._windowServer !== null && this._traitCollection !== null){
+                this._setTraitCollection(this._traitCollection.traitsWithContrast(this._windowServer.contrast));
+            }
             if (includeSubviews){
                 for (var i = 0, l = this.subviews.length; i < l; ++i){
                     this.subviews[i]._setWindowServer(windowServer, true);
@@ -411,6 +414,9 @@ JSClass('UIView', UIResponder, {
 
     layerDidChangeSize: function(){
         var traits = UITraitCollection.initWithSize(this.bounds.size);
+        if (this._traitCollection !== null){
+            traits.accessibilityContrast = this._traitCollection.contrast;
+        }
         this._setTraitCollection(traits);
     },
     

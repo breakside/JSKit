@@ -25,6 +25,7 @@
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File
+// #feature window.matchMedia
 // jshint browser: true
 'use strict';
 
@@ -55,6 +56,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._updateScreenClientOrigin();
         this.setCursor(UICursor.currentCursor);
         UIPasteboard.general = UIHTMLDataTransferPasteboard.init();
+        this.setupMediaListeners();
     },
 
     // --------------------------------------------------------------------
@@ -254,7 +256,39 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     stop: function(){
         UIHTMLWindowServer.$super.stop.call(this);
         this.removeEventListeners();
+        this.removeMediaListeners();
         this.stopObservingAccessibilityNotifications();
+    },
+
+
+    // --------------------------------------------------------------------
+    // MARK: - Media Queries
+
+    highContrastListener: null,
+    reducedMotionListener: null,
+
+    setupMediaListeners: function(){
+        this.highContrastListener = this.handleHighContrastChanged.bind(this);
+        this.highContrastQuery = this.domWindow.matchMedia("(prefers-contrast: more)");
+        this.highContrastQuery.addListener(this.highContrastListener);
+        this.reducedMotionListener = this.handleReducedMotionChanged.bind(this);
+        this.reducedMotionQuery = this.domWindow.matchMedia("(prefers-reduced-motion)");
+        this.reducedMotionQuery.addListener(this.reducedMotionListener);
+        this.handleHighContrastChanged(this.highContrastQuery);
+        this.handleReducedMotionChanged(this.reducedMotionQuery);
+    },
+
+    removeMediaListeners: function(){
+        this.highContrastQuery.removeListener(this.highContrastListener);
+        this.reducedMotionQuery.removeListener(this.reducedMotionListener);
+    },
+
+    handleHighContrastChanged: function(query){
+        this.highContrastEnabled = query.matches;
+    },
+
+    handleReducedMotionChanged: function(query){
+        this.displayServer.reducedMotionEnabled = query.matches;
     },
 
     // --------------------------------------------------------------------

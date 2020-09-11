@@ -23,14 +23,26 @@ JSClass("UITraitCollection", JSObject, {
         this.verticalSizeClass = UIUserInterface.SizeClass.fromLength(size.height);
     },
 
+    traitsWithContrast: function(contrast){
+        var traits = UITraitCollection.init();
+        traits.horizontalSizeClass = this.horizontalSizeClass;
+        traits.verticalSizeClass = this.verticalSizeClass;
+        traits.accessibilityContrast = contrast;
+        return traits;
+    },
+
     horizontalSizeClass: UIUserInterface.SizeClass.unspecified,
     verticalSizeClass: UIUserInterface.SizeClass.unspecified,
+    accessibilityContrast: UIUserInterface.Contrast.unspecified,
 
     isEqual: function(other){
         if (this.horizontalSizeClass !== other.horizontalSizeClass){
             return false;
         }
         if (this.verticalSizeClass !== other.verticalSizeClass){
+            return false;
+        }
+        if (this.accessibilityContrast !== other.accessibilityContrast){
             return false;
         }
         return true;
