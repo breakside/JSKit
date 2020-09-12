@@ -62,14 +62,14 @@ JSClass("UIListViewCell", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
-        label.isAccessibilityElement = true;
+        label.accessibilityHidden = false;
         this.contentView.addSubview(label);
         return label;
     },
 
     _createDetailLabel: function(){
         var label = UILabel.init();
-        label.isAccessibilityElement = true;
+        label.accessibilityHidden = false;
         label.maximumNumberOfLines = this._numberOfDetailLines;
         label.font = label.font.fontWithPointSize(JSFont.Size.detail);
         this.contentView.addSubview(label);

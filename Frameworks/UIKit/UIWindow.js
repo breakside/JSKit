@@ -955,7 +955,6 @@ JSClass('UIWindow', UIView, {
 
     isAccessibilityElement: true,
     accessibilityRole: UIAccessibility.Role.window,
-    accessibilityLabel: JSReadOnlyProperty(),
 
     getAccessibilityLabel: function(){
         var label = UIWindow.$super.getAccessibilityLabel.call(this);

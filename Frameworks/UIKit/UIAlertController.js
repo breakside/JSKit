@@ -83,7 +83,7 @@ JSClass("UIAlertController", UIViewController, {
             this._messageLabel.font = this._messageLabel.font.fontWithPointSize(JSFont.Size.detail);
             this._messageLabel.textAlignment = JSTextAlignment.center;
             this._messageLabel.text = this.message;
-            this._messageLabel.isAccessibilityElement = true;
+            this._messageLabel.accessibilityHidden = false;
             this._primaryStackView.addSubview(this._messageLabel);
         }
         this._actionsStackView = UIStackView.init();
