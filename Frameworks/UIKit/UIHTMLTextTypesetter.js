@@ -470,7 +470,12 @@ Object.defineProperties(UIHTMLTextTypesetterRunDescriptor.prototype, {
                 // Chrome 79.0.3945.117 started returning multiple rects per
                 // line in some situations
                 if (rects[i].y === rects[i - 1].y){
-                    rects[i - 1].width += rects[i].width;
+                    rects[i - 1] = {
+                        x: rects[i - 1].x,
+                        y: rects[i - 1].y,
+                        width: rects[i - 1].width + rects[i].width,
+                        height: rects[i - 1].height,
+                    };
                     rects.splice(i, 1);
                 }
             }
