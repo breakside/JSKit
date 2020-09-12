@@ -47,7 +47,7 @@ JSClass("SKHTTPServer", JSObject, {
         this.rootRoute = SKHTTPRoute.CreateFromMap(routes, spec.bundle);
         this._extensionInit();
         this.contextProperties = {};
-        if (spec.containKey("healthCheckPath")){
+        if (spec.containsKey("healthCheckPath")){
             this.healthCheckPath = spec.valueForKey("healthCheckPath");
         }
     },
