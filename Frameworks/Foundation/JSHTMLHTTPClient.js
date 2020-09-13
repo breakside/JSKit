@@ -90,6 +90,10 @@ JSClass("JSHTMLHTTPClient", JSObject, {
                     complete(new Error("network"));
                     return;
                 }
+                if (response === null){
+                    complete(new Error("no response"));
+                    return;
+                }
                 try{
                     response.data = JSData.initWithBuffer(xmlRequest.response);
                 }catch (e){
