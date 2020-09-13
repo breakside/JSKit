@@ -23,11 +23,12 @@ JSClass("CKParticipant", JSObject, {
     },
 
     identifier: null,
+    number: null,
 
-    videoSoftMuted: JSReadOnlyProperty('_videoSoftMuted', true),
-    audioSoftMuted: JSReadOnlyProperty('_audioSoftMuted', true),
-    videoStreamMuted: JSReadOnlyProperty('_videoStreamMuted', true),
-    audioStreamMuted: JSReadOnlyProperty('_audioStreamMuted', true),
+    videoSoftMuted: JSDynamicProperty('_videoSoftMuted', false),
+    audioSoftMuted: JSDynamicProperty('_audioSoftMuted', false),
+    videoStreamMuted: JSReadOnlyProperty('_videoStreamMuted', false),
+    audioStreamMuted: JSReadOnlyProperty('_audioStreamMuted', false),
 
     videoMuted: JSReadOnlyProperty(),
     audioMuted: JSReadOnlyProperty(),
@@ -40,28 +41,60 @@ JSClass("CKParticipant", JSObject, {
         return this._audioSoftMuted || this._audioStreamMuted;
     },
 
-    _setAudioSoftMuted: function(muted){
-        this.willChangeValueForKey("audioMuted");
+    setAudioSoftMuted: function(muted){
+        if (muted === this._audioSoftMuted){
+            return;
+        }
+        var change = !this._audioStreamMuted;
+        if (change){
+            this.willChangeValueForKey("audioMuted");
+        }
         this._audioSoftMuted = muted;
-        this.didChangeValueForKey("audioMuted");
+        if (change){
+            this.didChangeValueForKey("audioMuted");
+        }
     },
 
-    _setVideoSoftMuted: function(muted){
-        this.willChangeValueForKey("videoMuted");
+    setVideoSoftMuted: function(muted){
+        if (muted === this._videoSoftMuted){
+            return;
+        }
+        var change = !this._videoStreamMuted;
+        if (change){
+            this.willChangeValueForKey("videoMuted");
+        }
         this._videoSoftMuted = muted;
-        this.didChangeValueForKey("videoMuted");
+        if (change){
+            this.didChangeValueForKey("videoMuted");
+        }
     },
 
     _setAudioStreamMuted: function(muted){
-        this.willChangeValueForKey("audioMuted");
+        if (muted === this._audioStreamMuted){
+            return;
+        }
+        var change = !this._audioSoftMuted;
+        if (change){
+            this.willChangeValueForKey("audioMuted");
+        }
         this._audioStreamMuted = muted;
-        this.didChangeValueForKey("audioMuted");
+        if (change){
+            this.didChangeValueForKey("audioMuted");
+        }
     },
 
     _setVideoStreamMuted: function(muted){
-        this.willChangeValueForKey("videoMuted");
+        if (muted === this._videoStreamMuted){
+            return;
+        }
+        var change = !this._videoSoftMuted;
+        if (change){
+            this.willChangeValueForKey("videoMuted");
+        }
         this._videoStreamMuted = muted;
-        this.didChangeValueForKey("videoMuted");
+        if (change){
+            this.didChangeValueForKey("videoMuted");
+        }
     }
 
 });

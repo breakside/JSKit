@@ -29,9 +29,11 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
     htmlPeerConnection: null,
     htmlVideoTransceiver: null,
+    htmlAudioTransceiver: null,
     isCaller: false,
 
     open: function(isCaller){
+        logger.info("opening connection to participant %d", this.participant.number);
         var configuration = {
             iceServers: [],
             iceTransportPolicy: "all",
@@ -51,12 +53,19 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             configuration.iceServers.push(iceServer);
         }
         this.isCaller = isCaller;
+        this._expectedVideoUnmutes = 1;
+        this._expectedAudioUnmutes = 1;
         this.htmlPeerConnection = new RTCPeerConnection(configuration);
+        this.audioTrackNeedsUnmute = true;
+        this.videoTrackNeedsUnmute = true;
+        this._updateLocalTracks();
         // if (this.isCaller){
         //     this.htmlVideoTransceiver = this.htmlPeerConnection.addTransceiver("video");
-        //     this.htmlMediaStream = new MediaStream([this.htmlVideoTransceiver.receiver.track]);
-        //     var stream = MKHTMLStream.initWithHTMLMediaStream(this.htmlMediaStream);
-        //     this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, stream, this.participant);
+        //     this.htmlAudioTransceiver = this.htmlPeerConnection.addTransceiver("audio");
+        //     this.remoteHTMLVideoTrack = this.htmlVideoTransceiver.receiver.track;
+        //     this.remoteHTMLAudioTrack = this.htmlAudioTransceiver.receiver.track;
+        //     this._updateLocalTracks();
+        //     this._createRemoteStream();
         // }
         this.addPeerConnectionEventListeners();
     },
@@ -67,19 +76,26 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         this.htmlPeerConnection = null;
     },
 
-    sendLocalDescription: function(type){
-        var connection = this;
-        var promise;
-        if (type == CKSessionDescription.Type.offer){
-            promise = this.htmlPeerConnection.createOffer();
-        }else{
-            promise = this.htmlPeerConnection.createAnswer();
+    sendLocalDescription: function(){
+        var descriptionPromise;
+        switch (this.htmlPeerConnection.signalingState){
+            case "stable":
+            case "have-local-offer":
+            case "have-remote-pranswer":
+                logger.info("creating local description offer to participant %d", this.participant.number);
+                descriptionPromise = this.htmlPeerConnection.createOffer();
+                break;
+            default:
+                logger.info("creating local description answer to participant %d", this.participant.number);
+                descriptionPromise = this.htmlPeerConnection.createAnswer();
+                break;
         }
-        promise.then(function(description){
+        var connection = this;
+        descriptionPromise.then(function(description){
             return connection.htmlPeerConnection.setLocalDescription(description);
         }).then(function(){
             var description = CKSessionDescription.initWithHTMLDescription(connection.htmlPeerConnection.localDescription);
-            logger.info("sending local description %d", description.type);
+            logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
             connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
         }).catch(function(error){
             logger.error(error);
@@ -87,24 +103,28 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     },
 
     updateDescription: function(description){
-        logger.info("setting remote description %d", description.type);
+        logger.info("updating remote description (%d) from participant %d", description.type,  this.participant.number);
         var htmlDescription = description.htmlDescription();
         try{
-            this.htmlPeerConnection.setRemoteDescription(htmlDescription.toJSON());
+            var connection = this;
+            this.htmlPeerConnection.setRemoteDescription(htmlDescription.toJSON()).then(function(){
+                if (description.type === CKSessionDescription.Type.offer){
+                    connection.sendLocalDescription();
+                }
+            }, function(error){
+                logger.error(error);
+            });
         }catch (e){
             logger.error(e);
             return;   
-        }
-        if (description.type === CKSessionDescription.Type.offer){
-            this.sendLocalDescription(CKSessionDescription.Type.answer);
         }
     },
 
     addCandidate: function(candidate){
         if (candidate === null){
-            logger.info("adding remote null candidate");
+            logger.info("adding remote null candidate for participant %d", this.participant.number);
         }else{
-            logger.info("adding remote candidate: %{public} @%{public}:%d", candidate.candidate, candidate.address || "null", candidate.port || -1);
+            logger.info("adding remote candidate, %{public} @%{public}:%d, for participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
         }
         this.htmlPeerConnection.addIceCandidate(candidate);
     },
@@ -112,35 +132,45 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     _localStream: null,
 
     setLocalStream: function(stream){
-        logger.info("setting local stream");
+        logger.info("setting local stream on connection to participant %d", this.participant.number);
         this._localStream = stream;
+        this._updateLocalTracks();
+    },
+
+    _updateLocalTracks: function(){
+        logger.info("updating local tracks to participant %d", this.participant.number);
+        if (this._localStream === null){
+            logger.info("local stream not yet set %d", this.participant.number);
+            return;
+        }
+        if (this.htmlPeerConnection === null){
+            logger.info("connection not yet set %d", this.participant.number);
+            return;
+        }
         var tracks = this._localStream.htmlMediaStream.getTracks();
         var track;
         for (var i = 0, l = tracks.length; i < l; ++i){
             track = tracks[i];
-            logger.info("adding local %{public} track", track.kind);
+            logger.info("adding local %{public} track to participant %d", track.kind, this.participant.number);
             this.htmlPeerConnection.addTrack(tracks[i]);
         }
-        // this._updateTransceiverTracks();
-    },
-
-    _updateTransceiverTracks: function(){
-        logger.info("updating transceiver tracks");
-        if (this._localStream !== null){
-            if (this._localStream instanceof MKHTMLStream){
-                if (this.htmlVideoTransceiver !== null){
-                    var videoTrack = this._localStream.htmlMediaStream.getVideoTracks()[0];
-                    this.htmlVideoTransceiver.sender.replaceTrack(videoTrack);
-                    logger.info("transceiver track replaced");
-                }else{
-                    logger.info("transceiver not yet set");
-                }
-            }else{
-                logger.warn("local stream is not an html stream");
-            }
-        }else{
-            logger.info("local stream not yet set");
-        }
+        // if (!(this._localStream instanceof MKHTMLStream)){
+        //     logger.warn("local stream is not an html stream %d", this.participant.number);
+        //     return;
+        // }
+        // if (this.htmlVideoTransceiver === null){
+        //     logger.info("local video transceiver not yet set %d", this.participant.number);
+        //     return;
+        // }
+        // if (this.htmlAudioTransceiver === null){
+        //     logger.info("local audio transceiver not yet set %d", this.participant.number);
+        //     return;
+        // }
+        // logger.info("replacing local video transceiver tracks to participant %d", this.participant.number);
+        // var videoTrack = this._localStream.htmlMediaStream.getVideoTracks()[0];
+        // var audioTrack = this._localStream.htmlMediaStream.getAudioTracks()[0];
+        // this.htmlVideoTransceiver.sender.replaceTrack(videoTrack);
+        // this.htmlAudioTransceiver.sender.replaceTrack(audioTrack);
     },
 
     addPeerConnectionEventListeners: function(){
@@ -172,120 +202,172 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     },
 
     _event_negotiationneeded: function(event){
-        logger.info("negotiation needed");
+        logger.info("negotiation needed with participant %d", this.participant.number);
         // The browser wishes to inform the application that session negotiation needs to be done (i.e. a createOffer call followed by setLocalDescription).
-        this.sendLocalDescription(CKSessionDescription.Type.offer);
+        this.sendLocalDescription();
     },
 
     _event_icecandidate: function(event){
         // A new RTCIceCandidate is made available to the script.
         var candidate = event.candidate;
         if (candidate === null){
-            logger.info("ice candidate null, not sending to peer");
+            logger.info("ice candidate null, not sending to participant %d", this.participant.number);
         }else{
-            logger.info("ice candidate: %{public} @%{public}:%d", candidate.candidate, candidate.address || "null", candidate.port || -1);
+            logger.info("sending ice candidate, %{public} @%{public}:%d, to participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
             this.call.delegate.conferenceCallSendCandidateToParticipant(this.call, candidate !== null ? candidate.toJSON() : null, this.participant);
         }
     },
 
     _event_icecandidateerror: function(event){
         // A failure occured when gathering ICE candidates.
-        logger.warn("ice candidate error: %{public} %d %{public}", event.url, event.errorCode, event.errorText);
+        logger.warn("ice candidate error (%d): %{public} %d %{public}", this.participant.number, event.url, event.errorCode, event.errorText);
     },
 
     _event_signalingstatechange: function(event){
         // The signaling state has changed. This state change is the result of either setLocalDescription or setRemoteDescription being invoked.
-        logger.info("signaling state change: %{public}", this.htmlPeerConnection.signalingState);
+        logger.info("signaling state change (%d): %{public}", this.participant.number, this.htmlPeerConnection.signalingState);
     },
 
     _event_iceconnectionstatechange: function(event){
         // The RTCPeerConnection's ICE connection state has changed.
-        logger.info("ice connection state change: %{public}", this.htmlPeerConnection.iceConnectionState);
+        logger.info("ice connection state change (%d): %{public}", this.participant.number, this.htmlPeerConnection.iceConnectionState);
     },
 
     _event_icegatheringstatechange: function(event){
         // The RTCPeerConnection's ICE gathering state has changed.
-        logger.info("ice gathering state change: %{public}", this.htmlPeerConnection.iceGatheringState);
+        logger.info("ice gathering state change (%d): %{public}", this.participant.number, this.htmlPeerConnection.iceGatheringState);
     },
 
     _event_connectionstatechange: function(event){
         // The RTCPeerConnection.connectionState has changed.
-        logger.info("connection state change: %{public}", this.htmlPeerConnection.connectionState);
+        logger.info("connection state change (%d): %{public}", this.participant.number, this.htmlPeerConnection.connectionState);
     },
 
-    htmlMediaStream: null,
-    htmlVideoTrack: null,
-    htmlAudioTrack: null,
+    remoteStream: null,
+    remoteHTMLMediaStream: null,
+    remoteHTMLVideoTrack: null,
+    remoteHTMLAudioTrack: null,
+    audioTrackNeedsUnmute: true,
+    videoTrackNeedsUnmute: true,
 
     _event_track: function(event){
         // New incoming media has been negotiated for a specific RTCRtpReceiver, and that receiver's track has been added to any associated remote MediaStreams.
         var track = event.track;
         if (track.kind == "video"){
-            if (this.htmlVideoTrack !== null){
-                this.removeEventListener("mute", this.htmlVideoTrack);
-                this.removeEventListener("unmute", this.htmlVideoTrack);
+            if (this.remoteHTMLVideoTrack !== null){
+                this.removeEventListener("mute", this.remoteHTMLVideoTrack);
+                this.removeEventListener("unmute", this.remoteHTMLVideoTrack);
             }
-            this.htmlVideoTrack = track;
-            this.htmlVideoTrack.addEventListener("mute", this);
-            this.htmlVideoTrack.addEventListener("unmute", this);
+            this.remoteHTMLVideoTrack = track;
+            this.remoteHTMLVideoTrack.addEventListener("mute", this);
+            this.remoteHTMLVideoTrack.addEventListener("unmute", this);
         }else if (track.kind == "audio"){
-            if (this.htmlAudioTrack !== null){
-                this.removeEventListener("mute", this.htmlAudioTrack);
-                this.removeEventListener("unmute", this.htmlAudioTrack);
+            if (this.remoteHTMLAudioTrack !== null){
+                this.removeEventListener("mute", this.remoteHTMLAudioTrack);
+                this.removeEventListener("unmute", this.remoteHTMLAudioTrack);
             }
-            this.htmlAudioTrack = track;
-            this.htmlAudioTrack.addEventListener("mute", this);
-            this.htmlAudioTrack.addEventListener("unmute", this);
+            this.remoteHTMLAudioTrack = track;
+            this.remoteHTMLAudioTrack.addEventListener("mute", this);
+            this.remoteHTMLAudioTrack.addEventListener("unmute", this);
         }
-        if (this.htmlMediaStream === null){
-            logger.info("received remote %{public} track, creating stream", track.kind);
-            this.htmlMediaStream = new MediaStream([track]);
-            this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.htmlMediaStream);
-            var notify = (function(){
-                track.removeEventListener("unmute", notify);
-                this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
-            }).bind(this);
-            track.addEventListener("unmute", notify);
+        if (this.remoteHTMLMediaStream === null){
+            logger.info("%d received remote %{public} track, creating stream", this.participant.number, track.kind);
+            this.remoteHTMLMediaStream = new MediaStream([track]);
+            this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.remoteHTMLMediaStream);
         }else{
-            logger.info("received remote %{public} track, adding to existing stream", track.kind);
-            this.htmlMediaStream.addTrack(track);
+            logger.info("%d received remote %{public} track, adding to existing stream", this.participant.number, track.kind);
+            this.remoteHTMLMediaStream.addTrack(track);
         }
-        // if (!this.isCaller){
-        //     logger.info("setting transceiver");
-        //     this.htmlVideoTransceiver = event.transceiver;
-        //     this._updateTransceiverTracks();
+        // if (this.isCaller){
+        //     logger.warn("received track as caller from participant %d", this.participant.number);
+        //     return;
         // }
+        // var transceiver = event.transceiver;
+        // if (track.kind == "video"){
+        //     if (this.remoteHTMLVideoTrack !== null){
+        //         logger.warn("received additional video track from participant %d, caller: %b", this.participant.number, this.isCaller);
+        //         return;
+        //     }
+        //     logger.info("received video track from participant %d, caller %b", this.participant.number, this.caller);
+        //     this.htmlVideoTransceiver = transceiver;
+        //     this.remoteHTMLVideoTrack = track;
+        // }else if (track.kind == "audio"){
+        //     if (this.remoteHTMLAudioTrack !== null){
+        //         logger.warn("received additional audio track from participant %d, caller: %b", this.participant.number, this.isCaller);
+        //         return;
+        //     }
+        //     logger.info("received audio track from participant %d, caller %b", this.participant.number, this.caller);
+        //     this.htmlAudioTransceiver = transceiver;
+        //     this.remoteHTMLAudioTrack = track;
+        // }
+        // if (!this.isCaller){
+        //     this._updateLocalTracks();
+        // }
+        // this._createRemoteStream();
     },
 
     _event_mute: function(event){
-        if (event.currentTarget === this.htmlVideoTrack){
+        if (event.currentTarget === this.remoteHTMLVideoTrack){
+            logger.info("mute video from participant %d", this.participant.number);
             this.participant._setVideoStreamMuted(true);
-        }else if (event.currentTarget === this.htmlAudioTrack){
+        }else if (event.currentTarget === this.remoteHTMLAudioTrack){
+            logger.info("mute audio from participant %d", this.participant.number);
             this.participant._setAudioStreamMuted(true);
         }else{
+            logger.warn("mute unknown track participant %d", this.participant.number);
             return;
-        }
-        if (this.call.delegate && this.call.delegate.conferenceCallParticipantDidChangeMuteState){
-            this.call.delegate.conferenceCallParticipantDidChangeMuteState(this.call, this.participant);
         }
     },
 
     _event_unmute: function(event){
-        if (event.currentTarget === this.htmlVideoTrack){
-            this.participant._setVideoStreamMuted(false);
-        }else if (event.currentTarget === this.htmlAudioTrack){
-            this.participant._setAudioStreamMuted(false);
+        if (event.currentTarget === this.remoteHTMLVideoTrack){
+            logger.info("unmute video from participant %d", this.participant.number);
+            if (this.videoTrackNeedsUnmute){
+                this.videoTrackNeedsUnmute = false;
+                this.notifyAfterAllUnmutes();
+            }else{
+                this.participant._setVideoStreamMuted(false);
+            }
+        }else if (event.currentTarget === this.remoteHTMLAudioTrack){
+            logger.info("unmute audio from participant %d", this.participant.number);
+            if (this.audioTrackNeedsUnmute){
+                this.audioTrackNeedsUnmute = false;
+                this.notifyAfterAllUnmutes();
+            }else{
+                this.participant._setAudioStreamMuted(false);
+            }
         }else{
+            logger.warn("mute unknown track from participant %d", this.participant.number);
             return;
         }
-        if (this.call.delegate && this.call.delegate.conferenceCallParticipantDidChangeMuteState){
-            this.call.delegate.conferenceCallParticipantDidChangeMuteState(this.call, this.participant);
+    },
+
+    notifyAfterAllUnmutes: function(){
+        if (this.videoTrackNeedsUnmute){
+            return;
         }
+        if (this.audioTrackNeedsUnmute){
+            return;
+        }
+        this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
+    },
+
+    _createRemoteStream: function(){
+        if (this.remoteHTMLVideoTrack === null){
+            return;
+        }
+        if (this.remoteHTMLAudioTrack === null){
+            return;
+        }
+        logger.info("creating stream from participant %d", this.participant.number);
+        this.remoteHTMLMediaStream = new MediaStream([this.remoteHTMLVideoTrack, this.remoteHTMLAudioTrack]);
+        this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.remoteHTMLMediaStream);
+        this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
     },
 
     _event_datachannel: function(event){
         // A new RTCDataChannel is dispatched to the script in response to the other peer creating a channel.
-        logger.info("datachannel");
+        logger.info("datachannel to participant %d", this.participant.number);
     },
 
 });
