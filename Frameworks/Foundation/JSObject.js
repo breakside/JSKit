@@ -555,12 +555,12 @@ JSObject.definePropertiesFromExtensions({
 
     willChangeValueForKey: function(key){
         var value = this.valueForKey(key);
-        if (value && key in this._observers){
+        if (key in this._observers){
             for (var i = 0, l = this._observers[key].length; i < l; ++i){
                 var observerInfo = this._observers[key][i];
                 var keyParts = observerInfo.observingKeyPath.split('.');
                 keyParts.shift();
-                if (keyParts.length){
+                if (value && keyParts.length){
                     value.removeObserverForKeyPath(this, keyParts.join('.'), observerInfo);
                 }
             }
@@ -653,7 +653,11 @@ JSObject.definePropertiesFromExtensions({
         if (this[setterName]){
             this.defineObservableSetterForKey(key, setterName);
         }else{
-            this.defineObservablePropertyForKey(key, this[key]);
+            var getterName = this.$class.nameOfGetMethodForKey(key);
+            var altGetterName = this.$class.nameOfBooleanGetMethodForKey(key);
+            if (!this[getterName] && !this[altGetterName]){
+                this.defineObservablePropertyForKey(key, this[key]);
+            }
         }
     },
 
