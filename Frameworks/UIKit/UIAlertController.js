@@ -137,7 +137,7 @@ JSClass("UIAlertController", UIViewController, {
     contentSizeThatFitsSize: function(size){
         var maxWidth;
         var height = 0;
-        var minWidth = 140;
+        var minWidth = 200;
         var buttonWidth = 0;
         var w;
         if (this._actionButtons.length === 2){
