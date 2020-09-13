@@ -32,16 +32,15 @@ JSClass('UILabel', UIView, {
     textInsets: UIViewLayerProperty(),
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
     selectionColor: JSDynamicProperty("_selectionColor", null),
+    userInteractionEnabled: false,
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
-        this.userInteractionEnabled = false;
         this.maximumNumberOfLines = 1;
         this._selectionColor = JSColor.white.colorWithAlpha(0.2);
     },
 
     initWithSpec: function(spec){
-        this.userInteractionEnabled = false;
         UILabel.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("font")){
             this.font = spec.valueForKey("font", JSFont);
