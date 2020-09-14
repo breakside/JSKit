@@ -206,6 +206,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.addEventListener('blur', this, false);
         this.domWindow.addEventListener('resize', this, false);
         this.domWindow.addEventListener('languagechange', this, false);
+        this.domWindow.addEventListener('orientationchange', this);
         this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
@@ -239,6 +240,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.removeEventListener('blur', this, false);
         this.domWindow.removeEventListener('resize', this, false);
         this.domWindow.removeEventListener('languagechange', this, false);
+        this.domWindow.removeEventListener('orientationchange', this);
         this.rootElement.removeEventListener('touchstart', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchcancel', this, {passive: false, capture: false});
@@ -728,6 +730,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // blur is not cancelable, so no need for preventDefault
         // TODO: could reload the page, but what about unsaved work?
         // Notify JSLocale and have it handle things?
+    },
+
+    orientationchange: function(e){
     },
 
     // --------------------------------------------------------------------
