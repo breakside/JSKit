@@ -646,8 +646,8 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         button.indicatorView.frame = JSRect(button.bounds.size.width - insets.right - indicatorSize.width, insets.top, indicatorSize.width, indicatorSize.height);
         button._imageView.hidden = button._imageView.image === null;
         var x = insets.left;
+        button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
         if (!button._imageView.hidden){
-            button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
             x += imageSize + button._imageTitleSpacing;
         }
         button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x - indicatorSpacing, height);
