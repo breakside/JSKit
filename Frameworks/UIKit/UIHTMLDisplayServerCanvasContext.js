@@ -908,11 +908,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.element.removeAttribute("role");
         }
         this.element.id = "accessibility-%d".sprintf(accessibility.objectID);
-        switch (ariaRole){
-            case "button":
-                this.element.setAttribute("tabindex", "0");
-                break;
-        }
+        // switch (ariaRole){
+        //     case "button":
+        //         this.element.setAttribute("tabindex", "0");
+        //         break;
+        // }
         this.updateAccessibilityLabel(accessibility);
         this.updateAccessibilityValue(accessibility);
         this.updateAccessibilitySelected(accessibility);

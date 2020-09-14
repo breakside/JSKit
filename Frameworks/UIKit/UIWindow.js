@@ -111,6 +111,7 @@ JSClass('UIWindow', UIView, {
     },
 
     _commonWindowInit: function(){
+        this._application._windows.push(this);
         this.window = this;
         if (this.backgroundColor === null){
             this.backgroundColor = JSColor.white;
@@ -337,6 +338,8 @@ JSClass('UIWindow', UIView, {
         this.windowServer.makeWindowKey(this);
     },
 
+    receivesAllEvents: false,
+
     // -------------------------------------------------------------------------
     // MARK: - Opening & Closing
 
@@ -415,6 +418,10 @@ JSClass('UIWindow', UIView, {
         }
         if (this.isAccessibilityElement){
             this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, this);
+        }
+        var index = this._application._windows.indexOf(this);
+        if (index >= 0){
+            this._application._windows.splice(index, 1);
         }
     },
 
@@ -671,8 +678,6 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Event Dispatch
 
-    receivesAllEvents: false,
-
     sendEvent: function(event){
         switch (event.category){
             case UIEvent.Category.mouse:
@@ -726,10 +731,7 @@ JSClass('UIWindow', UIView, {
             }
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
-            this.mouseEventView = this.hitTest(event.locationInWindow);
-            if (this.receivesAllEvents && this.mouseEventView === null){
-                this.mouseEventView = this;
-            }
+            this.mouseEventView = this.hitTest(event.locationInWindow) || this;
             this.mouseDownType = event.type;
         }
         var eventTarget = event.trackingView || this.mouseEventView;
@@ -988,7 +990,7 @@ JSClass('UIWindow', UIView, {
 UIWindow.Level = {
     back: -1,
     normal: 0,
-    front: 1,
+    front: 1
 };
 
 UIWindow.Styler = Object.create({}, {

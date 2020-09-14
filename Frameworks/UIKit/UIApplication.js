@@ -37,7 +37,7 @@ JSClass('UIApplication', UIResponder, {
         logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
-        this._windowsById = {};
+        this._windows = [];
         // this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
 
@@ -218,7 +218,7 @@ JSClass('UIApplication', UIResponder, {
                 }
                 logger.info("Calling delegate.applicationDidFinishLaunching");
                 this.delegate.applicationDidFinishLaunching(this, launchOptions);
-                if (this.windowServer.windowStack.length === 0){
+                if (this._windows.length === 0){
                     throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
                 }
             }catch (e){
@@ -233,19 +233,23 @@ JSClass('UIApplication', UIResponder, {
 
     mainWindow: JSReadOnlyProperty(),
     keyWindow: JSReadOnlyProperty(),
-    windows: JSReadOnlyProperty(),
+    windows: JSReadOnlyProperty("_windows", null),
     windowServer: null,
 
-    getWindows: function(){
-        return this.windowServer.windowStack;
-    },
-
     getMainWindow: function(){
-        return this.windowServer.mainWindow;
+        var main = this.windowServer.mainWindow;
+        if (main !== null && main.application === this){
+            return main;
+        }
+        return null;
     },
 
     getKeyWindow: function(){
-        return this.windowServer.keyWindow;
+        var key = this.windowServer.keyWindow;
+        if (key !== null && key.application === this){
+            return key;
+        }
+        return null;
     },
 
     // MARK: - Menu

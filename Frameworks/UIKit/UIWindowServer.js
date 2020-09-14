@@ -426,11 +426,14 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Keyboard Events
 
     createKeyEvent: function(type, timestamp, key, keyCode, modifiers){
-        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, key, keyCode, modifiers);
-        if (this.shouldDraggingSessionHandleKey(event)){
-            this.handleDraggingKeyEvent(event);
-        }else{
-            this._sendEventToApplication(event, this.keyWindow.application);
+        var keyWindow = this.windowForKeyEvent();
+        if (keyWindow !== null){
+            var event = UIEvent.initKeyEventWithType(type, timestamp, keyWindow, key, keyCode, modifiers);
+            if (this.shouldDraggingSessionHandleKey(event)){
+                this.handleDraggingKeyEvent(event);
+            }else{
+                this._sendEventToApplication(event, keyWindow.application);
+            }
         }
     },
 
@@ -451,16 +454,34 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     windowForEventAtLocation: function(location){
-        var _window;
         var locationInWindow;
+        var window;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
-            _window = this.windowStack[i];
-            if (_window.receivesAllEvents){
-                return _window;
+            window = this.windowStack[i];
+            if (window.receivesAllEvents){
+                return window;
             }
-            locationInWindow = _window.convertPointFromScreen(location);
-            if (_window.containsPoint(locationInWindow)){
-                return _window;
+            locationInWindow = window.convertPointFromScreen(location);
+            if (window.containsPoint(locationInWindow)){
+                return window;
+            }
+        }
+        return null;
+    },
+
+    windowForKeyEvent: function(){
+        var stopIndex = 0;
+        if (this.keyWindow !== null){
+            stopIndex = this.keyWindow.subviewIndex;
+        }
+        var window;
+        for (var i = this.windowStack.length - 1; i >= stopIndex; --i){
+            window = this.windowStack[i];
+            if (window.receivesAllEvents){
+                return window;
+            }
+            if (window === this.keyWindow){
+                return window;
             }
         }
         return null;
@@ -670,13 +691,22 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     _shouldCreateTrackingEventForView: function(view){
-        // Mouse tracking events are only sent to the key and main windows when the mouse is not down
-        // TODO: allow this behavior to be adjusted with tracking options
-        if (view.window !== this.keyWindow && view.window !== this.mainWindow && !view.window.shouldReceiveTrackingInBack){
+        if (this.mouseEventWindow !== null){
+            // no tracking events if the mouse is down
             return false;
         }
-        if (this.mouseEventWindow !== null){
-            return false;
+        var window = view.window;
+        if (window.shouldReceiveTrackingInBack){
+            return true;
+        }
+        if (window.receivesAllEvents){
+            return true;
+        }
+        if (window === this.mainWindow){
+            return true;
+        }
+        if (window === this.keyWindow){
+            return true;
         }
         return true;
     },

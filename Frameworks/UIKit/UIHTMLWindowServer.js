@@ -961,8 +961,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             var children = element.accessibilityElements;
-            for (var i = 0, l = children.length; i < l; ++i){
-                context.updateAccessibilitySelected(children[i]);   
+            if (children !== null && children !== undefined){
+                for (var i = 0, l = children.length; i < l; ++i){
+                    context.updateAccessibilitySelected(children[i]);   
+                }
             }
         }
     },

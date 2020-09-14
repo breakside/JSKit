@@ -322,6 +322,7 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
     shadowColor: null,
     shadowOffset: null,
     shadowRadius: 1,
+    borderWidth: 1,
 
     init: function(){
         this.normalBackgroundColor = UIRadioButtonDefaultStyler.NormalBackgroundColor;

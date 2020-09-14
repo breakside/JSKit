@@ -44,7 +44,6 @@ JSClass("UIMenuWindow", UIWindow, {
     _scrollDistance: 0,
     _isShowingAlternates: false,
     _isClosing: false,
-    receivesAllEvents: true,
     capSize: JSDynamicProperty('_capSize', 5),
     _keyWidth: 0,
     separatorColor: null,
@@ -89,9 +88,16 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Window Behavior
 
+    receivesAllEvents: true,
+
+    canBecomeKeyWindow: function(){
+        // Menus should not change the current key window.  They will still
+        // receive key events due to internal logic in UIWindowServer
+        return false;
+    },
+
     canBecomeMainWindow: function(){
-        // Since menus are basically like modal panels, we never want to be the
-        // main view, or take visual focus away from the main view that opened us.
+        // Menus should not change the current main window.
         return false;
     },
 
@@ -106,12 +112,12 @@ JSClass("UIMenuWindow", UIWindow, {
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
         }
-        this.windowServer.postNotificationsForAcccessibilityElementCreated(this.menu);
+        this.windowServer.postNotificationsForAccessibilityElementCreated(this._menu);
     },
 
     didClose: function(){
+        this.windowServer.postNotificationsForAccessibilityElementDestroyed(this._menu);
         UIMenuWindow.$super.didClose.call(this);
-        this.windowServer.postNotificationsForAccessibilityElementDestroyed(this.menu);
     },
 
     // -----------------------------------------------------------------------
@@ -595,7 +601,6 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);
-        this._menu = null;
     },
 
     closeAll: function(animated, completion, target){

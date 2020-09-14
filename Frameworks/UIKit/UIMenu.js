@@ -345,7 +345,7 @@ JSClass("UIMenu", JSObject, {
     // Visibility
     isAccessibilityElement: true,
     accessibilityHidden: false,
-    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityLayer: null,
     accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
