@@ -404,10 +404,10 @@ JSClass('UIView', UIResponder, {
         return null;
     },
 
-    accessibleKeyViewsEnabled: JSReadOnlyProperty(),
+    fullKeyboardAccessEnabled: JSReadOnlyProperty(),
 
     getAccessibleKeyViewsEnabled: function(){
-        return this._windowServer !== null && this._windowServer.accessibleKeyViewsEnabled;
+        return this._windowServer !== null && this._windowServer.fullKeyboardAccessEnabled;
     },
 
     // -------------------------------------------------------------------------

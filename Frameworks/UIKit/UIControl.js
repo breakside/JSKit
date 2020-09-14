@@ -239,9 +239,18 @@ JSClass("UIControl", UIView, {
     },
 
     setEnabled: function(isEnabled){  
-        this.toggleStates(UIControl.State.disabled, !isEnabled);
-        if (!isEnabled && this.window && this.window.firstResponder === this){
-            this.window.firstResponder = null;
+        var state = this._state;
+        if (!isEnabled){
+            state |= UIControl.State.disabled;
+            state &= ~(UIControl.State.active | UIControl.State.over | UIControl.State.dropTarget);
+        }else{
+            state &= ~UIControl.State.disabled;
+        }
+        this._updateState(state);
+        if (!isEnabled){
+            if (this.window && this.window.firstResponder === this){
+                this.window.firstResponder = null;
+            }
         }
         this.postAccessibilityNotification(UIAccessibility.Notification.enabledChanged);
     },

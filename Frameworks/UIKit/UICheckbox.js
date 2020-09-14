@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -54,32 +55,105 @@ JSClass("UICheckbox", UIControl, {
         return this._titleLabel;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-        }else{
-            UICheckbox.$super.mouseDown.call(this, event);
-        }
-    },
-
-    mouseUp: function(event){
-        if (!this.enabled){
             return;
         }
-        if (this.active){
-            this.on = !this.on;
-            this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
-            this.active = false;
-            this.didChangeValueForBinding('on');
-        }
+        UICheckbox.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this.active = this.containsPoint(location);
             return;
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
+        UICheckbox.$super.mouseDragged.call(this, event);
+    },
+
+    mouseUp: function(event){
+        if (this.enabled){
+            if (this.active){
+                this._toggle();
+            }
+            return;
+        }
+        UICheckbox.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UICheckbox.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UICheckbox.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this._toggle();
+            }
+            return;
+        }
+        UICheckbox.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UICheckbox.$super.touchesCanceled.call(this, touches, event);
+    }, 
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UICheckbox.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this._toggle();
+                return;
+            }
+        }
+        UICheckbox.$super.keyUp.call(this, event);
+    },
+
+    _toggle: function(){
+        this.on = !this.on;
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
+        this.active = false;
+        this.didChangeValueForBinding('on');
     },
 
     setOn: function(isOn){

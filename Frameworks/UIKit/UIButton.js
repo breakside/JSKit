@@ -180,7 +180,7 @@ JSClass("UIButton", UIControl, {
     // MARK: - Responder
 
     canBecomeFirstResponder: function(){
-        return this.enabled && this.accessibleKeyViewsEnabled;
+        return this.enabled && this.fullKeyboardAccessEnabled;
     },
 
     becomeFirstResponder: function(){
@@ -189,106 +189,94 @@ JSClass("UIButton", UIControl, {
     resignFirstResponder: function(){
     },
 
-    _handleMouseDragged: true,
-
     mouseDown: function(event){
-        var handled = this._press(event);
-        if (!handled){
-            this._handleMouseDragged = false;
-            UIButton.$super.mouseDown.call(this, event);
+        if (this.enabled){
+            this.active = true;
+            return;
         }
+        UIButton.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        var handled = false;
-        if (this._handleMouseDragged){
+        if (this.enabled){
             var location = event.locationInView(this);
-            handled = this._move(location, event);
+            this.active = this.containsPoint(location);
+            return;
         }
-        if (!handled){
-            UIButton.$super.mouseDragged.call(this, event);
-        }
+        UIButton.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
-        var location = event.locationInView(this);
-        var handled = this._release(location, event);
-        if (!handled){
-            UIButton.$super.mouseUp.call(this, event);
-        }
-        this._handleMouseDragged = true;
-    },
-
-    _handleTouchesMoved: true,
-
-    touchesBegan: function(touches, event){
-        var handled = this._press(event);
-        if (!handled){
-            this._handleTouchesMoved = false;
-            UIButton.$super.touchesBegan.call(this, touches, event);
-        }
-    },
-
-    touchesMoved: function(touches, event){
-        var handled = false;
-        if (this._handleTouchesMoved){
-            var touch = touches[0];
-            var location = touch.locationInView(this);
-            handled = this._move(location, event);
-        }
-        if (!handled){
-            UIButton.$super.touchesMoved.call(this, touches, event);
-        }
-    },
-
-    touchesEnded: function(touches, event){
-        var touch = touches[0];
-        var location = touch.locationInView(this);
-        var handled = this._release(location, event);
-        if (!handled){
-            UIButton.$super.touchesEnded.call(this, touches, event);
-        }
-        this._handleTouchesMoved = true;
-    },
-
-    touchesCanceled: function(touches, event){
-        this.active = false;
-        var touch = touches[0];
-        var location = touch.locationInView(this);
-        var handled = this._release(location, event);
-        if (!handled){
-            UIButton.$super.touchesCanceled.call(this, touches, event);
-        }
-        this._handleTouchesMoved = true;
-    },
-
-    _press: function(event){
-        if (this.enabled){
-            this.active = true;
-            return true;
-        }
-        return false;
-    },
-
-    _move: function(location, event){
-        if (this.enabled){
-            this.active = this.containsPoint(location);
-            return true;
-        }
-        return false;
-    },
-
-    _release: function(location, event){
         if (this.enabled){
             if (this.active){
                 this.sendActionsForEvents(UIControl.Event.primaryAction, event);
                 this.active = false;
             }
+            var location = event.locationInView(this);
             this.over = this.window !== null && this.containsPoint(location);
-            return true;
+            return;
         }
-        return false;
+        UIButton.$super.mouseUp.call(this, event);
     },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UIButton.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UIButton.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this.sendActionsForEvents(UIControl.Event.primaryAction, event);
+                this.active = false;
+            }
+            return;
+        }
+        UIButton.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UIButton.$super.touchesCanceled.call(this, touches, event);
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UIButton.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this.sendActionsForEvents(UIControl.Event.primaryAction, event);
+                this.active = false;
+                return;
+            }
+        }
+        UIButton.$super.keyUp.call(this, event);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Layout
 
     getFirstBaselineOffsetFromTop: function(){
         if (this._titleLabel !== null){
@@ -304,25 +292,6 @@ JSClass("UIButton", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return this._titleInsets.bottom;
-    },
-
-    keyDown: function(event){
-        if (event.key === UIEvent.Key.enter){
-            this.active = true;
-        }else{
-            UIButton.$super.keyDown.call(this, event);
-        }
-    },
-
-    keyUp: function(event){
-        if (event.key === UIEvent.Key.enter){
-            if (this.active){
-                this.sendActionsForEvents(UIControl.Event.primaryAction, event);
-                this.active = false;
-            }
-        }else{
-            UIButton.$super.keyUp.call(this, event);
-        }
     },
 
     // -------------------------------------------------------------------------

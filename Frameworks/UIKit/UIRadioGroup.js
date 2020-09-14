@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -164,31 +165,104 @@ JSClass("UIRadioButton", UIControl, {
         return this._titleLabel;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-        }else{
-            UIRadioButton.$super.mouseDown.call(this, event);
-        }
-    },
-
-    mouseUp: function(event){
-        if (!this.enabled){
             return;
         }
-        if (this.active){
-            this._group.selectedIndex = this._index;
-            this._group.didChangeValueForBinding('selectedIndex');
-            this.active = false;
-        }
+        UIRadioButton.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this.active = this.containsPoint(location);
             return;
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
+        UIRadioButton.$super.mouseDragged.call(this, event);
+    },
+
+    mouseUp: function(event){
+        if (this.enabled){
+            if (this.active){
+                this._select();
+            }
+            return;
+        }
+        UIRadioButton.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UIRadioButton.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UIRadioButton.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this._select();
+            }
+            return;
+        }
+        UIRadioButton.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UIRadioButton.$super.touchesCanceled.call(this, touches, event);
+    }, 
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UIRadioButton.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this._select();
+                return;
+            }
+        }
+        UIRadioButton.$super.keyUp.call(this, event);
+    },
+
+    _select: function(){
+        this._group.selectedIndex = this._index;
+        this._group.didChangeValueForBinding('selectedIndex');
+        this.active = false;
     },
 
     setOn: function(isOn){
