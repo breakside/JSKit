@@ -24,6 +24,7 @@ JSClass("UIImageView", UIView, {
     automaticRenderMode: UIViewLayerProperty(),
     image: JSDynamicProperty(),
     contentInsets: JSDynamicProperty('_contentInsets', null),
+    userInteractionEnabled: false,
 
     _previousSize: null,
 

@@ -15,6 +15,7 @@
 
 // #import Foundation
 // #import "CKParticipantConnection.js"
+// #import "CKParticipant.js"
 'use strict';
 
 JSClass("CKConferenceCall", JSObject, {
@@ -31,18 +32,22 @@ JSClass("CKConferenceCall", JSObject, {
 
     turnServices: null,
     connectionsByParticipantId: null,
+    nextParticipantNumber: 1,
 
     connectToParticipant: function(participant, isCaller){
+        participant.number = this.nextParticipantNumber++;
         var connection = CKParticipantConnection.createForParticipant(participant);
+        participant.addObserverForKeyPath(this, "audioMuted");
+        participant.addObserverForKeyPath(this, "videoMuted");
         connection.call = this;
         this.connectionsByParticipantId[participant.identifier] = connection;
+        connection.setLocalStream(this._localStream);
         connection.open(isCaller);
-        if (this._localStream){
-            connection.setLocalStream(this._localStream);
-        }
     },
 
     disconnectFromParticipant: function(participant){
+        participant.removeObserverForKeyPath(this, "audioMuted");
+        participant.removeObserverForKeyPath(this, "videoMuted");
         this._closeConnectionForIdentifier(participant.identifier);
     },
 
@@ -126,11 +131,10 @@ JSClass("CKConferenceCall", JSObject, {
         return null;
     },
 
-    updateAudioMuteForParticipant: function(muted, participant){
-        if (muted != participant.audioSoftMuted){
-            participant._setAudioSoftMuted(muted);
+    observeValueForKeyPath: function(keyPath, ofObject, change, context){
+        if (ofObject.isKindOfClass(CKParticipant)){
             if (this.delegate && this.delegate.conferenceCallParticipantDidChangeMuteState){
-                this.delegate.conferenceCallParticipantDidChangeMuteState(this, participant);
+                this.delegate.conferenceCallParticipantDidChangeMuteState(this, ofObject);
             }
         }
     }
