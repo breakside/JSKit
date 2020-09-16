@@ -310,6 +310,10 @@ JSClass("UIControl", UIView, {
         UIControl.$super.setWindow.call(this, window);
     },
 
+    getFocusRingPath: function(){
+        return this._styler.focusRingPathForControl(this);
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Accessibility
 
@@ -348,6 +352,10 @@ JSClass("UIControlStyler", JSObject, {
 
     drawControlLayerInContext: function(control, layer, context){
         layer.drawInContext(context);
+    },
+
+    focusRingPathForControl: function(control){
+        return control.layer.backgroundPath();
     }
 
 });

@@ -115,6 +115,9 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("cursor")){
             this.cursor = spec.valueForKey("cursor", UICursor);
         }
+        if (spec.containsKey("transform")){
+            this.transform = spec.valueForKey("transform", JSAffineTransform);
+        }
         var i, l;
         if (spec.containsKey("gestureRecognizers")){
             var recognizers = spec.valueForKey("gestureRecognizers");
@@ -406,8 +409,14 @@ JSClass('UIView', UIResponder, {
 
     fullKeyboardAccessEnabled: JSReadOnlyProperty(),
 
-    getAccessibleKeyViewsEnabled: function(){
+    getFullKeyboardAccessEnabled: function(){
         return this._windowServer !== null && this._windowServer.fullKeyboardAccessEnabled;
+    },
+
+    focusRingPath: JSReadOnlyProperty(),
+
+    getFocusRingPath: function(){
+        return this.layer.backgroundPath();
     },
 
     // -------------------------------------------------------------------------

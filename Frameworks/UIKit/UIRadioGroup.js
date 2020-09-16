@@ -49,6 +49,16 @@ JSClass("UIRadioGroup", UIControl, {
         button.titleLabel.text = title;
         button._index = this.buttons.length;
         button._group = this;
+        var nextKeyView;
+        if (button._index === 0){
+            nextKeyView = this.nextKeyView;
+            this.nextKeyView = button;
+            button.nextKeyView = nextKeyView;
+        }else{
+            nextKeyView = this.buttons[this.buttons.length - 1].nextKeyView;
+            this.buttons[this.buttons.length - 1].nextKeyView = button;
+            button.nextKeyView = nextKeyView;
+        }
         this.buttons.push(button);
         this.addSubview(button);
         this.setNeedsLayout();
@@ -64,6 +74,14 @@ JSClass("UIRadioGroup", UIControl, {
                 this.buttons[this._selectedIndex].on = true;
             }
             this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
+        }
+    },
+
+    setNextKeyView: function(nextKeyView){
+        if (this.buttons !== null && this.buttons.length > 0){
+            this.buttons[this.buttons.length - 1].nextKeyView = nextKeyView;
+        }else{
+            UIRadioGroup.$super.setNextKeyView.call(this, nextKeyView);
         }
     },
 
@@ -380,6 +398,13 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
         button.stylerProperties.indicatorView.frame = button.stylerProperties.boxLayer.frame;
         var x = boxSize.width + this.titleSpacing;
         button.titleLabel.frame = JSRect(x, 0, button.bounds.size.width - x, height);
+    },
+
+    focusRingPathForControl: function(button){
+        var layer = button.stylerProperties.boxLayer;
+        var transform = layer.transformFromSuperlayer();
+        var boxPath = layer.backgroundPath(transform);
+        return boxPath;
     }
 
 });

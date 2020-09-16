@@ -251,6 +251,7 @@ UIEvent.Key = {
     tab: "Tab",
     backspace: "Backspace",
     delete: "Delete",
+    space: " ",
 
     // Arrows
     down: "ArrowDown",

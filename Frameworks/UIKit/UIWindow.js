@@ -23,6 +23,7 @@
 // #import "UIToolbarItem.js"
 // #import "UIViewPropertyAnimator.js"
 // #import "UIViewController.js"
+// #import "UIFocusRingLayer.js"
 'use strict';
 
 (function(){
@@ -562,9 +563,9 @@ JSClass('UIWindow', UIView, {
         }else if (event.key === UIEvent.Key.tab){
             if (this.firstResponder !== null){
                 if (event.hasModifier(UIEvent.Modifier.shift)){
-                    this.setFirstResponderToKeyViewAfterView(this.firstResponder);
-                }else{
                     this.setFirstResponderToKeyViewBeforeView(this.firstResponder);
+                }else{
+                    this.setFirstResponderToKeyViewAfterView(this.firstResponder);
                 }
             }else{
             }
@@ -611,6 +612,7 @@ JSClass('UIWindow', UIView, {
             }
             if (this._firstResponder !== previousResponder){
                 this._validateToolbar();
+                this._styler.updateFocusRingInWindow(this);
                 this.windowServer.windowDidChangeResponder(this);
             }
         }
@@ -641,6 +643,9 @@ JSClass('UIWindow', UIView, {
         if (prevousKeyView !== null){
             this.firstResponder = prevousKeyView;
         }
+    },
+
+    calculateKeyViewLoop: function(){
     },
 
     // -------------------------------------------------------------------------
@@ -1030,10 +1035,22 @@ JSClass("UIRootWindow", UIWindow, {
 
 JSClass("UIWindowStyler", JSObject, {
 
+    focusRingColor: null,
+    focusRingWidth: 3.5,
+
     init: function(){
+        this.focusRingColor = this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 0.6);
     },
 
     initializeWindow: function(window){
+        var focusRingLayer = UIFocusRingLayer.init();
+        focusRingLayer.userInteractionEnabled = false;
+        focusRingLayer.color = this.focusRingColor;
+        focusRingLayer.width = this.focusRingWidth;
+        focusRingLayer.hidden = true;
+        window.layer.addSublayer(focusRingLayer);
+        window.stylerProperties.focusRingLayer = focusRingLayer;
+        window.stylerProperties.focusRingAnimator = null;
     },
 
     updateWindow: function(window){
@@ -1041,6 +1058,49 @@ JSClass("UIWindowStyler", JSObject, {
 
     layoutWindow: function(window){
         window._contentView.frame = window.bounds.rectWithInsets(window._contentInsets);
+        window.layer.addSublayer(window.stylerProperties.focusRingLayer);
+    },
+
+    updateFocusRingInWindow: function(window){
+        var responder = window.firstResponder;
+        var focusRingLayer = window.stylerProperties.focusRingLayer;
+        if (responder === null || !responder.isKindOfClass(UIView)){
+            focusRingLayer.hidden = true;
+            return;
+        }
+        var view = responder;
+        var path = view.focusRingPath;
+        if (path === null){
+            focusRingLayer.hidden = true;
+            return;
+        }
+        var layer = view.layer;
+        focusRingLayer.hidden = false;
+        focusRingLayer.path = path;
+        focusRingLayer.position = JSPoint.Zero;
+        var transform = JSAffineTransform.Translated(path.boundingRect.center.x, path.boundingRect.center.y);
+        var superlayerTransform;
+        while (layer !== window.layer){
+            superlayerTransform = layer.transformFromSuperlayer();
+            transform = transform.concatenatedWith(superlayerTransform);
+            layer = layer.superlayer;
+        }
+        focusRingLayer.transform = transform;
+        focusRingLayer.alpha = 0.1;
+        if (window.stylerProperties.focusRingAnimator !== null){
+            window.stylerProperties.focusRingAnimator.stop();
+        }
+        var animator = UIViewPropertyAnimator.initWithDuration(0.15);
+        focusRingLayer.transform = transform.scaledBy((focusRingLayer.bounds.size.width + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.width, (focusRingLayer.bounds.size.height + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.height);
+        animator.addAnimations(function(){
+            focusRingLayer.transform = transform;
+            focusRingLayer.alpha = 1.0;
+        });
+        animator.addCompletion(function(){
+            window.stylerProperties.focusRingAnimator = null;
+        });
+        animator.start();
+        window.stylerProperties.focusRingAnimator = animator;
     }
 
 });
@@ -1086,6 +1146,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     },
 
     initializeWindow: function(window){
+        UIWindowDefaultStyler.$super.initializeWindow.call(this, window);
         var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
         closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
@@ -1254,7 +1315,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             topSize += window.stylerProperties.toolbar.intrinsicSize.height;
         }
         window.contentInsets = JSInsets(topSize, 0, 0, 0);
-    }
+    },
 
 });
 

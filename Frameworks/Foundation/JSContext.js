@@ -111,7 +111,7 @@ JSClass("JSContext", JSObject, {
                 if (segment.type === JSPath.SegmentType.line){
                     this.addLineToPoint(segment.end.x, segment.end.y);
                 }else if (segment.type === JSPath.SegmentType.curve){
-                    this.addCurveToPoint(segment.curve.p2, segment.curve.c1, segment.curve.c2);
+                    this.addCurveToPoint(segment.curve.p2, segment.curve.cp1, segment.curve.cp2);
                 }
             }
             if (subpath.closed){

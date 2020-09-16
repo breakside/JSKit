@@ -32,13 +32,12 @@ JSClass('UILabel', UIView, {
     textInsets: UIViewLayerProperty(),
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
     selectionColor: JSDynamicProperty("_selectionColor", null),
-    userInteractionEnabled: false,
+    _accessibilityHidden: true,
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
         this.maximumNumberOfLines = 1;
         this._selectionColor = JSColor.white.colorWithAlpha(0.2);
-        this.accessibilityHidden = true;
     },
 
     initWithSpec: function(spec){
@@ -74,7 +73,6 @@ JSClass('UILabel', UIView, {
         }else{
             this._selectionColor = JSColor.white.colorWithAlpha(0.2);
         }
-        this.accessibilityHidden = true;
     },
 
     getIntrinsicSize: function(){

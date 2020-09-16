@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 JSClass("UISegmentedControl", UIControl, {
@@ -149,6 +150,13 @@ JSClass("UISegmentedControl", UIControl, {
         this._styler.initializeItemView(itemView);
         itemView.segmentControl = this;
         itemView.index = index;
+        var previous = this;
+        if (index > 0){
+            previous = this._itemViews[index - 1];
+        }
+        var nextKeyView = previous.nextKeyView;
+        previous.nextKeyView = itemView;
+        itemView.nextKeyView = nextKeyView;
         this.addSubview(itemView);
         this._itemViews.splice(index, 0, itemView);
         itemView.setItem(this._items[index]);
@@ -162,6 +170,11 @@ JSClass("UISegmentedControl", UIControl, {
     _removeItemViewAtIndex: function(index){
         var itemView = this._itemViews[index];
         itemView.segmentControl = null;
+        var previous = this;
+        if (index > 0){
+            previous = this._itemViews[index - 1];
+        }
+        previous.nextKeyView = itemView.nextKeyView;
         itemView.removeFromSuperview();
         this._itemViews.splice(index, 1);
         for (var i = index, l = this._itemViews.length; i < l; ++i){
@@ -246,7 +259,7 @@ JSClass("UISegmentedControl", UIControl, {
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Events
+    // MARK: - Responder
 
     mouseDown: function(event){
         var location = event.locationInView(this);
@@ -280,6 +293,14 @@ JSClass("UISegmentedControl", UIControl, {
             }
         }
         return null;
+    },
+
+    setNextKeyView: function(nextKeyView){
+        if (this._itemViews !== null && this._itemViews.length > 0){
+            this._itemViews[this._itemViews.length - 1].nextKeyView = nextKeyView;
+        }else{
+            UISegmentedControl.$super.setNextKeyView.call(this, nextKeyView);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -489,7 +510,38 @@ JSClass("UISegmentedControlItemView", UIView, {
 
     getAccessibilityElements: function(){
         return [];
-    }
+    },
+
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.item.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.segmentControl._activateSegmentAtIndex(this.index);
+            return;
+        }
+        UISegmentedControlItemView.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.item.active){
+                this.segmentControl._activateSegmentAtIndex(null);
+                this.segmentControl._selectItemViewAtIndex(this.index);
+                return;
+            }
+        }
+        UISegmentedControlItemView.$super.keyUp.call(this, event);
+    },
 
 });
 

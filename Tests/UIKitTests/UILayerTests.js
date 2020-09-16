@@ -407,9 +407,89 @@ JSClass("UILayerTests", TKTestSuite, {
         point = layer1_1.convertPointToLayer(JSPoint(500, 600), layer2_1);
         TKAssertEquals(point.x, 215);
         TKAssertEquals(point.y, 226);
-    }
+    },
 
-    // TODO: point/rect conversions with transformations
+    testConvertPointToLayerScrolled: function(){
+        var grandparent = UILayer.init();
+        var superlayer = UILayer.init();
+        var layer = UILayer.init();
+        grandparent.addSublayer(superlayer);
+        superlayer.addSublayer(layer);
+
+        grandparent.bounds = JSRect(0, 0, 200, 200);
+        superlayer.frame = JSRect(3, 4, 100, 100);
+        layer.frame = JSRect(10, 20, 30, 40);
+
+        var point = layer.convertPointToLayer(JSPoint(1, 2), superlayer);
+        TKAssertFloatEquals(point.x, 11);
+        TKAssertFloatEquals(point.y, 22);
+        point = layer.convertPointToLayer(JSPoint(1, 2), grandparent);
+        TKAssertFloatEquals(point.x, 14);
+        TKAssertFloatEquals(point.y, 26);
+        point = layer.convertPointFromLayer(JSPoint(11, 22), superlayer);
+        TKAssertFloatEquals(point.x, 1);
+        TKAssertFloatEquals(point.y, 2);
+        point = layer.convertPointFromLayer(JSPoint(15, 27), grandparent);
+        TKAssertFloatEquals(point.x, 2);
+        TKAssertFloatEquals(point.y, 3);
+
+        superlayer.bounds = JSRect(5, 7, 100, 100);
+        point = layer.convertPointToLayer(JSPoint(1, 2), superlayer);
+        TKAssertFloatEquals(point.x, 11);
+        TKAssertFloatEquals(point.y, 22);
+        point = layer.convertPointToLayer(JSPoint(1, 2), grandparent);
+        TKAssertFloatEquals(point.x, 9);
+        TKAssertFloatEquals(point.y, 19);
+        point = layer.convertPointFromLayer(JSPoint(11, 22), superlayer);
+        TKAssertFloatEquals(point.x, 1);
+        TKAssertFloatEquals(point.y, 2);
+        point = layer.convertPointFromLayer(JSPoint(10, 20), grandparent);
+        TKAssertFloatEquals(point.x, 2);
+        TKAssertFloatEquals(point.y, 3);
+    },
+
+    testConvertPointToLayerTransformed: function(){
+        var grandparent = UILayer.init();
+        var superlayer = UILayer.init();
+        var layer = UILayer.init();
+        grandparent.addSublayer(superlayer);
+        superlayer.addSublayer(layer);
+
+        grandparent.bounds = JSRect(0, 0, 200, 200);
+        superlayer.frame = JSRect(3, 4, 100, 100);
+        superlayer.transform = JSAffineTransform.Translated(12, 34);
+        layer.frame = JSRect(10, 20, 30, 40);
+        layer.transform = JSAffineTransform.Scaled(2, 3); // center at 25,40; 2x origin at -5,-20
+
+        var point = layer.convertPointToLayer(JSPoint(1, 2), superlayer);
+        TKAssertFloatEquals(point.x, -3);
+        TKAssertFloatEquals(point.y, -14);
+        point = layer.convertPointToLayer(JSPoint(1, 2), grandparent);
+        TKAssertFloatEquals(point.x, 12);
+        TKAssertFloatEquals(point.y, 24);
+        point = layer.convertPointFromLayer(JSPoint(-3, -14), superlayer);
+        TKAssertFloatEquals(point.x, 1);
+        TKAssertFloatEquals(point.y, 2);
+        point = layer.convertPointFromLayer(JSPoint(14, 27), grandparent);
+        TKAssertFloatEquals(point.x, 2);
+        TKAssertFloatEquals(point.y, 3);
+
+        superlayer.bounds = JSRect(5, 7, 100, 100);
+        point = layer.convertPointToLayer(JSPoint(1, 2), superlayer);
+        TKAssertFloatEquals(point.x, -3);
+        TKAssertFloatEquals(point.y, -14);
+        point = layer.convertPointToLayer(JSPoint(1, 2), grandparent);
+        TKAssertFloatEquals(point.x, 7);
+        TKAssertFloatEquals(point.y, 17);
+        point = layer.convertPointFromLayer(JSPoint(-3, -14), superlayer);
+        TKAssertFloatEquals(point.x, 1);
+        TKAssertFloatEquals(point.y, 2);
+        point = layer.convertPointFromLayer(JSPoint(9, 20), grandparent);
+        TKAssertFloatEquals(point.x, 2);
+        TKAssertFloatEquals(point.y, 3);
+    },
+
+    // TODO: point/rect conversions with rotated transformations
     // TODO: hit testing
     // TODO: animations
     // TODO: layout & display (maybe some of this goes in UIDisplayServerTests?)

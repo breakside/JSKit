@@ -333,6 +333,13 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         var size = JSSize(checkbox._titleLabel.intrinsicSize);
         size.width += size.height + this.titleSpacing;
         return size;
+    },
+
+    focusRingPathForControl: function(checkbox){
+        var layer = checkbox.stylerProperties.boxLayer;
+        var transform = layer.transformFromSuperlayer();
+        var boxPath = layer.backgroundPath(transform);
+        return boxPath;
     }
 
 });

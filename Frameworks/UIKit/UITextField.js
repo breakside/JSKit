@@ -1200,6 +1200,10 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
         }else{
             textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         }
+    },
+
+    focusRingPathForControl: function(textField){
+        return null;
     }
 
 });

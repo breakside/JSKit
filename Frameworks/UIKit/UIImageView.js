@@ -25,6 +25,7 @@ JSClass("UIImageView", UIView, {
     image: JSDynamicProperty(),
     contentInsets: JSDynamicProperty('_contentInsets', null),
     userInteractionEnabled: false,
+    _accessibilityHidden: true,
 
     _previousSize: null,
 
@@ -151,6 +152,7 @@ JSClass("UIImageView", UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Accessibility
 
+    isAccessibilityElement: true,
     accessibilityRole: UIAccessibility.Role.image,
 });
 

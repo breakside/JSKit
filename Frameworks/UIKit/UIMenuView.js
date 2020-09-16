@@ -412,7 +412,7 @@ JSClass("UIMenuWindow", UIWindow, {
                     this._menu.delegate.menuDidNavigateLeft(this._menu);
                 }
             }
-        }else if (event.key == UIEvent.Key.enter){
+        }else if (event.key == UIEvent.Key.enter || event.key == UIEvent.Key.space){
             this._performActionForHighlightedItem(true);
         }
         // TODO: select by typing title

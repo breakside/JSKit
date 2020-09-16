@@ -186,7 +186,7 @@ JSAffineTransform.initWithSpec = function(spec){
         transform.d = spec.valueForKey("d");
     }
     if (spec.containsKey('tx')){
-        transform.tx = spec.valueForKey("txt");
+        transform.tx = spec.valueForKey("tx");
     }
     if (spec.containsKey('ty')){
         transform.ty = spec.valueForKey("ty");

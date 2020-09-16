@@ -329,6 +329,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
     },
 
     initializeWindow: function(window){
+        UIPopupWindow.$super.initializeWindow.call(this, window);
         window._showsSourceArrow = this.showsSourceArrow;
         window._sourceArrowSize = this.sourceArrowSize;
         window._sourceSpacing  = this.sourceSpacing;
