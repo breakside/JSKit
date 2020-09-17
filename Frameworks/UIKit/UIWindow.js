@@ -403,7 +403,7 @@ JSClass('UIWindow', UIView, {
             this.setFirstResponder(responder);
         }
         if (this.isAccessibilityElement){
-            this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
+            this.postAccessibilityNotification(UIAccessibility.Notification.elementCreated);
         }
     },
 
@@ -418,7 +418,7 @@ JSClass('UIWindow', UIView, {
             this._parent._flushTrackingEvents();
         }
         if (this.isAccessibilityElement){
-            this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, this);
+            this.postAccessibilityNotification(UIAccessibility.Notification.elementDestroyed);
         }
         var index = this._application._windows.indexOf(this);
         if (index >= 0){
@@ -977,10 +977,17 @@ JSClass('UIWindow', UIView, {
             elements.push(this.toolbar);
         }
         if (this.contentView !== null){
-            if (this.contentView.isAccessibilityElement){
-                elements.push(this.contentView);
-            }else{
-                elements = elements.concat(this.contentView.accessibilityElements);
+            var stack = [this.contentView];
+            var view;
+            while (stack.length > 0){
+                view = stack.shift();
+                if (view.isAccessibilityElement){
+                    elements.push(view);
+                }else{
+                    for (var i = 0, l = view.subviews.length; i < l; ++i){
+                        stack.push(view.subviews[i]);
+                    }
+                }
             }
         }
         return elements;
@@ -1029,7 +1036,9 @@ JSClass("UIRootWindow", UIWindow, {
 
     getAccessibilityLabel: function(){
         return this.application.accessibilityLabel;
-    }
+    },
+
+    isAccessibilityElement: false,
 
 });
 

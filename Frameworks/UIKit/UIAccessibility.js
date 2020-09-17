@@ -11,6 +11,7 @@ JSProtocol("UIAccessibility", JSProtocol, {
     // Role
     accessibilityRole: null,
     accessibilitySubrole: null,
+    accessibilityResponder: null,
 
     // Label
     accessibilityIdentifier: null,

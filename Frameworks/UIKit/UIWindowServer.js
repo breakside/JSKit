@@ -933,9 +933,13 @@ JSClass("UIWindowServer", JSObject, {
     postNotificationsForAccessibilityElementCreated: function(element){
         this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, element);
         var children = element.accessibilityElements;
+        var child;
         if (children !== null && children !== undefined){
             for (var i = 0, l = children.length; i < l; ++i){
-                this.postNotificationsForAccessibilityElementCreated(children[i]);
+                child = children[i];
+                if (!child.isKindOfClass(UIView)){
+                    this.postNotificationsForAccessibilityElementCreated(child);   
+                }
             }
         }
     },
@@ -943,9 +947,13 @@ JSClass("UIWindowServer", JSObject, {
     postNotificationsForAccessibilityElementDestroyed: function(element){
         this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, element);
         var children = element.accessibilityElements;
+        var child;
         if (children !== null && children !== undefined){
             for (var i = 0, l = children.length; i < l; ++i){
-                this.postNotificationsForAccessibilityElementDestroyed(children[i]);
+                child = children[i];
+                if (!child.isKindOfClass(UIView)){
+                    this.postNotificationsForAccessibilityElementDestroyed(child);
+                }
             }
         }
     },

@@ -900,6 +900,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Accessibility
 
+    accessibilityFocusListener: null,
+    accessibilityMousedownListener: null,
+
     setAccessibility: function(accessibility){
         var ariaRole = ariaRoleForAccessibility(accessibility);
         if (ariaRole !== null){
@@ -908,11 +911,41 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.element.removeAttribute("role");
         }
         this.element.id = "accessibility-%d".sprintf(accessibility.objectID);
-        // switch (ariaRole){
-        //     case "button":
-        //         this.element.setAttribute("tabindex", "0");
-        //         break;
-        // }
+        switch (ariaRole){
+            case "button":
+            case "tab":
+            case "checkbox":
+            case "radio":
+            case "textbox":
+            case "searchbox":
+                this.element.setAttribute("tabindex", "0");
+                this.element.style.outline = "none";
+                if (this.accessibilityFocusListener !== null){
+                    this.element.removeEventListener("focus", this.accessibilityFocusListener);
+                }
+                if (this.accessibilityMousedownListener !== null){
+                    this.element.removeEventListener("mousedown", this.accessibilityMousedownListener);
+                }
+                this.accessibilityFocusListener = function(e){
+                    var responder = accessibility.accessibilityResponder;
+                    if (responder && responder.isKindOfClass(UIView)){
+                        if (responder.window !== null){
+                            responder.window.firstResponder = responder;
+                        }
+                    }
+                };
+                this.accessibilityMousedownListener = function(e){
+                    // We don't want mousedown to focus the element
+                    // Unfortunately, this prevents the element from working with drag and drop
+                    e.preventDefault();
+                };
+                this.element.addEventListener("focus", this.accessibilityFocusListener);
+                this.element.addEventListener("mousedown", this.accessibilityMousedownListener);
+                break;
+            // case "application":
+            //     this.element.setAttribute("tabindex", "0");
+            //     break;
+        }
         this.updateAccessibilityLabel(accessibility);
         this.updateAccessibilityValue(accessibility);
         this.updateAccessibilitySelected(accessibility);
@@ -1043,12 +1076,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
     },
 
-    updateAccessibilityFocus: function(focusedAccessibility){
-        if (focusedAccessibility === null || focusedAccessibility === undefined){
-            this.element.removeAttribute("aria-activedescendant");
-        }else{
-            this.element.setAttribute("aria-activedescendant", "#accessibility-%d".sprintf(focusedAccessibility.objectID));
-        }
+    updateAccessibilityFocus: function(accessibility){
+        this.element.focus();
+        // if (focusedAccessibility === null || focusedAccessibility === undefined){
+        //     this.element.removeAttribute("aria-activedescendant");
+        // }else{
+        //     this.element.setAttribute("aria-activedescendant", "accessibility-%d".sprintf(focusedAccessibility.objectID));
+        // }
     },
 
     // ----------------------------------------------------------------------
@@ -1196,7 +1230,7 @@ var ariaRoleForAccessibility = function(accessibility){
                 case UIAccessibility.Subrole.tooltip:
                     return "tooltip";
             }
-            return "application"; // wish I could do "window", but it's abstract
+            return "dialog"; // wish I could do "window", but it's abstract
         case UIAccessibility.Role.popover:
             return "dialog";
         case UIAccessibility.Role.comboBox:

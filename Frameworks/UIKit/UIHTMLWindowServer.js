@@ -918,7 +918,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             if (element.accessibilityRole === UIAccessibility.Role.scrollBar){
                 var parent = element.accessibilityParent;
                 if (parent !== null && parent.accessibilityRole === UIAccessibility.Role.scrollArea){
-                    context.element.setAttribute("aria-controls", "#accessibility-%d" + parent.objectID);
+                    context.element.setAttribute("aria-controls", "accessibility-%d" + parent.objectID);
                 }
             }
         }
@@ -987,9 +987,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     handleAccessibilityFirstResponderChanged: function(notification){
         var window = notification.sender;
-        var context = this.contextForAccessibilityElement(window);
+        var responder = window.firstResponder || window;
+        var context = this.contextForAccessibilityElement(responder);
         if (context !== null){
-            context.updateAccessibilityFocus(window.firstResponder || window);
+            context.updateAccessibilityFocus(responder);
         }
     }
 

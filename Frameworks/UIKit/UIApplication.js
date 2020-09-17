@@ -38,7 +38,7 @@ JSClass('UIApplication', UIResponder, {
         shared = this;
         this.windowServer = windowServer;
         this._windows = [];
-        // this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
+        this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
 
     // MARK: - Initialization & Startup

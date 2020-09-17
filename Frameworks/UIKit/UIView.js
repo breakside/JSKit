@@ -338,10 +338,10 @@ JSClass('UIView', UIResponder, {
             }
             if (this.isAccessibilityElement){
                 if (this._windowServer !== null){
-                    this._windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, this);
+                    this._windowServer.postNotificationsForAccessibilityElementDestroyed(this);
                 }
                 if (windowServer !== null){
-                    windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
+                    windowServer.postNotificationsForAccessibilityElementCreated(this);
                 }
             }
             this._windowServer = windowServer;
@@ -918,6 +918,7 @@ JSClass('UIView', UIResponder, {
     // Role
     accessibilityRole: null,
     accessibilitySubrole: null,
+    accessibilityResponder: JSReadOnlyProperty(),
 
     // Label
     accessibilityIdentifier: null,
@@ -952,17 +953,7 @@ JSClass('UIView', UIResponder, {
     },
 
     getAccessibilityElements: function(){
-        var elements = [];
-        var subview;
-        for (var i = 0, l = this.subviews.length; i < l; ++i){
-            subview = this.subviews[i];
-            if (subview.isAccessibilityElement){
-                elements.push(subview);
-            }else{
-                elements = elements.concat(subview.accessibilityElements);
-            }
-        }
-        return elements;
+        return [];
     },
 
     getAccessibilityLayer: function(){
@@ -971,6 +962,10 @@ JSClass('UIView', UIResponder, {
 
     getAccessibilityFrame: function(){
         return this.convertRectToScreen(this.bounds);
+    },
+
+    getAccessibilityResponder: function(){
+        return this;
     },
 
     getAccessibilityLabel: function(){
@@ -995,6 +990,17 @@ JSClass('UIView', UIResponder, {
             return;
         }
         this._windowServer.postNotificationForAccessibilityElement(notificationName, this);
+    },
+
+    didCreateAccessibilityElement: function(){
+    },
+
+    postAccessibilityElementCreatedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementCreated, element);
+    },
+
+    postAccessibilityElementDestroyedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementDestroyed, element);
     },
 
 });

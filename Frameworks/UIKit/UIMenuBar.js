@@ -104,6 +104,16 @@ JSClass("UIMenuBar", UIWindow, {
         return false;
     },
 
+    didBecomeVisible: function(){
+        UIMenuBar.$super.didBecomeVisible.call(this);
+        this.windowServer.postNotificationsForAccessibilityElementCreated(this);
+    },
+
+    didClose: function(){
+        this.windowServer.postNotificationsForAccessibilityElementDestroyed(this);
+        UIMenuBar.$super.didClose.call(this);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Style
 
@@ -170,6 +180,7 @@ JSClass("UIMenuBar", UIWindow, {
             menuItem = menu.items[i];
             barItem = UIMenuBarItem.initWithTitle(menuItem.title);
             barItem.menu = menuItem.submenu;
+            barItem._menuBar = this;
             this._menuBarItems.push(barItem);
         }
         this.primaryMenuItem = this._menuBarItems[0];
@@ -191,7 +202,6 @@ JSClass("UIMenuBar", UIWindow, {
                 this._clipView.addSubview(itemView);
             }
             this._itemViewsByItemId[item.objectID] = itemView;
-            item.accessibilityLayer = itemView;
             itemView.setItem(item);
             itemView.update();
         }
@@ -603,8 +613,8 @@ JSClass("UIMenuBar", UIWindow, {
     accessibilityRole: UIAccessibility.Role.menuBar,
 
     getAccessibilityElements: function(){
-        var elements = JSCopy(this.leftBarItems);
-        return elements.concat(this._menu.items).concat(this.rightBarItems);
+        var elements = JSCopy(this.leftBarItems || []);
+        return elements.concat(this._menuBarItems || []).concat(this.rightBarItems || []);
     }
 
 });
@@ -706,7 +716,7 @@ JSClass("UIMenuBarItem", JSObject, {
     // Visibility
     isAccessibilityElement: true,
     accessibilityHidden: false,
-    accessibilityLayer: null,
+    accessibilityLayer: JSReadOnlyProperty(),
     accessibilityFrame: JSReadOnlyProperty(),
 
     // Role
@@ -733,7 +743,7 @@ JSClass("UIMenuBarItem", JSObject, {
 
     // Children
     accessibilityParent: JSReadOnlyProperty(),
-    accessibilityElements: [],
+    accessibilityElements: JSReadOnlyProperty(),
 
     getAccessibilityElements: function(){
         return [];

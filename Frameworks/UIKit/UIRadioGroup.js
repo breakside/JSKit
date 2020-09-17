@@ -299,6 +299,17 @@ JSClass("UIRadioButton", UIControl, {
             return UIAccessibility.Checked.on;
         }
         return UIAccessibility.Checked.off;
+    },
+
+    getAccessibilityLabel: function(){
+        var label = UIRadioButton.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
     }
 
 });

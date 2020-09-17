@@ -941,6 +941,17 @@ JSClass("UITextField", UIControl, {
         return this.text;
     },
 
+    getAccessibilityLabel: function(){
+        var label = UITextField.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this.placeholder !== null){
+            return this.placeholder;
+        }
+        return null;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - UITextInput Protocol
 

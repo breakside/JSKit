@@ -123,6 +123,7 @@ JSClass("UISegmentedControl", UIControl, {
             this._items[i].index = i;
         }
         this._insertItemViewAtIndex(index);
+        this.postAccessibilityElementCreatedNotification(item);
     },
 
     removeSegmentAtIndex: function(index){
@@ -137,6 +138,7 @@ JSClass("UISegmentedControl", UIControl, {
             this._items[i].index = i;
         }
         this._removeItemViewAtIndex(index);
+        this.postAccessibilityElementDestroyedNotification(item);
     },
 
     removeAllSegments: function(){
@@ -311,7 +313,7 @@ JSClass("UISegmentedControl", UIControl, {
     accessibilityRole: UIAccessibility.Role.tabGroup,
 
     getAccessibilityElements: function(){
-        return this.items;
+        return this._items;
     },
 
 });
@@ -352,6 +354,7 @@ JSClass("UISegmentedControlItem", JSObject, {
     // Role
     accessibilityRole: UIAccessibility.Role.button,
     accessibilitySubrole: UIAccessibility.Subrole.tab,
+    accessibilityResponder: JSReadOnlyProperty(),
 
     // Label
     accessibilityIdentifier: null,
@@ -383,7 +386,6 @@ JSClass("UISegmentedControlItem", JSObject, {
         return null;
     },
 
-
     getAccessibilityFrame: function(){
         var view = this._segmentedControl.viewForItem(this);
         if (view !== null){
@@ -396,11 +398,15 @@ JSClass("UISegmentedControlItem", JSObject, {
         return this._segmentedControl;
     },
 
-    getAccesssibilityLabel: function(){
+    getAccessibilityLabel: function(){
         if (this._accessibilityLabel !== null){
             return this._accessibilityLabel;
         }
         return this.title;
+    },
+
+    getAccessibilityResponder: function(){
+        return this._segmentedControl.viewForItem(this);
     },
 
     getAccessibilitySelected: function(){
@@ -482,34 +488,6 @@ JSClass("UISegmentedControlItemView", UIView, {
 
     isLast: function(){
         return this.index === this.segmentControl._items.length - 1;
-    },
-
-    isAccessibilityElement: true,
-
-    accessibilityRole: JSReadOnlyProperty(),
-
-    getAccessibilityRole: function(){
-        return this.item.accessibilityRole;
-    },
-
-    accessibilitySubrole: JSReadOnlyProperty(),
-
-    getAccessibilitySubrole: function(){
-        return this.item.accessibilitySubrole;
-    },
-
-    getAccessibilityLabel: function(){
-        return this.item.accessibilityLabel;
-    },
-
-    accessibilitySelected: JSReadOnlyProperty(),
-
-    getAccessibilitySelected: function(){
-        return this.item.accessibilitySelected;
-    },
-
-    getAccessibilityElements: function(){
-        return [];
     },
 
     // MARK: - Responder
