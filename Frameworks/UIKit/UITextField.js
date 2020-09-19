@@ -855,52 +855,54 @@ JSClass("UITextField", UIControl, {
     _isHandlingMouseDown: false,
 
     mouseDown: function(event){
-        if (!this.enabled){
-            return UITextField.$super.mouseDown.call(this, event);
+        if (this.enabled){
+            this._isHandlingMouseDown = true;
+            if (!this.isFirstResponder()){
+                this.window.firstResponder = this;
+            }
+            this._isHandlingMouseDown = false;
+            var location = event.locationInView(this);
+            this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        this._isHandlingMouseDown = true;
-        if (!this.isFirstResponder()){
-            this.window.firstResponder = this;
-        }
-        this._isHandlingMouseDown = false;
-        var location = event.locationInView(this);
-        this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
-            return UITextField.$super.mouseDragged.call(this, event);
-        }
-        if (!this._isDragging){
-            this.cursor.push();
-        }
-        this._isDragging = true;
-        var location = event.locationInView(this);
-        this._lastDragLocation = location;
-        this._lastDragEvent = event;
-        var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x - this._textInsets.right);
-        if (distanceFromRightEdge < this._boundsScrollThreshold){
-            this._boundsScrollDistance = this._boundsScrollThreshold - distanceFromRightEdge;
-        }else if (location.x - this.textInsets.left <= this._boundsScrollThreshold){
-            this._boundsScrollDistance = Math.max(location.x - this.textInsets.left, 0) - this._boundsScrollThreshold;
-        }else{
-            this._boundsScrollDistance = 0;
-        }
-        if (this._boundsScrollDistance === 0){
-            if (this._boundsScrollTimer !== null){
-                this._boundsScrollTimer.invalidate();
-                this._boundsScrollTimer = null;
+        if (this.enabled){
+            if (!this._isDragging){
+                this.cursor.push();
             }
-        }else{
-            if (this._boundsScrollTimer === null){
-                this._boundsScrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._boundsScrollInterval, function(){
-                    this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
-                    this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
-                    this._adjustCursorPositionToVisibleIfNeeded();
-                }, this);
+            this._isDragging = true;
+            var location = event.locationInView(this);
+            this._lastDragLocation = location;
+            this._lastDragEvent = event;
+            var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x - this._textInsets.right);
+            if (distanceFromRightEdge < this._boundsScrollThreshold){
+                this._boundsScrollDistance = this._boundsScrollThreshold - distanceFromRightEdge;
+            }else if (location.x - this.textInsets.left <= this._boundsScrollThreshold){
+                this._boundsScrollDistance = Math.max(location.x - this.textInsets.left, 0) - this._boundsScrollThreshold;
+            }else{
+                this._boundsScrollDistance = 0;
             }
+            if (this._boundsScrollDistance === 0){
+                if (this._boundsScrollTimer !== null){
+                    this._boundsScrollTimer.invalidate();
+                    this._boundsScrollTimer = null;
+                }
+            }else{
+                if (this._boundsScrollTimer === null){
+                    this._boundsScrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._boundsScrollInterval, function(){
+                        this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
+                        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
+                        this._adjustCursorPositionToVisibleIfNeeded();
+                    }, this);
+                }
+            }
+            this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
@@ -914,11 +916,51 @@ JSClass("UITextField", UIControl, {
             this._boundsScrollTimer.invalidate();
             this._boundsScrollTimer = null;
         }
-        if (!this.enabled){
-            return UITextField.$super.mouseUp.call(this, event);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        var location = event.locationInView(this);
-        this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            if (!this.isFirstResponder()){
+                this.window.firstResponder = this;
+            }
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            return;
+        }
+        UITextField.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesMovedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            return;
+        }
+        UITextField.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesEnded(touches, event);
+            return;
+        }
+        UITextField.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesCanceled(touches, event);
+            return;
+        }
+        UITextField.$super.touchesCanceled.call(this, touches, event);
     },
 
     _sanitizedText: function(text){
@@ -971,6 +1013,12 @@ JSClass("UITextField", UIControl, {
                 this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
                 this._didChange = false;
             }
+        }
+    },
+
+    insertLineBreak: function(){
+        if (this.multiline){
+            this._localEditor.insertLineBreak();
         }
     },
 
@@ -1096,7 +1144,19 @@ JSClass("UITextField", UIControl, {
 
     selectAll: function(){
         this._localEditor.selectAll();
-    }
+    },
+
+    textInputLayer: function(){
+        return this.layer;
+    },
+
+    textInputLayoutManager: function(){
+        return this._textLayer.textLayoutManager;
+    },
+
+    textInputSelections: function(){
+        return this.selections;
+    },
 
 });
 
@@ -1155,7 +1215,7 @@ JSClass("UITextFieldStyler", UIControlStyler, {
 
     _commonStylerInit: function(){
         if (this.localCursorColor === null){
-            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
+            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1);
         }
     },
 

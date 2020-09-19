@@ -1077,7 +1077,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     updateAccessibilityFocus: function(accessibility){
-        this.element.focus();
+        // this.element.focus();
         // if (focusedAccessibility === null || focusedAccessibility === undefined){
         //     this.element.removeAttribute("aria-activedescendant");
         // }else{

@@ -592,7 +592,7 @@ topics:
     members:
       -
         name: selections
-        type: UITextEditorSelection[]
+        type: UITextInputSelection[]
         summary: The ranges of text that are currently selected
       -
         name: setSelectionRange
@@ -605,11 +605,11 @@ topics:
             summary: The range of the text to select
           -
             name: insertionPoint
-            type: UITextEditor.SelectionInsertionPoint
+            type: UITextInput.SelectionInsertionPoint
             summary: Where the cursor should be placed in the selection
           -
             name: affinity
-            type: UITextEditor.SelectionAffinity
+            type: UITextInput.SelectionAffinity
             summary: Controls how the selection behaves at line breaks
       -
         name: setSelectionRanges
@@ -622,11 +622,11 @@ topics:
             summary: The ranges of the text to select
           -
             name: insertionPoint
-            type: UITextEditor.SelectionInsertionPoint
+            type: UITextInput.SelectionInsertionPoint
             summary: Where the cursor should be placed in the selection
           -
             name: affinity
-            type: UITextEditor.SelectionAffinity
+            type: UITextInput.SelectionAffinity
             summary: Controls how the selection behaves at line breaks
   -
     name: Actions

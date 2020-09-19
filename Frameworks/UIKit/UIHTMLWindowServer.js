@@ -19,7 +19,7 @@
 // #import "UIScreen.js"
 // #import "UIWindowServer.js"
 // #import "UIHTMLDisplayServer.js"
-// #import "UIHTMLTextInputManager.js"
+// #import "UIHTMLContentEditableTextInputManager.js"
 // #import "UIPlatform.js"
 // #import "UIOpenPanel.js"
 // #feature Element.prototype.addEventListener
@@ -49,7 +49,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.startObservingAccessibilityNotifications();
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.displayServer._windowServer = this;
-        this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
+        this.textInputManager = UIHTMLContentEditableTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(JSPoint.Zero, this.rootElementSize()), this.domDocument.defaultView.devicePixelRatio || 1);
         this.displayServer.setScreenSize(this.screen.frame.size);

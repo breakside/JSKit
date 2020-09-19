@@ -58,7 +58,6 @@ JSClass("UITextLayer", UILayer, {
     _textStorage: null,
     textLayoutManager: JSReadOnlyProperty('_textLayoutManager', null),
     textContainer: JSReadOnlyProperty('_textContainer', null),
-    _hasSetDisplayFramesetter: false,
 
     // MARK: - Creating a UITextLayer
 

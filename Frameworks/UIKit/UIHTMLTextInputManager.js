@@ -151,18 +151,18 @@ JSClass('UIHTMLTextInputManager', UITextInputManager, {
     },
 
     _ensureCorrectFocus: function(){
-        // if (this.textInputClient){
-        //     this._config = UIHTMLTextInputManager._HiddenConfig;
-        //     if (!this._isFocused){
-        //         this.hiddenInputElement.focus();
-        //     }
-        //     // FIXME: what if _isComposing is true?  The old responder needs to be told to stop
-        //     this._reset();
-        // }else{
-        //     if (this._isFocused){
-        //         this.hiddenInputElement.blur();
-        //     }
-        // }
+        if (this.textInputClient){
+            this._config = UIHTMLTextInputManager._HiddenConfig;
+            if (!this._isFocused){
+                this.hiddenInputElement.focus();
+            }
+            // FIXME: what if _isComposing is true?  The old responder needs to be told to stop
+            this._reset();
+        }else{
+            if (this._isFocused){
+                this.hiddenInputElement.blur();
+            }
+        }
     },
 
     handleEvent: function(e){

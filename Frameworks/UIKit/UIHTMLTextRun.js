@@ -220,7 +220,14 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             return rects[1];
         }
         return rects[0];
-    }
+    },
+
+    domSelectionPointForCharacterAtIndex: function(index){
+        if (this.textNode === null){
+            return {node: this.element, offset: index > this.range.location ? 1 : 0};
+        }
+        return {node: this.textNode, offset: index - this.range.location};
+    },
 
 });
 

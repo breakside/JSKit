@@ -264,24 +264,77 @@ JSClass("UISegmentedControl", UIControl, {
     // MARK: - Responder
 
     mouseDown: function(event){
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        this._activateSegmentAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        this._activateSegmentAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
         this._activateSegmentAtIndex(null);
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        if (segmentIndex !== null){
-            this._selectItemViewAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            if (segmentIndex !== null){
+                this._selectItemViewAtIndex(segmentIndex);
+            }
+            return;
         }
+        UISegmentedControl.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControlItemView.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        this._activateSegmentAtIndex(null);
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            if (segmentIndex !== null){
+                this._selectItemViewAtIndex(segmentIndex);
+            }
+            return;
+        }
+        UISegmentedControl.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        this._activateSegmentAtIndex(null);
+        if (this.enabled){
+            return;
+        }
+        UISegmentedControl.$super.touchesCanceled.call(this, touches, event);
     },
 
     _enabledSegmentIndexAtLocation: function(location){

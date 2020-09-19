@@ -15,6 +15,7 @@
 
 // #import Foundation
 // #import "UILayer.js"
+// #import "UITextInput.js"
 'use strict';
 
 (function(){
@@ -49,7 +50,7 @@ JSClass("UITextEditor", JSObject, {
         this.textLayoutManager.editor = this;
         this.cursorColor = JSColor.black;
         this.selections = [
-            this._createSelection(JSRange(0, 0), UITextEditor.SelectionInsertionPoint.end)
+            this._createSelection(JSRange(0, 0), UITextInput.SelectionInsertionPoint.end)
         ];
     },
 
@@ -142,9 +143,9 @@ JSClass("UITextEditor", JSObject, {
         }else{
             this._handledSelectOnMouseDown = true;
             var range = null;
-            var affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+            var affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
             var selection = this._createSelectionAtLocation(location);
-            var index = selection.range.location - (selection.affinity == UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0);
+            var index = selection.range.location - (selection.affinity == UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0);
             if (event.clickCount === 2){
                 range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(index);
                 affinity = selection.affinity;
@@ -152,7 +153,7 @@ JSClass("UITextEditor", JSObject, {
                 range = this.textLayoutManager.textStorage.string.rangeForLineAtIndex(index);
             }
             if (range !== null){
-                selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end, affinity);
+                selection = this._createSelection(range, UITextInput.SelectionInsertionPoint.end, affinity);
                 this._insertSelection(selection);
             }
             this._cursorOn();
@@ -165,19 +166,19 @@ JSClass("UITextEditor", JSObject, {
             this.selections.splice(this._draggingSelectionIndex, 1);
             var newSelection = this._createSelectionAtLocation(location);
             draggingSelection.affinity = newSelection.affinity;
-            if (draggingSelection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+            if (draggingSelection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 if (newSelection.range.location < draggingSelection.range.end){
                     draggingSelection.range = JSRange(newSelection.range.location, draggingSelection.range.end - newSelection.range.location);
                 }else{
                     draggingSelection.range = JSRange(draggingSelection.range.end, newSelection.range.location - draggingSelection.range.end);
-                    draggingSelection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+                    draggingSelection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
                 }
             }else{
                 if (newSelection.range.location >= draggingSelection.range.location){
                     draggingSelection.range = JSRange(draggingSelection.range.location, newSelection.range.location - draggingSelection.range.location);
                 }else{
                     draggingSelection.range = JSRange(newSelection.range.location, draggingSelection.range.location - newSelection.range.location);
-                    draggingSelection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+                    draggingSelection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
                 }
             }
             this._draggingSelectionIndex = this._insertSelection(draggingSelection);
@@ -193,6 +194,20 @@ JSClass("UITextEditor", JSObject, {
             this._setSingleSelectionAtLocation(location);
         }
         this._draggingSelection = null;
+    },
+
+    handleTouchesBeganAtLocation: function(location, touches, event){
+        this._setSingleSelectionAtLocation(location);
+    },
+
+    handleTouchesMovedAtLocation: function(location, touches, event){
+        this._setSingleSelectionAtLocation(location);
+    },
+
+    handleTouchesEnded: function(touches, event){
+    },
+
+    handleTouchesCanceled: function(touches, event){
     },
 
     didBecomeFirstResponder: function(isWindowKey, shouldSelect){
@@ -277,7 +292,7 @@ JSClass("UITextEditor", JSObject, {
     _cursorRectForSelection: function(selection){
         var index = selection.insertionLocation;
         var useRightEdge = false;
-        if (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter && selection.insertionLocation > 0){
+        if (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter && selection.insertionLocation > 0){
             index -= 1;
             useRightEdge = true;
         }
@@ -409,14 +424,14 @@ JSClass("UITextEditor", JSObject, {
                 var iterator = this.textLayoutManager.textStorage.string.userPerceivedCharacterIterator(index - 1);
                 if (iterator.isMandatoryLineBreak){
                     index = iterator.range.location;
-                    affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }
             }
             if (affinity === undefined){
-                affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
             }
         }
-        var selection = this._createSelection(JSRange(index, 0), UITextEditor.SelectionInsertionPoint.end, affinity);
+        var selection = this._createSelection(JSRange(index, 0), UITextInput.SelectionInsertionPoint.end, affinity);
         return selection;
     },
 
@@ -519,7 +534,7 @@ JSClass("UITextEditor", JSObject, {
 
     _resetSelectionAffinity: function(){
         for (var i = 0, l = this.selections.length; i < l; ++i){
-            this.selections[i].affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+            this.selections[i].affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
         }
     },
 
@@ -586,6 +601,10 @@ JSClass("UITextEditor", JSObject, {
     },
 
     insertNewline: function(){
+        this.insertText("\n");
+    },
+
+    insertLineBreak: function(){
         this.insertText("\n");
     },
 
@@ -827,10 +846,10 @@ JSClass("UITextEditor", JSObject, {
         var cursorX;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
-            lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.location - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
+            lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.location - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.decrement();
             if (lineEnumerator.line !== null){
@@ -842,16 +861,16 @@ JSClass("UITextEditor", JSObject, {
                     var iterator = textStorage.string.userPerceivedCharacterIterator(selection.range.location - 1);
                     if (iterator.isMandatoryLineBreak){
                         selection.range = JSRange(iterator.index, 0);
-                        selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                     }else{
-                        selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                     }
                 }else{
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }
             }else{
                 selection.range = JSRange.Zero;
-                selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
             }
         }
         this._collapseOverlappingSelections();
@@ -912,10 +931,10 @@ JSClass("UITextEditor", JSObject, {
                 var iterator = textStorage.string.userPerceivedCharacterIterator(line.range.end - 1);
                 if (iterator.isMandatoryLineBreak){
                     selection.range = JSRange(iterator.index, 0);
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }else{
                     selection.range = JSRange(line.range.end, 0);
-                    selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                 }
             }
         }
@@ -936,10 +955,10 @@ JSClass("UITextEditor", JSObject, {
         var lineEnumerator;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
-            lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.end - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
+            lineEnumerator = this.textLayoutManager.lineEnumerator(selection.range.end - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.increment();
             if (lineEnumerator.line !== null){
@@ -951,16 +970,16 @@ JSClass("UITextEditor", JSObject, {
                     var iterator = textStorage.string.userPerceivedCharacterIterator(selection.range.location - 1);
                     if (iterator.isMandatoryLineBreak){
                         selection.range = JSRange(iterator.index, 0);
-                        selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                     }else{
-                        selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                     }
                 }else{
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }
             }else{
                 selection.range = this._sanitizedRange(JSRange(line.range.end, 0));
-                selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
             }
         }
         this._collapseOverlappingSelections();
@@ -980,7 +999,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.length > 0 && selection.insertionPoint == UITextEditor.SelectionInsertionPoint.end){
+            if (selection.range.length > 0 && selection.insertionPoint == UITextInput.SelectionInsertionPoint.end){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.end - 1);
                 selection.range.length -= perceivedCharacterRange.length;
             }else{
@@ -988,7 +1007,7 @@ JSClass("UITextEditor", JSObject, {
                     perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
                     selection.range = JSRange(perceivedCharacterRange.location, perceivedCharacterRange.length + selection.range.length);
                 }
-                selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+                selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
             }
         }
         this._collapseOverlappingSelections();
@@ -1005,14 +1024,14 @@ JSClass("UITextEditor", JSObject, {
         var end;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+            if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 end = selection.range.end;
             }else{
                 end = selection.range.location;
             }
             indexOfPreviousWord = textStorage.string.indexOfWordStartBeforeIndex(selection.range.location);
             selection.range = JSRange(indexOfPreviousWord, end - indexOfPreviousWord);
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
         }
         this._collapseOverlappingSelections();
         this._resetSelectionAffinity();
@@ -1029,14 +1048,14 @@ JSClass("UITextEditor", JSObject, {
             selection = this.selections[i];
             line = this._lineForSelectionStart(selection);
             if (line !== null){
-                if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+                if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                     end = selection.range.end;
                 }else{
                     end = selection.range.location;
                 }
                 selection.range = JSRange(line.range.location, end - line.range.location);
             }
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
         }
         this._collapseOverlappingSelections();
         this._resetSelectionAffinity();
@@ -1058,7 +1077,7 @@ JSClass("UITextEditor", JSObject, {
             selection = this.selections[i];
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
-            lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
+            lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextInput.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.decrement();
             if (lineEnumerator.line !== null){
@@ -1069,31 +1088,31 @@ JSClass("UITextEditor", JSObject, {
                     var iterator = textStorage.string.userPerceivedCharacterIterator(index - 1);
                     if (iterator.isMandatoryLineBreak){
                         index = iterator.index;
-                        selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                     }else{
-                        selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                     }
                 }else{
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }
-                if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+                if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                     selection.range = JSRange(index, selection.range.end - index);
                 }else{
                     if (index >= selection.range.location){
                         selection.range = JSRange(selection.range.location, index - selection.range.location);
                     }else{
                         selection.range = JSRange(index, selection.range.location - index);
-                        selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+                        selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
                     }
                 }
             }else{
-                if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+                if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                     selection.range = JSRange(0, selection.range.end);
                 }else{
                     selection.range = JSRange(0, selection.range.location);
                 }
-                selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
-                selection.insertionPoint = UITextEditor.SelectionInsertionPoint.start;
+                selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
+                selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
             }
         }
         this._collapseOverlappingSelections();
@@ -1104,12 +1123,12 @@ JSClass("UITextEditor", JSObject, {
     moveToBeginningOfDocumentAndModifySelection: function(){
         var finalSelection = this.selections[this.selections.length - 1];
         var end;
-        if (finalSelection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+        if (finalSelection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
             end = finalSelection.range.end;
         }else{
             end = finalSelection.range.location;
         }
-        var selection = this._createSelection(JSRange(0, end), UITextEditor.SelectionInsertionPoint.start);
+        var selection = this._createSelection(JSRange(0, end), UITextInput.SelectionInsertionPoint.start);
         this._setSingleSelection(selection);
         this.layout();
         this._cursorOn();
@@ -1121,7 +1140,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.range.length > 0 && selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+            if (selection.range.length > 0 && selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
                 selection.range.advance(perceivedCharacterRange.length);
             }else{
@@ -1129,7 +1148,7 @@ JSClass("UITextEditor", JSObject, {
                     perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.end);
                     selection.range = JSRange(selection.range.location, perceivedCharacterRange.length + selection.range.length);
                 }
-                selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+                selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
             }
         }
         this._collapseOverlappingSelections();
@@ -1146,14 +1165,14 @@ JSClass("UITextEditor", JSObject, {
         var start;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
-            if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+            if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 start = selection.range.end;
             }else{
                 start = selection.range.location;
             }
             nextWordIndex = textStorage.string.indexOfWordEndAfterIndex(selection.range.end);
             selection.range = JSRange(start, nextWordIndex - start);
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
         }
         this._collapseOverlappingSelections();
         this._resetSelectionAffinity();
@@ -1169,7 +1188,7 @@ JSClass("UITextEditor", JSObject, {
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
             line = this._lineForSelectionEnd(selection);
-            if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+            if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 start = selection.range.end;
             }else{
                 start = selection.range.location;
@@ -1178,13 +1197,13 @@ JSClass("UITextEditor", JSObject, {
                 var iterator = textStorage.string.userPerceivedCharacterIterator(line.range.end - 1);
                 if (iterator.isMandatoryLineBreak){
                     selection.range = JSRange(start, iterator.index - start);
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }else{
                     selection.range = JSRange(start, line.range.end - start);
-                    selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                 }
             }
-            selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+            selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
         }
         this._collapseOverlappingSelections();
         this.layout();
@@ -1205,7 +1224,7 @@ JSClass("UITextEditor", JSObject, {
             selection = this.selections[i];
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
-            lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextEditor.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
+            lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextInput.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
             line = lineEnumerator.line;
             lineEnumerator.increment();
             if (lineEnumerator.line !== null){
@@ -1216,31 +1235,31 @@ JSClass("UITextEditor", JSObject, {
                     var iterator = textStorage.string.userPerceivedCharacterIterator(index - 1);
                     if (iterator.isMandatoryLineBreak){
                         index = iterator.index;
-                        selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                     }else{
-                        selection.affinity = UITextEditor.SelectionAffinity.afterPreviousCharacter;
+                        selection.affinity = UITextInput.SelectionAffinity.afterPreviousCharacter;
                     }
                 }else{
-                    selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                    selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
                 }
-                if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.end){
+                if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.end){
                     selection.range = JSRange(selection.range.location, index - selection.range.location);
                 }else{
                     if (index < selection.range.end){
                         selection.range = JSRange(index, selection.range.end - index);
                     }else{
                         selection.range = JSRange(selection.range.end, index - selection.range.end);
-                        selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
+                        selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
                     }
                 }
             }else{
-                if (selection.insertionPoint == UITextEditor.SelectionInsertionPoint.end){
+                if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.end){
                     selection.range = this._sanitizedRange(JSRange(selection.range.location, line.range.end - selection.range.location));
                 }else{
                     selection.range = this._sanitizedRange(JSRange(selection.range.end), line.range.end - selection.range.end);
                 }
-                selection.insertionPoint = UITextEditor.SelectionInsertionPoint.end;
-                selection.affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
+                selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
+                selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
             }
         }
         this._collapseOverlappingSelections();
@@ -1252,13 +1271,13 @@ JSClass("UITextEditor", JSObject, {
         var textStorage = this.textLayoutManager.textStorage;
         var firstSelection = this.selections[0];
         var start;
-        if (firstSelection.insertionPoint == UITextEditor.SelectionInsertionPoint.start){
+        if (firstSelection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
             start = firstSelection.range.end;
         }else{
             start = firstSelection.range.location;
         }
         var range = JSRange(start, textStorage.string.length - start);
-        var selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end);
+        var selection = this._createSelection(range, UITextInput.SelectionInsertionPoint.end);
         this._setSingleSelection(selection);
         this.layout();
         this._cursorOn();
@@ -1267,89 +1286,28 @@ JSClass("UITextEditor", JSObject, {
     selectAll: function(){
         var textStorage = this.textLayoutManager.textStorage;
         var range = JSRange(0, textStorage.string.length);
-        var selection = this._createSelection(range, UITextEditor.SelectionInsertionPoint.end);
+        var selection = this._createSelection(range, UITextInput.SelectionInsertionPoint.end);
         this._setSingleSelection(selection);
     },
 
     _createSelection: function(range, insertionPoint, affinity){
         range = this._sanitizedRange(range);
-        var selection = UITextEditorSelection(range, insertionPoint, affinity);
+        var selection = UITextInputSelection(range, insertionPoint, affinity);
         return selection;
     },
 
     _lineForSelectionStart: function(selection){
-        if (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter && selection.range.location > 0){
+        if (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter && selection.range.location > 0){
             return this.textLayoutManager.lineForCharacterAtIndex(selection.range.location - 1);
         }
         return this.textLayoutManager.lineForCharacterAtIndex(selection.range.location);
     },
 
     _lineForSelectionEnd: function(selection){
-        if (selection.affinity === UITextEditor.SelectionAffinity.afterPreviousCharacter && selection.range.end > 0){
+        if (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter && selection.range.end > 0){
             return this.textLayoutManager.lineForCharacterAtIndex(selection.range.end - 1);
         }
         return this.textLayoutManager.lineForCharacterAtIndex(selection.range.end);
-    }
-
-});
-
-UITextEditor.SelectionInsertionPoint = {
-    start: 0,
-    end: 1
-};
-
-UITextEditor.SelectionAffinity = {
-    beforeCurrentCharacter: 0,
-    afterPreviousCharacter: 1
-};
-
-var UITextEditorSelection = function(range, insertionPoint, affinity){
-    if (this === undefined){
-        if (range === null){
-            return null;
-        }
-        return new UITextEditorSelection(range, insertionPoint, affinity);
-    }else{
-        if (range instanceof UITextEditorSelection){
-            this.range = JSRange(range.range);
-            this.insertionPoint = range.insertionPoint;
-            this.affinity = range.affinity;
-        }else{
-            if (insertionPoint === undefined){
-                insertionPoint = UITextEditor.SelectionInsertionPoint.end;
-            }
-            if (affinity === undefined){
-                affinity = UITextEditor.SelectionAffinity.beforeCurrentCharacter;
-            }
-            this.range = JSRange(range);
-            this.insertionPoint = insertionPoint;
-            this.affinity = affinity;
-        }
-    }
-};
-
-UITextEditorSelection.prototype = {
-
-    range: null,
-    insertionPoint: null,
-    affinity: null,
-
-    containsIndex: function(index){
-        return this.range.length > 0 && this.range.contains(index);
-    },
-
-};
-
-Object.defineProperties(UITextEditorSelection.prototype, {
-
-    insertionLocation: {
-        get: function UITextEditorSelection_getInsertionIndex(){
-            var location = this.range.location;
-            if (this.insertionPoint === UITextEditor.SelectionInsertionPoint.end){
-                location += this.range.length;
-            }
-            return location;
-        }
     }
 
 });
