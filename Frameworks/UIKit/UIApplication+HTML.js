@@ -86,6 +86,7 @@ UIApplication.definePropertiesFromExtensions({
     _event_error: function(e){
         var error = e.error;
         if (e.filename.startsWith(this._baseURL.encodedString)){
+            logger.info("uncaught error");
             e.preventDefault();
             this._crash(error);
         }
@@ -95,7 +96,11 @@ UIApplication.definePropertiesFromExtensions({
         var error = e.reason;
         if (error instanceof Error){
             var frames = error.frames;
-            if (frames.length === 0 || frames[0].filename.startsWith(this._baseURL.encodedString)){
+            if (frames.length === 0){
+                logger.info("unhandledrejection without stacktrace, logging and continuing...");
+                logger.error(error);
+            }else if (frames[0].filename.startsWith(this._baseURL.encodedString)){
+                logger.info("unhandledrejection");
                 e.preventDefault();
                 this._crash(error);
             }
