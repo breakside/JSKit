@@ -130,7 +130,11 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         }else{
             logger.info("adding remote candidate, %{public} @%{public}:%d, for participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
         }
-        this.htmlPeerConnection.addIceCandidate(candidate);
+        try{
+            this.htmlPeerConnection.addIceCandidate(candidate);
+        }catch (e){
+            logger.error("Failed to addIceCandidate: %{error}", e);
+        }
     },
 
     _localStream: null,
