@@ -77,29 +77,33 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     },
 
     sendLocalDescription: function(){
-        var descriptionPromise;
-        switch (this.htmlPeerConnection.signalingState){
-            case "stable":
-            case "have-local-offer":
-            case "have-remote-pranswer":
-                logger.info("creating local description offer to participant %d", this.participant.number);
-                descriptionPromise = this.htmlPeerConnection.createOffer();
-                break;
-            default:
-                logger.info("creating local description answer to participant %d", this.participant.number);
-                descriptionPromise = this.htmlPeerConnection.createAnswer();
-                break;
+        try{
+            var descriptionPromise;
+            switch (this.htmlPeerConnection.signalingState){
+                case "stable":
+                case "have-local-offer":
+                case "have-remote-pranswer":
+                    logger.info("creating local description offer to participant %d", this.participant.number);
+                    descriptionPromise = this.htmlPeerConnection.createOffer();
+                    break;
+                default:
+                    logger.info("creating local description answer to participant %d", this.participant.number);
+                    descriptionPromise = this.htmlPeerConnection.createAnswer();
+                    break;
+            }
+            var connection = this;
+            descriptionPromise.then(function(description){
+                return connection.htmlPeerConnection.setLocalDescription(description);
+            }).then(function(){
+                var description = CKSessionDescription.initWithHTMLDescription(connection.htmlPeerConnection.localDescription);
+                logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
+                connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
+            }).catch(function(error){
+                logger.error("Failed to set local description, promise rejected with: %{error}", error);
+            });
+        }catch (e){
+            logger.error("Failed to set local description, threw: %{error}", e);
         }
-        var connection = this;
-        descriptionPromise.then(function(description){
-            return connection.htmlPeerConnection.setLocalDescription(description);
-        }).then(function(){
-            var description = CKSessionDescription.initWithHTMLDescription(connection.htmlPeerConnection.localDescription);
-            logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
-            connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
-        }).catch(function(error){
-            logger.error(error);
-        });
     },
 
     updateDescription: function(description){
@@ -112,10 +116,10 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
                     connection.sendLocalDescription();
                 }
             }, function(error){
-                logger.error(error);
+                logger.error("Failed to set remote description, promise rejected with: %{error}", error);
             });
         }catch (e){
-            logger.error(e);
+            logger.error("Failed to set remote description, threw: %{error}", e);
             return;   
         }
     },
