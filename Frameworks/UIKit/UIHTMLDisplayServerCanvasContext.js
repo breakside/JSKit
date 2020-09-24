@@ -942,9 +942,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.element.addEventListener("focus", this.accessibilityFocusListener);
                 this.element.addEventListener("mousedown", this.accessibilityMousedownListener);
                 break;
-            // case "application":
-            //     this.element.setAttribute("tabindex", "0");
-            //     break;
         }
         this.updateAccessibilityLabel(accessibility);
         this.updateAccessibilityValue(accessibility);
@@ -952,6 +949,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.updateAccessibilityExpanded(accessibility);
         this.updateAccessibilityHidden(accessibility);
         this.updateAccessibilityEnabled(accessibility);
+        this.updateAccessibilityMultiline(accessibility);
         var menu = accessibility.accessibilityMenu;
         if (menu !== null && menu !== undefined){
             this.element.setAttribute("aria-haspopup", "menu");
@@ -970,6 +968,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     updateAccessibilityLabel: function(accessibility){
+        // FIXME: Once browsers support aria-description (slated for ARIA-1.3),
+        // hint should go there
         var label = accessibility.accessibilityLabel;
         var hint = accessibility.accessibilityHint;
         if (hint !== null && hint !== undefined){
@@ -1076,8 +1076,17 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
     },
 
+    updateAccessibilityMultiline: function(accessibility){
+        var multiline = accessibility.accessibilityMultiline;
+        if (multiline === true){
+            this.element.setAttribute("aria-multiline", "true");
+        }else{
+            this.element.removeAttribute("aria-multiline");
+        }
+    },
+
     updateAccessibilityFocus: function(accessibility){
-        // this.element.focus();
+        this.element.focus();
         // if (focusedAccessibility === null || focusedAccessibility === undefined){
         //     this.element.removeAttribute("aria-activedescendant");
         // }else{

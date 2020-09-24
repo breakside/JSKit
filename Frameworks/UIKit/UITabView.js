@@ -219,6 +219,13 @@ JSClass("UITabView", UIView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Responder
+
+    setNextKeyView: function(nextKeyView){
+        // TODO: depends on styler
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Accessibility
 
     isAccessibilityElement: true,

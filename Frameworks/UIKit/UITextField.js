@@ -979,6 +979,8 @@ JSClass("UITextField", UIControl, {
 
     accessibilityValue: JSReadOnlyProperty(),
 
+    accessibilityMultiline: JSReadOnlyProperty(),
+
     getAccessibilityValue: function(){
         return this.text;
     },
@@ -992,6 +994,10 @@ JSClass("UITextField", UIControl, {
             return this.placeholder;
         }
         return null;
+    },
+
+    getAccessibilityMultiline: function(){
+        return this._multiline;
     },
 
     // --------------------------------------------------------------------

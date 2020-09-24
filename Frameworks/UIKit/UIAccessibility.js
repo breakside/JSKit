@@ -32,6 +32,7 @@ JSProtocol("UIAccessibility", JSProtocol, {
     accessibilityOrientation: null,
     accessibilityEnabled: false,
     accessibilityLevel: null,
+    accessibilityMulitline: null,
 
     // Children
     accessibilityParent: null,

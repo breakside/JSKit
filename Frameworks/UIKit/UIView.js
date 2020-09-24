@@ -939,6 +939,7 @@ JSClass('UIView', UIResponder, {
     accessibilityExpanded: null,
     accessibilityEnabled: null,
     accessibilityLevel: null,
+    accessibilityMultiline: null,
 
     // Children
     accessibilityParent: null,
