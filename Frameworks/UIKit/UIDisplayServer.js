@@ -76,7 +76,13 @@ JSClass("UIDisplayServer", JSObject, {
         }
     },
 
+    stopped: false,
+
     stop: function(){
+        if (!this.stopped){
+            return;
+        }
+        this.stopped = true;
         Object.defineProperty(this, 'setUpdateNeeded', {
             value: function UIDisplayServer_setUpdateNeeded_stopped(){}
         });
