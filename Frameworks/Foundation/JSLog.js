@@ -203,7 +203,7 @@ JSLog.dump = function(){
     }
 };
 
-JSLog.buffer = JSLogBuffer(100);
+JSLog.buffer = JSLogBuffer(200);
 
 var jslog_formatter = {
 
