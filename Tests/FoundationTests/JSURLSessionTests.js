@@ -33,7 +33,7 @@ JSClass("JSURLSessionTests", TKTestSuite, {
             TKAssert(html.endsWith("</html>"));
         });
         task.resume();
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     }
 
 });
