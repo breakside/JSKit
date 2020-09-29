@@ -18,21 +18,13 @@
 
 JSClass("CKTURNService", JSObject, {
 
-    initWithHost: function(host, port, username, password){
-        var url = JSURL.init();
-        url.scheme = "turn";
-        url.host = host;
-        url.port = port;
-        this.initWithURL(url, username, password);
-    },
-
-    initWithURL: function(url, username, password){
-        this.url = url;
+    initWithURLs: function(urls, username, password){
+        this.urls = JSCopy(urls);
         this.username = username || null;
         this.password = password || null;
     },
 
-    url: null,
+    urls: null,
     username: null,
     password: null
 

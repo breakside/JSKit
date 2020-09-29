@@ -43,14 +43,21 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         for (var i = 0, l = this.call.turnServices.length; i < l; ++i){
             service = this.call.turnServices[i];
             iceServer = {
-                urls: [service.url.encodedString]
+                urls: []
             };
+            for (var j = 0, k = service.urls.length; j < k; ++j){
+                iceServer.urls.push(service.urls[j]);
+            }
             if (service.username !== null && service.password !== null){
                 iceServer.credentialType = "password";
                 iceServer.username = service.username;
                 iceServer.credential = service.password;
             }
-            configuration.iceServers.push(iceServer);
+            if (iceServer.urls.length > 0){
+                configuration.iceServers.push(iceServer);   
+            }else{
+                logger.error("No URLs for TURN service");
+            }
         }
         this.isCaller = isCaller;
         this._expectedVideoUnmutes = 1;
@@ -95,9 +102,14 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             descriptionPromise.then(function(description){
                 return connection.htmlPeerConnection.setLocalDescription(description);
             }).then(function(){
-                var description = CKSessionDescription.initWithHTMLDescription(connection.htmlPeerConnection.localDescription);
-                logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
-                connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
+                var htmlDescription = connection.htmlPeerConnection.localDescription;
+                if (htmlDescription !== null){
+                    var description = CKSessionDescription.initWithHTMLDescription(htmlDescription);
+                    logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
+                    connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
+                }else{
+                    logger.warn("null local description after setLocalDescription");
+                }
             }).catch(function(error){
                 logger.error("Failed to set local description, promise rejected with: %{error}", error);
             });
@@ -131,7 +143,10 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             logger.info("adding remote candidate, %{public} @%{public}:%d, for participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
         }
         try{
-            this.htmlPeerConnection.addIceCandidate(candidate);
+            this.htmlPeerConnection.addIceCandidate(candidate).then(function(){
+            }, function(error){
+                logger.error("addIceCandidate failed: %{error}", error);
+            });
         }catch (e){
             logger.error("Failed to addIceCandidate: %{error}", e);
         }
@@ -194,6 +209,9 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     },
 
     removePeerConnectionEventListeners: function(){
+        if (this.htmlPeerConnection === null){
+            return;
+        }
         this.htmlPeerConnection.removeEventListener("negotiationneeded", this);
         this.htmlPeerConnection.removeEventListener("icecandidate", this);
         this.htmlPeerConnection.removeEventListener("icecandidateerror", this);
@@ -316,14 +334,21 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
     _event_mute: function(event){
         if (event.currentTarget === this.remoteHTMLVideoTrack){
-            logger.info("mute video from participant %d", this.participant.number);
-            this.participant._setVideoStreamMuted(true);
+            if (this.videoTrackNeedsUnmute){
+                logger.info("got video mute before first unmute", this.participant.number);
+            }else{
+                logger.info("mute video from participant %d", this.participant.number);
+                this.participant._setVideoStreamMuted(true);
+            }
         }else if (event.currentTarget === this.remoteHTMLAudioTrack){
-            logger.info("mute audio from participant %d", this.participant.number);
-            this.participant._setAudioStreamMuted(true);
+            if (this.audioTrackNeedsUnmute){
+                logger.info("got audio mute before first unmute", this.participant.number);
+            }else{
+                logger.info("mute audio from participant %d", this.participant.number);
+                this.participant._setAudioStreamMuted(true);
+            }
         }else{
             logger.warn("mute unknown track participant %d", this.participant.number);
-            return;
         }
     },
 
@@ -346,7 +371,6 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             }
         }else{
             logger.warn("mute unknown track from participant %d", this.participant.number);
-            return;
         }
     },
 
