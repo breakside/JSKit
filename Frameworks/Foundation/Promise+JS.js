@@ -275,7 +275,7 @@ Object.defineProperties(PromiseClass, {
     resolveNonNull: {
         value: function(result){
             if (result === null){
-                return Promise.reject();
+                return Promise.reject(new Error("expecting non-null result"));
             }
             return result;
         }
@@ -293,7 +293,7 @@ Object.defineProperties(PromiseClass, {
     resolveTrue: {
         value: function(result){
             if (!result){
-                return Promise.reject();
+                return Promise.reject(new Error("expecting true result"));
             }
         }
     },
