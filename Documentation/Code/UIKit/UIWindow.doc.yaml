@@ -154,6 +154,13 @@ topics:
                 name: allowsClose
                 type: boolean
                 summary: Can the window be closed by the user?
+              -
+                name: shouldReceiveTrackingInBack
+                introduced: 2020.39.0
+                type: boolean
+                summary: Indicates that tracking events (mouse move/entered/exited)
+                  continue to be sent to the window even when it is not the foremost
+                  window.  Defaults to `false`.
           -
             name: Sizing
             members:
@@ -788,6 +795,13 @@ topics:
           location of the event.
 
           For key events the, the responder is the `firstResponder`
+      -
+        name: shouldReceiveTrackingInBack
+        introduced: 2020.39.0
+        type: boolean
+        summary: Indicates that tracking events (mouse move/entered/exited)
+          continue to be sent to the window even when it is not the foremost
+          window.  Defaults to `false`.
   -
     name: Autosaving
     members:
