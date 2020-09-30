@@ -1125,7 +1125,24 @@ JSClass("JSCalendarTests", TKTestSuite, {
         date2 = cal.dateFromComponents({year: 2017, month: 2, day: 28, hour: 2});
         components = cal.componentsBetweenDates(JSCalendar.Unit.year | JSCalendar.Unit.day, date1, date2);
         TKAssertExactEquals(components.year, 0);
-        TKAssertExactEquals(components.day, 364);
+        TKAssertExactEquals(components.day, 365);
+
+        date1 = cal.dateFromComponents({year: 2019, month: 6, day: 20, hour: 12});
+        date2 = cal.dateFromComponents({year: 2020, month: 6, day: 10, hour: 12});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.year | JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.year, 0);
+        TKAssertExactEquals(components.day, 356);
+
+        // 30 day bug
+        date1 = cal.dateFromComponents({year: 2020, month: 8, day: 18});
+        date2 = cal.dateFromComponents({year: 2020, month: 9, day: 17});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 30);
+
+        date1 = cal.dateFromComponents({year: 2020, month: 9, day: 18});
+        date2 = cal.dateFromComponents({year: 2020, month: 10, day: 18});
+        components = cal.componentsBetweenDates(JSCalendar.Unit.day, date1, date2);
+        TKAssertExactEquals(components.day, 30);
 
         // TODO: rounding when requesting partial units
     }
