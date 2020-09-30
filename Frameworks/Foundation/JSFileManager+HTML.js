@@ -58,7 +58,7 @@ JSFileManager.definePropertiesFromExtensions({
         };
         request.onerror = function JSFileManager_open_onerror(e){
             var error = request.error;
-            logger.error("indexeddb open error: ${error}", error);
+            logger.error("indexeddb open error: %{error}", error);
             manager.error = error;
             completion.call(target, JSFileManager.State.genericFailure);
         };
@@ -687,7 +687,7 @@ JSFileManager.definePropertiesFromExtensions({
             completion.call(target, entries);
         };
         request.onerror = function JSFileManager_contentsOfDirectory_onerror(e){
-            logger.error("error querying directory contents: ${error}", request.error);
+            logger.error("error querying directory contents: %{error}", request.error);
             completion.call(target, null);
         };
         return completion.promise;
@@ -876,7 +876,7 @@ JSFileManagerTransaction.prototype = {
     event_abort: function(e){
         if (!this._abortIsIntentional){
             if (this.indexedDBTransaction.error){
-                logger.warn("indexeddb transaction aborted: ${error}", this.indexedDBTransaction.error);
+                logger.warn("indexeddb transaction aborted: %{error}", this.indexedDBTransaction.error);
             }else{
                 logger.warn("indexeddb transaction aborted");
             }
