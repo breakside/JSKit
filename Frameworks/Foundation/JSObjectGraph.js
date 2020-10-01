@@ -20,7 +20,7 @@ JSClass("JSObjectGraph", JSObject, {
         var obj = this.objectsById[id];
         if (obj !== undefined){
             completion.call(target, obj);
-            return;
+            return completion.promise;
         }
         this.loadObjectForId(id, function(obj){
             this.addObjectForId(obj, id);
