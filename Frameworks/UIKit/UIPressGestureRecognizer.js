@@ -31,7 +31,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
 
     began: false,
     beganLocation: null,
-    beganTouchId: null,
+    beganTouchID: null,
     pressTimer: null,
 
     touchesBegan: function(touches, event){
@@ -41,7 +41,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
         this.began = true;
         if (this._state === UIGestureRecognizer.State.possible){
             if (touches.length === 1){
-                this.beganTouchId = touches[0].identifier;
+                this.beganTouchID = touches[0].identifier;
                 this.beganLocation = touches[0].locationInView(this.view);
                 this.pressTimer = JSTimer.scheduledTimerWithInterval(this.minimumPressInterval, this.minimumTimeReached, this);
                 this._setState(UIGestureRecognizer.State.began);
@@ -68,7 +68,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
         if (this._state === UIGestureRecognizer.State.possible){
             return;
         }
-        var touch = event.touchForIdentifier(this.beganTouchId);
+        var touch = event.touchForIdentifier(this.beganTouchID);
         if (touch === null){
             this.end(UIGestureRecognizer.State.failed);
             return;
@@ -81,14 +81,14 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
     },
 
     touchesEnded: function(touches, event){
-        var beganTouchId = this.beganTouchId;
+        var beganTouchID = this.beganTouchID;
         this.began = false;
         this.beganLocation = null;
-        this.beganTouchId = null;
+        this.beganTouchID = null;
         if (this._state === UIGestureRecognizer.State.possible){
             return;
         }
-        var touch = event.touchForIdentifier(beganTouchId);
+        var touch = event.touchForIdentifier(beganTouchID);
         if (touch === null){
             this.end(UIGestureRecognizer.State.failed);
             return;
@@ -99,7 +99,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
     touchesCanceled: function(touches, event){
         this.began = false;
         this.beganLocation = null;
-        this.beganTouchId = null;
+        this.beganTouchID = null;
         if (this._state === UIGestureRecognizer.State.possible){
             return;
         }

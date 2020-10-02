@@ -74,7 +74,7 @@ JSClass("DBObjectDatabase", JSObject, {
         return table + '_' + hex;
     },
 
-    tableForId: function(id){
+    tableForID: function(id){
         return id.substr(0, id.length - 41);
     },
 
@@ -82,7 +82,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        if (!this.isValidId(id)){
+        if (!this.isValidID(id)){
             completion.call(target, null);
         }else{
             this.store.object(id, completion, target);
@@ -107,7 +107,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(obj.id)){
+        if (!this.isValidID(obj.id)){
             completion.call(target, false);
             return;
         }
@@ -119,7 +119,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(obj.id)){
+        if (!this.isValidID(obj.id)){
             completion.call(target, false);
             return;
         }
@@ -136,7 +136,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(id)){
+        if (!this.isValidID(id)){
             completion.call(target, false);
             return;
         }
@@ -154,7 +154,7 @@ JSClass("DBObjectDatabase", JSObject, {
         }
     },
 
-    isValidId: function(id){
+    isValidID: function(id){
         if (id === undefined){
             return false;
         }

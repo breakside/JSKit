@@ -35,11 +35,11 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         this.task.resume();
     },
 
-    activeSendsById: null,
-    nextMessageId: 1,
+    activeSendsByID: null,
+    nextMessageID: 1,
 
     sendJSON: function(type, payload, completion, target){
-        var id = this.nextMessageId++;
+        var id = this.nextMessageID++;
         if (id > 0x7FFF){
             id = 1;
         }
@@ -52,11 +52,11 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
             completion.call(target, e, null);
             return;
         }
-        if (id in this.activeSendsById){
+        if (id in this.activeSendsByID){
             completion.call(target, new Error("message id collision"), null);
             return;
         }
-        this.activeSendsById[id] = {
+        this.activeSendsByID[id] = {
             type: type,
             completion: completion,
             target: target
@@ -75,11 +75,11 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         if (this.connected){
             this.connected = false;
             var send;
-            for (var id in this.activeSendsById){
-                send = this.activeSendsById[id];
+            for (var id in this.activeSendsByID){
+                send = this.activeSendsByID[id];
                 send.completion.call(send.target, new Error("stream closed"));
             }
-            this.activeSendsById = {};
+            this.activeSendsByID = {};
         }
     },
 
@@ -92,13 +92,13 @@ JSClass("DBRemoteStore", DBPersistentObjectStore, {
         }
         var id = (data[0] << 8) | data[1];
         var requestType = data[2];
-        var active = this.activeSendsById[id];
+        var active = this.activeSendsByID[id];
         if (!active){
             logger.error("Received unexpected message id: %d", id);
             return;
         }
         var error = null;
-        delete this.activeSendsById[id];
+        delete this.activeSendsByID[id];
         if (requestType != active.type){
             error = new Error("Received unexpected type for message id %d".sprintf(id));
         }else{

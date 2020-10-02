@@ -4,26 +4,26 @@
 JSClass("JSObjectGraph", JSObject, {
 
     init: function(){
-        this.objectsById = {};
+        this.objectsByID = {};
     },
 
-    addObjectForId: function(object, id){
-        this.objectsById[id] = object;
+    addObjectForID: function(object, id){
+        this.objectsByID[id] = object;
     },
 
-    objectsById: null,
+    objectsByID: null,
 
     object: function(id, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
-        var obj = this.objectsById[id];
+        var obj = this.objectsByID[id];
         if (obj !== undefined){
             completion.call(target, obj);
             return completion.promise;
         }
-        this.loadObjectForId(id, function(obj){
-            this.addObjectForId(obj, id);
+        this.loadObjectForID(id, function(obj){
+            this.addObjectForID(obj, id);
             completion.call(target, obj);
         }, this);
         return completion.promise;
@@ -52,7 +52,7 @@ JSClass("JSObjectGraph", JSObject, {
         return completion.promise;
     },
 
-    loadObjectForId: function(completion, target){
+    loadObjectForID: function(completion, target){
         completion.call(target, null);
     },
 
