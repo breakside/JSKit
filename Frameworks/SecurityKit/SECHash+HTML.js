@@ -44,7 +44,7 @@ SECHash.definePropertiesFromExtensions({
         }
         var data = JSData.initWithChunks(this.chunks);
         crypto.subtle.digest(this.htmlAlgorithm, data).then(function(computed){
-            completion.call(target, computed);
+            completion.call(target, JSData.initWithBuffer(computed));
         }, function(error){
             completion.call(target, null);
         });
