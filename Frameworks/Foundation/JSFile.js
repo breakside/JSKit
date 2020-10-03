@@ -37,6 +37,17 @@ JSClass("JSFile", JSObject, {
     },
 
     readDataRange: function(range, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.readData(function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            var subdata = data.subdataInRange(range);
+            completion.call(target, subdata);
+        }, this);
     },
 
     getURL: function(){

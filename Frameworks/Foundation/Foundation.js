@@ -98,6 +98,8 @@
 
 // #import "JSLog.js"
 // #import "Zlib.js"
+// #import "JSCRC32.js"
+// #import "JSZip.js"
 
 // #import "JSSHA1Hash.js"
 // #import "JSMD5Hash.js"
