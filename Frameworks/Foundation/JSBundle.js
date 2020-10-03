@@ -15,6 +15,7 @@
 
 // #import "JSObject.js"
 // #import "JSLocale.js"
+// #import "JSFile.js"
 'use strict';
 
 JSClass('JSBundle', JSObject, {
@@ -210,6 +211,14 @@ JSClass('JSBundle', JSObject, {
     getResourceData: function(metadata, completion, target){
     },
 
+    fileForResourceName: function(name, ext, subdirectory){
+        var metadata = this.metadataForResourceName(name, ext, subdirectory);
+        if (metadata !== null){
+            return JSBundleResourceFile.initWithMetadata(metadata, this);
+        }
+        return null;
+    },
+
     fonts: function(){
         var fonts = [];
         if (this._dict.Fonts !== undefined && this._dict.Fonts !== null){
@@ -241,6 +250,25 @@ JSClass('JSBundle', JSObject, {
             return this.localizedString(infoValue.substr(1), "Info.strings");
         }
         return infoValue;
+    }
+
+});
+
+JSClass("JSBundleResourceFile", JSFile, {
+
+    metadata: null,
+    bundle: null,
+
+    initWithMetadata: function(metadata, bundle){
+        this.metadata = metadata;
+        this.bundle = bundle;
+        this._name = metadata.path;
+        this._contentType = metadata.mimeType;
+        this._size = metadata.byte_size;
+    },
+
+    readData: function(completion, target){
+        return this.bundle.getResourceData(this.metadata, completion, target);
     }
 
 });

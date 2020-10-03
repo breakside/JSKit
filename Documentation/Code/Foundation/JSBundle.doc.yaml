@@ -176,6 +176,57 @@ topics:
             name: metadata
             type: Metadata
             summary: The metadata for the resource
+      -
+        introduced: 2020.39.3
+        name: fileForResourceName
+        kind: method
+        summary: Get a file object for a given resource
+        type: JSFile
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+      -
+        introduced: 2020.39.3
+        name: fileForResourceName
+        suffix: ext
+        kind: method
+        summary: Get a file object for a given resource
+        type: JSFile
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+          -
+            name: ext
+            type: String
+            summary: The file extension for the resource, if needed to
+              uniquely identify the resource.  Pass `undefined` if not needed.
+              A leading dot is expected, but not required.
+      -
+        introduced: 2020.39.3
+        name: fileForResourceName
+        suffix: subdirectory
+        kind: method
+        summary: Get a file object for a given resource
+        type: JSFile
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the resource, excluding any file extension
+          -
+            name: ext
+            type: String
+            summary: The file extension for the resource, if needed to
+              uniquely identify the resource.  Pass `undefined` if not needed.
+              A leading dot is expected, but not required.
+          -
+            name: subdirectory
+            type: String
+            summary: The bundle subdirectory that contains the resource
   -
     name: Localization
     members:
