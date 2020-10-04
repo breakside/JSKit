@@ -21,6 +21,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      -
+        name: Install Webkit Depedencies
+        run: sudo apt-get install libgles2 gstreamer1.0-libav
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       -
         name: Checkout

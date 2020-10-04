@@ -70,8 +70,11 @@ JSClass("TestCommand", Command, {
             process.stdout.write("Run in-browser tests at %s\n".sprintf(this.url.encodedString));
         }else if (this.arguments.browser !== null){
             await this.startHTTPServer(0, builder.wwwURL);
-            await this.runTestsInBrowser(this.arguments.browser);
-            await this.stopHTTPServer();
+            try{
+                await this.runTestsInBrowser(this.arguments.browser);
+            }finally{
+                await this.stopHTTPServer();
+            }
         }else{
             await this.runTests(builder.executableURL);
         }
