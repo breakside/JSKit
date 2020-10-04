@@ -60,7 +60,7 @@ JSClass("JSURLResponse", JSObject, {
         if (this.contentType.parameters.charset !== undefined && this.contentType.parameters.charset != String.Encoding.utf8){
             return null;
         }
-        var json = String.initWithData(this.data, this.contentType.parameters.charset);
+        var json = String.initWithData(this.data, String.Encoding.utf8);
         try{
             return JSON.parse(json);
         }catch (e){
