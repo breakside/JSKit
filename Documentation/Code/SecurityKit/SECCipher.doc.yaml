@@ -74,6 +74,9 @@ topics:
             name: keyBitLength
             type: Number
             summary: The length in bits of the key size for this cipher
+        note: As of October 2020, Chrome does not support 192-bit AES keys, so
+          we do not recommend using that algorithm/size combination if you need
+          Chrome compatibility.
   -
     name: Encrypting
     members:
