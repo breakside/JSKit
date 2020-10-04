@@ -23,7 +23,7 @@ jobs:
     steps:
       -
         name: Install Webkit Depedencies
-        run: sudo apt-get install libgles2 gstreamer1.0-libav
+        run: sudo apt-get install libgles2 gstreamer1.0-libav libwoff-dev
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       -
