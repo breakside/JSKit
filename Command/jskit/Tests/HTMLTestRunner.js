@@ -297,3 +297,13 @@ function main(){
         testRun.runAllRegisteredSuites();
     }
 }
+
+function headlessPrint(message, ttyOnly){
+    var json = JSON.stringify({functionName: "headlessPrint", text: message, ttyOnly: ttyOnly});
+    console.log(json);
+}
+
+function headlessExit(code){
+    var json = JSON.stringify({functionName: "headlessExit", code: code});
+    console.log(json);
+}

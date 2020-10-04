@@ -123,6 +123,12 @@ topics:
                   command line with `--help`.  If it also has a shortcut of
                   `"h"`, it can be specified with `-h`. 
               -
+                name: allowed
+                type: String[]
+                summary: A list of allowed values for the option
+                description: |
+                  Limits the values the user may specify to a known set
+              -
                 name: help
                 type: String
                 summary: A line of help documentation that will be used in the

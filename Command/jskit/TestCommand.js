@@ -33,7 +33,7 @@ JSClass("TestCommand", Command, {
         "inspect-brk": {kind: "flag", help: "Wait for a debugger to attach when running tests"},
         testargs: {kind: "unknown", help: "Additional arguments for the test run"},
         "http-port": {default: null, help: "Runs an http server for in-browser testing"},
-        "chrome": {kind: "flag", help: "Uses Puppeteer to run the tests in Chrome"}
+        "browser": {default: null, help: "Uses Puppeteer to run the tests in browser", allowed: ["chrome", "firefox"]}
     },
 
     run: async function(){
@@ -68,9 +68,9 @@ JSClass("TestCommand", Command, {
         if (port !== null){
             await this.startHTTPServer(port, builder.wwwURL);
             process.stdout.write("Run in-browser tests at %s\n".sprintf(this.url.encodedString));
-        }else if (this.arguments.chrome){
+        }else if (this.arguments.browser !== null){
             await this.startHTTPServer(0, builder.wwwURL);
-            await this.runTestsInChrome();
+            await this.runTestsInBrowser(this.arguments.browser);
             await this.stopHTTPServer();
         }else{
             await this.runTests(builder.executableURL);
@@ -183,36 +183,82 @@ JSClass("TestCommand", Command, {
         });
     },
 
-    runTestsInChrome: async function(){
+    runTestsInBrowser: async function(browserName){
         var puppeteer = null;
         try{
             puppeteer = require("puppeteer");
         }catch (e){
-            process.stdout.write("Puppeteer is required to run headless tests in Chrome\n\n$ npm install -D puppeteer\n");
+            process.stdout.write("Puppeteer is required to run headless tests in %s\n\n$ npm install -D puppeteer\n".sprintf(browserName));
             this.returnValue = -1;
             return;
         }
-        process.stdout.write("Running tests in Chrome...\n");
+        var browser = null;
+        try{
+            browser = await puppeteer.launch({product: browserName});
+        }catch (e){
+            var fetcher = puppeteer.createBrowserFetcher({product: browserName});
+            process.stdout.write("Downloading %s...\n".sprintf(browserName));
+            var revision = puppeteer._preferredRevision;
+            if (browserName == "firefox"){
+                revision = await this.getLatestFirefoxVersion();
+            }
+            await fetcher.download(revision);
+            browser = await puppeteer.launch({product: browserName});
+        }
+        process.stdout.write("Running tests in %s...\n".sprintf(browserName));
         var url = JSURL.initWithURL(this.url);
         var query = url.query;
         query.add("headless");
         url.query = query;
-        var browser = await puppeteer.launch();
         var page = await browser.newPage();
         var cmd = this;
         await new Promise(function(resolve, reject){
-            page.exposeFunction("headlessPrint", function(str, ttyOnly){
-                if (!ttyOnly || process.stdout.isTTY){
-                    process.stdout.write(str);
+            // Firefox doesn't support `exposeFunction` as of Oct 2020
+            // page.exposeFunction("headlessPrint", function(text, ttyOnly){
+            //     if (!ttyOnly || process.stdout.isTTY){
+            //         process.stdout.write(text);
+            //     }
+            // });
+            // page.exposeFunction("headlessExit", function(code){
+            //     cmd.returnValue = code;
+            //     resolve();
+            // });
+
+            // ...So we'll use console events to hack it
+            page.on("console", function(message){
+                var text = message.text();
+                // Firefox returns an array instead of a string
+                if (text instanceof Array){
+                    text = text.join(" ");
                 }
-            });
-            page.exposeFunction("headlessExit", function(code){
-                cmd.returnValue = code;
-                resolve();
+                if (text.startsWith("{")){
+                    var headlessMessage = null;
+                    try{
+                        headlessMessage = JSON.parse(text);
+                    }catch (e){
+                    }
+                    if (headlessMessage !== null){
+                        if (headlessMessage.functionName == "headlessPrint"){
+                            if (!headlessMessage.ttyOnly || process.stdout.isTTY){
+                                process.stdout.write(headlessMessage.text);
+                            }
+                        }else if (headlessMessage.functionName == "headlessExit"){
+                            cmd.returnValue = headlessMessage.code;
+                            resolve();
+                        }
+                    }
+                }
             });
             return page.goto(url.encodedString);
         });
         await browser.close();
+    },
+
+    getLatestFirefoxVersion: async function(){
+        var url = JSURL.initWithString("https://product-details.mozilla.org/1.0/firefox_versions.json");
+        var task = JSURLSession.shared.dataTaskWithURL(url);
+        var response = await task.resume();
+        return response.object.FIREFOX_NIGHTLY;
     }
 
 });
