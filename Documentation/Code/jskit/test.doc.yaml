@@ -7,8 +7,10 @@ description: |
   While it is possible to build a `TestKit` project with `make` and then
   run the tests with the resulting commands, the `test` command does this
   all at once.
+
+  Run your tests in node or in a headless browser.
 invocations:
-  - "[--inspect-brk] [--http-port N] [--chrome] <project-dir> [--suite test-suite] [--case test-case]"
+  - "[--inspect-brk] [--http-port N] [--browser chrome|firefox|webkit] <project-dir> [--suite test-suite] [--case test-case]"
 topics:
   -
     name: Project Info

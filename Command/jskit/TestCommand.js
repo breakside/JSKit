@@ -200,7 +200,40 @@ JSClass("TestCommand", Command, {
             firefox: "firefox",
             webkit: "webkit"
         }[browserName];
-        var browser = await playwright[property].launch();
+        var browser = null;
+        try{
+            browser = await playwright[property].launch();
+        }catch (e){
+            if (browserName === "webkit"){
+                process.stdout.write("Failed to launch webkit.  Ubuntu required packages are: \n");
+                process.stdout.write("  libwoff1\n");
+                process.stdout.write("  libopus0\n");
+                process.stdout.write("  libwebp6\n");
+                process.stdout.write("  libwebpdemux2\n");
+                process.stdout.write("  libenchant1c2a\n");
+                process.stdout.write("  libgudev-1.0-0\n");
+                process.stdout.write("  libsecret-1-0\n");
+                process.stdout.write("  libhyphen0\n");
+                process.stdout.write("  libgdk-pixbuf2.0-0\n");
+                process.stdout.write("  libegl1\n");
+                process.stdout.write("  libnotify4\n");
+                process.stdout.write("  libxslt1.1\n");
+                process.stdout.write("  libevent-2.1-6\n");
+                process.stdout.write("  libgles2\n");
+                process.stdout.write("  libvpx5\n");
+                process.stdout.write("  libxcomposite1\n");
+                process.stdout.write("  libatk1.0-0\n");
+                process.stdout.write("  libatk-bridge2.0-0\n");
+                process.stdout.write("  libepoxy0\n");
+                process.stdout.write("  libgtk-3-0\n");
+                process.stdout.write("  libharfbuzz-icu0\n");
+                process.stdout.write("  libgstreamer-gl1.0-0\n");
+                process.stdout.write("  libgstreamer-plugins-bad1.0-0\n");
+                process.stdout.write("  gstreamer1.0-plugins-good\n");
+                process.stdout.write("  gstreamer1.0-libav\n");
+            }
+            throw e;
+        }
         process.stdout.write("Running tests in %s...\n".sprintf(browserName));
         var url = JSURL.initWithURL(this.url);
         var query = url.query;
@@ -209,7 +242,6 @@ JSClass("TestCommand", Command, {
         var page = await browser.newPage();
         var cmd = this;
         await new Promise(function(resolve, reject){
-            // Firefox doesn't support `exposeFunction` as of Oct 2020
             page.exposeFunction("headlessPrint", function(text, ttyOnly){
                 if (!ttyOnly || process.stdout.isTTY){
                     process.stdout.write(text);
@@ -219,42 +251,9 @@ JSClass("TestCommand", Command, {
                 cmd.returnValue = code;
                 resolve();
             });
-
-            // ...So we'll use console events to hack it
-            // page.on("console", function(message){
-            //     var text = message.text();
-            //     // Firefox returns an array instead of a string
-            //     if (text instanceof Array){
-            //         text = text.join(" ");
-            //     }
-            //     if (text.startsWith("{")){
-            //         var headlessMessage = null;
-            //         try{
-            //             headlessMessage = JSON.parse(text);
-            //         }catch (e){
-            //         }
-            //         if (headlessMessage !== null){
-            //             if (headlessMessage.functionName == "headlessPrint"){
-            //                 if (!headlessMessage.ttyOnly || process.stdout.isTTY){
-            //                     process.stdout.write(headlessMessage.text);
-            //                 }
-            //             }else if (headlessMessage.functionName == "headlessExit"){
-            //                 cmd.returnValue = headlessMessage.code;
-            //                 resolve();
-            //             }
-            //         }
-            //     }
-            // });
             return page.goto(url.encodedString);
         });
         await browser.close();
-    },
-
-    getLatestFirefoxVersion: async function(){
-        var url = JSURL.initWithString("https://product-details.mozilla.org/1.0/firefox_versions.json");
-        var task = JSURLSession.shared.dataTaskWithURL(url);
-        var response = await task.resume();
-        return response.object.FIREFOX_NIGHTLY;
     }
 
 });
