@@ -15,7 +15,7 @@
 
 // #import TestKit
 // jshint browser: true
-/* global console */
+/* global console, headlessPrint, headlessExit */
 'use strict';
 
 JSClass('HTMLTestRun', TKTestRun, {
@@ -179,11 +179,97 @@ JSClass('HTMLTestRun', TKTestRun, {
     }
 });
 
+JSClass("HTMLHeadlessTestRun", TKTestRun, {
+
+    name: null,
+    exitCode: 0,
+
+    init: function(){
+        HTMLHeadlessTestRun.$super.initInEnvironment.call(this, "html");
+        var info = this.bundle.info;
+        this.name = info.JSBundleDisplayName || info.JSBundleIdentifier;
+    },
+
+    startSuite: function(suite){
+        headlessPrint('▶️  ' + suite.className + '...\n');
+    },
+
+    endSuite: function(suite, results){
+        var failed = results[TKTestResult.Failed] > 0 || results[TKTestResult.Error] > 0;
+        var passed = !failed && results[TKTestResult.Passed] > 0;
+        var result = '';
+        var icon = '';
+        if (passed){
+            icon = '✅';
+            result = 'passed';
+        }else if (failed){
+            icon = '😡';
+            result = 'failed';
+        }else{
+            icon = '0️⃣';
+            result = 'not run';
+        }
+        headlessPrint(icon + ' ' + suite.className + ' ' + result + '. Excecuted ' + (results[TKTestResult.Passed] + results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' with ' + (results[TKTestResult.Failed] + results[TKTestResult.Error]) + ' failures (' + (results[TKTestResult.Error]) + ' errors)\n');
+    },
+
+    startCase: function(suite, testName){
+        headlessPrint('▶️ ' + testName + '...', true);
+    },
+
+    endCase: function(suite, testName, result){
+        var icon = '';
+        if (result.result == TKTestResult.NotRun){
+        }else if (result.result == TKTestResult.Passed){
+            icon = "✅";
+        }else if (result.result == TKTestResult.Failed){
+            icon = "‼️ ";
+            this.exitCode = -2;
+        }else if (result.result == TKTestResult.Error){
+            icon = "❌";
+            this.exitCode = -2;
+        }
+        headlessPrint('\x1b[1K\r', true);
+        headlessPrint(icon + ' ' + testName + '\n');
+        if (result.result != TKTestResult.Passed){
+            headlessPrint('     ' + result.message + '\n');
+        }
+    },
+
+    endTests: function(results){
+        var passed = 0;
+        var failed = 0;
+        var suiteResults;
+        var suitePassed;
+        var suiteFailed;
+        var run = 0;
+        for (var suiteName in results){
+            suiteResults = results[suiteName];
+            suiteFailed = suiteResults[TKTestResult.Failed] > 0 || suiteResults[TKTestResult.Error] > 0;
+            suitePassed = !suiteFailed && suiteResults[TKTestResult.Passed] > 0;
+            if (suitePassed){
+                passed += 1;
+            }else if (suiteFailed){
+                failed += 1;
+            }
+            run += 1;
+        }
+        if (run > 1){
+            if (failed > 0){
+                headlessPrint("\n‼️  " + this.name+ ': ' + failed + ' test suites failed\n');
+            }else{
+                headlessPrint("\n✅ " + this.name + ': All tests passed\n');
+            }
+        }
+        headlessExit(this.exitCode);
+    }
+});
+
 function main(){
     var args = JSArguments.initWithOptions({
         suite: {default: null, help: "The single test suite to run"},
         case: {default: null, help: "The single test case to run"},
-        pause: {kind: "flag", help: "Pause the debugger before running tests"}
+        pause: {kind: "flag", help: "Pause the debugger before running tests"},
+        headless: {kind: "flag", help: "Runs without any display"}
     });
     try{
         args.parseQueryString(window.location.search);
@@ -192,7 +278,12 @@ function main(){
         console.log(args.helpString());
         return;
     }
-    var testRun = HTMLTestRun.initWithRootElement(document.body);
+    var testRun = null;
+    if (args.headless){
+        testRun = HTMLHeadlessTestRun.init();
+    }else{
+        testRun = HTMLTestRun.initWithRootElement(document.body);
+    }
     if (args.pause){
         debugger;
     }

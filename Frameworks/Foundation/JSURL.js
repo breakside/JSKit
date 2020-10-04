@@ -44,7 +44,7 @@ JSClass("JSURL", JSObject, {
     fileExtension: JSReadOnlyProperty(),
     encodedQuery: JSDynamicProperty('_encodedQuery', null),
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
-    query: JSDynamicProperty(),
+    query: JSDynamicProperty("_query", null),
     fragment: JSDynamicProperty(),
 
     isAbsolute: JSReadOnlyProperty(),
