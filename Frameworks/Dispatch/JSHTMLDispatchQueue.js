@@ -25,7 +25,8 @@ JSClass("JSHTMLDispatchQueue", JSWorkerBasedDispatchQueue, {
     worker: null,
 
     startWorker: function(){
-        this.worker = new Worker(JSBundle.mainBundle.info[JSHTMLDispatchQueueWorkerScriptBundleKey]);
+        var bundle = JSBundle.testBundle || JSBundle.mainBundle;
+        this.worker = new Worker(bundle.info[JSHTMLDispatchQueueWorkerScriptBundleKey]);
         this.worker.addEventListener('message', this);
     },
 
