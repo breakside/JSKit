@@ -39,8 +39,9 @@ topics:
           Allowed Values:
           * `chrome`
           * `firefox`
+          * `webkit`
         note:
-          Browser tests require that you install [Puppeteer](https://github.com/puppeteer/puppeteer/).
+          Browser tests require that you install [Playwright](https://playwright.dev).
       -
         introduced: 2020.28.0
         name: --http-port

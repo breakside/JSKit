@@ -33,7 +33,7 @@ JSClass("TestCommand", Command, {
         "inspect-brk": {kind: "flag", help: "Wait for a debugger to attach when running tests"},
         testargs: {kind: "unknown", help: "Additional arguments for the test run"},
         "http-port": {default: null, help: "Runs an http server for in-browser testing"},
-        "browser": {default: null, help: "Uses Puppeteer to run the tests in browser", allowed: ["chrome", "firefox"]}
+        "browser": {default: null, help: "Uses Playwright to run the tests in browser", allowed: ["chrome", "firefox", "webkit"]}
     },
 
     run: async function(){
@@ -184,27 +184,20 @@ JSClass("TestCommand", Command, {
     },
 
     runTestsInBrowser: async function(browserName){
-        var puppeteer = null;
+        var playwright = null;
         try{
-            puppeteer = require("puppeteer");
+            playwright = require("playwright");
         }catch (e){
-            process.stdout.write("Puppeteer is required to run headless tests in %s\n\n$ npm install -D puppeteer\n".sprintf(browserName));
+            process.stdout.write("Playwright is required to run headless tests in %s\n\n$ npm install -D playwright\n".sprintf(browserName));
             this.returnValue = -1;
             return;
         }
-        var browser = null;
-        try{
-            browser = await puppeteer.launch({product: browserName});
-        }catch (e){
-            var fetcher = puppeteer.createBrowserFetcher({product: browserName});
-            process.stdout.write("Downloading %s...\n".sprintf(browserName));
-            var revision = puppeteer._preferredRevision;
-            if (browserName == "firefox"){
-                revision = await this.getLatestFirefoxVersion();
-            }
-            await fetcher.download(revision);
-            browser = await puppeteer.launch({product: browserName});
-        }
+        var property = {
+            chrome: "chromium",
+            firefox: "firefox",
+            webkit: "webkit"
+        }[browserName];
+        var browser = await playwright[property].launch();
         process.stdout.write("Running tests in %s...\n".sprintf(browserName));
         var url = JSURL.initWithURL(this.url);
         var query = url.query;
@@ -214,41 +207,41 @@ JSClass("TestCommand", Command, {
         var cmd = this;
         await new Promise(function(resolve, reject){
             // Firefox doesn't support `exposeFunction` as of Oct 2020
-            // page.exposeFunction("headlessPrint", function(text, ttyOnly){
-            //     if (!ttyOnly || process.stdout.isTTY){
-            //         process.stdout.write(text);
-            //     }
-            // });
-            // page.exposeFunction("headlessExit", function(code){
-            //     cmd.returnValue = code;
-            //     resolve();
-            // });
-
-            // ...So we'll use console events to hack it
-            page.on("console", function(message){
-                var text = message.text();
-                // Firefox returns an array instead of a string
-                if (text instanceof Array){
-                    text = text.join(" ");
-                }
-                if (text.startsWith("{")){
-                    var headlessMessage = null;
-                    try{
-                        headlessMessage = JSON.parse(text);
-                    }catch (e){
-                    }
-                    if (headlessMessage !== null){
-                        if (headlessMessage.functionName == "headlessPrint"){
-                            if (!headlessMessage.ttyOnly || process.stdout.isTTY){
-                                process.stdout.write(headlessMessage.text);
-                            }
-                        }else if (headlessMessage.functionName == "headlessExit"){
-                            cmd.returnValue = headlessMessage.code;
-                            resolve();
-                        }
-                    }
+            page.exposeFunction("headlessPrint", function(text, ttyOnly){
+                if (!ttyOnly || process.stdout.isTTY){
+                    process.stdout.write(text);
                 }
             });
+            page.exposeFunction("headlessExit", function(code){
+                cmd.returnValue = code;
+                resolve();
+            });
+
+            // ...So we'll use console events to hack it
+            // page.on("console", function(message){
+            //     var text = message.text();
+            //     // Firefox returns an array instead of a string
+            //     if (text instanceof Array){
+            //         text = text.join(" ");
+            //     }
+            //     if (text.startsWith("{")){
+            //         var headlessMessage = null;
+            //         try{
+            //             headlessMessage = JSON.parse(text);
+            //         }catch (e){
+            //         }
+            //         if (headlessMessage !== null){
+            //             if (headlessMessage.functionName == "headlessPrint"){
+            //                 if (!headlessMessage.ttyOnly || process.stdout.isTTY){
+            //                     process.stdout.write(headlessMessage.text);
+            //                 }
+            //             }else if (headlessMessage.functionName == "headlessExit"){
+            //                 cmd.returnValue = headlessMessage.code;
+            //                 resolve();
+            //             }
+            //         }
+            //     }
+            // });
             return page.goto(url.encodedString);
         });
         await browser.close();
