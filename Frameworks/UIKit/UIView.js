@@ -393,25 +393,22 @@ JSClass('UIView', UIResponder, {
 
     // -------------------------------------------------------------------------
     // MARK: Traits
-
-    layerDidChangeSize: function(){
-        var traits = UITraitCollection.initWithSize(this.bounds.size);
-        this._setTraitCollection(traits);
-    },
     
-    traitCollection: JSReadOnlyProperty('_traitCollection', null),
+    traitCollection: JSReadOnlyProperty(),
 
-    _setTraitCollection: function(traitCollection){
-        var previous = this._traitCollection;
-        this._traitCollection = traitCollection;
-        if (previous !== null && !previous.isEqual(this._traitCollection)){
-            this.traitCollectionDidChange(previous);
+    getTraitCollection: function(traitCollection){
+        if (this._window !== null){
+            return this._window.traitCollection;
         }
+        return UITraitCollection.init();
     },
 
     traitCollectionDidChange: function(previousTraits){
         if (this.viewController){
             this.viewController.traitCollectionDidChange(previousTraits);
+        }
+        for (var i = 0, l = this.subviews.length; i < l; ++i){
+            this.subviews[i].traitCollectionDidChange(previousTraits);
         }
     },
 
@@ -478,6 +475,9 @@ JSClass('UIView', UIResponder, {
 
     invalidateIntrinsicSize: function(){
         this._needsIntrinsicSizeConstraintUpdate = true;
+    },
+
+    layerDidChangeSize: function(layer){
     },
 
     // -------------------------------------------------------------------------

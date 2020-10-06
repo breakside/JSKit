@@ -95,7 +95,6 @@ JSClass("UIViewController", UIResponder, {
     },
 
     traitCollectionDidChange: function(previousTraits){
-
     },
 
     // -------------------------------------------------------------------------
