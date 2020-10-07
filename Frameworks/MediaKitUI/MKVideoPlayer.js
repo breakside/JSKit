@@ -26,7 +26,8 @@ JSClass("MKVideoPlayer", UIView, {
 
     initWithFrame: function(frame){
         MKVideoPlayer.$super.initWithFrame.call(this, frame);
-        this.backgroundColor = JSColor.black;
+        this.clipsToBounds = true;
+        // this.backgroundColor = JSColor.black;
     },
 
     initWithSpec: function(spec){
@@ -37,7 +38,10 @@ JSClass("MKVideoPlayer", UIView, {
         if (spec.containsKey("delegate")){
             this.delegate = spec.valueForKey("delegate");
         }
-        this.backgroundColor = JSColor.black;
+        if (!spec.containsKey("clipsToBounds")){
+            this.clipsToBounds = true;
+        }
+        // this.backgroundColor = JSColor.black;
     },
 
     delegate: null,
