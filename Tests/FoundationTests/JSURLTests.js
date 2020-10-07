@@ -973,6 +973,49 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertEquals(url.host, "google.com");
         TKAssertExactEquals(url.port, 8081);
         TKAssertEquals(url.encodedString, "//google.com:8081/test/path");
+    },
+
+    testGetHasDirectoryPath: function(){
+        var url = JSURL.initWithString("http://google.com/test/");
+        TKAssert(url.hasDirectoryPath);
+
+        url = JSURL.initWithString("http://google.com/test");
+        TKAssert(!url.hasDirectoryPath);
+    },
+
+    testSetHasDirectoryPath: function(){
+        var url = JSURL.initWithString("http://google.com/test/");
+        TKAssert(url.hasDirectoryPath);
+        url.hasDirectoryPath = true;
+        TKAssert(url.hasDirectoryPath);
+        TKAssertEquals(url.pathComponents.length, 2);
+        TKAssertEquals(url.encodedString, "http://google.com/test/");
+        url.hasDirectoryPath = false;
+        TKAssert(!url.hasDirectoryPath);
+        TKAssertEquals(url.pathComponents.length, 2);
+        TKAssertEquals(url.encodedString, "http://google.com/test");
+
+        url = JSURL.initWithString("http://google.com/test");
+        TKAssert(!url.hasDirectoryPath);
+        TKAssertEquals(url.pathComponents.length, 2);
+        url.hasDirectoryPath = true;
+        TKAssert(url.hasDirectoryPath);
+        TKAssertEquals(url.pathComponents.length, 2);
+        TKAssertEquals(url.encodedString, "http://google.com/test/");
+    },
+
+    testSettingHasDirectoryPath: function(){
+        var url = JSURL.initWithString("http://google.com/test");
+        var url2 = url.settingHasDirectoryPath(true);
+        TKAssertNotExactEquals(url, url2);
+        TKAssert(!url.hasDirectoryPath);
+        TKAssert(url2.hasDirectoryPath);
+
+        url = JSURL.initWithString("http://google.com/test/");
+        url2 = url.settingHasDirectoryPath(false);
+        TKAssertNotExactEquals(url, url2);
+        TKAssert(url.hasDirectoryPath);
+        TKAssert(!url2.hasDirectoryPath);
     }
 
     // TODO: test modifying parts other than path

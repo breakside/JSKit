@@ -301,7 +301,15 @@ JSClass("JSURL", JSObject, {
     },
 
     setHasDirectoryPath: function(hasDirectoryPath){
+        var components = this.getPathComponents(); // just to ensure the components get created
         this._hasDirectoryPath = hasDirectoryPath;
+        this._updatePathFromComponents();
+    },
+
+    settingHasDirectoryPath: function(hasDirectoryPath){
+        var url = this.copy();
+        url.setHasDirectoryPath(hasDirectoryPath);
+        return url;
     },
 
     standardize: function(){

@@ -466,6 +466,16 @@ topics:
             name: isFinalDirectory
             type: boolean
             summary: Is the final component a directory?
+      -
+        introduced: 2020.40.1
+        name: settingHasDirectoryPath
+        kind: method
+        summary: Create a copy of this url with the `hasDirectoryPath` property changed
+        arguments:
+          -
+            name: hasDirectoryPath
+            type: boolean
+            summary: Whether or not the URL's path should end with a slash
   -
     name: Standardizing
     members:
