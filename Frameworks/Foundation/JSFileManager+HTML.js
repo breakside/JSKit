@@ -28,6 +28,22 @@ var logger = JSLog("foundation", "files");
 
 JSFileManager.definePropertiesFromExtensions({
 
+    initWithIdentifier: function(identifier){
+        return JSHTMLFileManager.initWithIdentifier(identifier);
+    },
+
+});
+
+JSFileManager.defineInitMethod("initWithIdentifier");
+
+JSClass("JSHTMLFileManager", JSFileManager, {
+
+    initWithIdentifier: function(identifier){
+        this._identifier = identifier;
+    },
+
+    _identifier: null,
+
     _db: null,
 
     error: null,
@@ -243,7 +259,7 @@ JSFileManager.definePropertiesFromExtensions({
         var create = function JSFileManager_createDirectory_create(parentExists){
             if (parentExists){
                 var t = manager.timestamp;
-                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t};
+                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t, size: 0};
                 var request = transaction.metadata.add(metadata);
                 request.onsuccess = function JSFileManager_createDirectory_onsucess(){
                     completion(true);
@@ -307,10 +323,11 @@ JSFileManager.definePropertiesFromExtensions({
                 dataRequest.onsuccess = function JSFileManager_createFile_onsuccess(e){
                     var t = manager.timestamp;
                     if (metadata === null){
-                        metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file, created: t, updated: t, added: t, dataKey: e.target.result};
+                        metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file, created: t, updated: t, added: t, dataKey: e.target.result, size: data.length};
                         transaction.metadata.add(metadata);
                     }else{
                         metadata.updated = t;
+                        metadata.size = data.length;
                         transaction.metadata.put(metadata);
                     }
                 };
@@ -725,7 +742,7 @@ JSFileManager.definePropertiesFromExtensions({
         var create = function JSFileManager_createSymbolicLink_create(parentExists){
             if (parentExists){
                 var t = manager.timestamp;
-                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString};
+                var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString, size: 0};
                 transaction.metadata.add(metadata);
             }else{
                 logger.info("could not create parent directory, aborting create symlink transaction");
@@ -819,7 +836,7 @@ JSFileManager.definePropertiesFromExtensions({
         var parentIndex = metadata.createIndex(JSFileManager.Indexes.metadataParent, "parent", {unique: false});
         var data = this._db.createObjectStore(JSFileManager.Tables.data, {autoIncrement: true});
         var t = this.timestamp;
-        var root = {parent: '', name: '/', itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t};
+        var root = {parent: '', name: '/', itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t, size: 0};
         metadata.add(root);
     },
 

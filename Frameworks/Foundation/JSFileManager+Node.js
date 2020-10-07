@@ -29,8 +29,23 @@ var pathLib = require('path');
 
 JSFileManager.definePropertiesFromExtensions({
 
+    initWithIdentifier: function(identifier){
+        return JSNodeFileManager.initWithIdentifier(identifier);
+    },
+
+});
+
+JSFileManager.defineInitMethod("initWithIdentifier");
+
+JSClass("JSNodeFileManager", JSFileManager, {
+
+    initWithIdentifier: function(identifier){
+        this._identifier = identifier;
+    },
+
+    _identifier: null,
+
     _rootURL: null,
-    _platform: process.platform,
 
     // --------------------------------------------------------------------
     // MARK: - Opening the File System
@@ -153,7 +168,8 @@ JSFileManager.definePropertiesFromExtensions({
                 attrs = {
                     itemType: itemType,
                     created: Math.floor(stats.ctimeMs),
-                    modified: Math.floor(stats.mtimeMs)
+                    modified: Math.floor(stats.mtimeMs),
+                    size: stats.size
                 };
             }
             completion.call(target, attrs);

@@ -20,15 +20,6 @@
 JSClass("JSFileManager", JSObject, {
 
     // --------------------------------------------------------------------
-    // MARK: - Creating a File Manager
-
-    initWithIdentifier: function(identifier){
-        this._identifier = identifier;
-    },
-
-    _identifier: null,
-
-    // --------------------------------------------------------------------
     // MARK: - Opening the File System
 
     open: function(completion, target){

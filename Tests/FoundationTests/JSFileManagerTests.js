@@ -47,6 +47,10 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
+                expectation.call(manager.attributesOfItemAtURL, manager, url, function(attrs){
+                    TKAssertNotNull(attrs);
+                    TKAssertEquals(attrs.itemType, JSFileManager.ItemType.directory);
+                });
             });
         });
         this.wait(expectation, 3.0);
@@ -114,6 +118,11 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
+                expectation.call(manager.attributesOfItemAtURL, manager, url, function(attrs){
+                    TKAssertNotNull(attrs);
+                    TKAssertEquals(attrs.itemType, JSFileManager.ItemType.file);
+                    TKAssertEquals(attrs.size, 15);
+                });
             });
         });
         this.wait(expectation, 2.0);
