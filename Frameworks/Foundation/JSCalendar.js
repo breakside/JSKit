@@ -16,6 +16,7 @@
 // #import "JSObject.js"
 // #import "JSDate.js"
 // #import "JSTimeZone.js"
+// #import "JSTimeInterval.js"
 'use strict';
 
 (function(){
@@ -572,6 +573,62 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             }
         }
         return diff;
+    },
+
+    componentsFromISO8601String: function(string){
+        if (string === null || string === undefined){
+            return null;
+        }
+        var matches = string.match(/^(?<year>\d\d\d\d)-(?<month>\d\d)-(?<day>\d\d)T(?<hour>\d\d):(?<minute>\d\d):(?<second>\d\d)(\.(?<ms>\d\d\d))?(?<tz>.+)$/);
+        if (!matches){
+            return null;
+        }
+        var components = {
+            year: parseInt(matches.groups.year),
+            month: parseInt(matches.groups.month),
+            day: parseInt(matches.groups.day),
+            hour: parseInt(matches.groups.hour),
+            minute: parseInt(matches.groups.minute),
+            second: parseInt(matches.groups.second),
+        };
+        if (matches.groups.ms){
+            components.millisecond = parseInt(matches.groups.ms);
+        }
+        var tz = matches.groups.tz;
+        if (tz === "Z"){
+            components.timezone = JSTimeZone.utc;
+        }else{
+            matches = tz.match(/^\+(\d\d)$/);
+            if (matches !== null){
+                components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(JSTimeInterval.hours(matches[1]));
+            }else{
+                matches = tz.match(/^\-(\d\d)$/);
+                if (matches !== null){
+                    components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(-JSTimeInterval.hours(matches[1]));
+                }else{
+                    matches = tz.match(/^\+(\d\d)\:?(\d\d)$/);
+                    if (matches !== null){
+                        components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(JSTimeInterval.hours(matches[1]) + JSTimeInterval.minutes(matches[2]));
+                    }else{
+                        matches = tz.match(/^\-(\d\d)\:?(\d\d)$/);
+                        if (matches !== null){
+                            components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(-JSTimeInterval.hours(matches[1]) - JSTimeInterval.minutes(matches[2]));
+                        }else{
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+        return components;
+    },
+
+    dateFromISO8601String: function(string){
+        var components = this.componentsFromISO8601String(string);
+        if (components === null){
+            return null;
+        }
+        return this.dateFromComponents(components);
     }
 
 });

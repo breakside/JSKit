@@ -1145,6 +1145,81 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertExactEquals(components.day, 30);
 
         // TODO: rounding when requesting partial units
+    },
+
+    testComponentsFromISO8601String: function(){
+        var calendar = JSCalendar.initWithIdentifier(JSCalendar.Identifier.gregorian);
+        var components = calendar.componentsFromISO8601String("2020-02-27T01:30:05.000Z");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 1);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertExactEquals(components.millisecond, 0);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, 0);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05.456+08");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 13);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertExactEquals(components.millisecond, 456);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, 8 * 60 * 60);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05.456-07");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 13);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertExactEquals(components.millisecond, 456);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, -7 * 60 * 60);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05Z");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 13);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertUndefined(components.millisecond);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, 0);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05-0830");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 13);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertUndefined(components.millisecond);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, -8 * 60 * 60 - 30 * 60);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05.123+08:30");
+        TKAssertExactEquals(components.year, 2020);
+        TKAssertExactEquals(components.month, 2);
+        TKAssertExactEquals(components.day, 27);
+        TKAssertExactEquals(components.hour, 13);
+        TKAssertExactEquals(components.minute, 30);
+        TKAssertExactEquals(components.second, 5);
+        TKAssertExactEquals(components.millisecond, 123);
+        TKAssertExactEquals(components.timezone.timeIntervalFromUTC, 8 * 60 * 60 + 30 * 60);
+
+        components = calendar.componentsFromISO8601String("2020-02-27T13:30:05.123");
+        TKAssertNull(components);
+
+        components = calendar.componentsFromISO8601String("notreal");
+        TKAssertNull(components);
+
+        components = calendar.componentsFromISO8601String(null);
+        TKAssertNull(components);
+
+        components = calendar.componentsFromISO8601String(undefined);
+        TKAssertNull(components);
     }
 
 });
