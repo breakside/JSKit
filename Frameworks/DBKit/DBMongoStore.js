@@ -16,7 +16,7 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
             }
         }
         var store = this;
-        var databaseName = url.path;
+        var databaseName = url.pathComponents[1];
         url = url.copy();
         url.path = null;
         this.connectedPromise = new Promise(function(resolve, reject){
@@ -53,9 +53,14 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
                     logger.error("Error fetching mongo object: %{error}", error);
                     completion.call(target, null);
                 }else{
-                    var object = JSCopy(mongoObject);
-                    delete object._id;
-                    completion.call(target, object);
+                    if (mongoObject === null){
+                        completion.call(target, null);
+                    }else{
+                        var object = JSCopy(mongoObject);
+                        object.id = object._id;
+                        delete object._id;
+                        completion.call(target, object);
+                    }
                 }
             });
         }catch (e){
@@ -73,7 +78,8 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
             var collection = this.database.collection(DBID.tableForID(object.id));
             var mongoObject = JSCopy(object);
             mongoObject._id = object.id;
-            collection.replaceOne({_id: object.id}, mongoObject, {upsert: true}, function(error){
+            delete object.id;
+            collection.replaceOne({_id: mongoObject._id}, mongoObject, {upsert: true}, function(error){
                 if (error){
                     logger.error("Error saving mongo object: %{error}", error);
                     completion.call(target, false);

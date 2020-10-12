@@ -26,6 +26,6 @@ JSGlobalObject.DBID = function(table){
     return table + '_' + hex;
 };
 
-DBID.tableForId = function(id){
+DBID.tableForID = function(id){
     return id.substr(0, id.length - 41);
 };
