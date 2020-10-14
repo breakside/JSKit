@@ -18,6 +18,8 @@ MockRedisClient.prototype = {
 
 JSClass("DBRedisStoreTests", TKTestSuite, {
 
+    requiredEnvironment: "node",
+
     testInitWithURL: function(){
         var client = null;
         var redis = {

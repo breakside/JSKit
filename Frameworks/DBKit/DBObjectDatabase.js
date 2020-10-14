@@ -19,7 +19,7 @@
 // #import "DBMemoryStore.js"
 // #import "DBEphemeralObjectStore.js"
 // #import "DBID.js"
-/* global DBSecureObjectDatabase, DBRedisStore */
+/* global DBSecureObjectDatabase, DBRedisStore, DBMongoStore */
 'use strict';
 
 (function(){
@@ -44,6 +44,8 @@ JSClass("DBObjectDatabase", JSObject, {
         }else if (url.scheme == "mongodb"){
             if (JSGlobalObject.DBMongoStore){
                 store = DBMongoStore.initWithURL(url);
+            }else{
+                throw new Error("Mongodb object database not supported for this environment");
             }
         }else{
             store = DBRemoteStore.initWithURL(url);

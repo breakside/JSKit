@@ -41,6 +41,8 @@ MockMongoCursor.prototype = {
 
 JSClass("DBMongoStoreTests", TKTestSuite, {
 
+    requiredEnvironment: "node",
+
     testInitWithURL: function(){
         var client = null;
         var database = null;
