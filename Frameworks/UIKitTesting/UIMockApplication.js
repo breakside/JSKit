@@ -26,6 +26,38 @@ JSClass("UIMockApplication", UIApplication, {
         JSFont.registerDummySystemFont();
     },
 
+    mockStart: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNull);
+        }
+        JSFileManager.shared.open(function(state){
+            switch (state){
+                case JSFileManager.State.success:
+                    JSUserDefaults.shared.open(function(){
+                        completion.call(target, null);
+                    }, this);
+                    break;
+                case JSFileManager.State.genericFailure:
+                    completion.call(target, JSFileManager.shared.error || new Error("Failed to open filesystem"));
+                    break;
+                case JSFileManager.State.conflictingVersions:
+                    completion.call(target, new Error("JSKIT_CLOSE_OTHER_INSTANCES"));
+            }
+        }, this);
+        return completion.promise;
+    },
+
+    mockStop: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNull);
+        }
+        this.deinit();
+        JSFileManager.shared.destroy(function(){
+            completion.call(target, null); 
+        });
+        return completion.promise;
+    },
+
     deinit: function(){
         JSFont.unregisterDummySystemFont();
         UIMockApplication.$super.deinit.call(this);
