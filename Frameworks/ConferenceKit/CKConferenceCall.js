@@ -22,7 +22,7 @@ JSClass("CKConferenceCall", JSObject, {
 
     init: function(){
         this.turnServices = [];
-        this.connectionsByParticipantId = {};
+        this.connectionsByParticipantID = {};
     },
 
     initWithTURNService: function(service){
@@ -31,7 +31,7 @@ JSClass("CKConferenceCall", JSObject, {
     },
 
     turnServices: null,
-    connectionsByParticipantId: null,
+    connectionsByParticipantID: null,
     nextParticipantNumber: 1,
 
     connectToParticipant: function(participant, isCaller){
@@ -40,7 +40,7 @@ JSClass("CKConferenceCall", JSObject, {
         participant.addObserverForKeyPath(this, "audioMuted");
         participant.addObserverForKeyPath(this, "videoMuted");
         connection.call = this;
-        this.connectionsByParticipantId[participant.identifier] = connection;
+        this.connectionsByParticipantID[participant.identifier] = connection;
         connection.setLocalStream(this._localStream);
         connection.open(isCaller);
     },
@@ -52,37 +52,37 @@ JSClass("CKConferenceCall", JSObject, {
     },
 
     end: function(){
-        var ids = Object.keys(this.connectionsByParticipantId);
+        var ids = Object.keys(this.connectionsByParticipantID);
         for (var i = 0, l = ids.length; i < l; ++i){
             this._closeConnectionForIdentifier(ids[i]);
         }
     },
 
     _closeConnectionForIdentifier: function(id){
-        var connection = this.connectionsByParticipantId[id];
+        var connection = this.connectionsByParticipantID[id];
         if (connection){
             connection.close();
             connection.call = null;
-            delete this.connectionsByParticipantId[id];
+            delete this.connectionsByParticipantID[id];
         }
     },
 
     updateDescriptionForParticipant: function(description, participant){
-        var connection = this.connectionsByParticipantId[participant.identifier];
+        var connection = this.connectionsByParticipantID[participant.identifier];
         if (connection){
             connection.updateDescription(description);
         }
     },
 
     addCandidateForParticipant: function(candidate, participant){
-        var connection = this.connectionsByParticipantId[participant.identifier];
+        var connection = this.connectionsByParticipantID[participant.identifier];
         if (connection){
             connection.addCandidate(candidate);
         }
     },
 
     participantForIdentifier: function(identifier){
-        var connection = this.connectionsByParticipantId[identifier];
+        var connection = this.connectionsByParticipantID[identifier];
         if (connection){
             return connection.participant;
         }
@@ -117,14 +117,14 @@ JSClass("CKConferenceCall", JSObject, {
         this._localStream = stream;
         this._updateLocalStreamMuted();
         var connection;
-        for (var id in this.connectionsByParticipantId){
-            connection = this.connectionsByParticipantId[id];
+        for (var id in this.connectionsByParticipantID){
+            connection = this.connectionsByParticipantID[id];
             connection.setLocalStream(stream);
         }
     },
 
     remoteStreamForParticipant: function(participant){
-        var connection = this.connectionsByParticipantId[participant.identifier];
+        var connection = this.connectionsByParticipantID[participant.identifier];
         if (connection){
             return connection.remoteStream;
         }

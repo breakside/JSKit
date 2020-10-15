@@ -16,6 +16,7 @@
 // #import "JSObject.js"
 // #import "JSDate.js"
 // #import "JSTimeZone.js"
+// #import "JSTimeInterval.js"
 'use strict';
 
 (function(){
@@ -397,14 +398,14 @@ JSClass("JSGregorianCalendar", JSCalendar, {
                 // been down-filled if needed, we only need to worry about the remaining < 12 months
                 // Count days from month1 to month2, crossing astronomicalYear2 boundary if needed 
                 m = components1.month;
-                diff.day -= components1.day;
+                diff.day = -components1.day;
                 if (components2.month <= components1.month){
                     for (; m <= 12; ++m){
                         diff.day += JSGregorianCalendar.lastDayOfMonthInYear(m, astronomicalYear2 - 1);
                     }
                     m = 1;
                 }
-                for (; m < components2.month - 1; ++m){
+                for (; m < components2.month; ++m){
                     diff.day += JSGregorianCalendar.lastDayOfMonthInYear(m, astronomicalYear2);
                 }
                 diff.day += components2.day;
@@ -461,21 +462,21 @@ JSClass("JSGregorianCalendar", JSCalendar, {
                     diff.hour = running;
                 }else if (units & JSCalendar.Unit.month){
                     // fill up to months...we'll do a rounding approximation based on a 30 day month
-                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    seconds = diff.hour * secondsPerHour + diff.minute * secondsPerMinute + diff.second + diff.millisecond * millisecondsPerSecond;
                     if (seconds >= secondsPerHour * 12){
-                        units.day += 1;
+                        diff.day += 1;
                     }
                     if (units.day >= 15){
-                        units.month += 1;
+                        diff.month += 1;
                     }
                 }else if (units & JSCalendar.Unit.year){
                     // fill up to years...we'll do a rounding approximation based on a 365 day year
-                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    seconds = diff.hour * secondsPerHour + diff.minute * secondsPerMinute + diff.second + diff.millisecond * millisecondsPerSecond;
                     if (seconds >= secondsPerHour * 12){
-                        units.day += 1;
+                        diff.day += 1;
                     }
                     if (units.day > 182){
-                        units.year += 1;
+                        diff.year += 1;
                     }
                 }
                 // else, no units are set and it doesn't matter what we do because nothing will be returned
@@ -484,12 +485,12 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             if (diff.hour > 0 && (units & JSCalendar.Unit.hour) === 0){
                 if (units & (JSCalendar.Unit.minute | JSCalendar.Unit.second | JSCalendar.Unit.millisecond)){
                     // if we have something below, down-fill to minutes
-                    units.minute += units.hour * minutesPerHour;
+                    diff.minute += diff.hour * minutesPerHour;
                 }else if (units & JSCalendar.Unit.day){
                     // If we can up-fill to days, do a rounding approximation
-                    seconds = units.hour * secondsPerHour + units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    seconds = diff.hour * secondsPerHour + diff.minute * secondsPerMinute + diff.second + diff.millisecond * millisecondsPerSecond;
                     if (seconds >= secondsPerHour * 12){
-                        units.day += 1;
+                        diff.day += 1;
                     }
                 }
                 // else, we have already taken care of the case where there is no day unit requested
@@ -498,12 +499,12 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             if (diff.minute > 0 && (units & JSCalendar.Unit.minute) === 0){
                 if (units & (JSCalendar.Unit.second | JSCalendar.Unit.millisecond)){
                     // if we have something below, down-fill to minutes
-                    units.second += units.minute * secondsPerMinute;
+                    diff.second += diff.minute * secondsPerMinute;
                 }else if (units & JSCalendar.Unit.hour){
                     // If we can up-fill to hours, do a rounding approximation
-                    seconds = units.minute * secondsPerMinute + units.second + units.millisecond * millisecondsPerSecond;
+                    seconds = diff.minute * secondsPerMinute + diff.second + diff.millisecond * millisecondsPerSecond;
                     if (seconds >= secondsPerHour / 2){
-                        units.hour += 1;
+                        diff.hour += 1;
                     }
                 }
                 // else, we have already taken care of the case where there is no hour unit requested
@@ -512,12 +513,12 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             if (diff.second > 0 && (units & JSCalendar.Unit.second) === 0){
                 if (units & JSCalendar.Unit.millisecond){
                     // if we have something below, down-fill to milliseconds
-                    units.millisecond += units.second * millisecondsPerSecond;
+                    diff.millisecond += diff.second * millisecondsPerSecond;
                 }else if (units & JSCalendar.Unit.minute){
                     // If we can up-fill to minutes, do a rounding approximation
-                    seconds = units.second + units.millisecond * millisecondsPerSecond;
+                    seconds = diff.second + diff.millisecond * millisecondsPerSecond;
                     if (seconds >= secondsPerMinute / 2){
-                        units.minute += 1;
+                        diff.minute += 1;
                     }
                 }
                 // else, we have already taken care of the case where there is no minute unit requested
@@ -526,8 +527,8 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             if (diff.millisecond > 0 && (units & JSCalendar.Unit.millisecond) === 0){
                 if (units & JSCalendar.Unit.second){
                     // If we can up-fill to seconds, do a rounding approximation
-                    if (units.millisecond >= millisecondsPerSecond / 2){
-                        units.second += 1;
+                    if (diff.millisecond >= millisecondsPerSecond / 2){
+                        diff.second += 1;
                     }
                 }
                 // else, we have already taken care of the case where there is no second unit requested
@@ -572,6 +573,62 @@ JSClass("JSGregorianCalendar", JSCalendar, {
             }
         }
         return diff;
+    },
+
+    componentsFromISO8601String: function(string){
+        if (string === null || string === undefined){
+            return null;
+        }
+        var matches = string.match(/^(?<year>\d\d\d\d)-(?<month>\d\d)-(?<day>\d\d)T(?<hour>\d\d):(?<minute>\d\d):(?<second>\d\d)(\.(?<ms>\d\d\d))?(?<tz>.+)$/);
+        if (!matches){
+            return null;
+        }
+        var components = {
+            year: parseInt(matches.groups.year),
+            month: parseInt(matches.groups.month),
+            day: parseInt(matches.groups.day),
+            hour: parseInt(matches.groups.hour),
+            minute: parseInt(matches.groups.minute),
+            second: parseInt(matches.groups.second),
+        };
+        if (matches.groups.ms){
+            components.millisecond = parseInt(matches.groups.ms);
+        }
+        var tz = matches.groups.tz;
+        if (tz === "Z"){
+            components.timezone = JSTimeZone.utc;
+        }else{
+            matches = tz.match(/^\+(\d\d)$/);
+            if (matches !== null){
+                components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(JSTimeInterval.hours(matches[1]));
+            }else{
+                matches = tz.match(/^\-(\d\d)$/);
+                if (matches !== null){
+                    components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(-JSTimeInterval.hours(matches[1]));
+                }else{
+                    matches = tz.match(/^\+(\d\d)\:?(\d\d)$/);
+                    if (matches !== null){
+                        components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(JSTimeInterval.hours(matches[1]) + JSTimeInterval.minutes(matches[2]));
+                    }else{
+                        matches = tz.match(/^\-(\d\d)\:?(\d\d)$/);
+                        if (matches !== null){
+                            components.timezone = JSTimeZone.initWithTimeIntervalFromUTC(-JSTimeInterval.hours(matches[1]) - JSTimeInterval.minutes(matches[2]));
+                        }else{
+                            return null;
+                        }
+                    }
+                }
+            }
+        }
+        return components;
+    },
+
+    dateFromISO8601String: function(string){
+        var components = this.componentsFromISO8601String(string);
+        if (components === null){
+            return null;
+        }
+        return this.dateFromComponents(components);
     }
 
 });

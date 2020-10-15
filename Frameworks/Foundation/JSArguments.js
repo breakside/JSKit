@@ -234,8 +234,10 @@ JSClass("JSArguments", JSObject, {
                         }
                     }
                 }else{
-                    if (option.allowed.indexOf(this[name]) < 0){
-                        throw new Error("Invalid value for %s: %s".sprintf(name, this[name]));
+                    if (option.default === undefined || this[name] !== option.default){
+                        if (option.allowed.indexOf(this[name]) < 0){
+                            throw new Error("Invalid value for %s: %s".sprintf(name, this[name]));
+                        }
                     }
                 }
             }

@@ -27,7 +27,7 @@ JSClass("DBFileStore", DBPersistentObjectStore, {
         if (!completion){
             completion = Promise.completion();
         }
-        var url = this._urlForId(id);
+        var url = this._urlForID(id);
         this.fileManager.contentsAtURL(url, function(contents){
             if (contents === null){
                 completion.call(target, null);
@@ -50,7 +50,7 @@ JSClass("DBFileStore", DBPersistentObjectStore, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var url = this._urlForId(obj.id);
+        var url = this._urlForID(obj.id);
         var json = JSON.stringify(obj);
         var contents = json.utf8();
         this.fileManager.createFileAtURL(url, contents, function(success){
@@ -63,14 +63,14 @@ JSClass("DBFileStore", DBPersistentObjectStore, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var url = this._urlForId(id);
+        var url = this._urlForID(id);
         this.fileManager.removeItemAtURL(url, function(success){
             completion.call(target, success);
         }, this);
         return completion.promise;
     },
 
-    _urlForId: function(id){
+    _urlForID: function(id){
         var hashlen = 40;
         var i = id.length - hashlen;
         var table = id.substr(0, i - 1);

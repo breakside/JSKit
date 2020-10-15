@@ -104,7 +104,7 @@ topics:
                       /files/**fileComponents:  FileResponder
                   ````
               -
-                introduced: 2020.36.0
+                introduced: 2020.39.0
                 name: healthCheckPath
                 type: String
                 summary: The path to use for heath check responses
@@ -132,7 +132,7 @@ topics:
 
           If no matching route is found, the server returns a 404 response.
       -
-        introduced: 2020.36.0
+        introduced: 2020.39.0
         name: healthCheckPath
         type: String
         summary: The path to use for heath check responses

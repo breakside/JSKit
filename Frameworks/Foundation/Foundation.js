@@ -72,6 +72,7 @@
 // #import "JSTimer.js"
 // #import "JSRunLoop.js"
 
+// #import "JSIPAddress.js"
 // #import "JSURLRequest.js"
 // #import "JSURLResponse.js"
 // #import "JSURLSession.js"
@@ -97,6 +98,8 @@
 
 // #import "JSLog.js"
 // #import "Zlib.js"
+// #import "JSCRC32.js"
+// #import "JSZip.js"
 
 // #import "JSSHA1Hash.js"
 // #import "JSMD5Hash.js"

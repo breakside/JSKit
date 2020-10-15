@@ -128,11 +128,11 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
         return completion.promise;
     },
 
-    saveExpiring: function(obj, lifetimeInSeconds, completion, target){
-        return this.saveExpiringUsingKey(obj, lifetimeInSeconds, this.defaultKeyName, completion, target);
+    saveExpiring: function(obj, lifetimeInterval, completion, target){
+        return this.saveExpiringUsingKey(obj, lifetimeInterval, this.defaultKeyName, completion, target);
     },
 
-    saveExpiringUsingKey: function(obj, lifetimeInSeconds, keyName, completion, target){
+    saveExpiringUsingKey: function(obj, lifetimeInterval, keyName, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
@@ -142,7 +142,7 @@ JSClass("DBSecureObjectDatabase", DBObjectDatabase, {
                     completion.call(target, false);
                     return;
                 }
-                this.store.saveExpiring(encryptedObject, lifetimeInSeconds, completion, target);
+                this.store.saveExpiring(encryptedObject, lifetimeInterval, completion, target);
             }, this);
         }else{
             logger.error("Cannot save expiring object in a persistent data store");

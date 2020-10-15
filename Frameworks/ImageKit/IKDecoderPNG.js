@@ -102,7 +102,7 @@ JSClass("IKDecoderPNG", IKDecoder, {
                     offset += length;
                     check = this.dataView.getUint32(offset);
                     offset += 4;
-                    crc = new CRC();
+                    crc = new JSCRC32();
                     crc.update(new Uint8Array(this.dataView.buffer, this.dataView.byteOffset + offset - length - 8, 4));
                     crc.update(section);
                     if (check == crc.final){
@@ -707,57 +707,5 @@ var IKDecoderPNGError = function(code, byteOffset, msg){
 };
 
 IKDecoderPNGError.prototype = Object.create(Error.prototype);
-
-var CRC = function(data){
-    if (this === undefined){
-        var crc = new CRC();
-        crc.update(data);
-        return crc.final;
-    }
-    this.workpad = new Uint32Array([0xFFFFFFFF, 0]);
-};
-
-CRC.prototype = Object.create({}, {
-
-    workpad: {writable: true, value: null},
-
-    update: {
-        value: function CRC_update(data){
-            for (var i = 0, l = data.length; i < l; ++i){
-                this.workpad[1] = this.workpad[0] ^ data[i];
-                this.workpad[0] = CRC.table[this.workpad[1] & 0xFF] ^ ((this.workpad[0] >> 8) & 0xFFFFFF);
-            }
-        }
-    },
-
-    final: {
-        get: function CRC_final(){
-            this.workpad[0] = this.workpad[0] ^ 0xFFFFFFFF;
-            return this.workpad[0];
-        }
-    }
-
-});
-
-Object.defineProperty(CRC, 'table', {
-    configurable: true,
-    get: function(){
-        var table = new Uint32Array(256);
-        for (var i = 0; i < 256; ++i){
-            table[i] = i;
-            for (var j = 0; j < 8; ++j){
-                if (table[i] & 1){
-                    table[i] = 0xEDB88320 ^ ((table[i] >> 1) & 0x7FFFFFFF);
-                }else{
-                    table[i] = (table[i] >> 1) & 0x7FFFFFFF;
-                }
-            }
-        }
-        Object.defineProperty(CRC, 'table', {value: table});
-        return table;
-    }
-});
-
-IKDecoderPNG.CRC = CRC;
 
 })();

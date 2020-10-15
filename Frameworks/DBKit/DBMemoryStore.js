@@ -30,14 +30,19 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         if (!completion){
             completion = Promise.completion();
         }
+        var object = this._unexpiredObject(id);
+        JSRunLoop.main.schedule(completion, target, object);
+        return completion.promise;
+    },
+
+    _unexpiredObject: function(id){
         var object = this.valuesByKey[id] || null;
         var expiration = this.expirationsByKey[id];
         if (expiration !== undefined && expiration <= JSDate.now.timeIntervalSince1970){
             this._delete(id);
             object = null;
         }
-        JSRunLoop.main.schedule(completion, target, object);
-        return completion.promise;
+        return object;
     },
 
     save: function(object, completion, target){
@@ -62,14 +67,32 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
+        this._saveExpiring(object, lifetimeInterval);
+        JSRunLoop.main.schedule(completion, target, true);
+        return completion.promise;
+    },
+
+    _saveExpiring: function(object, lifetimeInterval){
         this.valuesByKey[object.id] = object;
         if (lifetimeInterval > 0){
             this.expirationsByKey[object.id] = JSDate.now.timeIntervalSince1970 + lifetimeInterval;
         }else{
             delete this.expirationsByKey[object.id];
         }
-        JSRunLoop.main.schedule(completion, target, true);
-        return completion.promise;
     },
+
+    incrementExpiring: function(id, lifetimeInterval, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var object = this._unexpiredObject(id);
+        if (object === null){
+            object = {id: id, count: 0};
+        }
+        var result = ++object.count;
+        this._saveExpiring(object, lifetimeInterval);
+        JSRunLoop.main.schedule(completion, target, result);
+        return completion.promise;
+    }
 
 });

@@ -131,7 +131,7 @@ var Chunk = function(name, length){
 Chunk.prototype = {
 
     calculateChecksum: function(){
-        var crc = new CRC();
+        var crc = new JSCRC32();
         crc.update(this.data.subdataInRange(JSRange(4, this.data.length - 8)));
         this._chunkDataView.setUint32(this.data.length - 4, crc.final);
     }
@@ -139,7 +139,5 @@ Chunk.prototype = {
 };
 
 IKEncoderPNG.Chunk = Chunk;
-
-var CRC = IKDecoderPNG.CRC;
 
 })();

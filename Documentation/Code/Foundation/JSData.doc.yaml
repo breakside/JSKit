@@ -83,6 +83,14 @@ topics:
           new `JSData` point to the same underlying `ArrayBuffer`
         see:
           - nodeBuffer
+      -
+        name: initWithCopyOfData
+        introduced: 2020.39.0
+        kind: init
+        summary: Create a byte array by copying another byte array
+        description: |
+          Copies the given buffer into a new buffer so changes to one will not
+          affect changes to the other.
   -
     name: Accessing Bytes
     members:

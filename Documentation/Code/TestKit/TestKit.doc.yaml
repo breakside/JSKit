@@ -403,3 +403,46 @@ topics:
             summary: The error message to include in the exception
         description: |
           Throws an exception if `typeof(obj)` != `expectedType`
+      -
+        introduced: 2020.40.0
+        name: TKAssertPromiseRejected
+        kind: function
+        type: Promise
+        promise:
+          resolve: Resolves if the given promise was rejected
+        summary: Essentially reverses a promise result to test expected promise rejections
+        arguments:
+          -
+            name: promise
+            type: Promise
+            summary: The promise to check for rejection
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Only useful in `async` test methods to verify expected promise rejections
+
+          ````
+          #import TestKit
+          "use strict";
+
+          JSClass("MessageTests", TKTestSuite, {
+
+            testMessageSendFailure: async function(){
+              var message = Message.initWithText("hello, world!");
+              message.send = function(){
+                return new Promise(function(resolve, reject){
+                  JSTimer.scheduledTimerWithInterval(0.1, function(){
+                    reject(new Error("testing message send failure"));
+                  })
+                });x
+              };
+              await TKAssertPromiseRejected(messge.send());
+            }
+
+          })
+          ````
+
+          For non `async` test methods, use `TKExpectation` to perform asynchronous tests

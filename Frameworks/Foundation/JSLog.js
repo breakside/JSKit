@@ -196,13 +196,14 @@ JSLog.getRecords = function(){
 
 JSLog.dump = function(){
     var records = JSLog.getRecords();
-    var record = record;
+    var record;
     for (var i = 0, l = records.length; i < l; ++i){
+        record = records[i];
         console[record.level](JSLog.format(record));
     }
 };
 
-JSLog.buffer = JSLogBuffer(100);
+JSLog.buffer = JSLogBuffer(200);
 
 var jslog_formatter = {
 

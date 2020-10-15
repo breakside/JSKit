@@ -42,7 +42,7 @@ JSClass("DBObjectDatabaseTests", TKTestSuite, {
         this.wait(expectation, 2.0);
     },
 
-    testId: function(){
+    testID: function(){
         var id = this.db.id("testing");
         TKAssertEquals(id.length, 48);
         TKAssertEquals(id.substr(0, 8), "testing_");

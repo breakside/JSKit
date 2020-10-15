@@ -28,7 +28,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         expectation.call(this.manager.open, this.manager, function(state){
             TKAssertExactEquals(state, JSFileManager.State.success);
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     teardown: function(){
@@ -47,6 +47,10 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
+                expectation.call(manager.attributesOfItemAtURL, manager, url, function(attrs){
+                    TKAssertNotNull(attrs);
+                    TKAssertEquals(attrs.itemType, JSFileManager.ItemType.directory);
+                });
             });
         });
         this.wait(expectation, 3.0);
@@ -78,7 +82,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert(exists);
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testItemExistsAtURL: function(){
@@ -88,7 +92,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
             TKAssert(!exists);
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testItemExistsAtURLPromise: function(){
@@ -102,7 +106,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         }, function(){
             TKAssert();
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateFileAtURL: function(){
@@ -114,9 +118,14 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
+                expectation.call(manager.attributesOfItemAtURL, manager, url, function(attrs){
+                    TKAssertNotNull(attrs);
+                    TKAssertEquals(attrs.itemType, JSFileManager.ItemType.file);
+                    TKAssertEquals(attrs.size, 15);
+                });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateFileAtURLPromise: function(){
@@ -133,7 +142,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
         }, function(){
             TKAssert();
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateDirectoryAtURL_withFileParent: function(){
@@ -148,7 +157,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert(!success);
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateFileAtURL_withFileParent: function(){
@@ -163,7 +172,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert(!success);
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testContentsAtURL: function(){
@@ -179,7 +188,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssertEquals(str, "This is a test!");
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testContentsAtURLPromise: function(){
@@ -198,7 +207,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert();
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testRemoveItemAtURL: function(){
@@ -218,7 +227,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testRemoveItemAtURLPromise: function(){
@@ -240,7 +249,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testRemoveDirectoryAtURL: function(){
@@ -262,7 +271,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateSymbolicLinkAtURL: function(){
@@ -282,7 +291,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateSymbolicLinkAtURLPromise: function(){
@@ -304,7 +313,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 TKAssert();
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCreateSymbolicLinkAtURLRelative: function(){
@@ -329,7 +338,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testCircularSymbolicLinkAtURL: function(){
@@ -357,7 +366,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testDestinationOfSymbolicLinkAtURL: function(){
@@ -376,7 +385,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
     testDestinationOfSymbolicLinkAtURLRelative: function(){
@@ -400,7 +409,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
 
@@ -438,7 +447,7 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                 });
             });
         });
-        this.wait(expectation, 1.0);
+        this.wait(expectation, 2.0);
     },
 
 });

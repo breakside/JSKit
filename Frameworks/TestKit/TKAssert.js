@@ -241,6 +241,13 @@ JSGlobalObject.TKAssertThrows = function(f, message){
     }
 };
 
+JSGlobalObject.TKAssertPromiseRejected = function(promise, message){
+    return promise.then(function(){
+        throw TKAssertion("TKAssertPromiseRejected failed, promise succeeded " + (message || ""));
+    }, function(){
+    });
+};
+
 JSGlobalObject.TKAssertArrayEquals = function(a, b, message){
     for (var i = 0, l1 = a.length, l2 = b.length; i < l1 && i < l2; ++i){
         if (a[i] !== b[i]){

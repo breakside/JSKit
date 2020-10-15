@@ -7,8 +7,10 @@ description: |
   While it is possible to build a `TestKit` project with `make` and then
   run the tests with the resulting commands, the `test` command does this
   all at once.
+
+  Run your tests in node or in a headless browser.
 invocations:
-  - "[--inspect-brk] [--http-port N] <project-dir> [--suite test-suite] [--case test-case]"
+  - "[--inspect-brk] [--http-port N] [--browser chrome|firefox|webkit] <project-dir> [--suite test-suite] [--case test-case]"
 topics:
   -
     name: Project Info
@@ -20,6 +22,28 @@ topics:
   -
     name: Browser Based Testing
     members:
+      -
+        introduced: 2020.40.0
+        name: --browser
+        summary: Run tests in a headless browser
+        description: |
+          Tests will by default run in the node environment on the command line, but
+          it can be useful to run tests in a browser to verify that everything is
+          working correctly in that environment.
+
+          While you can use the `--http-port` option to start an HTTP sever and
+          manually run tests in any browser on your computer, that option doesn't
+          help with automated testing.
+
+          Testing in a browser via the command line allows you to run tests in
+          an HTML environment in an automated way.
+
+          Allowed Values:
+          * `chrome`
+          * `firefox`
+          * `webkit`
+        note:
+          Browser tests require that you install [Playwright](https://playwright.dev).
       -
         introduced: 2020.28.0
         name: --http-port

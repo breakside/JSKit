@@ -231,6 +231,32 @@ JSClass('JSBundleTests', TKTestSuite, {
         TKAssertEquals(str, "Testen");
         str = bundle.localizedString("testing2", "Test.strings");
         TKAssertEquals(str, "Testing 2");
+    },
+
+    testGetResourceData: function(){
+        var bundle = JSBundle.testBundle;
+        var metadata = bundle.metadataForResourceName("test", "txt");
+        TKAssertNotNull(metadata);
+        var expectation = TKExpectation.init();
+        expectation.call(bundle.getResourceData, bundle, metadata, function(data){
+            TKAssertNotNull(data);
+            var txt = data.stringByDecodingUTF8();
+            TKAssertEquals(txt, "Hello, world!");
+        });
+        this.wait(expectation, 2.0);
+    },
+
+    testFileForResourceName: function(){
+        var bundle = JSBundle.testBundle;
+        var file = bundle.fileForResourceName("test", "txt");
+        TKAssertNotNull(file);
+        var expectation = TKExpectation.init();
+        expectation.call(file.readData, file, function(data){
+            TKAssertNotNull(data);
+            var txt = data.stringByDecodingUTF8();
+            TKAssertEquals(txt, "Hello, world!");
+        });
+        this.wait(expectation, 2.0);
     }
 
     // TODO: localized resources

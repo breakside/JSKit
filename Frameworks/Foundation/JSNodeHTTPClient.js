@@ -57,7 +57,14 @@ JSClass("JSNodeHTTPClient", JSObject, {
             nodeRequest.on('response', function(message){
                 response = JSURLResponse.init();
                 response.statusCode = message.statusCode;
-                response._headerMap.parse(message.rawHeaders.join("\r\n"));
+                var rawHeaders = [];
+                for (var i = 0, l = message.rawHeaders.length; i < l - 1; i += 2){
+                    rawHeaders.push("%s: %s".sprintf(message.rawHeaders[i], message.rawHeaders[i + 1]));
+                }
+                if (i < l){
+                    rawHeaders.push(message.rawHeaders[i]);
+                }
+                response._headerMap.parse(rawHeaders.join("\r\n"));
                 response.statusText = message.statusMessage;
                 if (callbacks.response){
                     callbacks.response.call(target, response);

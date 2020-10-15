@@ -83,7 +83,7 @@ JSClass("PromiseTests", TKTestSuite, {
         expectation.call(setTimeout, JSGlobalObject, function(){
             TKAssertEquals(resolved, 246);
             TKAssertNull(rejected);
-        }, 50);
+        }, 200);
         this.wait(expectation, 1.0);
     },
 

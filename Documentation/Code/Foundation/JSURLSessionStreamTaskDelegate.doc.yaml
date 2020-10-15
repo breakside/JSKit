@@ -2,7 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: protocol
 introduced: 2020.1.0
 summary: A WebSocket stream delegate that receives data an connection events
-toipcs:
+topics:
   -
     name: Data
     members:

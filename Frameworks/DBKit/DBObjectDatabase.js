@@ -18,7 +18,8 @@
 // #import "DBRemoteStore.js"
 // #import "DBMemoryStore.js"
 // #import "DBEphemeralObjectStore.js"
-/* global DBSecureObjectDatabase */
+// #import "DBID.js"
+/* global DBSecureObjectDatabase, DBRedisStore, DBMongoStore */
 'use strict';
 
 (function(){
@@ -34,6 +35,18 @@ JSClass("DBObjectDatabase", JSObject, {
         var store;
         if (fileManager.isFileURL(url)){
             store = DBFileStore.initWithURL(url, fileManager);
+        }else if (url.scheme == "redis"){
+            if (JSGlobalObject.DBRedisStore){
+                store = DBRedisStore.initWithURL(url);
+            }else{
+                throw new Error("Redis object database not supported for this environment");
+            }
+        }else if (url.scheme == "mongodb"){
+            if (JSGlobalObject.DBMongoStore){
+                store = DBMongoStore.initWithURL(url);
+            }else{
+                throw new Error("Mongodb object database not supported for this environment");
+            }
         }else{
             store = DBRemoteStore.initWithURL(url);
         }
@@ -49,40 +62,15 @@ JSClass("DBObjectDatabase", JSObject, {
         this.store = store;
     },
 
-    id: function(table){
-        var chunks = Array.prototype.slice.call(arguments, 1);
-        if (chunks.length === 0){
-            chunks.push(UUID.init());
-        }
-        var hash = new JSSHA1Hash();
-        var chunk;
-        hash.start();
-        for (var i = 0, l = chunks.length; i < l; ++i){
-            chunk = chunks[i];
-            if (typeof(chunk) == "string"){
-                chunk = chunk.utf8();
-            }else if (chunk instanceof UUID){
-                chunk = chunk.bytes;
-            }
-            if (!(chunk instanceof JSData)){
-                throw new Error("id components must be JSData, String, or UUID");
-            }
-            hash.add(chunk);
-        }
-        hash.finish();
-        var hex = hash.digest().hexStringRepresentation();
-        return table + '_' + hex;
-    },
+    id: DBID,
 
-    tableForId: function(id){
-        return id.substr(0, id.length - 41);
-    },
+    tableForID: DBID.tableForID,
 
     object: function(id, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
-        if (!this.isValidId(id)){
+        if (!this.isValidID(id)){
             completion.call(target, null);
         }else{
             this.store.object(id, completion, target);
@@ -107,7 +95,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(obj.id)){
+        if (!this.isValidID(obj.id)){
             completion.call(target, false);
             return;
         }
@@ -115,18 +103,35 @@ JSClass("DBObjectDatabase", JSObject, {
         return completion.promise;
     },
 
-    saveExpiring: function(obj, lifetimeInSeconds, completion, target){
+    saveExpiring: function(obj, lifetimeInterval, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(obj.id)){
+        if (!this.isValidID(obj.id)){
             completion.call(target, false);
             return;
         }
         if (this.store.isKindOfClass(DBEphemeralObjectStore)){
-            this.store.saveExpiring(obj, lifetimeInSeconds, completion, target);
+            this.store.saveExpiring(obj, lifetimeInterval, completion, target);
         }else{
             logger.error("Cannot save expiring object in a persistent data store");
+            JSRunLoop.main.schedule(completion, target, false);
+        }
+        return completion.promise;
+    },
+
+    incrementExpiring: function(id, lifetimeInterval, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!this.isValidID(id)){
+            completion.call(target, false);
+            return;
+        }
+        if (this.store.isKindOfClass(DBEphemeralObjectStore)){
+            this.store.incrementExpiring(id, lifetimeInterval, completion, target);
+        }else{
+            logger.error("Cannot increment expiring counter in a persistent data store");
             JSRunLoop.main.schedule(completion, target, false);
         }
         return completion.promise;
@@ -136,7 +141,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidId(id)){
+        if (!this.isValidID(id)){
             completion.call(target, false);
             return;
         }
@@ -154,7 +159,7 @@ JSClass("DBObjectDatabase", JSObject, {
         }
     },
 
-    isValidId: function(id){
+    isValidID: function(id){
         if (id === undefined){
             return false;
         }

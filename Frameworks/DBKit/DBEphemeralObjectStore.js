@@ -18,7 +18,13 @@
 
 JSClass("DBEphemeralObjectStore", DBObjectStore, {
 
-    saveExpiring: function(obj, lifetimeInSeconds, completion, target){
+    saveExpiring: function(obj, lifetimeInterval, completion, target){
     },
+
+    incrementExpiring: function(id, lifetimeInterval, completion, target){
+    },
+
+    invalidateIncrementer: function(id, completion, target){
+    }
 
 });

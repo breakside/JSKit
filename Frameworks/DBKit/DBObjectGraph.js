@@ -29,13 +29,13 @@ JSClass("DBObjectGraph", JSObjectGraph, {
 
     database: null,
 
-    loadObjectForId: function(id, completion, target){
+    loadObjectForID: function(id, completion, target){
         this.database.object(id, function(dictionary){
             if (dictionary === null){
                 completion.call(target, null);
                 return;
             }
-            var cls = this.classForId(id);
+            var cls = this.classForID(id);
             if (cls !== null){
                 var obj = cls.allocate();
                 this.addObjectForId(obj, id);
@@ -61,8 +61,8 @@ JSClass("DBObjectGraph", JSObjectGraph, {
         this.classesByTable[table] = cls;
     },
 
-    classForId: function(id){
-        var table = this.database.tableForId(id);
+    classForID: function(id){
+        var table = this.database.tableForID(id);
         return this.classesByTable[table] || null;
     }
 

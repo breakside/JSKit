@@ -31,7 +31,7 @@ JSClass("SECHTMLKeychain", JSObject, {
 
     credentialStore: null,
     origin: null,
-    onlyItemId: "html",
+    onlyItemID: "html",
 
     isLocked: function(){
         return false;
@@ -58,7 +58,7 @@ JSClass("SECHTMLKeychain", JSObject, {
     },
 
     contains: function(itemId){
-        return itemId === this.onlyItemId;
+        return itemId === this.onlyItemID;
     },
 
     remove: function(itemId, completion, target){
@@ -73,7 +73,7 @@ JSClass("SECHTMLKeychain", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        if (itemId !== this.onlyItemId || this.credentialStore === null){
+        if (itemId !== this.onlyItemID || this.credentialStore === null){
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
@@ -117,7 +117,7 @@ JSClass("SECHTMLKeychain", JSObject, {
             password: item.password,
             origin: item.origin || this.origin
         };
-        var id = this.onlyItemId;
+        var id = this.onlyItemID;
         var credentialStore = this.credentialStore;
         credentialStore.create({password: info}).then(function(credential){
             if (!credential || credential.type  != "password"){

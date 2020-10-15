@@ -226,6 +226,34 @@ topics:
             name: toDate
             type: JSDate
             summary: The initial date to which the components should be added
+      -
+        introduced: 2020.40.1
+        name: dateFromISO8601String
+        kind: method
+        type: JSDate
+        nullable: true
+        summary: Create a date by parsing an ISO 8601 string
+        description: |
+          Supports the full datetime format: 
+
+          ````
+          YYYY-MM-DDTHH:MM:SS[.mmm](Z|+hh|-hh|+hhmm|-hhmm|+hh:mm|-hh:mm)
+          ````
+        important: Only available on a Gregorian calendar
+      -
+        introduced: 2020.40.1
+        name: componentsFromISO8601String
+        kind: method
+        type: Components
+        nullable: true
+        summary: Create components by parsing an ISO 8601 string
+        description: |
+          Supports the full datetime format: 
+
+          ````
+          YYYY-MM-DDTHH:MM:SS[.mmm](Z|+hh|-hh|+hhmm|-hhmm|+hh:mm|-hh:mm)
+          ````
+        important: Only available on a Gregorian calendar
   -
     name: Extracting Components
     members:

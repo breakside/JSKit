@@ -15,17 +15,21 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  tests:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      -
+        name: Install Webkit Depedencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant1c2a libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 libegl1 libnotify4 libxslt1.1 libevent-2.1-6 libgles2 libvpx5 libxcomposite1 libatk1.0-0 libatk-bridge2.0-0 libepoxy0 libgtk-3-0 libharfbuzz-icu0 libgstreamer-gl1.0-0 libgstreamer-plugins-bad1.0-0 gstreamer1.0-plugins-good gstreamer1.0-libav
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       -
         name: Checkout
         uses: actions/checkout@v2
-      
+
       # Download & install nodes
       -
         name: Setup Node
@@ -37,58 +41,153 @@ jobs:
         run: npm install
 
       # Tests
-      - 
+      -
         name: Test Foundation
         run: npx jskit test Tests/FoundationTests
-
-      - 
+      -
+        name: Test Foundation in Chrome
+        run: npx jskit test --browser chrome Tests/FoundationTests
+      -
+        name: Test Foundation in Firefox
+        run: npx jskit test --browser firefox Tests/FoundationTests
+      -
+        name: Test Foundation in Webkit
+        run: npx jskit test --browser webkit Tests/FoundationTests
+      -
         name: Test TestKit
         run: npx jskit test Tests/TestKitTests
-
-      - 
+      -
+        name: Test TestKit in Chrome
+        run: npx jskit test --browser chrome Tests/TestKitTests
+      -
+        name: Test TestKit in Firefox
+        run: npx jskit test --browser firefox Tests/TestKitTests
+      -
+        name: Test TestKit in Webkit
+        run: npx jskit test --browser webkit Tests/TestKitTests
+      -
         name: Test SecurityKit
         run: npx jskit test Tests/SecurityKitTests
-
-      - 
+      -
+        name: Test SecurityKit in Chrome
+        run: npx jskit test --browser chrome Tests/SecurityKitTests
+      -
+        name: Test SecurityKit in Firefox
+        run: npx jskit test --browser firefox Tests/SecurityKitTests
+      -
+        name: Test SecurityKit in Webkit
+        run: npx jskit test --browser webkit Tests/SecurityKitTests
+      -
         name: Test Dispatch
         run: npx jskit test Tests/DispatchTests
-
-      - 
+      -
+        name: Test Dispatch in Chrome
+        run: npx jskit test --browser chrome Tests/DispatchTests
+      -
+        name: Test Dispatch in Firefox
+        run: npx jskit test --browser firefox Tests/DispatchTests
+      -
+        name: Test Dispatch in Webkit
+        run: npx jskit test --browser webkit Tests/DispatchTests
+      -
         name: Test DOM
         run: npx jskit test Tests/DOMTests
-
-      - 
+      -
+        name: Test DOM in Chrome
+        run: npx jskit test --browser chrome Tests/DOMTests
+      -
+        name: Test DOM in Firefox
+        run: npx jskit test --browser firefox Tests/DOMTests
+      -
+        name: Test DOM in Webkit
+        run: npx jskit test --browser webkit Tests/DOMTests
+      -
         name: Test ImageKit
         run: npx jskit test Tests/ImageKitTests
-
-      - 
+      -
+        name: Test ImageKit in Chrome
+        run: npx jskit test --browser chrome Tests/ImageKitTests
+      -
+        name: Test ImageKit in Firefox
+        run: npx jskit test --browser firefox Tests/ImageKitTests
+      -
+        name: Test ImageKit in Webkit
+        run: npx jskit test --browser webkit Tests/ImageKitTests
+      -
         name: Test FontKit
         run: npx jskit test Tests/FontKitTests
-
-      - 
+      -
+        name: Test FontKit in Chrome
+        run: npx jskit test --browser chrome Tests/FontKitTests
+      -
+        name: Test FontKit in Firefox
+        run: npx jskit test --browser firefox Tests/FontKitTests
+      -
+        name: Test FontKit in Webkit
+        run: npx jskit test --browser webkit Tests/FontKitTests
+      -
         name: Test PDFKit
         run: npx jskit test Tests/PDFKitTests
-
-      - 
+      -
+        name: Test PDFKit in Chrome
+        run: npx jskit test --browser chrome Tests/PDFKitTests
+      -
+        name: Test PDFKit in Firefox
+        run: npx jskit test --browser firefox Tests/PDFKitTests
+      -
+        name: Test PDFKit in Webkit
+        run: npx jskit test --browser webkit Tests/PDFKitTests
+      -
         name: Test AuthKit
         run: npx jskit test Tests/AuthKitTests
-
-      - 
+      -
+        name: Test AuthKit in Chrome
+        run: npx jskit test --browser chrome Tests/AuthKitTests
+      -
+        name: Test AuthKit in Firefox
+        run: npx jskit test --browser firefox Tests/AuthKitTests
+      -
+        name: Test AuthKit in Webkit
+        run: npx jskit test --browser webkit Tests/AuthKitTests
+      -
         name: Test QRKit
         run: npx jskit test Tests/QRKitTests
-
-      - 
+      -
+        name: Test QRKit in Chrome
+        run: npx jskit test --browser chrome Tests/QRKitTests
+      -
+        name: Test QRKit in Firefox
+        run: npx jskit test --browser firefox Tests/QRKitTests
+      -
+        name: Test QRKit in Webkit
+        run: npx jskit test --browser webkit Tests/QRKitTests
+      -
         name: Test DBKit
         run: npx jskit test Tests/DBKitTests
-
-      - 
+      -
+        name: Test DBKit in Chrome
+        run: npx jskit test --browser chrome Tests/DBKitTests
+      -
+        name: Test DBKit in Firefox
+        run: npx jskit test --browser firefox Tests/DBKitTests
+      -
+        name: Test DBKit in Webkit
+        run: npx jskit test --browser webkit Tests/DBKitTests
+      -
         name: Test ServerKit
         run: npx jskit test Tests/ServerKitTests
-
-      - 
+      -
         name: Test UIKit
         run: npx jskit test Tests/UIKitTests
-
-      - 
+      -
+        name: Test UIKit in Chrome
+        run: npx jskit test --browser chrome Tests/UIKitTests
+      -
+        name: Test UIKit in Firefox
+        run: npx jskit test --browser firefox Tests/UIKitTests
+      -
+        name: Test UIKit in Webkit
+        run: npx jskit test --browser webkit Tests/UIKitTests
+      -
         name: Test jskit
         run: npx jskit test Tests/jskitTests
