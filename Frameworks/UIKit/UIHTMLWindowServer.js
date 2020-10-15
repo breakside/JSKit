@@ -286,7 +286,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     handleHighContrastChanged: function(query){
-        this.highContrastEnabled = query.matches;
+        this.contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
     },
 
     handleReducedMotionChanged: function(query){

@@ -46,7 +46,6 @@ JSClass("UIWindowServer", JSObject, {
     _draggingSession: null,
     activeEvent: JSReadOnlyProperty('_activeEvent', null),
     _normalLevelRange: null,
-    highContrastEnabled: false,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Window Server
@@ -966,14 +965,8 @@ JSClass("UIWindowServer", JSObject, {
         this._contrast = contrast;
         var window;
         for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            this.updateContrastTraitForView(this.windowStack[i]);
-        }
-    },
-
-    updateContrastTraitForView: function(view){
-        view._setTraitCollection(view.traitCollection.traitsWithContrast(this._contrast));
-        for (var i = 0, l = view.subviews.length; i < l; ++i){
-            this.updateContrastTraitForView(view.subviews[i]);
+            window = this.windowStack[i];
+            window._setTraitCollection(window.traitCollection.traitsWithContrast(this._contrast));
         }
     }
 

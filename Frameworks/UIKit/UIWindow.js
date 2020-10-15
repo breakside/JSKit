@@ -36,14 +36,14 @@ JSClass('UIWindow', UIView, {
     // MARK: - Creating a Window
 
     init: function(){
-        UIWindow.$super.init.call(this);
         this._application = UIApplication.shared;
+        UIWindow.$super.init.call(this);
         this._commonWindowInit();
     },
 
     initWithApplication: function(application){
-        UIWindow.$super.init.call(this);
         this._application = application;
+        UIWindow.$super.init.call(this);
         this._commonWindowInit();
     },
 
@@ -53,6 +53,7 @@ JSClass('UIWindow', UIView, {
     },
 
     initWithSpec: function(spec){
+        this._application = UIApplication.shared;
         UIWindow.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('contentViewController')){
             this.contentViewController = spec.valueForKey("contentViewController", UIViewController);
@@ -62,7 +63,6 @@ JSClass('UIWindow', UIView, {
         if (spec.containsKey('styler')){
             this._styler = spec.valueForKey("styler", UIWindow.Styler);
         }
-        this._application = UIApplication.shared;
         this._commonWindowInit();
         if (spec.containsKey('contentInsets')){
             this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
@@ -285,6 +285,7 @@ JSClass('UIWindow', UIView, {
 
     layerDidChangeSize: function(){
         var traits = UITraitCollection.initWithSize(this.bounds.size);
+        traits.contrast = this.windowServer.contrast;
         this._setTraitCollection(traits);
     },
     
