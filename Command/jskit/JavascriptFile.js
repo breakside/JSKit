@@ -67,8 +67,8 @@ JSClass("JavascriptFile", JSObject, {
             }else if (scan.command == "esversion"){
                 var version = parseInt(scan.args);
                 if (version >= 6){
-                    imports.features.push('eval("{const x = 1;}")');
-                    imports.features.push('eval("{let x = 1;}")');
+                    imports.features.push('eval("const x = 1;") === undefined');
+                    imports.features.push('eval("let x = 1;") === undefined');
                     imports.features.push('eval("{x: async function(){}}")');
                     imports.features.push('eval("x => x")');
                 }
