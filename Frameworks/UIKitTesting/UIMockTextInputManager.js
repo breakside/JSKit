@@ -14,20 +14,18 @@
 // limitations under the License.
 
 // #import UIKit
-// #import TestKit
-// #import UIKitTesting
-'use strict';
+"use strict";
 
-JSClass("UIViewTests", TKTestSuite, {
+JSClass("UIMockTextInputManager", UITextInputManager, {
 
-    windowServer: null,
+    responder: null,
 
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
-    },
-
-    teardown: function(){
-        this.windowServer = null;
+    windowDidChangeResponder: function(window){
+        if (window){
+            this.responder = window.firstResponder;
+        }else{
+            this.responder = null;
+        }
     }
 
 });

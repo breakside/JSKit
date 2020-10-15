@@ -14,22 +14,10 @@
 // limitations under the License.
 
 // #import UIKit
-'use strict';
+// #import "UIMockDisplayContext.js"
+"use strict";
 
-JSClass("MockWindowServer", UIWindowServer, {
-
-    init: function(){
-        MockWindowServer.$super.init.call(this);
-        this.displayServer = MockDisplayServer.init();
-        this.textInputManager = MockTextInputManager.init();
-        this.textInputManager.windowServer = this;
-        this.screen = UIScreen.initWithFrame(JSRect(0, 0, 1500, 1000));
-        this.device = UIDevice.init();
-    },
-
-});
-
-JSClass("MockDisplayServer", UIDisplayServer, {
+JSClass("UIMockDisplayServer", UIDisplayServer, {
 
     rootContext: null,
     rootLayers: null,
@@ -38,10 +26,10 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     layerChangeCallback: null,
 
     init: function(){
-        MockDisplayServer.$super.init.call(this);
+        UIMockDisplayServer.$super.init.call(this);
         this.rootLayers = [];
         this.contextsByObjectID = {};
-        this.rootContext = MockDisplayContext.init();
+        this.rootContext = UIMockDisplayContext.init();
     },
 
     windowInserted: function(window){
@@ -92,7 +80,7 @@ JSClass("MockDisplayServer", UIDisplayServer, {
         if (this.layerChangeCallback !== null){
             this.layerChangeCallback.call(layer, keyPath);
         }
-        MockDisplayServer.$super.layerDidChangeProperty.call(this, layer, keyPath);
+        UIMockDisplayServer.$super.layerDidChangeProperty.call(this, layer, keyPath);
     },
 
     setUpdateNeeded: function(){
@@ -100,14 +88,14 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     },
 
     updateDisplay: function(t){
-        MockDisplayServer.$super.updateDisplay.call(this, t);
+        UIMockDisplayServer.$super.updateDisplay.call(this, t);
         this.updateNeeded = false;
     },
 
     contextForLayer: function(layer){
         var context = this.contextsByObjectID[layer.objectID];
         if (context === undefined){
-            context = MockDisplayContext.init();
+            context = UIMockDisplayContext.init();
             this.contextsByObjectID[layer.objectID] = context;
         }
         return context;
@@ -119,23 +107,5 @@ JSClass("MockDisplayServer", UIDisplayServer, {
     createTextFramesetter: function(){
         return JSTextFramesetter.init();
     }
-
-});
-
-JSClass("MockTextInputManager", UITextInputManager, {
-
-    responder: null,
-
-    windowDidChangeResponder: function(window){
-        if (window){
-            this.responder = window.firstResponder;
-        }else{
-            this.responder = null;
-        }
-    }
-
-});
-
-JSClass("MockDisplayContext", JSContext, {
 
 });

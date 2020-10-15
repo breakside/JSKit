@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UIScrollViewTests", TKTestSuite, {
@@ -23,7 +23,7 @@ JSClass("UIScrollViewTests", TKTestSuite, {
     windowServer: null,
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
     },
 
     teardown: function(){

@@ -14,20 +14,9 @@
 // limitations under the License.
 
 // #import UIKit
-// #import TestKit
-// #import UIKitTesting
-'use strict';
+// #import "UIMockDisplayContext.js"
+"use strict";
 
-JSClass("UIViewTests", TKTestSuite, {
-
-    windowServer: null,
-
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
-    },
-
-    teardown: function(){
-        this.windowServer = null;
-    }
+JSClass("UIMockDisplayContext", JSContext, {
 
 });

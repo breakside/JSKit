@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UIMenuTests", TKTestSuite, {
@@ -39,9 +39,8 @@ JSClass("UIMenuTests", TKTestSuite, {
     },
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
-        var bundle = JSBundle.initWithDictionary({Info: {}});
-        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
+        this.app = UIMockApplication.init();
+        this.windowServer = this.app.windowServer;
         this.baseWindow = UIRootWindow.initWithApplication(this.app);
         this.baseWindow.contentView = UIView.init();
         this.testView = UIView.initWithFrame(JSRect(20, 30, 40, 50));

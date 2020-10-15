@@ -14,20 +14,19 @@
 // limitations under the License.
 
 // #import UIKit
-// #import TestKit
-// #import UIKitTesting
-'use strict';
+// #import "UIMockDisplayServer.js"
+// #import "UIMockTextInputManager.js"
+"use strict";
 
-JSClass("UIViewTests", TKTestSuite, {
+JSClass("UIMockWindowServer", UIWindowServer, {
 
-    windowServer: null,
-
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
+    init: function(){
+        UIMockWindowServer.$super.init.call(this);
+        this.displayServer = UIMockDisplayServer.init();
+        this.textInputManager = UIMockTextInputManager.init();
+        this.textInputManager.windowServer = this;
+        this.screen = UIScreen.initWithFrame(JSRect(0, 0, 1500, 1000));
+        this.device = UIDevice.init();
     },
-
-    teardown: function(){
-        this.windowServer = null;
-    }
 
 });

@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UIWindowServerTests", TKTestSuite, {
@@ -24,7 +24,7 @@ JSClass("UIWindowServerTests", TKTestSuite, {
     windowServer: null,
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {}});
         this.app = UIApplication.initWithBundle(bundle, this.windowServer);
         JSFont.registerDummySystemFont();

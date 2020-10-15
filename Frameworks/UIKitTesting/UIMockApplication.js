@@ -14,20 +14,21 @@
 // limitations under the License.
 
 // #import UIKit
-// #import TestKit
-// #import UIKitTesting
-'use strict';
+// #import "UIMockWindowServer.js"
+"use strict";
 
-JSClass("UIViewTests", TKTestSuite, {
+JSClass("UIMockApplication", UIApplication, {
 
-    windowServer: null,
-
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
+    init: function(){
+        var bundle = JSBundle.initWithDictionary({Info: {}});
+        var windowServer = UIMockWindowServer.init();
+        UIMockApplication.$super.initWithBundle.call(this, bundle, windowServer);
+        JSFont.registerDummySystemFont();
     },
 
-    teardown: function(){
-        this.windowServer = null;
+    deinit: function(){
+        JSFont.unregisterDummySystemFont();
+        UIMockApplication.$super.deinit.call(this);
     }
 
 });
