@@ -23,6 +23,7 @@ var logger = JSLog("dbkit", "graph");
 JSClass("DBObjectGraph", JSObjectGraph, {
 
     initWithObjectDatabase: function(database){
+        DBObjectGraph.$super.init.call(this);
         this.database = database;
         this.classesByTable = {};
     },

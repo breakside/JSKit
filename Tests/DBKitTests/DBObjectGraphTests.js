@@ -13,5 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBRedisStore.js"
-// #import "DBMongoStore.js"
+// #import DBKit
+// #import TestKit
+'use strict';
+
+JSClass("DBObjectGraphTests", TKTestSuite, {
+
+    testInitWithObjectDatabase: function(){
+        var db = DBObjectDatabase.initInMemory();
+        var graph = DBObjectGraph.initWithObjectDatabase(db);
+        TKAssertNotNull(graph.objectsByID);
+    }
+
+});
