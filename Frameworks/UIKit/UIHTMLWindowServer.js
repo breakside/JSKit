@@ -210,6 +210,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.addEventListener('resize', this, false);
         this.domWindow.addEventListener('languagechange', this, false);
         this.domWindow.addEventListener('orientationchange', this);
+        this.domWindow.addEventListener('scroll', this);
         this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
@@ -734,6 +735,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this.screen.frame = JSRect(JSPoint.Zero, this.rootElementSize());
             this.screenDidChangeFrame(oldFrame);
             this.displayServer.setScreenSize(this.screen.frame.size);
+        }
+    },
+
+    scroll: function(e){
+        if (e.currentTarget === this.domWindow){
+            this._updateScreenClientOrigin();
         }
     },
 
