@@ -135,6 +135,9 @@ JSClass("UIListView", UIScrollView, {
         if (spec.containsKey('headersStickToTop')){
             this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
+        if (spec.containsKey("showsFocusRing")){
+            this._showsFocusRing = spec.valueForKey("showsFocusRing");
+        }
     },
 
     _commonListInit: function(){
@@ -2520,6 +2523,15 @@ JSClass("UIListView", UIScrollView, {
     getAccessibilityElements: function(){
         return this._visibleItems;
     },
+
+    showsFocusRing: false,
+
+    getFocusRingPath: function(){
+        if (this.showsFocusRing){
+            return UIListView.$super.getFocusRingPath.call(this);
+        }
+        return null;
+    }
 
 });
 
