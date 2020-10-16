@@ -338,12 +338,14 @@ JSClass('UIWindow', UIView, {
 
     becomeKey: function(){
         this._styler.updateWindow(this);
+        this._styler.updateFocusRingInWindow(this);
         this.contentView.windowDidChangeKeyStatus();
         this._validateToolbar();
     },
 
     resignKey: function(){
         this._styler.updateWindow(this);
+        this._styler.updateFocusRingInWindow(this);
         this.contentView.windowDidChangeKeyStatus();
     },
 
@@ -1092,7 +1094,7 @@ JSClass("UIWindowStyler", JSObject, {
     updateFocusRingInWindow: function(window){
         var responder = window.firstResponder;
         var focusRingLayer = window.stylerProperties.focusRingLayer;
-        if (responder === null || !responder.isKindOfClass(UIView)){
+        if (!window.isKeyWindow || responder === null || !responder.isKindOfClass(UIView)){
             focusRingLayer.hidden = true;
             return;
         }
