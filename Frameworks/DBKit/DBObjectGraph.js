@@ -39,7 +39,7 @@ JSClass("DBObjectGraph", JSObjectGraph, {
             var cls = this.classForID(id);
             if (cls !== null){
                 var obj = cls.allocate();
-                this.addObjectForId(obj, id);
+                this.addObjectForID(obj, id);
                 obj.initFromDictionary(dictionary, this).then(function(result){
                     if (result !== undefined){
                         logger.warn("initFromDictionary should not return anything.  Resulting object graph not well defined");
