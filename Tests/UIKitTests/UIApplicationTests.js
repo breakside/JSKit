@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 (function(){
@@ -40,7 +40,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
     app: null,
 
     setup: function(){
-        var windowServer = MockWindowServer.init();
+        var windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {}});
         this.app = UIApplication.initWithBundle(bundle, windowServer);
     },
@@ -58,7 +58,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
     testSingleApplication: function(){
         TKAssertExactEquals(this.app, UIApplication.shared);
         TKAssertThrows(function(){
-            var windowServer = MockWindowServer.init();
+            var windowServer = UIMockWindowServer.init();
             var bundle = JSBundle.initWithDictionary({Info: {}});
             this.app = UIApplication.initWithBundle(bundle, windowServer);
         });

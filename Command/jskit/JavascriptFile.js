@@ -69,7 +69,7 @@ JSClass("JavascriptFile", JSObject, {
                 if (version >= 6){
                     imports.features.push('eval("const x = 1;") === undefined');
                     imports.features.push('eval("let x = 1;") === undefined');
-                    imports.features.push('eval("{x: async function(){}}")');
+                    imports.features.push('eval("let x = {x: async function(){}}") === undefined');
                     imports.features.push('eval("x => x")');
                 }
             }

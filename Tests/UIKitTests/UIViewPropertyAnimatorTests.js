@@ -15,13 +15,13 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UIViewPropertyAnimatorTests", TKTestSuite, {
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {}});
         this.application = UIApplication.initWithBundle(bundle, this.windowServer);
     },

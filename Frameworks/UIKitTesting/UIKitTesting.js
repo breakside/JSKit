@@ -12,22 +12,11 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+"use strict";
 
 // #import UIKit
-// #import TestKit
-// #import UIKitTesting
-'use strict';
-
-JSClass("UIViewTests", TKTestSuite, {
-
-    windowServer: null,
-
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
-    },
-
-    teardown: function(){
-        this.windowServer = null;
-    }
-
-});
+// #import "UIMockApplication.js"
+// #import "UIMockWindowServer.js"
+// #import "UIMockDisplayServer.js"
+// #import "UIMockDisplayContext.js"
+// #import "UIMockTextInputManager.js"

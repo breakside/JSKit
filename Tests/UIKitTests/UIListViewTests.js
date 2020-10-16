@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UIListViewTests", TKTestSuite, {
@@ -25,12 +25,10 @@ JSClass("UIListViewTests", TKTestSuite, {
     window: null,
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
-        var bundle = JSBundle.initWithDictionary({Info: {}});
-        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
+        this.app = UIMockApplication.init();
+        this.windowServer = this.app.windowServer;
         this.window = UIRootWindow.initWithApplication(this.app);
         this.window.makeKeyAndOrderFront();
-        JSFont.registerDummySystemFont();
     },
 
     teardown: function(){
@@ -38,7 +36,6 @@ JSClass("UIListViewTests", TKTestSuite, {
         this.app = null;
         this.windowServer = null;
         this.window = null;
-        JSFont.unregisterDummySystemFont();
     },
 
     testCellRegistration: function(){

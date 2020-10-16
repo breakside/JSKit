@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 JSClass("UILayerTests", TKTestSuite, {
@@ -23,7 +23,7 @@ JSClass("UILayerTests", TKTestSuite, {
     windowServer: null,
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
     },
 
     teardown: function(){

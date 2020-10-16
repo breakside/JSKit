@@ -13,21 +13,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import UIKit
+// #import DBKit
 // #import TestKit
-// #import UIKitTesting
 'use strict';
 
-JSClass("UIViewTests", TKTestSuite, {
+JSClass("DBObjectGraphTests", TKTestSuite, {
 
-    windowServer: null,
-
-    setup: function(){
-        this.windowServer = UIMockWindowServer.init();
-    },
-
-    teardown: function(){
-        this.windowServer = null;
+    testInitWithObjectDatabase: function(){
+        var db = DBObjectDatabase.initInMemory();
+        var graph = DBObjectGraph.initWithObjectDatabase(db);
+        TKAssertNotNull(graph.objectsByID);
     }
 
 });

@@ -15,7 +15,7 @@
 
 // #import UIKit
 // #import TestKit
-// #import "MockWindowServer.js"
+// #import UIKitTesting
 'use strict';
 
 (function(){
@@ -26,7 +26,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
     textLayer: null,
 
     setup: function(){
-        this.windowServer = MockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
         this.textLayer = UITextLayer.init();
         this.textLayer.font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         this.windowServer.displayServer.layerInserted(this.textLayer);
