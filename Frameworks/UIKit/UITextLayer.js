@@ -196,12 +196,19 @@ JSClass("UITextLayer", UILayer, {
     },
 
     sizeToFitSize: function(maxSize){
-        this._textContainer.size = JSSize(maxSize.width - this._textInsets.left - this._textInsets.right, maxSize.height - this._textInsets.top - this._textInsets.bottom);
+        var size = JSSize(maxSize);
+        if (size.width < Number.MAX_VALUE){
+            size.width -= this._textInsets.width;
+        }
+        if (size.height < Number.MAX_VALUE){
+            size.height -= this._textInsets.height;
+        }
+        this._textContainer.size = size;
         this.layoutIfNeeded();
         if (this._textContainer.textFrame !== null){
-            var width = this._textContainer.textFrame.usedSize.width + this._textInsets.left + this._textInsets.right;
-            var height = this._textContainer.textFrame.usedSize.height + this._textInsets.top + this._textInsets.bottom;
-            var size = JSSize(width, height);
+            size = JSSize(this._textContainer.textFrame.usedSize);
+            size.width += this._textInsets.width;
+            size.height += this._textInsets.height;
             this.bounds = JSRect(JSPoint.Zero, size);
             this._textContainer.size = this._textContainer.textFrame.usedSize;
         }

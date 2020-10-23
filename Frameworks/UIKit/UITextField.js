@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "UIControl.js"
+// #import "UILabel.js"
 // #import "UITextLayer.js"
 // #import "UITextEditor.js"
 // #import "UICursor.js"
@@ -197,42 +198,41 @@ JSClass("UITextField", UIControl, {
     placeholderColor: JSDynamicProperty('_placeholderColor', null),
 
     setPlaceholder: function(placeholder){
-        if (this._placeholderTextLayer === null){
-            this._createPlaceholderTextLayer();
+        if (this._placeholderLabel === null){
+            this._createPlaceholderLabel();
         }
-        this._placeholderTextLayer.text = placeholder;
+        this._placeholderLabel.text = placeholder;
         this._updatePlaceholderHidden();
     },
 
     getPlaceholder: function(){
-        if (!this._placeholderTextLayer){
+        if (!this._placeholderLabel){
             return null;
         }
-        return this._placeholderTextLayer.text;
+        return this._placeholderLabel.text;
     },
 
     setPlaceholderColor: function(color){
         this._placeholderColor = color;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.textColor = this._placeholderColor;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.textColor = this._placeholderColor;
         }
     },
 
-    _createPlaceholderTextLayer: function(){
-        this._placeholderTextLayer = UITextLayer.init();
-        this._placeholderTextLayer.delegate = this;
-        this._placeholderTextLayer.textAlignment = this._textLayer.textAlignment;
-        this._placeholderTextLayer.lineBreakMode = JSLineBreakMode.truncateTail;
-        this._placeholderTextLayer.maximumNumberOfLines = 1;
-        this._placeholderTextLayer.font = this._textLayer.font;
-        this._placeholderTextLayer.hidden = true;
-        this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
-        this._placeholderTextLayer.heightTracksText = true;
+    _createPlaceholderLabel: function(){
+        this._placeholderLabel = UILabel.init();
+        this._placeholderLabel.textAlignment = this._textLayer.textAlignment;
+        this._placeholderLabel.lineBreakMode = JSLineBreakMode.truncateTail;
+        this._placeholderLabel.maximumNumberOfLines = 1;
+        this._placeholderLabel.font = this._textLayer.font;
+        this._placeholderLabel.hidden = true;
+        this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
+        this._placeholderLabel.layer.heightTracksText = true;
         if (this._placeholderColor === null){
             this._createPlaceholderColor();
         }
-        this._placeholderTextLayer.textColor = this._placeholderColor;
-        this._clipView.layer.insertSublayerBelowSibling(this._placeholderTextLayer, this._textLayer);
+        this._placeholderLabel.textColor = this._placeholderColor;
+        this._clipView.insertSubviewAtIndex(this._placeholderLabel, 0);
     },
 
     _createPlaceholderColor: function(){
@@ -243,22 +243,22 @@ JSClass("UITextField", UIControl, {
         this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
     },
 
-    _placeholderTextLayer: null,
+    _placeholderLabel: null,
 
     _isShowingPlaceholder: false,
 
     _updatePlaceholderHidden: function(){
         if (this._isShowingPlaceholder && !this._shouldShowPlaceholder()){
-            this._placeholderTextLayer.hidden = true;
+            this._placeholderLabel.hidden = true;
             this._isShowingPlaceholder = false;
         }else if (!this._isShowingPlaceholder && this._shouldShowPlaceholder()){
-            this._placeholderTextLayer.hidden = false;
+            this._placeholderLabel.hidden = false;
             this._isShowingPlaceholder = true;
         }
     },
 
     _shouldShowPlaceholder: function(){
-        return this._placeholderTextLayer !== null && !this._textLayer.hasText();
+        return this._placeholderLabel !== null && !this._textLayer.hasText();
     },
 
     // --------------------------------------------------------------------
@@ -289,8 +289,8 @@ JSClass("UITextField", UIControl, {
 
     setTextAlignment: function(textAlignment){
         this._textLayer.textAlignment = textAlignment;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.textAlignment = textAlignment;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.textAlignment = textAlignment;
         }
     },
 
@@ -308,8 +308,8 @@ JSClass("UITextField", UIControl, {
 
     setFont: function(font){
         this._textLayer.font = font;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.font = font;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.font = font;
         }
     },
 
@@ -343,8 +343,8 @@ JSClass("UITextField", UIControl, {
         this._multiline = multiline;
         this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
         this._textLayer.widthTracksText = !multiline;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
         }
         this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
     },
@@ -632,32 +632,31 @@ JSClass("UITextField", UIControl, {
             }else{
                 this._textLayer.frame = JSRect(JSPoint.Zero, textSize);
             }
-            if (this._placeholderTextLayer !== null){
-                if (!this._multiline){
-                    this._placeholderTextLayer.layoutIfNeeded();
-                }
-                var placeholderSize = this._placeholderTextLayer.bounds.size;
-                if (this._multiline){
-                    this._placeholderTextLayer.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
-                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.center){
-                    this._placeholderTextLayer.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
-                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.right){
-                    this._placeholderTextLayer.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
-                }else{
-                    this._placeholderTextLayer.frame = JSRect(JSPoint.Zero, placeholderSize);
-                }
-            }
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
             this._localEditor.layout();
-        }else if (layer === this._placeholderTextLayer){
-            this._placeholderTextLayer.layoutSublayers();
         }
     },
 
     layoutSubviews: function(){
         UITextField.$super.layoutSubviews.call(this);
         var textInsets = JSInsets(this._textInsets);
+        if (this._placeholderLabel !== null){
+            if (!this._multiline){
+                this._placeholderLabel.layoutIfNeeded();
+            }
+            var clipSize = this._clipView.bounds.size;
+            var placeholderSize = this._placeholderLabel.bounds.size;
+            if (this._multiline){
+                this._placeholderLabel.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.center){
+                this._placeholderLabel.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.right){
+                this._placeholderLabel.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
+            }else{
+                this._placeholderLabel.frame = JSRect(JSPoint.Zero, placeholderSize);
+            }
+        }
         if (this._leftAccessoryView !== null){
             textInsets.left += this._leftAccessoryInsets.width + this._leftAccessorySize.width;
             this._leftAccessoryView.frame = JSRect(
@@ -692,12 +691,11 @@ JSClass("UITextField", UIControl, {
 
     sizeToFitText: function(maxSize){
         this._textLayer.layoutIfNeeded();
-        var textLayer = this._textLayer;
+        var size = JSSize(this._textLayer.bounds.size);
         if (this._isShowingPlaceholder){
-            this._placeholderTextLayer.layoutIfNeeded();
-            textLayer = this._placeholderTextLayer;
+            this._placeholderLabel.layoutIfNeeded();
+            size = JSSize(this._placeholderLabel.bounds.size);
         }
-        var size = JSSize(textLayer.bounds.size);
         if (size.width > maxSize.width){
             size.width = maxSize.width;
         }
@@ -720,8 +718,6 @@ JSClass("UITextField", UIControl, {
                 this._styler.drawControlLayerInContext(this, layer, context);
             }
         }else if (layer === this._textLayer){
-            layer.drawInContext(context);
-        }else if (layer === this._placeholderTextLayer){
             layer.drawInContext(context);
         }
     },
@@ -748,12 +744,12 @@ JSClass("UITextField", UIControl, {
         // in order to perform the quickest checks while rapidly typing.
         // 1. Use insertedLength to tell if we have a non-empty field
         // 2. Only query the text storage if we might be empty
-        if (this._placeholderTextLayer !== null){
+        if (this._placeholderLabel !== null){
             if (this._isShowingPlaceholder && !isEmpty){
-                this._placeholderTextLayer.hidden = true;
+                this._placeholderLabel.hidden = true;
                 this._isShowingPlaceholder = false;
             }else if (!this._isShowingPlaceholder && isEmpty){
-                this._placeholderTextLayer.hidden = false;
+                this._placeholderLabel.hidden = false;
                 this._isShowingPlaceholder = true;
             }
         }

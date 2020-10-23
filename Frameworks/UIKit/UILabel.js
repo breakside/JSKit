@@ -32,6 +32,7 @@ JSClass('UILabel', UIView, {
     textInsets: UIViewLayerProperty(),
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
     selectionColor: JSDynamicProperty("_selectionColor", null),
+    userInteractionEnabled: false,
     _accessibilityHidden: true,
 
     initWithFrame: function(frame){
