@@ -39,13 +39,17 @@ JSClass("UIWebView", UIView, {
         if (this.backgroundColor === null){
             this.backgroundColor = JSColor.white;
         }
-        if (spec.containsKey('delegate')){
+        if (spec.containsKey("delegate")){
             this.delegate = spec.valueForKey("delegate");
         }
         this.setNeedsDisplay();
     },
 
     loadURL: function(url){
+    },
+
+    canBecomeFirstResponder: function(){
+        return this.fullKeyboardAccessEnabled;
     }
 
 });

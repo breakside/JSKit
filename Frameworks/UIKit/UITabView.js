@@ -16,6 +16,7 @@
 // #import "UIView.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -222,7 +223,12 @@ JSClass("UITabView", UIView, {
     // MARK: - Responder
 
     setNextKeyView: function(nextKeyView){
-        // TODO: depends on styler
+        if (this._items.length > 0){
+            var view = this.styler.viewForItemAtIndex(this._items.length - 1);
+            view.nextKeyView = nextKeyView;
+        }else{
+            UITabView.$super.setNextKeyView.call(this, nextKeyView);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -409,6 +415,10 @@ JSClass("UITabViewItemView", UIView, {
         this.stylerProperties = {};
     },
 
+    canBecomeFirstResponder: function(){
+        return this.fullKeyboardAccessEnabled;
+    }
+
 });
 
 JSClass("UITabViewItemsView", UIView, {
@@ -437,6 +447,8 @@ JSClass("UITabViewItemsView", UIView, {
         this._activeItemIndex = -1;
         var item;
         var itemView;
+        var previousKeyView = this.tabView;
+        var nextKeyView = this.itemViews.length > 0 ? this.itemViews[this.itemViews.length - 1].nextKeyView : this.tabView.nextKeyView;
         for (var i = 0, l = this.tabView.items.length; i < l; ++i){
             item = this.tabView.items[i];
             if (i < this.itemViews.length){
@@ -447,6 +459,7 @@ JSClass("UITabViewItemsView", UIView, {
                 this.itemViews.push(itemView);
             }
             itemView.index = i;
+            previousKeyView.nextKeyView = itemView;
         }
         for (var j = this.itemViews.length - 1; j >= i; --i){
             itemView = this.itemViews.pop();
@@ -454,6 +467,7 @@ JSClass("UITabViewItemsView", UIView, {
             itemView.removeFromSuperview();
             itemView.index = -1;
         }
+        this.tabView.nextKeyView = nextKeyView;
         this.setNeedsLayout();
     },
 
@@ -476,6 +490,66 @@ JSClass("UITabViewItemsView", UIView, {
         if (tabItemView){
             this.selectItemView(tabItemView);
         }
+    },
+
+    touchesBegan: function(touches, event){
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        this.activateItemView(tabItemView);
+    },
+
+    touchesMoved: function(touches, event){
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        this.activateItemView(tabItemView);
+    },
+
+    touchesEnded: function(touches, event){
+        this.activateItemView(null);
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        if (tabItemView){
+            this.selectItemView(tabItemView);
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        this.activateItemView(null);
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            var itemView = this.keyItemView();
+            this.activateItemView(itemView);
+            return;
+        }
+        UITabViewItemView.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            var itemView = this.keyItemView();
+            this.activateItemView(null);
+            if (itemView){
+                this.selectItemView(itemView);
+            }
+            return;
+        }
+        UITabViewItemView.$super.keyUp.call(this, event);
+    },
+
+    keyItemView: function(){
+        var itemView;
+        for (var i = 0, l = this.itemViews.length; i < l; ++i){
+            itemView = this.itemViews[i];
+            if (itemView.isFirstResponder()){
+                return itemView;
+            }
+        }
+        return null;
     },
 
     activateItemView: function(itemView){

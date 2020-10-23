@@ -950,6 +950,22 @@ topics:
         description: |
           This is set automatically when another view sets this view as its
           `nextKeyView`.
+      -
+        name: fullKeyboardAccessEnabled
+        introduced: 2020.42.0
+        type: boolean
+        summary: Indicates that the user has enabled full keyboard access
+        description: |
+          Under normal behavior, only certain views can become first responder.
+          For example, `UIButton` cannot become a first responder as the user
+          cycles through key views.
+
+          However, if the user enables full keyboard access, `UIButton` can
+          become a first responder as the user cycles through key views, allowing
+          accessible interaction via the keyboard only.
+
+          Each view can use the `fullKeyboardAccessEnabled` property to determine
+          if it is appropriate to become a first responder.
   -
     name: Gestures
     members:

@@ -579,20 +579,21 @@ JSClass('UIWindow', UIView, {
     },
 
     keyDown: function(event){
-        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
+        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape && event.modifiers === UIEvent.Modifier.none){
             this.close();
-        }else if (event.key === UIEvent.Key.tab){
+            return;
+        }
+        if (event.key === UIEvent.Key.tab && (event.modifiers === UIEvent.Modifier.none || event.modifiers === UIEvent.Modifier.shift)){
             if (this.firstResponder !== null){
-                if (event.hasModifier(UIEvent.Modifier.shift)){
+                if (event.modifiers === UIEvent.Modifier.shift){
                     this.setFirstResponderToKeyViewBeforeView(this.firstResponder);
                 }else{
                     this.setFirstResponderToKeyViewAfterView(this.firstResponder);
                 }
-            }else{
             }
-        }else{
-            UIWindow.$super.keyDown.call(this, event);
+            return;
         }
+        UIWindow.$super.keyDown.call(this, event);
     },
 
     // -------------------------------------------------------------------------

@@ -162,7 +162,7 @@ JSClass("UIToolbar", UIView, {
 
     isAccessibilityElement: true,
 
-    accessibilityRole: UIAccessibility.Role.toolbar,
+    accessibilityRole: UIAccessibility.Role.toolbar
 
 });
 
@@ -277,46 +277,109 @@ JSClass("UIToolbarItemView", UIView, {
     },
 
     mouseDown: function(event){
-        if (!this._handlesEvents){
-            UIToolbarItemView.$super.mouseDown.call(this, event);
+        if (this._handlesEvents && this._item.enabled){
+            this.active = true;
             return;
         }
-        if (!this._item.enabled){
-            return;
-        }
-        this.active = true;
-        this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+        UIToolbarItemView.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this._handlesEvents){
-            UIToolbarItemView.$super.mouseDragged.call(this, event);
+        if (this._handlesEvents && this._item.enabled){
+            var location = event.locationInView(this);
+            var wasActive = this.active;
+            this.active = this.containsPoint(location);
+            if (wasActive != this.active){
+                this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+            }
             return;
         }
-        if (!this._item.enabled){
-            return;
-        }
-        var location = event.locationInView(this);
-        var active = this.containsPoint(location);
-        if (active != this.active){
-            this.active = active;
-            this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
-        }
+        UIToolbarItemView.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
-        if (!this._handlesEvents){
-            UIToolbarItemView.$super.mouseUp.call(this, event);
+        if (this._handlesEvents && this._item.enabled){
+            if (this.active){
+                this._item.performAction();
+                this.active = false;
+                this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+            }
             return;
         }
-        if (!this._item.enabled){
+        UIToolbarItemView.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this._handlesEvents && this._item.enabled){
+            this.active = true;
             return;
         }
-        if (this.active){
-            this.item.performAction();
-            this.active = false;
-            this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+        UIToolbarItemView.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this._handlesEvents && this._item.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            var wasActive = this.active;
+            this.active = this.containsPoint(location);
+            if (wasActive != this.active){
+                this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+            }
+            return;
         }
+        UIToolbarItemView.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this._handlesEvents && this._item.enabled){
+            if (this.active){
+                this._item.performAction();
+                this.active = false;
+                this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+            }
+            return;
+        }
+        UIToolbarItemView.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this._handlesEvents && this._item.enabled){
+            if (this.active){
+                this.active = false;
+                this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+            }
+            return;
+        }
+        UIToolbarItemView.$super.touchesCanceled.call(this, touches, event);
+    },
+
+    canBecomeFirstResponder: function(){
+        return this.fullKeyboardAccessEnabled && this._handlesEvents && this._item.enabled && (!this.contentView || !this.contentView.canBecomeFirstResponder());
+    },
+
+    keyDown: function(event){
+        if (this._handlesEvents && this._item.enabled){
+            if (event.key === UIEvent.Key.space){
+                this.active = true;
+                return;
+            }
+        }
+        UIToolbarItemView.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (this._handlesEvents && this._item.enabled){
+            if (event.key === UIEvent.Key.space){
+                if (this.active){
+                    this._item.performAction();
+                    this.active = false;
+                    this._item.toolbar.styler.updateToolbarItemAtIndex(this._item.toolbar, this.index);
+                    return;
+                }
+            }
+        }
+        UIToolbarItemView.$super.keyUp.call(this, event);
     },
 
 });
@@ -352,6 +415,10 @@ JSClass("UIToolbarStyler", JSObject, {
 
     intrinsicSizeOfToolbar: function(toolbar){
         return JSSize(UIView.noIntrinsicSize, 44);
+    },
+
+    viewForToolbarItemAtIndex: function(toolbar, itemIndex){
+        return null;        
     }
 
 });
@@ -605,6 +672,10 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             height += this.itemFont.displayLineHeight;
         }
         return JSSize(UIView.noIntrinsicSize, height);
+    },
+
+    viewForToolbarItemAtIndex: function(toolbar, itemIndex){
+        return toolbar.stylerProperties.itemViews[itemIndex];
     }
 
 });
