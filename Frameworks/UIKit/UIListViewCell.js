@@ -57,6 +57,7 @@ JSClass("UIListViewCell", UIView, {
         this._accessoryInsets = JSInsets.Zero;
         this._titleInsets = JSInsets(0, 10);
         this._contentView = UIView.init();
+        this.accessbilityColumnIndex = 0;
         this.addSubview(this._contentView);
     },
 

@@ -27,7 +27,10 @@ JSProtocol("UIAccessibility", JSProtocol, {
     accessibilityOrientation: null,
 
     // Lists
+    accessibilityRowCount: null,
+    accessibilityColumnCount: null,
     accessibilityRowIndex: null,
+    accessibilityColumnIndex: null,
     accessibilitySelected: null,
     accessibilityExpanded: null,
     accessibilityLevel: null,
@@ -205,6 +208,7 @@ UIAccessibility.TextualContext = {
 UIAccessibility.Notification = {
     announcementRequested: "UIAccessibility.Notification.announcementRequested",
     elementCreated: "UIAccessibility.Notification.elementCreated",
+    elementChanged: "UIAccessibility.Notification.elementChanged",
     elementDestroyed: "UIAccessibility.Notification.elementDestroyed",
     firstResponderChanged: "UIAccessibility.Notification.firstResponderChanged",
     keyWindowChanged: "UIAccessibility.Notification.keyWindowChanged",

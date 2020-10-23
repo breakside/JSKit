@@ -105,6 +105,7 @@ JSClass("UIOutlineView", UIListView, {
             this._updateCellState(visibleCell);
             visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowExpanded);
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
     },
 
     _collapseRowAtIndexPath: function(indexPath, visibleCell, recursive){
@@ -141,6 +142,7 @@ JSClass("UIOutlineView", UIListView, {
             this._updateCellState(visibleCell);
             visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowCollapsed);
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
     },
 
     _expandCell: function(cell, recursive){

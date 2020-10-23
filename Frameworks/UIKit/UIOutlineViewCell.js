@@ -72,7 +72,13 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 
     getAccessibilityExpanded: function(){
         return this.expanded;
-    }
+    },
+
+    accessibilityLevel: JSReadOnlyProperty(),
+
+    getAccessibilityLevel: function(){
+        return this.level;
+    },
 
 });
 

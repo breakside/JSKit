@@ -322,11 +322,33 @@ topics:
     name: Lists
     members:
       -
+        name: accessibilityRowCount
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates the number of rows in a list
+      -
+        name: accessibilityColumnCount
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates the number of columns in a list
+      -
         name: accessibilityRowIndex
         kind: property
         type: Number
         nullable: true
         summary: Indicates where in a list an element is
+        description: |
+          This value is zero-indexed
+      -
+        name: accessibilityColumnIndex
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates which columns an element is in
+        description: |
+          This value is zero-indexed
       -
         name: accessibilitySelected
         kind: property
@@ -373,7 +395,7 @@ topics:
         nullable: true
         summary: References the parent element of this element
       -
-        name: accessibilityChildren
+        name: accessibilityElements
         kind: property
         type: UIAccessibility[]
         nullable: true

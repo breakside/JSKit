@@ -910,6 +910,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.element.removeAttribute("role");
         }
+        if (accessibility.accessibilityRole === UIAccessibility.Role.window && !accessibility.accessibilitySubrole && ariaRole == "dialog"){
+            this.element.setAttribute("aria-roledescription", "window");
+        }else{
+            this.element.removeAttribute("aria-roledescription");
+        }
         this.element.id = "accessibility-%d".sprintf(accessibility.objectID);
         switch (ariaRole){
             case "button":
@@ -953,18 +958,35 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var menu = accessibility.accessibilityMenu;
         if (menu !== null && menu !== undefined){
             this.element.setAttribute("aria-haspopup", "menu");
+        }else{
+            this.element.removeAttribute("aria-haspopup");
         }
         var orientation = accessibility.accessibilityOrientation;
         if (orientation !== null && orientation !== undefined){
             this.element.setAttribute("aria-orientation", orientation === UIAccessibility.Orientation.horizontal ? "horizontal" : "vertical");
-        }
-        if (accessibility.accessibilityRole === UIAccessibility.Role.window && ariaRole == "application"){
-            this.element.setAttribute("aria-roledescription", "window");
+        }else{
+            this.element.removeAttribute("aria-orientation");
         }
         var level = accessibility.accessibilityLevel;
         if (level !== null && level !== undefined){
             this.element.setAttribute("aria-level", level);
+        }else{
+            this.element.removeAttribute("aria-level");
         }
+        var rowIndex = accessibility.accessibilityRowIndex;
+        if (rowIndex !== null && rowIndex !== undefined){
+            this.element.setAttribute("aria-rowindex", rowIndex + 1); // indexes start at 1
+        }else{
+            this.element.removeAttribute("aria-rowindex");
+        }
+        var colIndex = accessibility.accessibilityColumnIndex;
+        if (colIndex !== null && colIndex !== undefined){
+            this.element.setAttribute("aria-colindex", colIndex + 1); // indexes start at 1
+        }else{
+            this.element.removeAttribute("aria-colindex");
+        }
+        this.updateAccessibilityRowCount(accessibility);
+        this.updateAccessibilityColumnCount(accessibility);
     },
 
     updateAccessibilityLabel: function(accessibility){
@@ -1092,6 +1114,24 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // }else{
         //     this.element.setAttribute("aria-activedescendant", "accessibility-%d".sprintf(focusedAccessibility.objectID));
         // }
+    },
+
+    updateAccessibilityRowCount: function(accessibility){
+        var rowCount = accessibility.accessibilityRowCount;
+        if (rowCount !== null && rowCount !== undefined){
+            this.element.setAttribute("aria-rowcount", rowCount);
+        }else{
+            this.element.removeAttribute("aria-rowcount");
+        }
+    },
+
+    updateAccessibilityColumnCount: function(accessibility){
+        var colCount = accessibility.accessibilityColumnCount;
+        if (colCount !== null && colCount !== undefined){
+            this.element.setAttribute("aria-colcount", colCount);
+        }else{
+            this.element.removeAttribute("aria-colcount");
+        }
     },
 
     // ----------------------------------------------------------------------

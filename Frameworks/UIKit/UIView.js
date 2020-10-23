@@ -937,7 +937,10 @@ JSClass('UIView', UIResponder, {
     // Properties
     accessibilityTextualContext: null,
     accessibilityMenu: null,
+    accessibilityRowCount: null,
+    accessibilityColumnCount: null,
     accessibilityRowIndex: null,
+    accessibilityColumnIndex: null,
     accessibilitySelected: null,
     accessibilityExpanded: null,
     accessibilityEnabled: null,
@@ -1001,6 +1004,10 @@ JSClass('UIView', UIResponder, {
 
     postAccessibilityElementCreatedNotification: function(element){
         this.postAccessibilityNotification(UIAccessibility.Notification.elementCreated, element);
+    },
+
+    postAccessibilityElementChangedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementChanged, element);
     },
 
     postAccessibilityElementDestroyedNotification: function(element){

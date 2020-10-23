@@ -887,12 +887,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
         this.accessibilityObservers = {};
         this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
+        this.accessibilityObservers.elementChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementChanged, null, this.handleAccessibilityElementChanged, this);
         this.accessibilityObservers.titleChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.titleChanged, null, this.handleAccessibilityTitleChanged, this);
         this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
         this.accessibilityObservers.visibilityChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.visibilityChanged, null, this.handleAccessibilityVisibilityChanged, this);
         this.accessibilityObservers.enabledChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.enabledChanged, null, this.handleAccessibilityEnabledChanged, this);
         this.accessibilityObservers.selectedChildrenChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.selectedChildrenChanged, null, this.handleAccessibilitySelectedChildrenChanged, this);
         this.accessibilityObservers.firstResponderChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.firstResponderChanged, null, this.handleAccessibilityFirstResponderChanged, this);
+        this.accessibilityObservers.rowCountChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCountChanged, null, this.handleAccessibilityRowCountChanged, this);
+        this.accessibilityObservers.rowExpanded = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowExpanded, null, this.handleAccessibilityRowExpanded, this);
+        this.accessibilityObservers.rowCollapsed = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCollapsed, null, this.handleAccessibilityRowCollapsed, this);
     },
 
     stopObservingAccessibilityNotifications: function(){
@@ -928,6 +932,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                     context.element.setAttribute("aria-controls", "accessibility-%d" + parent.objectID);
                 }
             }
+        }
+    },
+
+    handleAccessibilityElementChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.setAccessibility(element);
         }
     },
 
@@ -989,6 +1001,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.updateAccessibilityExpanded(element);
+        }
+    },
+
+    handleAccessibilityRowCountChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityRowCount(element);
         }
     },
 
