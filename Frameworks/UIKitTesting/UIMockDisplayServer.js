@@ -32,13 +32,8 @@ JSClass("UIMockDisplayServer", UIDisplayServer, {
         this.rootContext = UIMockDisplayContext.init();
     },
 
-    windowInserted: function(window){
-        this.rootLayers.push(window.layer);
-        this._layerInserted(window.layer, this.rootContext);
-    },
-
     layerInserted: function(layer){
-        if (!layer.superlayer){
+        if (layer.superlayer === null){
             this._layerInserted(layer, this.rootContext);
         }else{
             var parentContext = this.contextsByObjectID[layer.superlayer.objectID];
@@ -51,6 +46,9 @@ JSClass("UIMockDisplayServer", UIDisplayServer, {
 
     _layerInserted: function(layer, parentContext){
         layer._displayServer = this;
+        if (layer.superlayer === null){
+            this.rootLayers.push(layer);
+        }
         var context = this.contextForLayer(layer);
         if (layer._needsLayout){
             this.setLayerNeedsLayout(layer);

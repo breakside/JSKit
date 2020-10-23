@@ -73,7 +73,7 @@ UITextInput.SelectionAffinity = {
     afterPreviousCharacter: 1
 };
 
-var UITextInputSelection = function(range, insertionPoint, affinity){
+JSGlobalObject.UITextInputSelection = function(range, insertionPoint, affinity){
     if (this === undefined){
         if (range === null){
             return null;

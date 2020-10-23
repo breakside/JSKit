@@ -985,7 +985,7 @@ JSContext.definePropertiesFromExtensions({
         // Global drawing options
         this.setAlpha(properties.alpha);
         if (properties.shadowColor){
-            this.setShadow(properties.shadowOffet, properties.shadowBlur, properties.shadowColor);
+            this.setShadow(properties.shadowOffset, properties.shadowBlur, properties.shadowColor);
         }
 
         var path;

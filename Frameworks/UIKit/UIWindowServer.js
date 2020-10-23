@@ -487,6 +487,18 @@ JSClass("UIWindowServer", JSObject, {
         return null;
     },
 
+    windowsForApplication: function(application){
+        var windows = [];
+        var window;
+        for (var i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            if (window.application === application){
+                windows.push(window);
+            }
+        }
+        return windows;
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Mouse Events
 

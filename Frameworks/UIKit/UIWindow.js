@@ -112,7 +112,6 @@ JSClass('UIWindow', UIView, {
     },
 
     _commonWindowInit: function(){
-        this._application._windows.push(this);
         this.window = this;
         if (this.backgroundColor === null){
             this.backgroundColor = JSColor.white;
@@ -413,6 +412,7 @@ JSClass('UIWindow', UIView, {
     },
 
     didBecomeVisible: function(){
+        this._application._windows.push(this);
         if (this.viewController){
             this.viewController.viewDidAppear(false);
         }else if (this._contentViewController){

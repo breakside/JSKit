@@ -15,11 +15,20 @@
 
 // #import UIKit
 // #import TestKit
+// #import UIKitTesting
 'use strict';
 
 (function(){
 
 JSClass("UIEventTests", TKTestSuite, {
+
+    setup: function(){
+        this.application = UIMockApplication.init();
+    },
+
+    teardown: function(){
+        this.application.deinit();
+    },
 
     testInitMouseEvent: function(){
         var window = UIRootWindow.init();

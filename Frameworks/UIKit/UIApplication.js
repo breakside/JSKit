@@ -218,7 +218,8 @@ JSClass('UIApplication', UIResponder, {
                 }
                 logger.info("Calling delegate.applicationDidFinishLaunching");
                 this.delegate.applicationDidFinishLaunching(this, launchOptions);
-                if (this._windows.length === 0){
+                var windows = this.windowServer.windowsForApplication(this);
+                if (windows.length === 0){
                     throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
                 }
             }catch (e){
