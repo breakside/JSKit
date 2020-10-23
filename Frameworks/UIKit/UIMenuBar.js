@@ -663,6 +663,15 @@ JSClass("UIMenuBarItem", JSObject, {
         if (spec.containsKey('windowControllerClass')){
             this.windowControllerClass = JSClass.FromName(spec.valueForKey("windowControllerClass"));
         }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
     },
 
     initWithTitle: function(title, action, target){

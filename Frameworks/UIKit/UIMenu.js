@@ -56,6 +56,15 @@ JSClass("UIMenu", JSObject, {
         if (spec.containsKey('styler')){
             this._styler = spec.valueForKey("styler", UIMenu.Styler);
         }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this.accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
         this._commonInit();
         var item;
         if (spec.containsKey('items')){

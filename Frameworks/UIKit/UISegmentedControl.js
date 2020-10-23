@@ -396,6 +396,15 @@ JSClass("UISegmentedControlItem", JSObject, {
         if (spec.containsKey('tooltip')){
             this.tooltip = spec.valueForKey("tooltip");
         }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
     },
 
     // Visibility

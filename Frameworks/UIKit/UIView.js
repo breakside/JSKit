@@ -118,6 +118,15 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("transform")){
             this.transform = spec.valueForKey("transform", JSAffineTransform);
         }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
         var i, l;
         if (spec.containsKey("gestureRecognizers")){
             var recognizers = spec.valueForKey("gestureRecognizers");

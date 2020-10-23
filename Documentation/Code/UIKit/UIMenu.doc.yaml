@@ -42,6 +42,27 @@ topics:
                 name: styler
                 type: UIMenuStyler
                 summary: The styler to use
+          -
+            name: Accessibility
+            members:
+              -
+                introduced: 2020.42.0
+                name: accessibilityIdentifier
+                type: String
+                summary: A unqiue identifier for the menu
+                description: |
+                  The `accessibilityIdentifier` can be used by automated code to
+                  find the menu without regard for the overall accessibility element tree organization.
+              -
+                introduced: 2020.42.0
+                name: accessibilityLabel
+                type: String
+                summary: The primary user-presented label to use for accessibility contexts
+              -
+                introduced: 2020.42.0
+                name: accessibilityHint
+                type: String
+                summary: The detailed user-presented label to use for accessibility contexts
   -
     name: Items
     members:

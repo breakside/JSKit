@@ -18,21 +18,23 @@ JSProtocol("UIAccessibility", JSProtocol, {
     accessibilityLabel: null,
     accessibilityHint: null,
 
-    // Value
+    // Controls
     accessibilityValue: null,
     accessibilityValueRange: null,
     accessibilityChecked: null,
+    accessibilityEnabled: false,
+    accessibilityMulitline: null,
+    accessibilityOrientation: null,
+
+    // Lists
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityLevel: null,
 
     // Properties
     accessibilityTextualContext: null,
     accessibilityMenu: null,
-    accessibilityRowIndex: null,
-    accessibilitySelected: null,
-    accessibilityExpanded: null,
-    accessibilityOrientation: null,
-    accessibilityEnabled: false,
-    accessibilityLevel: null,
-    accessibilityMulitline: null,
 
     // Children
     accessibilityParent: null,

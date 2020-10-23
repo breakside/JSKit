@@ -351,6 +351,31 @@ topics:
                 type: UICursor
                 summary: The name of the cursor to use, one of the static properties
                   on `UICursor`
+          -
+            name: Accessibility
+            members:
+              -
+                introduced: 2020.42.0
+                name: accessibilityIdentifier
+                type: String
+                summary: A unqiue identifier for the view
+                description: |
+                  The `accessibilityIdentifier` can be used by automated code to
+                  find the view without regard for the overall view tree organization.
+              -
+                introduced: 2020.42.0
+                name: accessibilityLabel
+                type: String
+                summary: The primary user-presented label to use for accessibility contexts
+                note: |
+                  Common controls such as buttons or text fields can use their contents
+                  to automatically provide an accessibility label.  Any value set
+                  explicitly will override the default value.
+              -
+                introduced: 2020.42.0
+                name: accessibilityHint
+                type: String
+                summary: The detailed user-presented label to use for accessibility contexts
   -
     name: Layer
     members:

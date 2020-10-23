@@ -83,6 +83,15 @@ JSClass("UIMenuItem", JSObject, {
             if (spec.containsKey("view")){
                 this.view = spec.valueForKey("view", UIView);
             }
+            if (spec.containsKey("accessibilityIdentifier")){
+                this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+            }
+            if (spec.containsKey("accessibilityLabel")){
+                this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+            }
+            if (spec.containsKey("accessibilityHint")){
+                this.accessibilityHint = spec.valueForKey("accessibilityHint");
+            }
         }
     },
 
@@ -95,6 +104,7 @@ JSClass("UIMenuItem", JSObject, {
     initSeparator: function(){
         this._isSeparator = true;
         this._isEnabled = false;
+        this.accessibilitySubrole = UIAccessibility.Subrole.separator;
     },
 
     setKeyEquivalent: function(keyEquivalent){
