@@ -233,6 +233,7 @@ JSClass("UITextField", UIControl, {
         }
         this._placeholderLabel.textColor = this._placeholderColor;
         this._clipView.insertSubviewAtIndex(this._placeholderLabel, 0);
+        this._clipView.layer.insertSublayerBelowSibling(this._placeholderLabel.layer, this._textLayer);
     },
 
     _createPlaceholderColor: function(){
