@@ -75,7 +75,7 @@ topics:
           but it's a specific kind of button: a `tab`(UIAccessibility.Subrole.tab).
       -
         name: Role
-        type: enum
+        kind: enum
         summary: The possible roles for an accessibility element
         topics:
           -
@@ -178,7 +178,7 @@ topics:
                 summary: A label
       -
         name: Subrole
-        type: enum
+        kind: enum
         summary: The possible subroles for an accessibility element
         topics:
           -
@@ -291,7 +291,7 @@ topics:
           such as in the case of scroll bars.
       -
         name: Checked
-        type: enum
+        kind: enum
         summary: The possible states for a checkbox like element
         topics:
           -
@@ -308,7 +308,7 @@ topics:
                 summary: The checkbox is in a mixed state
       -
         name: Orientation
-        type: enum
+        kind: enum
         summary: The possible orientations of an accessibility element
         topics:
           -
@@ -405,7 +405,7 @@ topics:
     members:
       -
         name: Notification
-        type: enum
+        kind: enum
         summary: The possible notifications relevant to accessibility elements
         topics:
           -
@@ -455,7 +455,7 @@ topics:
                 summary: Dispatched when an element's enabled state changes
       # -
       #   name: TextualContext
-      #   type: enum
+      #   kind: enum
       #   summary: The possible textual contexts for an accessibility element
       #   topics:
       #     -
