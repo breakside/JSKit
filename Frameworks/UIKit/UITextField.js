@@ -1291,29 +1291,33 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     placeholderColor: null,
     cornerRadius: 0,
     textInsets: null,
+    showsFocusRing: true,
 
     initWithSpec: function(spec){
         UITextFieldCustomStyler.$super.initWithSpec.call(this, spec);
-        if (spec.containsKey('backgroundColor')){
+        if (spec.containsKey("backgroundColor")){
             this.backgroundColor = spec.valueForKey("backgroundColor", JSColor);
         }
-        if (spec.containsKey('activeBackgroundColor')){
+        if (spec.containsKey("activeBackgroundColor")){
             this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
         }
-        if (spec.containsKey('disabledBackgroundColor')){
+        if (spec.containsKey("disabledBackgroundColor")){
             this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
         }
-        if (spec.containsKey('textColor')){
+        if (spec.containsKey("textColor")){
             this.textColor = spec.valueForKey("textColor", JSColor);
         }
-        if (spec.containsKey('placeholderColor')){
+        if (spec.containsKey("placeholderColor")){
             this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);
         }
-        if (spec.containsKey('cornerRadius')){
+        if (spec.containsKey("cornerRadius")){
             this.cornerRadius = spec.valueForKey("cornerRadius");
         }
-        if (spec.containsKey('textInsets')){
+        if (spec.containsKey("textInsets")){
             this.textInsets = spec.valueForKey("textInsets", JSInsets);
+        }
+        if (spec.containsKey("showsFocusRing")){
+            this.showsFocusRing = spec.valueForKey("showsFocusRing", JSInsets);
         }
     },
 
@@ -1343,6 +1347,13 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
         }else{
             textField.backgroundColor = this.backgroundColor;
         }
+    },
+
+    focusRingPathForControl: function(textField){
+        if (this.showsFocusRing){
+            return UITextFieldCustomStyler.$super.focusRingPathForControl.call(this, textField);
+        }
+        return null;
     }
 
 });

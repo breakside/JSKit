@@ -463,6 +463,14 @@ topics:
                         name: textInsets
                         type: JSInsets
                         summary: The amount to inset text from the edges
+                  -
+                    name: Focus
+                    members:
+                      -
+                        name: showsFocusRing
+                        introduced: 2020.42.0
+                        type: boolean
+                        summary: Controls whether or not the default focus ring is drawn for fields using this styler
           -
             name: Background
             members:
