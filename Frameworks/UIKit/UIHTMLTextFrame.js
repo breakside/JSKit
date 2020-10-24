@@ -180,6 +180,14 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         }
     },
 
+    domSelectionPointForCharacterAtIndex: function(index){
+        var line = this.lineForCharacterAtIndex(index);
+        if (line !== null){
+            return line.domSelectionPointForCharacterAtIndex(index);
+        }
+        return {node: this.element, offset: 0};
+    },
+
 });
 
 })();

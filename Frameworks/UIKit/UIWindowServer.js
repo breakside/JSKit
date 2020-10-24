@@ -20,6 +20,7 @@
 // #import "UIView.js"
 // #import "UITooltipWindow.js"
 // #import "UIDraggingSession.js"
+// #import "UIUserInterface.js"
 'use strict';
 
 (function(){
@@ -35,7 +36,9 @@ JSClass("UIWindowServer", JSObject, {
     mainWindow: null,
     menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
+    contrast: JSDynamicProperty('_contrast', UIUserInterface.Contrast.normal),
     mouseLocation: null,
+    fullKeyboardAccessEnabled: false,
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
@@ -54,6 +57,7 @@ JSClass("UIWindowServer", JSObject, {
         this._mouseIdleTimer = JSTimer.initWithInterval(1.25, false, this._mouseDidIdle, this);
         this.mouseLocation = JSPoint.Zero;
         this.device = UIDevice.shared;
+        this.accessibilityNotificationCenter = JSNotificationCenter.init();
     },
 
     stop: function(){
@@ -109,6 +113,7 @@ JSClass("UIWindowServer", JSObject, {
             }
             if (this.mainWindow !== null){
                 this.mainWindow.becomeMain();
+                this.postNotificationForAccessibilityElement(UIAccessibility.Notification.mainWindowChanged, this.mainWindow);
             }
         }
     },
@@ -128,8 +133,9 @@ JSClass("UIWindowServer", JSObject, {
             }
             if (this.keyWindow !== null){
                 this.keyWindow.becomeKey();
+                this.postNotificationForAccessibilityElement(UIAccessibility.Notification.keyWindowChanged, this.keyWindow);
             }
-            this.textInputManager.windowDidChangeResponder(this.keyWindow);
+            this.windowDidChangeResponder(this.keyWindow);
         }
     },
 
@@ -204,7 +210,7 @@ JSClass("UIWindowServer", JSObject, {
             for (i = window.subviewIndex - 1; i >= 0; --i){
                 if (this.windowStack[i].canBecomeKeyWindow()){
                     newKeyWindow = this.windowStack[i];
-                    this.textInputManager.windowDidChangeResponder(this.keyWindow);
+                    this.windowDidChangeResponder(this.keyWindow);
                     break;
                 }
             }
@@ -292,6 +298,9 @@ JSClass("UIWindowServer", JSObject, {
 
     windowDidChangeResponder: function(window){
         this.textInputManager.windowDidChangeResponder(window);
+        if (window !== null){
+            this.postNotificationForAccessibilityElement(UIAccessibility.Notification.firstResponderChanged, window);
+        }
     },
 
     // -----------------------------------------------------------------------
@@ -416,11 +425,15 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Keyboard Events
 
     createKeyEvent: function(type, timestamp, key, keyCode, modifiers){
-        var event = UIEvent.initKeyEventWithType(type, timestamp, this.keyWindow, key, keyCode, modifiers);
-        if (this.shouldDraggingSessionHandleKey(event)){
-            this.handleDraggingKeyEvent(event);
-        }else{
-            this._sendEventToApplication(event, this.keyWindow.application);
+        var keyWindow = this.windowForKeyEvent();
+        if (keyWindow !== null){
+            var event = UIEvent.initKeyEventWithType(type, timestamp, keyWindow, key, keyCode, modifiers);
+            if (this.shouldDraggingSessionHandleKey(event)){
+                this.handleDraggingKeyEvent(event);
+            }else{
+                this.textInputManager.sendActionsForEvent(event);
+                this._sendEventToApplication(event, keyWindow.application);
+            }
         }
     },
 
@@ -441,19 +454,49 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     windowForEventAtLocation: function(location){
-        var _window;
         var locationInWindow;
+        var window;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
-            _window = this.windowStack[i];
-            if (_window.receivesAllEvents){
-                return _window;
+            window = this.windowStack[i];
+            if (window.receivesAllEvents){
+                return window;
             }
-            locationInWindow = _window.convertPointFromScreen(location);
-            if (_window.containsPoint(locationInWindow)){
-                return _window;
+            locationInWindow = window.convertPointFromScreen(location);
+            if (window.containsPoint(locationInWindow)){
+                return window;
             }
         }
         return null;
+    },
+
+    windowForKeyEvent: function(){
+        var stopIndex = 0;
+        if (this.keyWindow !== null){
+            stopIndex = this.keyWindow.subviewIndex;
+        }
+        var window;
+        for (var i = this.windowStack.length - 1; i >= stopIndex; --i){
+            window = this.windowStack[i];
+            if (window.receivesAllEvents){
+                return window;
+            }
+            if (window === this.keyWindow){
+                return window;
+            }
+        }
+        return null;
+    },
+
+    windowsForApplication: function(application){
+        var windows = [];
+        var window;
+        for (var i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            if (window.application === application){
+                windows.push(window);
+            }
+        }
+        return windows;
     },
 
     // -----------------------------------------------------------------------
@@ -660,13 +703,22 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     _shouldCreateTrackingEventForView: function(view){
-        // Mouse tracking events are only sent to the key and main windows when the mouse is not down
-        // TODO: allow this behavior to be adjusted with tracking options
-        if (view.window !== this.keyWindow && view.window !== this.mainWindow && !view.window.shouldReceiveTrackingInBack){
+        if (this.mouseEventWindow !== null){
+            // no tracking events if the mouse is down
             return false;
         }
-        if (this.mouseEventWindow !== null){
-            return false;
+        var window = view.window;
+        if (window.shouldReceiveTrackingInBack){
+            return true;
+        }
+        if (window.receivesAllEvents){
+            return true;
+        }
+        if (window === this.mainWindow){
+            return true;
+        }
+        if (window === this.keyWindow){
+            return true;
         }
         return true;
     },
@@ -878,6 +930,55 @@ JSClass("UIWindowServer", JSObject, {
                 return UITouch.Phase.ended;
             case UIEvent.Type.touchesCanceled:
                 return UITouch.Phase.canceled;
+        }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityNotificationCenter: null,
+
+    postNotificationForAccessibilityElement: function(notificationName, accessibilityElement){
+        this.accessibilityNotificationCenter.post(notificationName, accessibilityElement);
+    },
+
+    postNotificationsForAccessibilityElementCreated: function(element){
+        this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, element);
+        var children = element.accessibilityElements;
+        var child;
+        if (children !== null && children !== undefined){
+            for (var i = 0, l = children.length; i < l; ++i){
+                child = children[i];
+                if (!child.isKindOfClass(UIView)){
+                    this.postNotificationsForAccessibilityElementCreated(child);   
+                }
+            }
+        }
+    },
+
+    postNotificationsForAccessibilityElementDestroyed: function(element){
+        this.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementDestroyed, element);
+        var children = element.accessibilityElements;
+        var child;
+        if (children !== null && children !== undefined){
+            for (var i = 0, l = children.length; i < l; ++i){
+                child = children[i];
+                if (!child.isKindOfClass(UIView)){
+                    this.postNotificationsForAccessibilityElementDestroyed(child);
+                }
+            }
+        }
+    },
+
+    setContrast: function(contrast){
+        if (contrast === this._contrast){
+            return;
+        }
+        this._contrast = contrast;
+        var window;
+        for (var i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            window._setTraitCollection(window.traitCollection.traitsWithContrast(this._contrast));
         }
     }
 

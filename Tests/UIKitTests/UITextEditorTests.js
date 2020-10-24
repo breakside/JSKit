@@ -237,12 +237,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "Hello, world!";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.insertText(";");
         TKAssertEquals(editor.selections[0].range.location, 6);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteSelections: function(){
@@ -347,12 +347,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 1), UITextEditor.SelectionInsertionPoint.end, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 1), UITextInput.SelectionInsertionPoint.end, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteSelections();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteBackward: function(){
@@ -468,12 +468,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteBackward();
         TKAssertEquals(editor.selections[0].range.location, 4);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteWordBackward: function(){
@@ -556,12 +556,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(9, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(9, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteWordBackward();
         TKAssertEquals(editor.selections[0].range.location, 8);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteToBeginningOfDocument: function(){
@@ -620,12 +620,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteToBeginningOfDocument();
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteForward: function(){
@@ -729,12 +729,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteForward();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
     },
 
@@ -818,12 +818,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteWordForward();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteToEndOfDocument: function(){
@@ -872,12 +872,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteToEndOfDocument();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveBackward: function(){
@@ -940,12 +940,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveBackward();
         TKAssertEquals(editor.selections[0].range.location, 4);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveWordBackward: function(){
@@ -1007,12 +1007,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(9, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(9, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveWordBackward();
         TKAssertEquals(editor.selections[0].range.location, 8);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToBeginningOfDocument: function(){
@@ -1055,12 +1055,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToBeginningOfDocument();
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveForward: function(){
@@ -1127,12 +1127,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveForward();
         TKAssertEquals(editor.selections[0].range.location, 6);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveWordForward: function(){
@@ -1193,12 +1193,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveWordForward();
         TKAssertEquals(editor.selections[0].range.location, 7);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToEndOfDocument: function(){
@@ -1241,12 +1241,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToEndOfDocument();
         TKAssertEquals(editor.selections[0].range.location, 11);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveBackwardAndModifySelection: function(){
@@ -1293,7 +1293,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
 
         // existing range with end insertion point
-        editor.setSelectionRange(JSRange(5, 3), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(5, 3), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 8);
         editor.moveBackwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1302,7 +1302,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 7);
 
         // existing range with start insertion point
-        editor.setSelectionRange(JSRange(5, 3), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(5, 3), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 5);
         editor.moveBackwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1311,7 +1311,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 4);
 
         // multiple selection
-        editor.setSelectionRanges([JSRange(0, 0), JSRange(1, 0), JSRange(2, 1), JSRange(7, 0)], UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(1, 0), JSRange(2, 1), JSRange(7, 0)], UITextInput.SelectionInsertionPoint.start);
         editor.moveBackwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 2);
         TKAssertEquals(editor.selections[0].range.location, 0);
@@ -1323,12 +1323,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveBackwardAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 4);
         TKAssertEquals(editor.selections[0].range.length, 1);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveWordBackwardAndModifySelection: function(){
@@ -1376,7 +1376,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
 
         // existing range with end insertion point
-        editor.setSelectionRange(JSRange(22, 2), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(22, 2), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 24);
         editor.moveWordBackwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1385,7 +1385,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 18);
 
         // existing range with start insertion point
-        editor.setSelectionRange(JSRange(22, 2), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(22, 2), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 22);
         editor.moveWordBackwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1406,12 +1406,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(9, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(9, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveWordBackwardAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 8);
         TKAssertEquals(editor.selections[0].range.length, 1);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToBeginningOfDocumentAndModifySelection: function(){
@@ -1438,7 +1438,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
 
         // selection with range and end insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 22);
         editor.moveToBeginningOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1452,7 +1452,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
 
         // selection with range and start insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 19);
         editor.moveToBeginningOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1475,12 +1475,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToBeginningOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 5);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveForwardAndModifySelection: function(){
@@ -1527,7 +1527,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 13);
 
         // selection with range and start insertion point
-        editor.setSelectionRange(JSRange(5, 3), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(5, 3), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 5);
         editor.moveForwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1536,7 +1536,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 6);
 
         // selection with range and end insertion point
-        editor.setSelectionRange(JSRange(5, 3), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(5, 3), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 8);
         editor.moveForwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1555,12 +1555,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveForwardAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 1);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveWordForwardAndModifySelection: function(){
@@ -1609,7 +1609,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
 
         // selection with range and start insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 19);
         editor.moveWordForwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1620,7 +1620,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
 
         // selection with range and end insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 22);
         editor.moveWordForwardAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1646,12 +1646,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveWordForwardAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 2);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToEndOfDocumentAndModifySelection: function(){
@@ -1678,7 +1678,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 35);
 
         // selection with range and start insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.start);
         TKAssertEquals(editor.selections[0].insertionLocation, 19);
         editor.moveToEndOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1687,7 +1687,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 35);
 
         // selection with range and end insertion point
-        editor.setSelectionRange(JSRange(19, 3), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(19, 3), UITextInput.SelectionInsertionPoint.end);
         TKAssertEquals(editor.selections[0].insertionLocation, 22);
         editor.moveToEndOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
@@ -1701,7 +1701,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 35);
 
         // multiple selection
-        editor.setSelectionRanges([JSRange(10, 0), JSRange(11, 0), JSRange(19, 1), JSRange(21, 0)], UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRanges([JSRange(10, 0), JSRange(11, 0), JSRange(19, 1), JSRange(21, 0)], UITextInput.SelectionInsertionPoint.start);
         editor.moveToEndOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 10);
@@ -1710,12 +1710,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToEndOfDocumentAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 5);
         TKAssertEquals(editor.selections[0].range.length, 6);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testSelectAll: function(){
@@ -1750,12 +1750,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
 
         // affinity
         this.textLayer.text = "testing 123";
-        editor.setSelectionRange(JSRange(5, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(5, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.selectAll();
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 11);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteToBeginningOfLine: function(){
@@ -1913,12 +1913,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(35, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(35, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteToBeginningOfLine();
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testDeleteToEndOfLine: function(){
@@ -1964,7 +1964,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(61, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteToEndOfLine();
         TKAssertEquals(this.textLayer.attributedText.string.length, 97);
         TKAssertEquals(this.textLayer.attributedText.string, "This is a test of a multiline text field that should wrap to three lines.\nThen break to a fourth.");
@@ -2090,12 +2090,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(35, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(35, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.deleteToEndOfLine();
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToBeginningOfLine: function(){
@@ -2182,12 +2182,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(35, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(35, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToBeginningOfLine();
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToEndOfLine: function(){
@@ -2208,7 +2208,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // wrapped line
         editor.setSelectionRange(JSRange(40, 0));
@@ -2216,14 +2216,14 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 61);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // end of wrapped line (cursor at end, instead of at beginning of next line)
         editor.moveToEndOfLine();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 61);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // hard broken line
         editor.setSelectionRange(JSRange(65, 0));
@@ -2253,7 +2253,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 61);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // range spanning lines
         editor.setSelectionRange(JSRange(40, 50));
@@ -2269,10 +2269,10 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 3);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         TKAssertEquals(editor.selections[1].range.location, 61);
         TKAssertEquals(editor.selections[1].range.length, 0);
-        TKAssertEquals(editor.selections[1].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[1].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         TKAssertEquals(editor.selections[2].range.location, 97);
         TKAssertEquals(editor.selections[2].range.length, 0);
     },
@@ -2335,7 +2335,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // with range and end insertion point
-        editor.setSelectionRange(JSRange(40, 10), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(40, 10), UITextInput.SelectionInsertionPoint.end);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
@@ -2343,7 +2343,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
 
         // with range and start insertion point
-        editor.setSelectionRange(JSRange(40, 10), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(40, 10), UITextInput.SelectionInsertionPoint.start);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
@@ -2351,7 +2351,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
 
         // range spanning lines
-        editor.setSelectionRange(JSRange(40, 50), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(40, 50), UITextInput.SelectionInsertionPoint.start);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
@@ -2359,7 +2359,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
 
         // range spanning lines (end insertion)
-        editor.setSelectionRange(JSRange(40, 50), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(40, 50), UITextInput.SelectionInsertionPoint.end);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
@@ -2367,7 +2367,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
 
         // multiple selections
-        editor.setSelectionRanges([JSRange(10, 0), JSRange(12, 2), JSRange(41, 0), JSRange(70, 10)], UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRanges([JSRange(10, 0), JSRange(12, 2), JSRange(41, 0), JSRange(70, 10)], UITextInput.SelectionInsertionPoint.start);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 3);
         TKAssertEquals(editor.selections[0].range.location, 0);
@@ -2387,12 +2387,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(35, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(35, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveToBeginningOfLineAndModifySelection();
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 5);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveToEndOfLineAndModifySelection: function(){
@@ -2414,7 +2414,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 10);
         TKAssertEquals(editor.selections[0].range.length, 20);
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // wrapped line
         editor.setSelectionRange(JSRange(40, 0));
@@ -2423,7 +2423,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 21);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // end of wrapped line (cursor at end, instead of at beginning of next line)
         editor.moveToEndOfLineAndModifySelection();
@@ -2431,7 +2431,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 21);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // hard broken line
         editor.setSelectionRange(JSRange(65, 0));
@@ -2456,22 +2456,22 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // with range and start insertion point
-        editor.setSelectionRange(JSRange(40, 10), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(40, 10), UITextInput.SelectionInsertionPoint.start);
         editor.moveToEndOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 50);
         TKAssertEquals(editor.selections[0].range.length, 11);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // with range and end insertion point
-        editor.setSelectionRange(JSRange(40, 10), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(40, 10), UITextInput.SelectionInsertionPoint.end);
         editor.moveToEndOfLineAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
         TKAssertEquals(editor.selections[0].range.length, 21);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // range spanning lines
         editor.setSelectionRange(JSRange(40, 50));
@@ -2489,11 +2489,11 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 10);
         TKAssertEquals(editor.selections[0].range.length, 20);
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         TKAssertEquals(editor.selections[1].range.location, 41);
         TKAssertEquals(editor.selections[1].range.length, 20);
         TKAssertEquals(editor.selections[1].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         TKAssertEquals(editor.selections[2].range.location, 70);
         TKAssertEquals(editor.selections[2].range.length, 27);
         TKAssertEquals(editor.selections[2].insertionLocation, 97);
@@ -2584,12 +2584,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[3].range.length, 0);
 
         // affinity
-        editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(61, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUp();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This_is_a_test_of_a_multiline" +
@@ -2597,12 +2597,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(60, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(60, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUp();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 29);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline " +
@@ -2610,12 +2610,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "tothree lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(58, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUp();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 27);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveDown: function(){
@@ -2678,7 +2678,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.length, 0);
 
         // selection range
-        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(10, 1), UITextInput.SelectionInsertionPoint.start);
         editor.moveDown();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 42);
@@ -2705,12 +2705,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[4].range.length, 0);
 
         // affinity
-        editor.setSelectionRange(JSRange(30, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(30, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDown();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 60);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline{" +
@@ -2718,12 +2718,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "_three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(29, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(29, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDown();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 60);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline " +
@@ -2731,12 +2731,12 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "tothree lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(58, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDown();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 72);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveUpAndModifySelection: function(){
@@ -2805,13 +2805,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 73);
 
         // selection range with start insertion point
-        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(10, 1), UITextInput.SelectionInsertionPoint.start);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 11);
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
-        editor.setSelectionRange(JSRange(34, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(34, 1), UITextInput.SelectionInsertionPoint.start);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 4);
@@ -2819,13 +2819,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 4);
 
         // selection range with end insertion point
-        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(10, 1), UITextInput.SelectionInsertionPoint.end);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 0);
         TKAssertEquals(editor.selections[0].range.length, 10);
         TKAssertEquals(editor.selections[0].insertionLocation, 0);
-        editor.setSelectionRange(JSRange(34, 1), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(34, 1), UITextInput.SelectionInsertionPoint.end);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 5);
@@ -2833,7 +2833,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 5);
 
         // selection range spanning lines with start insertion point
-        editor.setSelectionRange(JSRange(34, 46), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(34, 46), UITextInput.SelectionInsertionPoint.start);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 4);
@@ -2841,7 +2841,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 4);
 
         // selection range spanning lines with end insertion point
-        editor.setSelectionRange(JSRange(34, 46), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(34, 46), UITextInput.SelectionInsertionPoint.end);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 34);
@@ -2852,7 +2852,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 34);
         TKAssertEquals(editor.selections[0].range.length, 3);
         TKAssertEquals(editor.selections[0].insertionLocation, 37);
-        editor.setSelectionRange(JSRange(34, 28), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(34, 28), UITextInput.SelectionInsertionPoint.end);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 31);
@@ -2860,7 +2860,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 31);
 
         // multiple selections
-        editor.setSelectionRanges([JSRange(0, 0), JSRange(10, 1), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0)], UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRanges([JSRange(0, 0), JSRange(10, 1), JSRange(30, 0), JSRange(35, 0), JSRange(71, 2), JSRange(97, 0)], UITextInput.SelectionInsertionPoint.start);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 2);
         TKAssertEquals(editor.selections[0].range.location, 0);
@@ -2871,13 +2871,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[1].insertionLocation, 40);
 
         // affinity
-        editor.setSelectionRange(JSRange(61, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(61, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 31);
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This_is_a_test_of_a_multiline" +
@@ -2885,13 +2885,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(60, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(60, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 29);
         TKAssertEquals(editor.selections[0].range.length, 31);
         TKAssertEquals(editor.selections[0].insertionLocation, 29);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline " +
@@ -2899,13 +2899,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "tothree lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(58, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveUpAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 27);
         TKAssertEquals(editor.selections[0].range.length, 31);
         TKAssertEquals(editor.selections[0].insertionLocation, 27);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testMoveDownAndModifySelection: function(){
@@ -2974,13 +2974,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 73);
 
         // selection range with end insertion point
-        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(10, 1), UITextInput.SelectionInsertionPoint.end);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 10);
         TKAssertEquals(editor.selections[0].range.length, 32);
         TKAssertEquals(editor.selections[0].insertionLocation, 42);
-        editor.setSelectionRange(JSRange(90, 1), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(90, 1), UITextInput.SelectionInsertionPoint.end);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 90);
@@ -2988,13 +2988,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 97);
 
         // selection range with start insertion point
-        editor.setSelectionRange(JSRange(10, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(10, 1), UITextInput.SelectionInsertionPoint.start);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 11);
         TKAssertEquals(editor.selections[0].range.length, 30);
         TKAssertEquals(editor.selections[0].insertionLocation, 41);
-        editor.setSelectionRange(JSRange(90, 1), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(90, 1), UITextInput.SelectionInsertionPoint.start);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 91);
@@ -3002,7 +3002,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 97);
 
         // multiline selection with end insertion point
-        editor.setSelectionRange(JSRange(2, 66), UITextEditor.SelectionInsertionPoint.end);
+        editor.setSelectionRange(JSRange(2, 66), UITextInput.SelectionInsertionPoint.end);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 2);
@@ -3010,7 +3010,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].insertionLocation, 81);
 
         // multiline selection with start insertion point
-        editor.setSelectionRange(JSRange(2, 66), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(2, 66), UITextInput.SelectionInsertionPoint.start);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 33);
@@ -3021,7 +3021,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 64);
         TKAssertEquals(editor.selections[0].range.length, 4);
         TKAssertEquals(editor.selections[0].insertionLocation, 64);
-        editor.setSelectionRange(JSRange(36, 4), UITextEditor.SelectionInsertionPoint.start);
+        editor.setSelectionRange(JSRange(36, 4), UITextInput.SelectionInsertionPoint.start);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 40);
@@ -3040,13 +3040,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[1].insertionLocation, 97);
 
         // affinity
-        editor.setSelectionRange(JSRange(30, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(30, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 30);
         TKAssertEquals(editor.selections[0].insertionLocation, 60);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline{" +
@@ -3054,13 +3054,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "_three lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(29, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(29, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 29);
         TKAssertEquals(editor.selections[0].range.length, 31);
         TKAssertEquals(editor.selections[0].insertionLocation, 60);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         this.textLayer.text =
             "This is a test of a multiline " +
@@ -3068,13 +3068,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
             "tothree lines.\n" + 
             "Then break to a fourth.";
         this.textLayer.layoutIfNeeded();
-        editor.setSelectionRange(JSRange(58, 0), UITextEditor.SelectionInsertionPoint.start, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        editor.setSelectionRange(JSRange(58, 0), UITextInput.SelectionInsertionPoint.start, UITextInput.SelectionAffinity.afterPreviousCharacter);
         editor.moveDownAndModifySelection();
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 58);
         TKAssertEquals(editor.selections[0].range.length, 14);
         TKAssertEquals(editor.selections[0].insertionLocation, 72);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
     },
 
     testHandleMouseDown: function(){
@@ -3160,7 +3160,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseUp, 6.01, mockWindow, JSPoint(700, 5), UIEvent.Modifier.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
@@ -3173,7 +3173,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 73);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseUp, 7.01, mockWindow, JSPoint(300, 41), UIEvent.Modifier.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
@@ -3279,13 +3279,13 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseUp, 7.03, mockWindow, JSPoint(700, 5), UIEvent.Modifier.none, 1);
         editor.handleMouseUpAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 0);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDown, 7.05, mockWindow, JSPoint(700, 5), UIEvent.Modifier.none, 2);
         editor.handleMouseDownAtLocation(event.locationInWindow, event);
         TKAssertEquals(editor.selections.length, 1);
@@ -3469,7 +3469,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 18);
         TKAssertEquals(editor.selections[0].insertionLocation, 53);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         // beyond end of line (soft break)
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1.06, mockWindow, JSPoint(700, 22));
@@ -3478,7 +3478,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 26);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.afterPreviousCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.afterPreviousCharacter);
 
         // back
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1.07, mockWindow, JSPoint(200, 22));
@@ -3487,7 +3487,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 5);
         TKAssertEquals(editor.selections[0].insertionLocation, 40);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         // down to next line
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1.08, mockWindow, JSPoint(200, 41));
@@ -3512,7 +3512,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 35);
         TKAssertEquals(editor.selections[0].range.length, 26);
         TKAssertEquals(editor.selections[0].insertionLocation, 61);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         // up
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1.11, mockWindow, JSPoint(0, 20));
@@ -3521,7 +3521,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].range.location, 30);
         TKAssertEquals(editor.selections[0].range.length, 5);
         TKAssertEquals(editor.selections[0].insertionLocation, 30);
-        TKAssertEquals(editor.selections[0].affinity, UITextEditor.SelectionAffinity.beforeCurrentCharacter);
+        TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         // up
         event = UIEvent.initMouseEventWithType(UIEvent.Type.leftMouseDragged, 1.12, mockWindow, JSPoint(50, 5));

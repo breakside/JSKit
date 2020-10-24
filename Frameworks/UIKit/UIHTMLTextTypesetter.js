@@ -61,6 +61,8 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             layoutElement = layoutElementStack[layoutElementIndex];
         }else{
             layoutElement = this._domDocument.createElement('div');
+            layoutElement.setAttribute("role", "none presentation");
+            layoutElement.setAttribute("aria-hidden", "true");
             layoutElement.style.position = 'absolute';
             layoutElement.style.right = '0';
             layoutElement.style.right = '0';
@@ -146,6 +148,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 span.firstChild.nodeValue = utf16;
             }else{
                 span = element.appendChild(element.ownerDocument.createElement('span'));
+                span.setAttribute("role", "none presentation");
                 span.appendChild(span.ownerDocument.createTextNode(utf16));
             }
             if (attachment !== null){
@@ -235,6 +238,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     _createLineElement: function(){
         var element = this.domDocument.createElement('div');
+        element.setAttribute("role", "none presentation");
         element.style.lineHeight = '0';
         element.style.whiteSpace = 'pre';
         return element;

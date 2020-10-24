@@ -57,6 +57,7 @@ JSClass("UIScroller", UIControl, {
         if (value !== this._value){
             this._value = value;
             this.setNeedsLayout();
+            this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
         }
     },
 
@@ -220,6 +221,25 @@ JSClass("UIScroller", UIControl, {
 
     _setKnobActive: function(isKnobActive){
         this.toggleStates(UIScroller.State.knobActive, isKnobActive);
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.scrollBar,
+
+    accessibilityValue: JSReadOnlyProperty(),
+    accessibilityValueRange: JSRange(0, 100),
+    accessibilityOrientation: JSReadOnlyProperty(),
+
+    getAccessibilityValue: function(){
+        return Math.round(this._value * 100);
+    },
+
+    getAccesibilityOrientation: function(){
+        if (this._direction === UIScroller.Direction.horizontal){
+            return UIAccessibility.Orientation.horizontal;
+        }
+        return UIAccessibility.Orientation.vertical;
     }
 
 });

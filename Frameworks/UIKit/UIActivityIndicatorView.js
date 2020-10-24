@@ -172,6 +172,13 @@ JSClass("UIActivityIndicatorView", UIView, {
     _currentFrameNumber: 0,
     _imageLayer: null,
 
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.activityIndicator
+
 });
 
 UIActivityIndicatorView.Style = {

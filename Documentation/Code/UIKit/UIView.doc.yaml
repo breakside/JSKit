@@ -7,6 +7,7 @@ implements:
   - UIDraggingSource
   - UIDraggingDestination
   - UITraitEnvironment
+  - UIAccessibility
 summary: The base element to draw and respond to events
 description: |
   At the most basic level, a `UIView` is used to draw in rectangles on the
@@ -350,6 +351,31 @@ topics:
                 type: UICursor
                 summary: The name of the cursor to use, one of the static properties
                   on `UICursor`
+          -
+            name: Accessibility
+            members:
+              -
+                introduced: 2020.42.0
+                name: accessibilityIdentifier
+                type: String
+                summary: A unqiue identifier for the view
+                description: |
+                  The `accessibilityIdentifier` can be used by automated code to
+                  find the view without regard for the overall view tree organization.
+              -
+                introduced: 2020.42.0
+                name: accessibilityLabel
+                type: String
+                summary: The primary user-presented label to use for accessibility contexts
+                note: |
+                  Common controls such as buttons or text fields can use their contents
+                  to automatically provide an accessibility label.  Any value set
+                  explicitly will override the default value.
+              -
+                introduced: 2020.42.0
+                name: accessibilityHint
+                type: String
+                summary: The detailed user-presented label to use for accessibility contexts
   -
     name: Layer
     members:
@@ -924,6 +950,37 @@ topics:
         description: |
           This is set automatically when another view sets this view as its
           `nextKeyView`.
+      -
+        name: fullKeyboardAccessEnabled
+        introduced: 2020.42.0
+        type: boolean
+        summary: Indicates that the user has enabled full keyboard access
+        description: |
+          Under normal behavior, only certain views can become first responder.
+          For example, `UIButton` cannot become a first responder as the user
+          cycles through key views.
+
+          However, if the user enables full keyboard access, `UIButton` can
+          become a first responder as the user cycles through key views, allowing
+          accessible interaction via the keyboard only.
+
+          Each view can use the `fullKeyboardAccessEnabled` property to determine
+          if it is appropriate to become a first responder.
+      -
+        name: focusRingPath
+        introduced: 2020.42.0
+        type: JSPath
+        nullable: true
+        summary: The path that will be used to draw a focus ring when this view
+          is a window's first responder
+        description: |
+          The default implementation returns the view's shape including rounded
+          corners.
+
+          To override, implement a getter named `getFocusRingPath()`().
+
+          Return `null` if you don't want your view to have a focus ring when it
+          is the first responder.
   -
     name: Gestures
     members:

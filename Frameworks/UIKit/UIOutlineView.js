@@ -103,7 +103,9 @@ JSClass("UIOutlineView", UIListView, {
         }
         if (visibleCell){
             this._updateCellState(visibleCell);
+            visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowExpanded);
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
     },
 
     _collapseRowAtIndexPath: function(indexPath, visibleCell, recursive){
@@ -138,7 +140,9 @@ JSClass("UIOutlineView", UIListView, {
         }
         if (visibleCell){
             this._updateCellState(visibleCell);
+            visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowCollapsed);
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
     },
 
     _expandCell: function(cell, recursive){
@@ -246,7 +250,12 @@ JSClass("UIOutlineView", UIListView, {
         }
         --row;
         return row;
-    }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Acessibility
+
+    accessibilityRole: UIAccessibility.Role.outline,
 
 });
 

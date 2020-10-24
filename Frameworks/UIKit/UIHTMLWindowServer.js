@@ -19,12 +19,13 @@
 // #import "UIScreen.js"
 // #import "UIWindowServer.js"
 // #import "UIHTMLDisplayServer.js"
-// #import "UIHTMLTextInputManager.js"
+// #import "UIHTMLContentEditableTextInputManager.js"
 // #import "UIPlatform.js"
 // #import "UIOpenPanel.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File
+// #feature window.matchMedia
 // jshint browser: true
 'use strict';
 
@@ -45,15 +46,17 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._cursorViewsById = {};
         this.setupRenderingEnvironment();
         this.setupEventListeners();
+        this.startObservingAccessibilityNotifications();
         this.displayServer = UIHTMLDisplayServer.initWithRootElement(rootElement);
         this.displayServer._windowServer = this;
-        this.textInputManager = UIHTMLTextInputManager.initWithRootElement(rootElement);
+        this.textInputManager = UIHTMLContentEditableTextInputManager.initWithRootElement(rootElement);
         this.textInputManager.windowServer = this;
         this.screen = UIScreen.initWithFrame(JSRect(JSPoint.Zero, this.rootElementSize()), this.domDocument.defaultView.devicePixelRatio || 1);
         this.displayServer.setScreenSize(this.screen.frame.size);
         this._updateScreenClientOrigin();
         this.setCursor(UICursor.currentCursor);
         UIPasteboard.general = UIHTMLDataTransferPasteboard.init();
+        this.setupMediaListeners();
     },
 
     // --------------------------------------------------------------------
@@ -207,6 +210,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.domWindow.addEventListener('resize', this, false);
         this.domWindow.addEventListener('languagechange', this, false);
         this.domWindow.addEventListener('orientationchange', this);
+        this.domWindow.addEventListener('scroll', this);
         this.rootElement.addEventListener('touchstart', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
@@ -255,6 +259,39 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     stop: function(){
         UIHTMLWindowServer.$super.stop.call(this);
         this.removeEventListeners();
+        this.removeMediaListeners();
+        this.stopObservingAccessibilityNotifications();
+    },
+
+
+    // --------------------------------------------------------------------
+    // MARK: - Media Queries
+
+    highContrastListener: null,
+    reducedMotionListener: null,
+
+    setupMediaListeners: function(){
+        this.highContrastListener = this.handleHighContrastChanged.bind(this);
+        this.highContrastQuery = this.domWindow.matchMedia("(prefers-contrast: more)");
+        this.highContrastQuery.addListener(this.highContrastListener);
+        this.reducedMotionListener = this.handleReducedMotionChanged.bind(this);
+        this.reducedMotionQuery = this.domWindow.matchMedia("(prefers-reduced-motion)");
+        this.reducedMotionQuery.addListener(this.reducedMotionListener);
+        this.handleHighContrastChanged(this.highContrastQuery);
+        this.handleReducedMotionChanged(this.reducedMotionQuery);
+    },
+
+    removeMediaListeners: function(){
+        this.highContrastQuery.removeListener(this.highContrastListener);
+        this.reducedMotionQuery.removeListener(this.reducedMotionListener);
+    },
+
+    handleHighContrastChanged: function(query){
+        this.contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
+    },
+
+    handleReducedMotionChanged: function(query){
+        this.displayServer.reducedMotionEnabled = query.matches;
     },
 
     // --------------------------------------------------------------------
@@ -701,6 +738,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    scroll: function(e){
+        if (e.currentTarget === this.domWindow){
+            this._updateScreenClientOrigin();
+        }
+    },
+
     rootElementSize: function(){
         return JSSize(this.rootElement.clientWidth, this.rootElement.clientHeight);
     },
@@ -831,6 +874,151 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _updateScreenClientOrigin: function(){
         var clientRect = this.rootElement.getBoundingClientRect();
         this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    accessibilityObservers: null,
+
+    startObservingAccessibilityNotifications: function(){
+        if (this.accessibilityObservers !== null){
+            return;
+        }
+        this.accessibilityObservers = {};
+        this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
+        this.accessibilityObservers.elementChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementChanged, null, this.handleAccessibilityElementChanged, this);
+        this.accessibilityObservers.titleChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.titleChanged, null, this.handleAccessibilityTitleChanged, this);
+        this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
+        this.accessibilityObservers.visibilityChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.visibilityChanged, null, this.handleAccessibilityVisibilityChanged, this);
+        this.accessibilityObservers.enabledChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.enabledChanged, null, this.handleAccessibilityEnabledChanged, this);
+        this.accessibilityObservers.selectedChildrenChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.selectedChildrenChanged, null, this.handleAccessibilitySelectedChildrenChanged, this);
+        this.accessibilityObservers.firstResponderChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.firstResponderChanged, null, this.handleAccessibilityFirstResponderChanged, this);
+        this.accessibilityObservers.rowCountChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCountChanged, null, this.handleAccessibilityRowCountChanged, this);
+        this.accessibilityObservers.rowExpanded = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowExpanded, null, this.handleAccessibilityRowExpanded, this);
+        this.accessibilityObservers.rowCollapsed = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCollapsed, null, this.handleAccessibilityRowCollapsed, this);
+    },
+
+    stopObservingAccessibilityNotifications: function(){
+        if (this.accessibilityObservers === null){
+            return;
+        }
+        var listeners = JSCopy(this.accessibilityObservers);
+        this.accessibilityObservers = null;
+        for (var name in listeners){
+            this.accessibilityNotificationCenter.removeObserver(name, listeners[name]);
+        }
+    },
+
+    contextForAccessibilityElement: function(element){
+        if (element.isKindOfClass(UIApplication)){
+            return this.displayServer.screenContext;
+        }
+        var layer = element.accessibilityLayer;
+        if (layer !== null){
+            return this.displayServer.contextForLayer(layer);
+        }
+        return null;
+    },
+
+    handleAccessibilityElementCreated: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.setAccessibility(element);
+            if (element.accessibilityRole === UIAccessibility.Role.scrollBar){
+                var parent = element.accessibilityParent;
+                if (parent !== null && parent.accessibilityRole === UIAccessibility.Role.scrollArea){
+                    context.element.setAttribute("aria-controls", "accessibility-%d" + parent.objectID);
+                }
+            }
+        }
+    },
+
+    handleAccessibilityElementChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.setAccessibility(element);
+        }
+    },
+
+    handleAccessibilityTitleChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityLabel(element);
+        }
+    },
+
+    handleAccessibilityValueChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityValue(element);
+        }
+    },
+
+    handleAccessibilityVisibilityChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityHidden(element);
+        }
+    },
+
+    handleAccessibilityEnabledChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityEnabled(element);
+        }
+    },
+
+    handleAccessibilitySelectedChildrenChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            var children = element.accessibilityElements;
+            if (children !== null && children !== undefined){
+                for (var i = 0, l = children.length; i < l; ++i){
+                    context.updateAccessibilitySelected(children[i]);   
+                }
+            }
+        }
+    },
+
+    handleAccessibilityRowExpanded: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityExpanded(element);
+        }
+    },
+
+    handleAccessibilityRowCollapsed: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityExpanded(element);
+        }
+    },
+
+    handleAccessibilityRowCountChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityRowCount(element);
+        }
+    },
+
+    handleAccessibilityFirstResponderChanged: function(notification){
+        var window = notification.sender;
+        var responder = window.firstResponder || window;
+        var context = this.contextForAccessibilityElement(responder);
+        if (context !== null){
+            context.updateAccessibilityFocus(responder);
+        }
     }
 
 });
@@ -1068,8 +1256,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
             }
         }
         return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type);
-    }
-
+    },
 });
 
 

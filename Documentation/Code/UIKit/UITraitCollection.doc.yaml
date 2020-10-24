@@ -17,6 +17,18 @@ topics:
             type: JSSize
             summary: The size that will determine this collection's size
               classes
+      -
+        name: traitsWithContrast
+        introduced: 2020.42.0
+        kind: method
+        type: UITraitConllection
+        summary: Create a copy of this trait collection with the contrast value
+          changed to match the given value
+        arguments:
+          -
+            name: contrast
+            type: UIUserInterface.Contrast
+            summary: The new contrast value
   -
     name: Sizes
     members:
@@ -28,3 +40,11 @@ topics:
         name: verticalSizeClass
         type: UIUserInterface.SizeClass
         summary: The general size of the screen in the vertical direction
+  -
+    name: Accessibility
+    members:
+      -
+        name: accessibilityContrast
+        introduced: 2020.42.0
+        type: UIUserInterface.Contrast
+        summary: The preferred contrast level

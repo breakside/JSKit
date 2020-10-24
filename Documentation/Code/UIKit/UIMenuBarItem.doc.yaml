@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
+implements:
+  - UIAccessibility
 summary: Menu bar items are non-menu items placed on a menu bar
 description: |
   Bar items typically function like buttons, but can also be views that display
@@ -266,6 +268,30 @@ topics:
                   with completely custom content.
 
                   Specified as an alternative to an `action` or `menu`.
+          -
+            name: Accessibility
+            members:
+              -
+                introduced: 2020.42.0
+                name: accessibilityIdentifier
+                type: String
+                summary: A unqiue identifier for the item
+                description: |
+                  The `accessibilityIdentifier` can be used by automated code to
+                  find the item without regard for the overall accessibility element tree organization.
+              -
+                introduced: 2020.42.0
+                name: accessibilityLabel
+                type: String
+                summary: The primary user-presented label to use for accessibility contexts
+                note: |
+                  The bar item can generate a default label from its title, but
+                  any value set here will override the default.
+              -
+                introduced: 2020.42.0
+                name: accessibilityHint
+                type: String
+                summary: The detailed user-presented label to use for accessibility contexts
   -
     name: Title & Image
     members:

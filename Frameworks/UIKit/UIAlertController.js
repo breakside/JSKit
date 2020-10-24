@@ -83,6 +83,7 @@ JSClass("UIAlertController", UIViewController, {
             this._messageLabel.font = this._messageLabel.font.fontWithPointSize(JSFont.Size.detail);
             this._messageLabel.textAlignment = JSTextAlignment.center;
             this._messageLabel.text = this.message;
+            this._messageLabel.accessibilityHidden = false;
             this._primaryStackView.addSubview(this._messageLabel);
         }
         this._actionsStackView = UIStackView.init();
@@ -173,6 +174,8 @@ JSClass("UIAlertController", UIViewController, {
 
     _createPopupWindow: function(){
         var popupWindow = _UIAlertPopupWindow.initWithStyler(this.popupWindowStyler);
+        popupWindow.accessibilitySubrole = UIAccessibility.Subrole.alert;
+        popupWindow.accessibilityLabel = this.title;
         popupWindow.contentViewController = this;
         popupWindow.escapeClosesWindow = this._cancelAction !== null;
         return popupWindow;

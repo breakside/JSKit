@@ -135,6 +135,9 @@ JSClass("UIListView", UIScrollView, {
         if (spec.containsKey('headersStickToTop')){
             this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
+        if (spec.containsKey("showsFocusRing")){
+            this._showsFocusRing = spec.valueForKey("showsFocusRing");
+        }
     },
 
     _commonListInit: function(){
@@ -149,6 +152,7 @@ JSClass("UIListView", UIScrollView, {
         this._selectedIndexPaths = [];
         this._contextSelectedIndexPaths = [];
         this.contentView.addSubview(this._cellsContainerView);
+        this.accessibilityColumnCount = 1;
         if (this._styler === null){
             this._styler = this.$class.Styler.default;
         }
@@ -428,6 +432,16 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleItems();
 
         this._hasLoadedOnce = true;
+        this._updateRowCount();
+    },
+
+    _updateRowCount: function(){
+        var numberOfRows = 0;
+        for (var i = 0; i < this.__numberOfSections; ++i){
+            numberOfRows += this._numberOfRowsInSection(i);
+        }
+        this.accessibilityRowCount = numberOfRows;
+        this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
     },
 
     _setContentSize: function(contentSize){
@@ -1208,6 +1222,7 @@ JSClass("UIListView", UIScrollView, {
         }
 
         this._updateVisibleCellStates();
+        this._updateRowCount();
 
         // Animate changes
         var listView = this;
@@ -1530,6 +1545,8 @@ JSClass("UIListView", UIScrollView, {
     _adoptCell: function(cell, indexPath){
         cell.listView = this;
         cell.indexPath = indexPath;
+        cell.accessibilityRowIndex = this._rowForIndexPath(indexPath);
+        cell.postAccessibilityElementChangedNotification();
     },
 
     _createHeaderAtSection: function(section, rect){
@@ -1729,6 +1746,7 @@ JSClass("UIListView", UIScrollView, {
                 this.delegate.listViewSelectionDidChange(this, this._selectedIndexPaths);
             }
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.selectedChildrenChanged);
     },
 
     getSelectedIndexPath: function(){
@@ -1861,6 +1879,15 @@ JSClass("UIListView", UIScrollView, {
             }
         }
         return indexPath;
+    },
+
+    _rowForIndexPath: function(indexPath){
+        var row = 0;
+        for (var section = 0; section < indexPath.section; ++section){
+            row += this._numberOfRowsInSection(section);
+        }
+        row += this._sectionRowForIndexPath(indexPath);
+        return row;
     },
 
     _sectionRowForIndexPath: function(indexPath){
@@ -2509,6 +2536,29 @@ JSClass("UIListView", UIScrollView, {
             this.scrollToRect(rect, position);
         }
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - Acessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.grid,
+
+    getAccessibilityElements: function(){
+        var views = [];
+        for (var i = 0, l = this._visibleItems.length; i < l; ++i){
+            views.push(this._visibleItems[i].view);
+        }
+        return views;
+    },
+
+    showsFocusRing: false,
+
+    getFocusRingPath: function(){
+        if (this.showsFocusRing){
+            return UIListView.$super.getFocusRingPath.call(this);
+        }
+        return null;
+    }
 
 });
 

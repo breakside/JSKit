@@ -239,10 +239,20 @@ JSClass("UIControl", UIView, {
     },
 
     setEnabled: function(isEnabled){  
-        this.toggleStates(UIControl.State.disabled, !isEnabled);
-        if (!isEnabled && this.window && this.window.firstResponder === this){
-            this.window.firstResponder = null;
+        var state = this._state;
+        if (!isEnabled){
+            state |= UIControl.State.disabled;
+            state &= ~(UIControl.State.active | UIControl.State.over | UIControl.State.dropTarget);
+        }else{
+            state &= ~UIControl.State.disabled;
         }
+        this._updateState(state);
+        if (!isEnabled){
+            if (this.window && this.window.firstResponder === this){
+                this.window.firstResponder = null;
+            }
+        }
+        this.postAccessibilityNotification(UIAccessibility.Notification.enabledChanged);
     },
 
     isOver: function(){
@@ -298,6 +308,23 @@ JSClass("UIControl", UIView, {
             this._hasSetInitialTracking = true;
         }
         UIControl.$super.setWindow.call(this, window);
+    },
+
+    getFocusRingPath: function(){
+        return this._styler.focusRingPathForControl(this);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    getAccessibilityElements: function(){
+        return [];
+    },
+
+    accessibilityEnabled: JSReadOnlyProperty(),
+
+    getAccessibilityEnabled: function(){
+        return this.enabled;
     }
 
 });
@@ -325,6 +352,10 @@ JSClass("UIControlStyler", JSObject, {
 
     drawControlLayerInContext: function(control, layer, context){
         layer.drawInContext(context);
+    },
+
+    focusRingPathForControl: function(control){
+        return control.layer.backgroundPath();
     }
 
 });

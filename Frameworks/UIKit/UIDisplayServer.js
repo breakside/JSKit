@@ -23,6 +23,7 @@ JSClass("UIDisplayServer", JSObject, {
     layerLayoutQueue: null,
     layerRepositionQueue: null,
     layerAnimationQueue: null,
+    reducedMotionEnabled: false,
     _animationCount: 0,
     _animationScale: 1,
     _isUpdating: false,
@@ -248,7 +249,7 @@ JSClass("UIDisplayServer", JSObject, {
             for (key in layer.animationsByKey){
                 animation = layer.animationsByKey[key];
                 animation.updateForTime(t);
-                if (animation.isComplete){
+                if (this.reducedMotionEnabled || animation.isComplete){
                     layer.removeAnimationForKey(key);
                     if (animation.completionFunction){
                         completedAnimations.push(animation);

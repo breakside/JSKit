@@ -23,6 +23,7 @@
 // #import "UIToolbarItem.js"
 // #import "UIViewPropertyAnimator.js"
 // #import "UIViewController.js"
+// #import "UIFocusRingLayer.js"
 'use strict';
 
 (function(){
@@ -35,14 +36,14 @@ JSClass('UIWindow', UIView, {
     // MARK: - Creating a Window
 
     init: function(){
-        UIWindow.$super.init.call(this);
         this._application = UIApplication.shared;
+        UIWindow.$super.init.call(this);
         this._commonWindowInit();
     },
 
     initWithApplication: function(application){
-        UIWindow.$super.init.call(this);
         this._application = application;
+        UIWindow.$super.init.call(this);
         this._commonWindowInit();
     },
 
@@ -52,6 +53,7 @@ JSClass('UIWindow', UIView, {
     },
 
     initWithSpec: function(spec){
+        this._application = UIApplication.shared;
         UIWindow.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('contentViewController')){
             this.contentViewController = spec.valueForKey("contentViewController", UIViewController);
@@ -61,7 +63,6 @@ JSClass('UIWindow', UIView, {
         if (spec.containsKey('styler')){
             this._styler = spec.valueForKey("styler", UIWindow.Styler);
         }
-        this._application = UIApplication.shared;
         this._commonWindowInit();
         if (spec.containsKey('contentInsets')){
             this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
@@ -129,6 +130,8 @@ JSClass('UIWindow', UIView, {
                 this._styler = UIWindow.Styler.default;
             }
         }
+        this._traitCollection = UITraitCollection.initWithSize(this.frame.size);
+        this._traitCollection.accessibilityContrast = this.windowServer.contrast;
         this.stylerProperties = {};
         this._styler.initializeWindow(this);
     },
@@ -281,6 +284,7 @@ JSClass('UIWindow', UIView, {
 
     layerDidChangeSize: function(){
         var traits = UITraitCollection.initWithSize(this.bounds.size);
+        traits.contrast = this.windowServer.contrast;
         this._setTraitCollection(traits);
     },
     
@@ -333,12 +337,14 @@ JSClass('UIWindow', UIView, {
 
     becomeKey: function(){
         this._styler.updateWindow(this);
+        this._styler.updateFocusRingInWindow(this);
         this.contentView.windowDidChangeKeyStatus();
         this._validateToolbar();
     },
 
     resignKey: function(){
         this._styler.updateWindow(this);
+        this._styler.updateFocusRingInWindow(this);
         this.contentView.windowDidChangeKeyStatus();
     },
 
@@ -352,6 +358,8 @@ JSClass('UIWindow', UIView, {
         this.orderFront();
         this.windowServer.makeWindowKey(this);
     },
+
+    receivesAllEvents: false,
 
     // -------------------------------------------------------------------------
     // MARK: - Opening & Closing
@@ -404,6 +412,7 @@ JSClass('UIWindow', UIView, {
     },
 
     didBecomeVisible: function(){
+        this._application._windows.push(this);
         if (this.viewController){
             this.viewController.viewDidAppear(false);
         }else if (this._contentViewController){
@@ -413,6 +422,9 @@ JSClass('UIWindow', UIView, {
             var responder = this._initialFirstResponder;
             this._initialFirstResponder = null;
             this.setFirstResponder(responder);
+        }
+        if (this.isAccessibilityElement){
+            this.postAccessibilityNotification(UIAccessibility.Notification.elementCreated);
         }
     },
 
@@ -425,6 +437,13 @@ JSClass('UIWindow', UIView, {
         if (this._parent && this._parent.modal === this){
             this._parent._modal = null;
             this._parent._flushTrackingEvents();
+        }
+        if (this.isAccessibilityElement){
+            this.postAccessibilityNotification(UIAccessibility.Notification.elementDestroyed);
+        }
+        var index = this._application._windows.indexOf(this);
+        if (index >= 0){
+            this._application._windows.splice(index, 1);
         }
     },
 
@@ -560,11 +579,21 @@ JSClass('UIWindow', UIView, {
     },
 
     keyDown: function(event){
-        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape){
+        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape && event.modifiers === UIEvent.Modifier.none){
             this.close();
-        }else{
-            UIWindow.$super.keyDown.call(this, event);
+            return;
         }
+        if (event.key === UIEvent.Key.tab && (event.modifiers === UIEvent.Modifier.none || event.modifiers === UIEvent.Modifier.shift)){
+            if (this.firstResponder !== null){
+                if (event.modifiers === UIEvent.Modifier.shift){
+                    this.setFirstResponderToKeyViewBeforeView(this.firstResponder);
+                }else{
+                    this.setFirstResponderToKeyViewAfterView(this.firstResponder);
+                }
+            }
+            return;
+        }
+        UIWindow.$super.keyDown.call(this, event);
     },
 
     // -------------------------------------------------------------------------
@@ -605,6 +634,7 @@ JSClass('UIWindow', UIView, {
             }
             if (this._firstResponder !== previousResponder){
                 this._validateToolbar();
+                this._styler.updateFocusRingInWindow(this);
                 this.windowServer.windowDidChangeResponder(this);
             }
         }
@@ -635,6 +665,9 @@ JSClass('UIWindow', UIView, {
         if (prevousKeyView !== null){
             this.firstResponder = prevousKeyView;
         }
+    },
+
+    calculateKeyViewLoop: function(){
     },
 
     // -------------------------------------------------------------------------
@@ -671,8 +704,6 @@ JSClass('UIWindow', UIView, {
 
     // -------------------------------------------------------------------------
     // MARK: - Event Dispatch
-
-    receivesAllEvents: false,
 
     sendEvent: function(event){
         switch (event.category){
@@ -727,10 +758,7 @@ JSClass('UIWindow', UIView, {
             }
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
-            this.mouseEventView = this.hitTest(event.locationInWindow);
-            if (this.receivesAllEvents && this.mouseEventView === null){
-                this.mouseEventView = this;
-            }
+            this.mouseEventView = this.hitTest(event.locationInWindow) || this;
             this.mouseDownType = event.type;
         }
         var eventTarget = event.trackingView || this.mouseEventView;
@@ -949,6 +977,46 @@ JSClass('UIWindow', UIView, {
                 this.isUsingAutosavedFrame = true;
             }
         }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.window,
+
+    getAccessibilityLabel: function(){
+        var label = UIWindow.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        return this._title;
+    },
+
+    getAccessibilityElements: function(){
+        var elements = [];
+        if (this._toolbar !== null){
+            elements.push(this.toolbar);
+        }
+        if (this.contentView !== null){
+            var stack = [this.contentView];
+            var view;
+            while (stack.length > 0){
+                view = stack.shift();
+                if (view.isAccessibilityElement){
+                    elements.push(view);
+                }else{
+                    for (var i = 0, l = view.subviews.length; i < l; ++i){
+                        stack.push(view.subviews[i]);
+                    }
+                }
+            }
+        }
+        return elements;
+    },
+
+    getAccessibilityParent: function(){
+        return this._application;
     }
 
 });
@@ -956,7 +1024,7 @@ JSClass('UIWindow', UIView, {
 UIWindow.Level = {
     back: -1,
     normal: 0,
-    front: 1,
+    front: 1
 };
 
 UIWindow.Styler = Object.create({}, {
@@ -986,16 +1054,34 @@ UIWindow.Styler = Object.create({}, {
 
 JSClass("UIRootWindow", UIWindow, {
 
-    level: UIWindow.Level.back
+    level: UIWindow.Level.back,
+
+    getAccessibilityLabel: function(){
+        return this.application.accessibilityLabel;
+    },
+
+    isAccessibilityElement: false,
 
 });
 
 JSClass("UIWindowStyler", JSObject, {
 
+    focusRingColor: null,
+    focusRingWidth: 3.5,
+
     init: function(){
+        this.focusRingColor = this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 0.6);
     },
 
     initializeWindow: function(window){
+        var focusRingLayer = UIFocusRingLayer.init();
+        focusRingLayer.userInteractionEnabled = false;
+        focusRingLayer.color = this.focusRingColor;
+        focusRingLayer.width = this.focusRingWidth;
+        focusRingLayer.hidden = true;
+        window.layer.addSublayer(focusRingLayer);
+        window.stylerProperties.focusRingLayer = focusRingLayer;
+        window.stylerProperties.focusRingAnimator = null;
     },
 
     updateWindow: function(window){
@@ -1003,6 +1089,49 @@ JSClass("UIWindowStyler", JSObject, {
 
     layoutWindow: function(window){
         window._contentView.frame = window.bounds.rectWithInsets(window._contentInsets);
+        window.layer.addSublayer(window.stylerProperties.focusRingLayer);
+    },
+
+    updateFocusRingInWindow: function(window){
+        var responder = window.firstResponder;
+        var focusRingLayer = window.stylerProperties.focusRingLayer;
+        if (!window.isKeyWindow || responder === null || !responder.isKindOfClass(UIView)){
+            focusRingLayer.hidden = true;
+            return;
+        }
+        var view = responder;
+        var path = view.focusRingPath;
+        if (path === null){
+            focusRingLayer.hidden = true;
+            return;
+        }
+        var layer = view.layer;
+        focusRingLayer.hidden = false;
+        focusRingLayer.path = path;
+        focusRingLayer.position = JSPoint.Zero;
+        var transform = JSAffineTransform.Translated(path.boundingRect.center.x, path.boundingRect.center.y);
+        var superlayerTransform;
+        while (layer !== window.layer){
+            superlayerTransform = layer.transformFromSuperlayer();
+            transform = transform.concatenatedWith(superlayerTransform);
+            layer = layer.superlayer;
+        }
+        focusRingLayer.transform = transform;
+        focusRingLayer.alpha = 0.1;
+        if (window.stylerProperties.focusRingAnimator !== null){
+            window.stylerProperties.focusRingAnimator.stop();
+        }
+        var animator = UIViewPropertyAnimator.initWithDuration(0.15);
+        focusRingLayer.transform = transform.scaledBy((focusRingLayer.bounds.size.width + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.width, (focusRingLayer.bounds.size.height + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.height);
+        animator.addAnimations(function(){
+            focusRingLayer.transform = transform;
+            focusRingLayer.alpha = 1.0;
+        });
+        animator.addCompletion(function(){
+            window.stylerProperties.focusRingAnimator = null;
+        });
+        animator.start();
+        window.stylerProperties.focusRingAnimator = animator;
     }
 
 });
@@ -1048,6 +1177,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     },
 
     initializeWindow: function(window){
+        UIWindowDefaultStyler.$super.initializeWindow.call(this, window);
         var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
         closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
@@ -1216,7 +1346,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             topSize += window.stylerProperties.toolbar.intrinsicSize.height;
         }
         window.contentInsets = JSInsets(topSize, 0, 0, 0);
-    }
+    },
 
 });
 

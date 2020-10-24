@@ -443,6 +443,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
 
     createTitleLabel: function(){
         var label = UILabel.init();
+        label.accessibilityHidden = false;
+        label.accessibilityRole = UIAccessibility.Role.header;
         label.font = this.titleFont;
         label.textColor = this.titleColor;
         return label;
@@ -751,6 +753,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (barItem.title){
             button.titleLabel.text = barItem.title;
         }
+        button.accessibilityLabel = barItem.accessibilityTitle;
         if (barItem.image){
             button.setImageForState(barItem.image, UIControl.State.normal);
         }

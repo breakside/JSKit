@@ -110,9 +110,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         // We don't have an exact requirement on how many times numberOfRows
         // should be called, allowing the implementation some flexibility, but
         // it should still be within a reasonable range.  Currently, that range
-        // is 1-2 times per section.
+        // is about 3-4 times per section.
         TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 3);
-        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 6);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 12);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].listView, listView);
@@ -187,7 +187,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
         TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 3);
-        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 6);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 10);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].listView, listView);
@@ -285,7 +285,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
         TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 1);
-        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 2);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 4);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 3);
@@ -3568,7 +3568,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
         TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 3);
-        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 6);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 10);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].listView, listView);

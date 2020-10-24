@@ -37,7 +37,8 @@ JSClass('UIApplication', UIResponder, {
         logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
-        this._windowsById = {};
+        this._windows = [];
+        this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
 
     // MARK: - Initialization & Startup
@@ -217,7 +218,8 @@ JSClass('UIApplication', UIResponder, {
                 }
                 logger.info("Calling delegate.applicationDidFinishLaunching");
                 this.delegate.applicationDidFinishLaunching(this, launchOptions);
-                if (this.windowServer.windowStack.length === 0){
+                var windows = this.windowServer.windowsForApplication(this);
+                if (windows.length === 0){
                     throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
                 }
             }catch (e){
@@ -232,19 +234,23 @@ JSClass('UIApplication', UIResponder, {
 
     mainWindow: JSReadOnlyProperty(),
     keyWindow: JSReadOnlyProperty(),
-    windows: JSReadOnlyProperty(),
+    windows: JSReadOnlyProperty("_windows", null),
     windowServer: null,
 
-    getWindows: function(){
-        return this.windowServer.windowStack;
-    },
-
     getMainWindow: function(){
-        return this.windowServer.mainWindow;
+        var main = this.windowServer.mainWindow;
+        if (main !== null && main.application === this){
+            return main;
+        }
+        return null;
     },
 
     getKeyWindow: function(){
-        return this.windowServer.keyWindow;
+        var key = this.windowServer.keyWindow;
+        if (key !== null && key.application === this){
+            return key;
+        }
+        return null;
     },
 
     // MARK: - Menu
@@ -377,6 +383,51 @@ JSClass('UIApplication', UIResponder, {
             return this.bundle.info.UIApplicationEnvironment[name];
         }
         return defaultValue;
+    },
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: null,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.application,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSReadOnlyProperty(),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+    accessibilityEnabled: null,
+
+    // Children
+    accessibilityParent: null,
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityFrame: function(){
+        return this.windowServer.screen.frame;
+    },
+
+    getAccessibilityLabel: function(){
+        return this.bundle.localizedStringForInfoKey("UIApplicationTitle");
+    },
+
+    getAccessibilityElements: function(){
+        return this.windows;
     }
 
 });

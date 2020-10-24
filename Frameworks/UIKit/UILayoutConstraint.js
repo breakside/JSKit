@@ -112,7 +112,7 @@ JSClass("UILayoutConstraint", JSObject, {
     },
 
     initWithSpec: function(spec){
-        UILayoutConstraint.$super.call.initWithSpec(this, spec);
+        UILayoutConstraint.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('firstItem')){
             this.firstItem = spec.valueForKey("firstItem");
         }

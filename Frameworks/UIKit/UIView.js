@@ -21,6 +21,7 @@
 // #import "UILayoutConstraint.js"
 // #import "UITraitCollection.js"
 // #import "UICursor.js"
+// #import "UIAccessibility.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -114,6 +115,18 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("cursor")){
             this.cursor = spec.valueForKey("cursor", UICursor);
         }
+        if (spec.containsKey("transform")){
+            this.transform = spec.valueForKey("transform", JSAffineTransform);
+        }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
         var i, l;
         if (spec.containsKey("gestureRecognizers")){
             var recognizers = spec.valueForKey("gestureRecognizers");
@@ -171,6 +184,12 @@ JSClass('UIView', UIResponder, {
     // MARK: - Underlying Layer
 
     layer: null,
+
+    layerDidChangeVisibility: function(layer){
+        if (layer === this.layer){
+            this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
+        }
+    },
 
     // -------------------------------------------------------------------------
     // MARK: - Superview
@@ -326,6 +345,14 @@ JSClass('UIView', UIResponder, {
                     windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
                 }
             }
+            if (this.isAccessibilityElement){
+                if (this._windowServer !== null){
+                    this._windowServer.postNotificationsForAccessibilityElementDestroyed(this);
+                }
+                if (windowServer !== null){
+                    windowServer.postNotificationsForAccessibilityElementCreated(this);
+                }
+            }
             this._windowServer = windowServer;
             if (includeSubviews){
                 for (var i = 0, l = this.subviews.length; i < l; ++i){
@@ -384,6 +411,18 @@ JSClass('UIView', UIResponder, {
             return this._previousKeyView;
         }
         return null;
+    },
+
+    fullKeyboardAccessEnabled: JSReadOnlyProperty(),
+
+    getFullKeyboardAccessEnabled: function(){
+        return this._windowServer !== null && this._windowServer.fullKeyboardAccessEnabled;
+    },
+
+    focusRingPath: JSReadOnlyProperty(),
+
+    getFocusRingPath: function(){
+        return this.layer.backgroundPath();
     },
 
     // -------------------------------------------------------------------------
@@ -869,6 +908,111 @@ JSClass('UIView', UIResponder, {
     // MARK: - Restoration
 
     restorationIdentifier: null,
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: false,
+    accessibilityHidden: JSDynamicProperty("_accessibilityHidden", false),
+    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: null,
+    accessibilitySubrole: null,
+    accessibilityResponder: JSReadOnlyProperty(),
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+    accessibilityOrientation: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowCount: null,
+    accessibilityColumnCount: null,
+    accessibilityRowIndex: null,
+    accessibilityColumnIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityEnabled: null,
+    accessibilityLevel: null,
+    accessibilityMultiline: null,
+
+    // Children
+    accessibilityParent: null,
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityParent: function(){
+        var superview = this.superview;
+        while (superview !== null && !superview.isAccessibilityElement){
+            superview = superview.superview;
+        }
+        return superview;
+    },
+
+    getAccessibilityElements: function(){
+        return [];
+    },
+
+    getAccessibilityLayer: function(){
+        return this.layer;
+    },
+
+    getAccessibilityFrame: function(){
+        return this.convertRectToScreen(this.bounds);
+    },
+
+    getAccessibilityResponder: function(){
+        return this;
+    },
+
+    getAccessibilityLabel: function(){
+        return this._accessibilityLabel;
+    },
+
+    setAccessibilityLabel: function(accessibilityLabel){
+        this._accessibilityLabel = accessibilityLabel;
+    },
+
+    setAccessibilityHidden: function(accessibilityHidden){
+        this._accessibilityHidden = accessibilityHidden;
+        this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
+    },
+
+    getAccessibilityHidden: function(){
+        return this.hidden || this._accessibilityHidden;
+    },
+
+    postAccessibilityNotification: function(notificationName){
+        if (this._windowServer === null){
+            return;
+        }
+        this._windowServer.postNotificationForAccessibilityElement(notificationName, this);
+    },
+
+    didCreateAccessibilityElement: function(){
+    },
+
+    postAccessibilityElementCreatedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementCreated, element);
+    },
+
+    postAccessibilityElementChangedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementChanged, element);
+    },
+
+    postAccessibilityElementDestroyedNotification: function(element){
+        this.postAccessibilityNotification(UIAccessibility.Notification.elementDestroyed, element);
+    },
 
 });
 

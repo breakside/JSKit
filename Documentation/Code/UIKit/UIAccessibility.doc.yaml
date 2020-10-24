@@ -1,0 +1,487 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: protocol
+introduced: 2020.42.0
+summary: Protocol for specifying accessibility properties
+topics:
+  -
+    name: Visibility
+    members:
+      -
+        name: isAccessibilityElement
+        kind: property
+        type: boolean
+        summary: Indicates if the item is in the accessibility element tree
+        description: |
+          `UIView`, for example, defaults this property to `false`, but allows
+          subclasses such as `UIButton` or `UITextField` to override.
+
+          The result is an accessibility element tree that is greatly simplified
+          from the entire view tree, keeping only those views that are relevant
+          in an accessibility context.
+      -
+        name: accessibilityHidden
+        kind: property
+        type: boolean
+        summary: Keeps an element in the accessibility tree, but indicates the
+          element is visibly hidden
+        description: |
+          Useful for reporting what is visible to the user without removing
+          something from the accessibility tree entirely.
+      -
+        name: accessibilityLayer
+        kind: property
+        type: UILayer
+        nullable: true
+        summary: Provides the drawn layer that represents this accessibility element
+        description: |
+          For `UIView`, the accessibility layer is typically the view's own layer.
+
+          Non-view elements, such as a `UIMenu`, are typically still drawn on the
+          screen in some manner even though they aren't `UIView`s themselves.  In
+          these cases, the accessibility layer points to the on-screen layer that
+          represents the menu or other element.
+        note: |
+          You won't typically need to override this property.
+  -
+    name: Role
+    members:
+      -
+        name: accessibilityRole
+        kind: property
+        type: Role
+        nullable: true
+        summary: The primary role for this element
+        description: |
+          The accessibility system has a preset list of roles
+          that it knows how to describe to users.
+
+          Standard `UIKit` controls set their role automatically,
+          but you may need to set a role for custom views that
+          perform a standard accessibility role.
+
+          When the primary role isn't enough to describe the kind
+          of element, use `accessibilitySubrole` to provide more detail.
+      -
+        name: accessibilitySubrole
+        kind: property
+        type: Subrole
+        nullable: true
+        summary: The secondary role for this element, if any
+        description: |
+          Sometimes a secondary role helps clarify the type of
+          element beyond its general primary `accessibilityRole`.
+
+          For example, a tab control is essentially a `button`(UIAccessibility.Role.button),
+          but it's a specific kind of button: a `tab`(UIAccessibility.Subrole.tab).
+      -
+        name: Role
+        kind: enum
+        summary: The possible roles for an accessibility element
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: application
+                summary: An application
+              -
+                name: activityIndicator
+                summary: An element such as a spinner that
+                  tells the user to wait for some activity to finish
+              -
+                name: button
+                summary: A button
+              -
+                name: checkbox
+                summary: A checkbox
+              -
+                name: image
+                summary: An image
+              -
+                name: list
+                summary: A list of items or rows
+              -
+                name: menu
+                summary: A menu
+              -
+                name: menuBar
+                summary: A menu bar
+              -
+                name: menuBarItem
+                summary: An item on a menu bar
+              -
+                name: menuItem
+                summary: An item within a menu
+              -
+                name: outline
+                summary: A list with expandable rows
+              -
+                name: group
+                summary: A generic group of other elements
+              -
+                name: window
+                summary: A window
+              -
+                name: popover
+                summary: A popup window
+              -
+                name: comboBox
+                summary: A text field with a drop down
+              -
+                name: grid
+                summary: A grid of rows and columns
+              -
+                name: cell
+                summary: A cell within a grid
+              -
+                name: progressIndicator
+                summary: A progress bar that reports a percent complete for
+                  some activity
+              -
+                name: scrollBar
+                summary: A scroll
+              -
+                name: radioButton
+                summary: A radio button
+              -
+                name: radioGroup
+                summary: A group of mutually exclusive radio buttons
+              -
+                name: textField
+                summary: A text field
+              -
+                name: toolbar
+                summary: A toolbar
+              -
+                name: link
+                summary: A text link
+              -
+                name: row
+                summary: A row within a list or grid
+              -
+                name: incrementor
+                summary: A button that can change a value up and down
+              -
+                name: popupButton
+                summary: A button that opens a menu of options
+              -
+                name: disclosureTriangle
+                summary: A button that expands or collapses a row
+              -
+                name: header
+                summary: A label that acts as a header
+              -
+                name: tabGroup
+                summary: A group of tabs
+              -
+                name: text
+                summary: A label
+      -
+        name: Subrole
+        kind: enum
+        summary: The possible subroles for an accessibility element
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: tab
+                summary: A tab button
+                description: |
+                  Can be used when `accessibilityRole` is `button`(UIAccessibility.Role.button)
+              -
+                name: separator
+                summary: A visual separator
+                description: |
+                  Can be used when `accessibilityRole` is `menuItem`(UIAccessibility.Role.menuItem)
+              -
+                name: alert
+                summary: An alert dialog
+                description: |
+                  Can be used when `accessibilityRole` is `window`(UIAccessibility.Role.window)
+              -
+                name: dialog
+                summary: An generic dialog
+                description: |
+                  Can be used when `accessibilityRole` is `window`(UIAccessibility.Role.window)
+              -
+                name: tooltip
+                summary: A tooltip window
+                description: |
+                  Can be used when `accessibilityRole` is `window`(UIAccessibility.Role.window)
+              -
+                name: searchField
+                summary: A search field
+                description: |
+                  Can be used when `accessibilityRole` is `textField`(UIAccessibility.Role.textField)
+  -
+    name: Label
+    members:
+      -
+        name: accessibilityIdentifier
+        kind: property
+        type: String
+        nullable: true
+        summary: A unique identifier for the accessibility element that can be
+          used by automated systems to find the element.
+        description: |
+          Useful as a way for UI tests to reliably find a specific element.
+
+          You must ensure that each element has a unique value.
+      -
+        name: accessibilityLabel
+        kind: property
+        type: String
+        nullable: true
+        summary: A short textual label describing this element suitable for presentation to a user
+        description: |
+          The element's label will be presented to the user.
+      -
+        name: accessibilityHint
+        kind: property
+        type: String
+        nullable: true
+        summary: A longer textual label describing this element suitable for presentation to a user
+        description: |
+          The element's hint will be presented to the user if more detail is requested.
+  -
+    name: Controls
+    members:
+      -
+        name: accessibilityValue
+        kind: property
+        type: any
+        nullable: true
+        summary: The current value for this element
+        description: |
+          Used for controls that allow user input.  Can be a `String` or `Number`
+      -
+        name: accessibilityValueRange
+        kind: property
+        type: JSRange
+        nullable: true
+        summary: The acceptable range of numeric values for the element
+        description: |
+          Used for controls that allow the user to set a number, but where
+          the number must be limited.
+      -
+        name: accessibilityChecked
+        kind: property
+        type: Checked
+        nullable: true
+        summary: The state of a checkbox-like element
+        description: |
+          Used for controls that allow the user toggle on or off.
+      -
+        name: accessibilityEnabled
+        kind: property
+        type: boolean
+        nullable: true
+        summary: The enabled state of a control
+        description: |
+          Indicates if a control is enabled or disabled
+      -
+        name: accessibilityOrientation
+        kind: property
+        type: Orientation
+        nullable: true
+        summary: The primary direction of a contorl's layout
+        description: |
+          Used to indicate if a control's layout is horizontal or vertical,
+          such as in the case of scroll bars.
+      -
+        name: Checked
+        kind: enum
+        summary: The possible states for a checkbox like element
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: "on"
+                summary: The checkbox is checked
+              -
+                name: "off"
+                summary: The checkbox is not checked
+              -
+                name: "mixed"
+                summary: The checkbox is in a mixed state
+      -
+        name: Orientation
+        kind: enum
+        summary: The possible orientations of an accessibility element
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: horizontal
+              -
+                name: vertical
+  -
+    name: Lists
+    members:
+      -
+        name: accessibilityRowCount
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates the number of rows in a list
+      -
+        name: accessibilityColumnCount
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates the number of columns in a list
+      -
+        name: accessibilityRowIndex
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates where in a list an element is
+        description: |
+          This value is zero-indexed
+      -
+        name: accessibilityColumnIndex
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates which columns an element is in
+        description: |
+          This value is zero-indexed
+      -
+        name: accessibilitySelected
+        kind: property
+        type: boolean
+        nullable: true
+        summary: Indicates if an element is selected in its parent context
+        description: |
+          Used for things like selected rows in lists
+      -
+        name: accessibilityExpanded
+        kind: property
+        type: boolean
+        nullable: true
+        summary: Indicates if an element is expanded to show children
+        description: |
+          Used for things like rows in outline views
+      -
+        name: accessibilityLevel
+        kind: property
+        type: Number
+        nullable: true
+        summary: Indicates how deep in a tree an element is
+        description: |
+          Used for things like rows in outline views
+  -
+    name: Menus
+    members:
+      -
+        name: accessibilityMenu
+        kind: property
+        type: UIMenu
+        nullable: true
+        summary: References a menu that corresponds to this element
+        description: |
+          A `UIPopupButton`, for example, sets this property to its
+          associated menu.
+  -
+    name: Element Tree
+    members:
+      -
+        name: accessibilityParent
+        kind: property
+        type: UIAccessibility
+        nullable: true
+        summary: References the parent element of this element
+      -
+        name: accessibilityElements
+        kind: property
+        type: UIAccessibility[]
+        nullable: true
+        summary: References the child elements of this element
+  -
+    name: Notifications
+    members:
+      -
+        name: Notification
+        kind: enum
+        summary: The possible notifications relevant to accessibility elements
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: elementCreated
+                summary: Dispatched when an element is created
+              -
+                name: elementDestroyed
+                summary: Dispatched when an element is destroyed
+              -
+                name: firstResponderChanged
+                summary: Dispatched when the application's first responder changes
+              -
+                name: keyWindowChanged
+                summary: Dispatched when the application's key window changes
+              -
+                name: mainWindowChanged
+                summary: Dispatched when the application's main window changes
+              -
+                name: rowCountChanged
+                summary: Dispatched when a list's row count changes
+              -
+                name: rowExpanded
+                summary: Dispatched when an outline's row expands
+              -
+                name: rowCollapsed
+                summary: Dispatched when an outline's row collapses
+              -
+                name: selectedChildrenChanged
+                summary: Dispatched when a list's selection changes
+              -
+                name: selectedTextChanged
+                summary: Dispatched when a field's text selection changes
+              -
+                name: titleChanged
+                summary: Dispatched when an element's label changes
+              -
+                name: valueChanged
+                summary: Dispatched when an element's value changes
+              -
+                name: visibilityChanged
+                summary: Dispatched when an element's hidden state changes
+              -
+                name: enabledChanged
+                summary: Dispatched when an element's enabled state changes
+      # -
+      #   name: TextualContext
+      #   kind: enum
+      #   summary: The possible textual contexts for an accessibility element
+      #   topics:
+      #     -
+      #       name: Options
+      #       members:
+      #         -
+      #           name: normal
+      #           summary: Normal text, the default value
+      #         -
+      #           name: console
+      #           summary: Console text
+      #         -
+      #           name: fileSystem
+      #           summary: File system text
+      #         -
+      #           name: messaging
+      #           summary: Messaging application text
+      #         -
+      #           name: narrative
+      #           summary: Narrative text
+      #         -
+      #           name: sourceCode
+      #           summary: Source code text
+      #         -
+      #           name: spreadsheet
+      #           summary: Spreadsheet text
+      #         -
+      #           name: wordProcessing
+      #           summary: Word processing text

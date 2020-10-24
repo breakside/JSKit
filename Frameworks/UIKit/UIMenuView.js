@@ -44,7 +44,6 @@ JSClass("UIMenuWindow", UIWindow, {
     _scrollDistance: 0,
     _isShowingAlternates: false,
     _isClosing: false,
-    receivesAllEvents: true,
     capSize: JSDynamicProperty('_capSize', 5),
     _keyWidth: 0,
     separatorColor: null,
@@ -89,9 +88,16 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Window Behavior
 
+    receivesAllEvents: true,
+
+    canBecomeKeyWindow: function(){
+        // Menus should not change the current key window.  They will still
+        // receive key events due to internal logic in UIWindowServer
+        return false;
+    },
+
     canBecomeMainWindow: function(){
-        // Since menus are basically like modal panels, we never want to be the
-        // main view, or take visual focus away from the main view that opened us.
+        // Menus should not change the current main window.
         return false;
     },
 
@@ -106,6 +112,12 @@ JSClass("UIMenuWindow", UIWindow, {
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
         }
+        this.windowServer.postNotificationsForAccessibilityElementCreated(this._menu);
+    },
+
+    didClose: function(){
+        this.windowServer.postNotificationsForAccessibilityElementDestroyed(this._menu);
+        UIMenuWindow.$super.didClose.call(this);
     },
 
     // -----------------------------------------------------------------------
@@ -198,6 +210,10 @@ JSClass("UIMenuWindow", UIWindow, {
             targetView = this.menuView.itemViews[itemViewIndex];
         }
         return this.convertPointFromView(JSPoint.Zero, targetView);
+    },
+
+    viewForItem: function(item){
+        return this._itemViewIndexesByItemId[item.objectID] || null;
     },
 
     // -----------------------------------------------------------------------
@@ -396,7 +412,7 @@ JSClass("UIMenuWindow", UIWindow, {
                     this._menu.delegate.menuDidNavigateLeft(this._menu);
                 }
             }
-        }else if (event.key == UIEvent.Key.enter){
+        }else if (event.key == UIEvent.Key.enter || event.key == UIEvent.Key.space){
             this._performActionForHighlightedItem(true);
         }
         // TODO: select by typing title
@@ -585,7 +601,6 @@ JSClass("UIMenuWindow", UIWindow, {
         }
         this.stopMouseTracking();
         UIMenuWindow.$super.close.call(this);
-        this._menu = null;
     },
 
     closeAll: function(animated, completion, target){
@@ -607,7 +622,9 @@ JSClass("UIMenuWindow", UIWindow, {
             return this.submenu.stylerProperties.window.deepestMenuWindow();
         }
         return this;
-    }
+    },
+
+    isAccessibilityElement: false
 
 });
 
@@ -709,6 +726,14 @@ JSClass("UIMenuItemSeparatorView", UIView, {
     layoutSubviews: function(){
         UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
         this.lineLayer.frame = JSRect(0, (this.bounds.size.height - this.size) / 2, this.bounds.size.width, this.size);
+    },
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.menuItem,
+    accessibilitySubrole: UIAccessibility.Subrole.separator,
+
+    getAccessibilityElements: function(){
+        return [];
     }
 
 });
@@ -921,7 +946,7 @@ JSClass("UIMenuItemView", UIView, {
         size.width = Math.ceil(size.width);
         size.height = Math.ceil(size.height);
         this.bounds = JSRect(JSPoint.Zero, size);
-    }
+    },
 
 });
 

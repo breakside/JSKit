@@ -38,14 +38,17 @@ JSClass("MockLayer", JSObject, {
 JSClass("UIApplicationTests", TKTestSuite, {
 
     app: null,
+    windowServer: null,
 
     setup: function(){
-        var windowServer = UIMockWindowServer.init();
+        this.windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {}});
-        this.app = UIApplication.initWithBundle(bundle, windowServer);
+        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
+        JSFont.registerDummySystemFont();
     },
 
     teardown: function(){
+        JSFont.unregisterDummySystemFont();
         this.app.deinit();
         this.app = null;
     },
@@ -89,29 +92,40 @@ JSClass("UIApplicationTests", TKTestSuite, {
     },
 
     testWindows: function(){
-        var mockWindow1 = { layer: MockLayer.init() };
-        var mockWindow2 = { layer: MockLayer.init() };
         TKAssertEquals(this.app.windows.length, 0);
-        this.app.windowServer.windowStack.push(mockWindow1);
+        var window1 = UIWindow.initWithApplication(this.app);
+        TKAssertEquals(this.app.windows.length, 0);
+        var window2 = UIWindow.initWithApplication(this.app);
+        TKAssertEquals(this.app.windows.length, 0);
+        window1.open();
+        this.windowServer.displayServer.updateDisplay(1);
         TKAssertEquals(this.app.windows.length, 1);
-        this.app.windowServer.windowStack.push(mockWindow1);
+        window2.open();
+        this.windowServer.displayServer.updateDisplay(1.1);
         TKAssertEquals(this.app.windows.length, 2);
-        this.app.windowServer.windowStack.pop();
+        window2.close();
+        this.windowServer.displayServer.updateDisplay(1.2);
         TKAssertEquals(this.app.windows.length, 1);
+        window1.close();
+        this.windowServer.displayServer.updateDisplay(1.3);
+        TKAssertEquals(this.app.windows.length, 0);
     },
 
     testKeyWindow: function(){
-        var mockWindow = { layer: MockLayer.init() };
-        TKAssertNull(this.app.keyWindow);
-        this.app.windowServer.keyWindow = mockWindow;
-        TKAssertExactEquals(this.app.keyWindow, mockWindow);
+        var window1 = UIWindow.initWithApplication(this.app);
+        window1.makeKeyAndOrderFront();
+        this.windowServer.displayServer.updateDisplay(1);
+        TKAssertNotNull(this.app.keyWindow);
+        TKAssertExactEquals(this.app.keyWindow, window1);
     },
 
     testMainWindow: function(){
-        var mockWindow = { layer: MockLayer.init() };
-        TKAssertNull(this.app.mainWindow);
-        this.app.windowServer.mainWindow = mockWindow;
-        TKAssertExactEquals(this.app.mainWindow, mockWindow);
+        var window1 = UIWindow.initWithApplication(this.app);
+        window1.open();
+        window1.makeMain();
+        this.windowServer.displayServer.updateDisplay(1);
+        TKAssertNotNull(this.app.mainWindow);
+        TKAssertExactEquals(this.app.mainWindow, window1);
     },
 
     testSendEvent: function(){
@@ -163,20 +177,24 @@ JSClass("UIApplicationTests", TKTestSuite, {
     testSendAction: function(){
         var testCount = 0;
         var lastSender = null;
-        var mockResponder = {
+        var window1 = UIWindow.initWithApplication(this.app);
+        window1.makeKeyAndOrderFront();
+        this.windowServer.displayServer.updateDisplay(1);
+        var viewClass = UIView.$extend({
+            canBecomeFirstResponder: function(){
+                return true;
+            },
             targetForAction: function(action, sender){
                 return this;
             },
             test: function(sender){
                 ++testCount;
                 lastSender = sender;
-            }
-        };
-        var mockWindow = {
-            layer: MockLayer.init() ,
-            firstResponder: mockResponder
-        };
-        this.app.windowServer.mainWindow = mockWindow;
+            },
+        }, "TestView");
+        var view = viewClass.init();
+        window1.contentView.addSubview(view);
+        window1.firstResponder = view;
         TKAssertEquals(testCount, 0);
         this.app.sendAction('test');
         TKAssertEquals(testCount, 1);

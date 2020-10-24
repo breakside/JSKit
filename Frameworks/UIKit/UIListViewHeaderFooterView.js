@@ -90,7 +90,27 @@ JSClass("UIListViewHeaderFooterView", UIView, {
             size.height = this._detailLabel.font.displayLineHeight;
             this._detailLabel.frame = JSRect(JSPoint(this._titleInsets.left, Math.floor((this.bounds.size.height - size.height) / 2.0)), size);
         }
-    }
+    },
+
+    isAccessibilityElement: true,
+    accessibilityRole: JSReadOnlyProperty(),
+    getAccessibilityRole: function(){
+        if (this.kind === UIListViewHeaderFooterView.Kind.header){
+            return UIAccessibility.Role.header;
+        }
+        return UIAccessibility.Role.text;
+    },
+
+    getAccessibilityLabel: function(){
+        var label = UIListViewHeaderFooterView.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
 
 });
 

@@ -50,6 +50,8 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
     _resetReusableFrameElement: function(){
         if (this._reusableFrameElement === null){
             this._reusableFrameElement = this._domDocument.createElement('div');
+            this._reusableFrameElement.setAttribute("role", "none presentation");
+            // this._reusableFrameElement.setAttribute("aria-hidden", "true");
             this._reusableFrameElement.style.position = 'absolute';
             this._reusableFrameElement.style.visibility = 'hidden';
             this._reusableFrameElement.style.overflow = 'hidden';

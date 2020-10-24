@@ -613,7 +613,10 @@ JSClass('UIScrollView', UIView, {
         }else{
             this._endCoasting();
         }
-    }
+    },
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.scrollArea,
 
 });
 

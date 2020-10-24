@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -54,44 +55,119 @@ JSClass("UICheckbox", UIControl, {
         return this._titleLabel;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-        }else{
-            UICheckbox.$super.mouseDown.call(this, event);
-        }
-    },
-
-    mouseUp: function(event){
-        if (!this.enabled){
             return;
         }
-        if (this.active){
-            this.on = !this.on;
-            this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
-            this.active = false;
-            this.didChangeValueForBinding('on');
-        }
+        UICheckbox.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this.active = this.containsPoint(location);
             return;
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
+        UICheckbox.$super.mouseDragged.call(this, event);
+    },
+
+    mouseUp: function(event){
+        if (this.enabled){
+            if (this.active){
+                this._toggle();
+            }
+            return;
+        }
+        UICheckbox.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UICheckbox.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UICheckbox.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this._toggle();
+            }
+            return;
+        }
+        UICheckbox.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UICheckbox.$super.touchesCanceled.call(this, touches, event);
+    }, 
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UICheckbox.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this._toggle();
+                return;
+            }
+        }
+        UICheckbox.$super.keyUp.call(this, event);
+    },
+
+    _toggle: function(){
+        this.on = !this.on;
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
+        this.active = false;
+        this.didChangeValueForBinding('on');
     },
 
     setOn: function(isOn){
         this._isMixed = false;
         this._isOn = isOn;
         this._styler.updateControl(this);
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     setMixed: function(isMixed){
         this._isMixed = isMixed;
         this._isOn = false;
         this._styler.updateControl(this);
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     getFirstBaselineOffsetFromTop: function(){
@@ -108,6 +184,34 @@ JSClass("UICheckbox", UIControl, {
             return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
         }
         return 0;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.checkbox,
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
+
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    getAccessibilityChecked: function(){
+        if (this.mixed){
+            return UIAccessibility.Checked.mixed;
+        }
+        if (this.on){
+            return UIAccessibility.Checked.on;
+        }
+        return UIAccessibility.Checked.off;
     },
 
 });
@@ -229,6 +333,13 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
         var size = JSSize(checkbox._titleLabel.intrinsicSize);
         size.width += size.height + this.titleSpacing;
         return size;
+    },
+
+    focusRingPathForControl: function(checkbox){
+        var layer = checkbox.stylerProperties.boxLayer;
+        var transform = layer.transformFromSuperlayer();
+        var boxPath = layer.backgroundPath(transform);
+        return boxPath;
     }
 
 });

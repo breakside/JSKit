@@ -52,6 +52,30 @@ topics:
                 name: view
                 type: UIView
                 summary: The view to display when this tab item is selected
+          -
+            name: Accessibility
+            members:
+              -
+                introduced: 2020.42.0
+                name: accessibilityIdentifier
+                type: String
+                summary: A unqiue identifier for the tab
+                description: |
+                  The `accessibilityIdentifier` can be used by automated code to
+                  find the tab without regard for the overall accessibility element tree organization.
+              -
+                introduced: 2020.42.0
+                name: accessibilityLabel
+                type: String
+                summary: The primary user-presented label to use for accessibility contexts
+                note: |
+                  The tab can generate a default label from its title, but
+                  any value set here will override the default.
+              -
+                introduced: 2020.42.0
+                name: accessibilityHint
+                type: String
+                summary: The detailed user-presented label to use for accessibility contexts
   -
     name: Title & Image
     members:

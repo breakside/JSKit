@@ -94,7 +94,18 @@ JSClass("UIHTMLTextLine", JSTextLine, {
 
     rectForEmptyCharacter: function(){
         return JSRect(0, 0, 0, this.fontLineHeight);
-    }
+    },
+
+    domSelectionPointForCharacterAtIndex: function(index){
+        if (this.range.length === 0){
+            return {node: this.emptyTextNode, offset: 0};
+        }
+        var run = this.runForCharacterAtIndex(index);
+        if (run !== null){
+            return run.domSelectionPointForCharacterAtIndex(index);
+        }
+        return {node: this.element, offset: 0};
+    },
 
 });
 

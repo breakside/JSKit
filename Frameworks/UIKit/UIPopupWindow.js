@@ -302,6 +302,8 @@ JSClass("UIPopupWindow", UIWindow, {
         this._modalAnimator.start();
     },
 
+    accessibilityRole: UIAccessibility.Role.popover
+
 });
 
 JSClass("UIPopupWindowStyler", UIWindowStyler, {
@@ -327,6 +329,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
     },
 
     initializeWindow: function(window){
+        UIPopupWindowStyler.$super.initializeWindow.call(this, window);
         window._showsSourceArrow = this.showsSourceArrow;
         window._sourceArrowSize = this.sourceArrowSize;
         window._sourceSpacing  = this.sourceSpacing;

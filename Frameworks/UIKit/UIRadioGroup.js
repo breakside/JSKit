@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -48,6 +49,16 @@ JSClass("UIRadioGroup", UIControl, {
         button.titleLabel.text = title;
         button._index = this.buttons.length;
         button._group = this;
+        var nextKeyView;
+        if (button._index === 0){
+            nextKeyView = this.nextKeyView;
+            this.nextKeyView = button;
+            button.nextKeyView = nextKeyView;
+        }else{
+            nextKeyView = this.buttons[this.buttons.length - 1].nextKeyView;
+            this.buttons[this.buttons.length - 1].nextKeyView = button;
+            button.nextKeyView = nextKeyView;
+        }
         this.buttons.push(button);
         this.addSubview(button);
         this.setNeedsLayout();
@@ -66,6 +77,14 @@ JSClass("UIRadioGroup", UIControl, {
         }
     },
 
+    setNextKeyView: function(nextKeyView){
+        if (this.buttons !== null && this.buttons.length > 0){
+            this.buttons[this.buttons.length - 1].nextKeyView = nextKeyView;
+        }else{
+            UIRadioGroup.$super.setNextKeyView.call(this, nextKeyView);
+        }
+    },
+
     setEnabled: function(isEnabled){
         if (isEnabled !== this.enabled){
             this.enabled = isEnabled;
@@ -73,6 +92,14 @@ JSClass("UIRadioGroup", UIControl, {
                 this.buttons[i].enabled = isEnabled;
             }
         }
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.radioGroup,
+
+    getAccessibilityElements: function(){
+        return this.buttons;
     }
 
 });
@@ -156,36 +183,133 @@ JSClass("UIRadioButton", UIControl, {
         return this._titleLabel;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-        }else{
-            UIRadioButton.$super.mouseDown.call(this, event);
-        }
-    },
-
-    mouseUp: function(event){
-        if (!this.enabled){
             return;
         }
-        if (this.active){
-            this._group.selectedIndex = this._index;
-            this._group.didChangeValueForBinding('selectedIndex');
-            this.active = false;
-        }
+        UIRadioButton.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this.active = this.containsPoint(location);
             return;
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
+        UIRadioButton.$super.mouseDragged.call(this, event);
+    },
+
+    mouseUp: function(event){
+        if (this.enabled){
+            if (this.active){
+                this._select();
+            }
+            return;
+        }
+        UIRadioButton.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UIRadioButton.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UIRadioButton.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this._select();
+            }
+            return;
+        }
+        UIRadioButton.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UIRadioButton.$super.touchesCanceled.call(this, touches, event);
+    }, 
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UIRadioButton.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this._select();
+                return;
+            }
+        }
+        UIRadioButton.$super.keyUp.call(this, event);
+    },
+
+    _select: function(){
+        this._group.selectedIndex = this._index;
+        this._group.didChangeValueForBinding('selectedIndex');
+        this.active = false;
     },
 
     setOn: function(isOn){
         this._isOn = isOn;
         this._styler.updateControl(this);
+    },
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.radioButton,
+
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    getAccessibilityChecked: function(){
+        if (this.on){
+            return UIAccessibility.Checked.on;
+        }
+        return UIAccessibility.Checked.off;
+    },
+
+    getAccessibilityLabel: function(){
+        var label = UIRadioButton.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
     }
 
 });
@@ -227,6 +351,7 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
     shadowColor: null,
     shadowOffset: null,
     shadowRadius: 1,
+    borderWidth: 1,
 
     init: function(){
         this.normalBackgroundColor = UIRadioButtonDefaultStyler.NormalBackgroundColor;
@@ -284,6 +409,13 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
         button.stylerProperties.indicatorView.frame = button.stylerProperties.boxLayer.frame;
         var x = boxSize.width + this.titleSpacing;
         button.titleLabel.frame = JSRect(x, 0, button.bounds.size.width - x, height);
+    },
+
+    focusRingPathForControl: function(button){
+        var layer = button.stylerProperties.boxLayer;
+        var transform = layer.transformFromSuperlayer();
+        var boxPath = layer.backgroundPath(transform);
+        return boxPath;
     }
 
 });

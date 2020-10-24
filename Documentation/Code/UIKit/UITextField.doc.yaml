@@ -463,6 +463,14 @@ topics:
                         name: textInsets
                         type: JSInsets
                         summary: The amount to inset text from the edges
+                  -
+                    name: Focus
+                    members:
+                      -
+                        name: showsFocusRing
+                        introduced: 2020.42.0
+                        type: boolean
+                        summary: Controls whether or not the default focus ring is drawn for fields using this styler
           -
             name: Background
             members:
@@ -497,6 +505,14 @@ topics:
                 name: textInsets
                 type: JSInsets
                 summary: The amount to inset text from the edges
+          -
+            name: Focus
+            members:
+              -
+                name: showsFocusRing
+                introduced: 2020.42.0
+                type: boolean
+                summary: Controls whether or not the default focus ring is drawn for fields using this styler
       -
         name: font
         type: JSFont
@@ -592,7 +608,7 @@ topics:
     members:
       -
         name: selections
-        type: UITextEditorSelection[]
+        type: UITextInputSelection[]
         summary: The ranges of text that are currently selected
       -
         name: setSelectionRange
@@ -605,11 +621,11 @@ topics:
             summary: The range of the text to select
           -
             name: insertionPoint
-            type: UITextEditor.SelectionInsertionPoint
+            type: UITextInput.SelectionInsertionPoint
             summary: Where the cursor should be placed in the selection
           -
             name: affinity
-            type: UITextEditor.SelectionAffinity
+            type: UITextInput.SelectionAffinity
             summary: Controls how the selection behaves at line breaks
       -
         name: setSelectionRanges
@@ -622,11 +638,11 @@ topics:
             summary: The ranges of the text to select
           -
             name: insertionPoint
-            type: UITextEditor.SelectionInsertionPoint
+            type: UITextInput.SelectionInsertionPoint
             summary: Where the cursor should be placed in the selection
           -
             name: affinity
-            type: UITextEditor.SelectionAffinity
+            type: UITextInput.SelectionAffinity
             summary: Controls how the selection behaves at line breaks
   -
     name: Actions

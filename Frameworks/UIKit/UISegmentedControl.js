@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 JSClass("UISegmentedControl", UIControl, {
@@ -115,8 +116,14 @@ JSClass("UISegmentedControl", UIControl, {
     },
 
     _insertItemAtIndex: function(item, index){
+        item._segmentedControl = this;
+        item.index = index;
         this._items.splice(index, 0, item);
+        for (var i = index + 1, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._insertItemViewAtIndex(index);
+        this.postAccessibilityElementCreatedNotification(item);
     },
 
     removeSegmentAtIndex: function(index){
@@ -124,8 +131,14 @@ JSClass("UISegmentedControl", UIControl, {
             this.selectedSegmentIndex = null;
         }
         var item = this._items[index];
+        item._segmentedControl = null;
+        item.index = -1;
         this._items.splice(index, 1);
+        for (var i = index, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._removeItemViewAtIndex(index);
+        this.postAccessibilityElementDestroyedNotification(item);
     },
 
     removeAllSegments: function(){
@@ -139,6 +152,13 @@ JSClass("UISegmentedControl", UIControl, {
         this._styler.initializeItemView(itemView);
         itemView.segmentControl = this;
         itemView.index = index;
+        var previous = this;
+        if (index > 0){
+            previous = this._itemViews[index - 1];
+        }
+        var nextKeyView = previous.nextKeyView;
+        previous.nextKeyView = itemView;
+        itemView.nextKeyView = nextKeyView;
         this.addSubview(itemView);
         this._itemViews.splice(index, 0, itemView);
         itemView.setItem(this._items[index]);
@@ -152,6 +172,11 @@ JSClass("UISegmentedControl", UIControl, {
     _removeItemViewAtIndex: function(index){
         var itemView = this._itemViews[index];
         itemView.segmentControl = null;
+        var previous = this;
+        if (index > 0){
+            previous = this._itemViews[index - 1];
+        }
+        previous.nextKeyView = itemView.nextKeyView;
         itemView.removeFromSuperview();
         this._itemViews.splice(index, 1);
         for (var i = index, l = this._itemViews.length; i < l; ++i){
@@ -185,6 +210,7 @@ JSClass("UISegmentedControl", UIControl, {
             this._selectedItemView.item.selected = true;
             this._selectedItemView.update();
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.selectedChildrenChanged);
     },
 
     getSelectedSegmentTag: function(){
@@ -227,28 +253,88 @@ JSClass("UISegmentedControl", UIControl, {
         this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
+    viewForItem: function(item){
+        if (item.index >= 0){
+            return this._itemViews[item.index];
+        }
+        return null;
+    },
+
     // --------------------------------------------------------------------
-    // MARK: - Events
+    // MARK: - Responder
 
     mouseDown: function(event){
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        this._activateSegmentAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        this._activateSegmentAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
         this._activateSegmentAtIndex(null);
-        var location = event.locationInView(this);
-        var segmentIndex = this._enabledSegmentIndexAtLocation(location);
-        if (segmentIndex !== null){
-            this._selectItemViewAtIndex(segmentIndex);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            if (segmentIndex !== null){
+                this._selectItemViewAtIndex(segmentIndex);
+            }
+            return;
         }
+        UISegmentedControl.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControl.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            this._activateSegmentAtIndex(segmentIndex);
+            return;
+        }
+        UISegmentedControlItemView.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        this._activateSegmentAtIndex(null);
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            var segmentIndex = this._enabledSegmentIndexAtLocation(location);
+            if (segmentIndex !== null){
+                this._selectItemViewAtIndex(segmentIndex);
+            }
+            return;
+        }
+        UISegmentedControl.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        this._activateSegmentAtIndex(null);
+        if (this.enabled){
+            return;
+        }
+        UISegmentedControl.$super.touchesCanceled.call(this, touches, event);
     },
 
     _enabledSegmentIndexAtLocation: function(location){
@@ -264,9 +350,29 @@ JSClass("UISegmentedControl", UIControl, {
         return null;
     },
 
+    setNextKeyView: function(nextKeyView){
+        if (this._itemViews !== null && this._itemViews.length > 0){
+            this._itemViews[this._itemViews.length - 1].nextKeyView = nextKeyView;
+        }else{
+            UISegmentedControl.$super.setNextKeyView.call(this, nextKeyView);
+        }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.tabGroup,
+
+    getAccessibilityElements: function(){
+        return this._items;
+    },
+
 });
 
 JSClass("UISegmentedControlItem", JSObject, {
+    index: -1,
     title: null,
     image: null,
     selectedImage: null,
@@ -274,6 +380,7 @@ JSClass("UISegmentedControlItem", JSObject, {
     active: false,
     selected: false,
     enabled: true,
+    _segmentedControl: null,
 
     initWithSpec: function(spec){
         UISegmentedControlItem.$super.initWithSpec.call(this, spec);
@@ -289,6 +396,83 @@ JSClass("UISegmentedControlItem", JSObject, {
         if (spec.containsKey('tooltip')){
             this.tooltip = spec.valueForKey("tooltip");
         }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
+    },
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.button,
+    accessibilitySubrole: UIAccessibility.Subrole.tab,
+    accessibilityResponder: JSReadOnlyProperty(),
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: JSReadOnlyProperty(),
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+
+    // Children
+    accessibilityParent: JSReadOnlyProperty(),
+    accessibilityElements: [],
+
+    getAccessibilityLayer: function(){
+        var view = this._segmentedControl.viewForItem(this);
+        if (view !== null){
+            return view.layer;
+        }
+        return null;
+    },
+
+    getAccessibilityFrame: function(){
+        var view = this._segmentedControl.viewForItem(this);
+        if (view !== null){
+            return view.convertRectToScreen(view.bounds);
+        }
+        return null;
+    },
+
+    getAccessibilityParent: function(){
+        return this._segmentedControl;
+    },
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this.title;
+    },
+
+    getAccessibilityResponder: function(){
+        return this._segmentedControl.viewForItem(this);
+    },
+
+    getAccessibilitySelected: function(){
+        return this.selected;
     }
 });
 
@@ -366,7 +550,38 @@ JSClass("UISegmentedControlItemView", UIView, {
 
     isLast: function(){
         return this.index === this.segmentControl._items.length - 1;
-    }
+    },
+
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.item.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.segmentControl._activateSegmentAtIndex(this.index);
+            return;
+        }
+        UISegmentedControlItemView.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.item.active){
+                this.segmentControl._activateSegmentAtIndex(null);
+                this.segmentControl._selectItemViewAtIndex(this.index);
+                return;
+            }
+        }
+        UISegmentedControlItemView.$super.keyUp.call(this, event);
+    },
 
 });
 

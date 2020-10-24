@@ -83,6 +83,15 @@ JSClass("UIMenuItem", JSObject, {
             if (spec.containsKey("view")){
                 this.view = spec.valueForKey("view", UIView);
             }
+            if (spec.containsKey("accessibilityIdentifier")){
+                this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+            }
+            if (spec.containsKey("accessibilityLabel")){
+                this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+            }
+            if (spec.containsKey("accessibilityHint")){
+                this.accessibilityHint = spec.valueForKey("accessibilityHint");
+            }
         }
     },
 
@@ -95,6 +104,7 @@ JSClass("UIMenuItem", JSObject, {
     initSeparator: function(){
         this._isSeparator = true;
         this._isEnabled = false;
+        this.accessibilitySubrole = UIAccessibility.Subrole.separator;
     },
 
     setKeyEquivalent: function(keyEquivalent){
@@ -125,6 +135,72 @@ JSClass("UIMenuItem", JSObject, {
         }else{
             this._tag = tag;
         }
+    },
+
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: JSReadOnlyProperty(),
+    accessibilityLayer: null,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.menuItem,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: JSReadOnlyProperty(),
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: JSReadOnlyProperty(),
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+
+    // Children
+    accessibilityParent: JSReadOnlyProperty(),
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this._title;
+    },
+
+    getAccessibilityFrame: function(){
+        return this.styler.frameForMenu(this);
+    },
+
+    getAccessibilityElements: function(){
+        return [];
+    },
+
+    getAccessibilityHidden: function(){
+        return this._isHidden || this._isAlternate;
+    },
+
+    getAccessibilityMenu: function(){
+        return this._submenu;
+    },
+
+    getAccessibilityChecked: function(){
+        // TODO: distinguish between checkable items and not
+        return null;        
+    },
+
+    getAccessibilityParent: function(){
+        return this.menu;
     }
 
 });

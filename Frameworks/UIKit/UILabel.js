@@ -33,6 +33,7 @@ JSClass('UILabel', UIView, {
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
     selectionColor: JSDynamicProperty("_selectionColor", null),
     userInteractionEnabled: false,
+    _accessibilityHidden: true,
 
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
@@ -290,7 +291,13 @@ JSClass('UILabel', UIView, {
     resignFirstResponder: function(){
         this._selectionRange = null;
         this._updateSelectionHighlightLayers();
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.text
 
 });
 

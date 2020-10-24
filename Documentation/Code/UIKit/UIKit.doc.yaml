@@ -157,6 +157,10 @@ topics:
       - UIScreen
       - UICursor
   -
+    name: Accessibility
+    members:
+      - UIAccessibility
+  -
     name: Touch Interfaces
     members:
       - UIGestureRecognizer

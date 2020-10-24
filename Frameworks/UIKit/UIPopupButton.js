@@ -106,6 +106,7 @@ JSClass("UIPopupButton", UIControl, {
         }
     },
 
+    // -------------------------------------------------------------------------
     // MARK: - Adding Items
 
     addItemWithTitle: function(title, tag){
@@ -163,42 +164,127 @@ JSClass("UIPopupButton", UIControl, {
 
     _isMenuOpen: false,
 
+    // -------------------------------------------------------------------------
+    // MARK: - Responder
+
+    canBecomeFirstResponder: function(){
+        return this.enabled && this.fullKeyboardAccessEnabled;
+    },
+
+    becomeFirstResponder: function(){
+    },
+
+    resignFirstResponder: function(){
+    },
+
     mouseDown: function(event){
         if (this.enabled){
             this.active = true;
-            if (this.menu.items.length > 0){
-                this.menu.font = this.titleLabel.font;
-                this.menu.delegate = this;
-                if (this._pullsDown){
-                    this.menu.minimumWidth = this.frame.size.width;
-                    this.menu.openAdjacentToView(this, UIMenu.Placement.below, 1);
-                }else{
-                    var itemTitleOffset = this.menu.itemTitleOffset;
-                    var targetView = this._imageView.hidden ? this._titleLabel : this._imageView;
-                    var itemOrigin = JSPoint(targetView.frame.origin.x - itemTitleOffset.x, targetView.frame.origin.y - itemTitleOffset.y);
-                    this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
-                    this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
-                }
-                this._isMenuOpen = true;
-            }
-        }else{
-            UIPopupButton.$super.mouseDown.call(this, event);
+            this.openMenu();
+            return;
         }
+        UIPopupButton.$super.mouseDown.call(this, event);
     },
 
     mouseUp: function(event){
-        if (!this.enabled || this._isMenuOpen){
-            return UIPopupButton.$super.mouseUp.call(this, event);
+        if (this.enabled){
+            if (!this._isMenuOpen){
+                this.active = false;
+            }
+            return;
         }
-        this.active = false;
+        UIPopupButton.$super.mouseUp.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled || this._isMenuOpen){
-            return UIPopupButton.$super.mouseDragged.call(this, event);
+        if (this.enabled){
+            if (!this._isMenuOpen){
+                var location = event.locationInView(this);
+                this.active = this.containsPoint(location);
+            }
+            return;
         }
-        var location = event.locationInView(this);
-        this.active = this.containsPoint(location);
+        return UIPopupButton.$super.mouseDragged.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            this.active = true;
+            return;
+        }
+        UIPopupButton.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var touch = touches[0];
+            var location = touch.locationInView(this);
+            this.active = this.containsPoint(location);
+            return;
+        }
+        UIPopupButton.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            if (this.active){
+                this.openMenu();
+                this.active = false;
+            }
+            return;
+        }
+        UIPopupButton.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            this.active = false;
+            return;
+        }
+        UIPopupButton.$super.touchesCanceled.call(this, touches, event);
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            this.active = true;
+            return;
+        }
+        UIPopupButton.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            if (this.active){
+                this.openMenu();
+                if (!this._isMenuOpen){
+                    this.active = false;
+                }
+                return;
+            }
+        }
+        UIPopupButton.$super.keyUp.call(this, event);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Menu
+
+    openMenu: function(){
+        if (this.menu.items.length > 0){
+            this.menu.font = this.titleLabel.font;
+            this.menu.delegate = this;
+            if (this._pullsDown){
+                this.menu.minimumWidth = this.frame.size.width;
+                this.menu.openAdjacentToView(this, UIMenu.Placement.below, 1);
+            }else{
+                var itemTitleOffset = this.menu.itemTitleOffset;
+                var targetView = this._imageView.hidden ? this._titleLabel : this._imageView;
+                var itemOrigin = JSPoint(targetView.frame.origin.x - itemTitleOffset.x, targetView.frame.origin.y - itemTitleOffset.y);
+                this.menu.minimumWidth = this.indicatorView.frame.origin.x - itemOrigin.x;
+                this.menu.openWithItemAtLocationInView(this._selectedItem, itemOrigin, this);
+            }
+            this.menu.accessibilityParent = this;
+            this._isMenuOpen = true;
+        }
     },
 
     sendsActionForReselect: false,
@@ -216,6 +302,7 @@ JSClass("UIPopupButton", UIControl, {
     menuDidClose: function(menu){
         this.active = false;
         this.menu.delegate = null;
+        this.menu.accessibilityParent = null;
         this._isMenuOpen = false;
     },
 
@@ -271,6 +358,9 @@ JSClass("UIPopupButton", UIControl, {
         }
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Layout
+
     getFirstBaselineOffsetFromTop: function(){
         if (this._titleLabel !== null){
             this.layoutIfNeeded();
@@ -294,6 +384,36 @@ JSClass("UIPopupButton", UIControl, {
 
     invalidateIntrinsicSize: function(){
         this._maxTitleWidth = null;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.popupButton,
+
+    getAccessibilityLabel: function(){
+        var label = UIButton.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this._titleLabel !== null){
+            return this._titleLabel.text;
+        }
+        return null;
+    },
+
+    accessibilityMenu: JSReadOnlyProperty(),
+
+    getAccessibilityMenu: function(){
+        return this._menu;
+    },
+
+    getAccessibilityElements: function(){
+        if (this._isMenuOpen){
+            return [this._menu];
+        }
+        return [];
     }
 
 });
@@ -526,8 +646,8 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         button.indicatorView.frame = JSRect(button.bounds.size.width - insets.right - indicatorSize.width, insets.top, indicatorSize.width, indicatorSize.height);
         button._imageView.hidden = button._imageView.image === null;
         var x = insets.left;
+        button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
         if (!button._imageView.hidden){
-            button._imageView.frame = JSRect(x, insets.top, imageSize, imageSize);
             x += imageSize + button._imageTitleSpacing;
         }
         button.titleLabel.frame = JSRect(x, insets.top, button.indicatorView.frame.origin.x - x - indicatorSpacing, height);

@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "UIControl.js"
+// #import "UILabel.js"
 // #import "UITextLayer.js"
 // #import "UITextEditor.js"
 // #import "UICursor.js"
@@ -197,42 +198,42 @@ JSClass("UITextField", UIControl, {
     placeholderColor: JSDynamicProperty('_placeholderColor', null),
 
     setPlaceholder: function(placeholder){
-        if (this._placeholderTextLayer === null){
-            this._createPlaceholderTextLayer();
+        if (this._placeholderLabel === null){
+            this._createPlaceholderLabel();
         }
-        this._placeholderTextLayer.text = placeholder;
+        this._placeholderLabel.text = placeholder;
         this._updatePlaceholderHidden();
     },
 
     getPlaceholder: function(){
-        if (!this._placeholderTextLayer){
+        if (!this._placeholderLabel){
             return null;
         }
-        return this._placeholderTextLayer.text;
+        return this._placeholderLabel.text;
     },
 
     setPlaceholderColor: function(color){
         this._placeholderColor = color;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.textColor = this._placeholderColor;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.textColor = this._placeholderColor;
         }
     },
 
-    _createPlaceholderTextLayer: function(){
-        this._placeholderTextLayer = UITextLayer.init();
-        this._placeholderTextLayer.delegate = this;
-        this._placeholderTextLayer.textAlignment = this._textLayer.textAlignment;
-        this._placeholderTextLayer.lineBreakMode = JSLineBreakMode.truncateTail;
-        this._placeholderTextLayer.maximumNumberOfLines = 1;
-        this._placeholderTextLayer.font = this._textLayer.font;
-        this._placeholderTextLayer.hidden = true;
-        this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
-        this._placeholderTextLayer.heightTracksText = true;
+    _createPlaceholderLabel: function(){
+        this._placeholderLabel = UILabel.init();
+        this._placeholderLabel.textAlignment = this._textLayer.textAlignment;
+        this._placeholderLabel.lineBreakMode = JSLineBreakMode.truncateTail;
+        this._placeholderLabel.maximumNumberOfLines = 1;
+        this._placeholderLabel.font = this._textLayer.font;
+        this._placeholderLabel.hidden = true;
+        this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
+        this._placeholderLabel.layer.heightTracksText = true;
         if (this._placeholderColor === null){
             this._createPlaceholderColor();
         }
-        this._placeholderTextLayer.textColor = this._placeholderColor;
-        this._clipView.layer.insertSublayerBelowSibling(this._placeholderTextLayer, this._textLayer);
+        this._placeholderLabel.textColor = this._placeholderColor;
+        this._clipView.insertSubviewAtIndex(this._placeholderLabel, 0);
+        this._clipView.layer.insertSublayerBelowSibling(this._placeholderLabel.layer, this._textLayer);
     },
 
     _createPlaceholderColor: function(){
@@ -243,22 +244,22 @@ JSClass("UITextField", UIControl, {
         this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
     },
 
-    _placeholderTextLayer: null,
+    _placeholderLabel: null,
 
     _isShowingPlaceholder: false,
 
     _updatePlaceholderHidden: function(){
         if (this._isShowingPlaceholder && !this._shouldShowPlaceholder()){
-            this._placeholderTextLayer.hidden = true;
+            this._placeholderLabel.hidden = true;
             this._isShowingPlaceholder = false;
         }else if (!this._isShowingPlaceholder && this._shouldShowPlaceholder()){
-            this._placeholderTextLayer.hidden = false;
+            this._placeholderLabel.hidden = false;
             this._isShowingPlaceholder = true;
         }
     },
 
     _shouldShowPlaceholder: function(){
-        return this._placeholderTextLayer !== null && !this._textLayer.hasText();
+        return this._placeholderLabel !== null && !this._textLayer.hasText();
     },
 
     // --------------------------------------------------------------------
@@ -289,8 +290,8 @@ JSClass("UITextField", UIControl, {
 
     setTextAlignment: function(textAlignment){
         this._textLayer.textAlignment = textAlignment;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.textAlignment = textAlignment;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.textAlignment = textAlignment;
         }
     },
 
@@ -308,8 +309,8 @@ JSClass("UITextField", UIControl, {
 
     setFont: function(font){
         this._textLayer.font = font;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.font = font;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.font = font;
         }
     },
 
@@ -343,8 +344,8 @@ JSClass("UITextField", UIControl, {
         this._multiline = multiline;
         this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
         this._textLayer.widthTracksText = !multiline;
-        if (this._placeholderTextLayer !== null){
-            this._placeholderTextLayer.widthTracksText = this._textLayer.widthTracksText;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
         }
         this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
     },
@@ -632,32 +633,31 @@ JSClass("UITextField", UIControl, {
             }else{
                 this._textLayer.frame = JSRect(JSPoint.Zero, textSize);
             }
-            if (this._placeholderTextLayer !== null){
-                if (!this._multiline){
-                    this._placeholderTextLayer.layoutIfNeeded();
-                }
-                var placeholderSize = this._placeholderTextLayer.bounds.size;
-                if (this._multiline){
-                    this._placeholderTextLayer.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
-                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.center){
-                    this._placeholderTextLayer.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
-                }else if (this._placeholderTextLayer.textAlignment == JSTextAlignment.right){
-                    this._placeholderTextLayer.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
-                }else{
-                    this._placeholderTextLayer.frame = JSRect(JSPoint.Zero, placeholderSize);
-                }
-            }
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
             this._localEditor.layout();
-        }else if (layer === this._placeholderTextLayer){
-            this._placeholderTextLayer.layoutSublayers();
         }
     },
 
     layoutSubviews: function(){
         UITextField.$super.layoutSubviews.call(this);
         var textInsets = JSInsets(this._textInsets);
+        if (this._placeholderLabel !== null){
+            if (!this._multiline){
+                this._placeholderLabel.layoutIfNeeded();
+            }
+            var clipSize = this._clipView.bounds.size;
+            var placeholderSize = this._placeholderLabel.bounds.size;
+            if (this._multiline){
+                this._placeholderLabel.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.center){
+                this._placeholderLabel.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.right){
+                this._placeholderLabel.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
+            }else{
+                this._placeholderLabel.frame = JSRect(JSPoint.Zero, placeholderSize);
+            }
+        }
         if (this._leftAccessoryView !== null){
             textInsets.left += this._leftAccessoryInsets.width + this._leftAccessorySize.width;
             this._leftAccessoryView.frame = JSRect(
@@ -692,12 +692,11 @@ JSClass("UITextField", UIControl, {
 
     sizeToFitText: function(maxSize){
         this._textLayer.layoutIfNeeded();
-        var textLayer = this._textLayer;
+        var size = JSSize(this._textLayer.bounds.size);
         if (this._isShowingPlaceholder){
-            this._placeholderTextLayer.layoutIfNeeded();
-            textLayer = this._placeholderTextLayer;
+            this._placeholderLabel.layoutIfNeeded();
+            size = JSSize(this._placeholderLabel.bounds.size);
         }
-        var size = JSSize(textLayer.bounds.size);
         if (size.width > maxSize.width){
             size.width = maxSize.width;
         }
@@ -720,8 +719,6 @@ JSClass("UITextField", UIControl, {
                 this._styler.drawControlLayerInContext(this, layer, context);
             }
         }else if (layer === this._textLayer){
-            layer.drawInContext(context);
-        }else if (layer === this._placeholderTextLayer){
             layer.drawInContext(context);
         }
     },
@@ -748,12 +745,12 @@ JSClass("UITextField", UIControl, {
         // in order to perform the quickest checks while rapidly typing.
         // 1. Use insertedLength to tell if we have a non-empty field
         // 2. Only query the text storage if we might be empty
-        if (this._placeholderTextLayer !== null){
+        if (this._placeholderLabel !== null){
             if (this._isShowingPlaceholder && !isEmpty){
-                this._placeholderTextLayer.hidden = true;
+                this._placeholderLabel.hidden = true;
                 this._isShowingPlaceholder = false;
             }else if (!this._isShowingPlaceholder && isEmpty){
-                this._placeholderTextLayer.hidden = false;
+                this._placeholderLabel.hidden = false;
                 this._isShowingPlaceholder = true;
             }
         }
@@ -779,6 +776,7 @@ JSClass("UITextField", UIControl, {
         this.sendActionsForEvents(UIControl.Event.editingChanged);
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('attributedText');
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){
@@ -854,52 +852,54 @@ JSClass("UITextField", UIControl, {
     _isHandlingMouseDown: false,
 
     mouseDown: function(event){
-        if (!this.enabled){
-            return UITextField.$super.mouseDown.call(this, event);
+        if (this.enabled){
+            this._isHandlingMouseDown = true;
+            if (!this.isFirstResponder()){
+                this.window.firstResponder = this;
+            }
+            this._isHandlingMouseDown = false;
+            var location = event.locationInView(this);
+            this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        this._isHandlingMouseDown = true;
-        if (!this.isFirstResponder()){
-            this.window.firstResponder = this;
-        }
-        this._isHandlingMouseDown = false;
-        var location = event.locationInView(this);
-        this._localEditor.handleMouseDownAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseDown.call(this, event);
     },
 
     mouseDragged: function(event){
-        if (!this.enabled){
-            return UITextField.$super.mouseDragged.call(this, event);
-        }
-        if (!this._isDragging){
-            this.cursor.push();
-        }
-        this._isDragging = true;
-        var location = event.locationInView(this);
-        this._lastDragLocation = location;
-        this._lastDragEvent = event;
-        var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x - this._textInsets.right);
-        if (distanceFromRightEdge < this._boundsScrollThreshold){
-            this._boundsScrollDistance = this._boundsScrollThreshold - distanceFromRightEdge;
-        }else if (location.x - this.textInsets.left <= this._boundsScrollThreshold){
-            this._boundsScrollDistance = Math.max(location.x - this.textInsets.left, 0) - this._boundsScrollThreshold;
-        }else{
-            this._boundsScrollDistance = 0;
-        }
-        if (this._boundsScrollDistance === 0){
-            if (this._boundsScrollTimer !== null){
-                this._boundsScrollTimer.invalidate();
-                this._boundsScrollTimer = null;
+        if (this.enabled){
+            if (!this._isDragging){
+                this.cursor.push();
             }
-        }else{
-            if (this._boundsScrollTimer === null){
-                this._boundsScrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._boundsScrollInterval, function(){
-                    this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
-                    this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
-                    this._adjustCursorPositionToVisibleIfNeeded();
-                }, this);
+            this._isDragging = true;
+            var location = event.locationInView(this);
+            this._lastDragLocation = location;
+            this._lastDragEvent = event;
+            var distanceFromRightEdge = Math.max(0, this.bounds.size.width - location.x - this._textInsets.right);
+            if (distanceFromRightEdge < this._boundsScrollThreshold){
+                this._boundsScrollDistance = this._boundsScrollThreshold - distanceFromRightEdge;
+            }else if (location.x - this.textInsets.left <= this._boundsScrollThreshold){
+                this._boundsScrollDistance = Math.max(location.x - this.textInsets.left, 0) - this._boundsScrollThreshold;
+            }else{
+                this._boundsScrollDistance = 0;
             }
+            if (this._boundsScrollDistance === 0){
+                if (this._boundsScrollTimer !== null){
+                    this._boundsScrollTimer.invalidate();
+                    this._boundsScrollTimer = null;
+                }
+            }else{
+                if (this._boundsScrollTimer === null){
+                    this._boundsScrollTimer = JSTimer.scheduledRepeatingTimerWithInterval(this._boundsScrollInterval, function(){
+                        this._adjustClipViewOrigin(JSPoint(this._clipView.bounds.origin.x + this._boundsScrollDistance, this._clipView.bounds.origin.y));
+                        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(this._lastDragLocation, this._textLayer), this._lastDragEvent);
+                        this._adjustCursorPositionToVisibleIfNeeded();
+                    }, this);
+                }
+            }
+            this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        this._localEditor.handleMouseDraggedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseDragged.call(this, event);
     },
 
     mouseUp: function(event){
@@ -913,11 +913,51 @@ JSClass("UITextField", UIControl, {
             this._boundsScrollTimer.invalidate();
             this._boundsScrollTimer = null;
         }
-        if (!this.enabled){
-            return UITextField.$super.mouseUp.call(this, event);
+        if (this.enabled){
+            var location = event.locationInView(this);
+            this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+            return;
         }
-        var location = event.locationInView(this);
-        this._localEditor.handleMouseUpAtLocation(this.layer.convertPointToLayer(location, this._textLayer), event);
+        UITextField.$super.mouseUp.call(this, event);
+    },
+
+    touchesBegan: function(touches, event){
+        if (this.enabled){
+            if (!this.isFirstResponder()){
+                this.window.firstResponder = this;
+            }
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            return;
+        }
+        UITextField.$super.touchesBegan.call(this, touches, event);
+    },
+
+    touchesMoved: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesMovedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            return;
+        }
+        UITextField.$super.touchesMoved.call(this, touches, event);
+    },
+
+    touchesEnded: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesEnded(touches, event);
+            return;
+        }
+        UITextField.$super.touchesEnded.call(this, touches, event);
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this.enabled){
+            var location = touches[0].locationInView(this);
+            this._localEditor.handleTouchesCanceled(touches, event);
+            return;
+        }
+        UITextField.$super.touchesCanceled.call(this, touches, event);
     },
 
     _sanitizedText: function(text){
@@ -925,6 +965,36 @@ JSClass("UITextField", UIControl, {
             return text.replace(/\r\n/g, ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/g, ' ');
         }
         return text;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.textField,
+
+    accessibilityValue: JSReadOnlyProperty(),
+
+    accessibilityMultiline: JSReadOnlyProperty(),
+
+    getAccessibilityValue: function(){
+        return this.text;
+    },
+
+    getAccessibilityLabel: function(){
+        var label = UITextField.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        if (this.placeholder !== null){
+            return this.placeholder;
+        }
+        return null;
+    },
+
+    getAccessibilityMultiline: function(){
+        return this._multiline;
     },
 
     // --------------------------------------------------------------------
@@ -949,12 +1019,18 @@ JSClass("UITextField", UIControl, {
         }
     },
 
+    insertLineBreak: function(){
+        if (this.multiline){
+            this._localEditor.insertLineBreak();
+        }
+    },
+
     insertTab: function(){
-        this.window.setFirstResponderToKeyViewAfterView(this);
+        // this.window.setFirstResponderToKeyViewAfterView(this);
     },
 
     insertBacktab: function(){
-        this.window.setFirstResponderToKeyViewBeforeView(this);
+        // this.window.setFirstResponderToKeyViewBeforeView(this);
     },
 
     deleteBackward: function(){
@@ -1071,7 +1147,19 @@ JSClass("UITextField", UIControl, {
 
     selectAll: function(){
         this._localEditor.selectAll();
-    }
+    },
+
+    textInputLayer: function(){
+        return this.layer;
+    },
+
+    textInputLayoutManager: function(){
+        return this._textLayer.textLayoutManager;
+    },
+
+    textInputSelections: function(){
+        return this.selections;
+    },
 
 });
 
@@ -1130,7 +1218,7 @@ JSClass("UITextFieldStyler", UIControlStyler, {
 
     _commonStylerInit: function(){
         if (this.localCursorColor === null){
-            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1.0);
+            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1);
         }
     },
 
@@ -1186,6 +1274,10 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
         }else{
             textField.stylerProperties.respondingIndicatorLayer.backgroundColor = this.inactiveColor;
         }
+    },
+
+    focusRingPathForControl: function(textField){
+        return null;
     }
 
 });
@@ -1199,29 +1291,33 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     placeholderColor: null,
     cornerRadius: 0,
     textInsets: null,
+    showsFocusRing: true,
 
     initWithSpec: function(spec){
         UITextFieldCustomStyler.$super.initWithSpec.call(this, spec);
-        if (spec.containsKey('backgroundColor')){
+        if (spec.containsKey("backgroundColor")){
             this.backgroundColor = spec.valueForKey("backgroundColor", JSColor);
         }
-        if (spec.containsKey('activeBackgroundColor')){
+        if (spec.containsKey("activeBackgroundColor")){
             this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
         }
-        if (spec.containsKey('disabledBackgroundColor')){
+        if (spec.containsKey("disabledBackgroundColor")){
             this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
         }
-        if (spec.containsKey('textColor')){
+        if (spec.containsKey("textColor")){
             this.textColor = spec.valueForKey("textColor", JSColor);
         }
-        if (spec.containsKey('placeholderColor')){
+        if (spec.containsKey("placeholderColor")){
             this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);
         }
-        if (spec.containsKey('cornerRadius')){
+        if (spec.containsKey("cornerRadius")){
             this.cornerRadius = spec.valueForKey("cornerRadius");
         }
-        if (spec.containsKey('textInsets')){
+        if (spec.containsKey("textInsets")){
             this.textInsets = spec.valueForKey("textInsets", JSInsets);
+        }
+        if (spec.containsKey("showsFocusRing")){
+            this.showsFocusRing = spec.valueForKey("showsFocusRing", JSInsets);
         }
     },
 
@@ -1251,6 +1347,13 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
         }else{
             textField.backgroundColor = this.backgroundColor;
         }
+    },
+
+    focusRingPathForControl: function(textField){
+        if (this.showsFocusRing){
+            return UITextFieldCustomStyler.$super.focusRingPathForControl.call(this, textField);
+        }
+        return null;
     }
 
 });

@@ -19,6 +19,7 @@
 // #import "UIPlatform.js"
 // #import "UIEvent.js"
 // #import "UIWindow.js"
+// #import "UIAccessibility.js"
 /* global UIMenuWindow */
 'use strict';
 
@@ -54,6 +55,15 @@ JSClass("UIMenu", JSObject, {
         UIMenu.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('styler')){
             this._styler = spec.valueForKey("styler", UIMenu.Styler);
+        }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this.accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
         }
         this._commonInit();
         var item;
@@ -339,6 +349,60 @@ JSClass("UIMenu", JSObject, {
         }, this);
     },
 
+    // MARK: - Accessibility
+
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: null,
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: null,
+    accessibilitySubrole: null,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: null,
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+    accessibilityOrientation: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: null,
+    accessibilityExpanded: null,
+
+    // Children
+    accessibilityParent: null,
+    accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityLayer: function(){
+        var window = this.styler.windowForMenu(this);
+        if (window !== null){
+            return window.layer;
+        }
+        return null;
+    },
+
+    getAccessibilityFrame: function(){
+        var window = this.styler.windowForMenu(this);
+        if (window !== null){
+            return window.frame;
+        }
+        return null;
+    },
+
+    getAccessibilityElements: function(){
+        return this._items;
+    },
+
 });
 
 UIMenu.Placement = {
@@ -364,6 +428,12 @@ JSClass("UIMenuStyler", JSObject, {
 
     getItemTitleOffset: function(menu){
         return JSPoint.Zero;
+    },
+
+    windowForMenu: function(menu){
+    },
+
+    viewForItemAtIndex: function(menu, itemIndex){
     }
 
 });
@@ -800,6 +870,19 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         }
         var y = this._itemContentInsets.top;
         return JSPoint(x, y);
+    },
+
+    windowForMenu: function(menu){
+        return menu.stylerProperties.window;
+    },
+
+    viewForItemAtIndex: function(menu, itemIndex){
+        var item = menu.items[itemIndex];
+        var window = this.windowForMenu(menu);
+        if (window !== null){
+            return window.viewForITem(item);
+        }
+        return null;
     }
 
 });

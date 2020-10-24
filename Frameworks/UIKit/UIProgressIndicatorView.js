@@ -108,6 +108,7 @@ JSClass("UIProgressIndicatorView", UIView, {
     setPercentComplete: function(percentComplete){
         this._percentComplete = percentComplete;
         this.setNeedsUpdate();
+        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
     // --------------------------------------------------------------------
@@ -172,6 +173,25 @@ JSClass("UIProgressIndicatorView", UIView, {
 
     getIntrinsicSize: function(){
         return JSSize(this.bounds.size);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.progressIndicator,
+
+    accessibilityValue: JSReadOnlyProperty(),
+
+    accessibilityValueRange: JSRange(0, 100),
+
+    getAccessibilityValue: function(){
+        return Math.round(this._percentComplete * 100);
+    },
+
+    getAccessibilityElements: function(){
+        return [];
     }
 
 });

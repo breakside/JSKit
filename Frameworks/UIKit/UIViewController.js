@@ -140,6 +140,21 @@ JSClass("UIViewController", UIResponder, {
     },
 
     viewWillDisappear: function(){
+        if (this.isViewLoaded){
+            var window = this.view.window;
+            if (window !== null){
+                var responder = this.view.window.firstResponder;
+                if (responder !== null && responder.isKindOfClass(UIView)){
+                    var view = responder;
+                    while (view !== null && view !== this.view){
+                        view = view.superview;
+                    }
+                    if (view !== null && view === this.view){
+                        window.firstResponder = null;
+                    }
+                }
+            }
+        }
     },
 
     viewDidDisappear: function(){

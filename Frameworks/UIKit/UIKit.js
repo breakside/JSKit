@@ -37,6 +37,7 @@
 // #import "UIImageView.js"
 // #import "UIWebView.js"
 // #import "UIWindow.js"
+// #import "UIFocusRingLayer.js"
 // #import "UIPopupWindow.js"
 // #import "UIToolbar.js"
 // #import "UIToolbarItem.js"

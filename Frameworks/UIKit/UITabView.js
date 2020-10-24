@@ -16,6 +16,7 @@
 // #import "UIView.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
+// #import "UIEvent.js"
 'use strict';
 
 (function(){
@@ -101,7 +102,12 @@ JSClass("UITabView", UIView, {
         }else if (index <= this._selectedIndex){
             this._selectedIndex += 1;
         }
+        item._tabView = this;
+        item.index = index;
         this._items.splice(index, 0, item);
+        for (var i = index + 1, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._styler.updateTabView(this);
     },
 
@@ -136,7 +142,11 @@ JSClass("UITabView", UIView, {
             }
         }
         var item = this._items[index];
+        item._tabView = null;
         this._items.splice(index, 1);
+        for (var i = index, l = this._items.length; i < l; ++i){
+            this._items[i].index = i;
+        }
         this._styler.updateTabView(this);
         if (isRemovingOnlyItem){
             item.selected = false;
@@ -171,6 +181,7 @@ JSClass("UITabView", UIView, {
             this._styler.updateTabViewItemAtIndex(this, this._selectedIndex);
             this._styler.showContentViewInTabView(item.view, this);
         }
+        this.postAccessibilityNotification(UIAccessibility.Notification.selectedChildrenChanged);
         if (this.delegate && this.delegate.tabViewDidSelectItemAtIndex){
             this.delegate.tabViewDidSelectItemAtIndex(this, selectedIndex);
         }
@@ -202,12 +213,40 @@ JSClass("UITabView", UIView, {
     layoutSubviews: function(){
         UITabView.$super.layoutSubviews.call(this);
         this.styler.layoutTabView(this);
-    }
+    },
+
+    viewForItem: function(item){
+        return this.styler.viewForItemAtIndex(this, item.index);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Responder
+
+    setNextKeyView: function(nextKeyView){
+        if (this._items.length > 0){
+            var view = this.styler.viewForItemAtIndex(this._items.length - 1);
+            view.nextKeyView = nextKeyView;
+        }else{
+            UITabView.$super.setNextKeyView.call(this, nextKeyView);
+        }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+
+    accessibilityRole: UIAccessibility.Role.tabGroup,
+
+    getAccessibilityElements: function(){
+        return this._items;
+    },
 
 });
 
 JSClass("UITabViewItem", JSObject, {
 
+    index: -1,
     title: JSDynamicProperty("_title", null),
     image: JSDynamicProperty("_image", null),
     selectedImage: JSDynamicProperty("_selectedImage", null),
@@ -216,6 +255,7 @@ JSClass("UITabViewItem", JSObject, {
     active: JSDynamicProperty(),
     selected: JSDynamicProperty(),
     over: JSDynamicProperty(),
+    _tabView: null,
 
     initWithSpec: function(spec){
         if (spec.containsKey('title')){
@@ -229,6 +269,15 @@ JSClass("UITabViewItem", JSObject, {
         }
         if (spec.containsKey("view")){
             this._view = spec.valueForKey("view", UIView);
+        }
+        if (spec.containsKey("accessibilityIdentifier")){
+            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+        }
+        if (spec.containsKey("accessibilityLabel")){
+            this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
+        }
+        if (spec.containsKey("accessibilityHint")){
+            this.accessibilityHint = spec.valueForKey("accessibilityHint");
         }
     },
 
@@ -280,6 +329,73 @@ JSClass("UITabViewItem", JSObject, {
         this._toggleState(UITabViewItem.State.selected, isSelected);
     },
 
+    // Visibility
+    isAccessibilityElement: true,
+    accessibilityHidden: false,
+    accessibilityLayer: JSReadOnlyProperty(),
+    accessibilityFrame: JSReadOnlyProperty(),
+
+    // Role
+    accessibilityRole: UIAccessibility.Role.button,
+    accessibilitySubrole: UIAccessibility.Subrole.tab,
+
+    // Label
+    accessibilityIdentifier: null,
+    accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
+    accessibilityHint: null,
+
+    // Value
+    accessibilityValue: null,
+    accessibilityValueRange: null,
+    accessibilityChecked: null,
+
+    // Properties
+    accessibilityTextualContext: null,
+    accessibilityMenu: null,
+    accessibilityRowIndex: null,
+    accessibilitySelected: JSReadOnlyProperty(),
+    accessibilityExpanded: null,
+    accessibilityOrientation: null,
+
+    // Children
+    accessibilityParent: JSReadOnlyProperty(),
+    accessibilityElements: [],
+
+    getAccessibilityFrame: function(){
+        if (this._tabView !== null){
+            var view = this._tabView.viewForItem(this);
+            if (view !== null){
+                return view.convertRectToScreen(view.bounds);
+            }
+        }
+        return null;
+    },
+
+    getAccessibilityLayer: function(){
+        if (this._tabView !== null){
+            var view = this._tabView.viewForItem(this);
+            if (view !== null){
+                return view.layer;
+            }
+        }
+        return null;
+    },
+
+    getAccessibilityParent: function(){
+        return this._tabView;
+    },
+
+    getAccesssibilityLabel: function(){
+        if (this._accessibilityLabel !== null){
+            return this._accessibilityLabel;
+        }
+        return this.title;
+    },
+
+    getAccessibilitySelected: function(){
+        return this.selected;
+    }
+
 });
 
 UITabViewItem.State = {
@@ -297,6 +413,10 @@ JSClass("UITabViewItemView", UIView, {
     initWithFrame: function(frame){
         UITabViewItemView.$super.initWithFrame.call(this, frame);
         this.stylerProperties = {};
+    },
+
+    canBecomeFirstResponder: function(){
+        return this.fullKeyboardAccessEnabled;
     }
 
 });
@@ -327,6 +447,8 @@ JSClass("UITabViewItemsView", UIView, {
         this._activeItemIndex = -1;
         var item;
         var itemView;
+        var previousKeyView = this.tabView;
+        var nextKeyView = this.itemViews.length > 0 ? this.itemViews[this.itemViews.length - 1].nextKeyView : this.tabView.nextKeyView;
         for (var i = 0, l = this.tabView.items.length; i < l; ++i){
             item = this.tabView.items[i];
             if (i < this.itemViews.length){
@@ -337,6 +459,7 @@ JSClass("UITabViewItemsView", UIView, {
                 this.itemViews.push(itemView);
             }
             itemView.index = i;
+            previousKeyView.nextKeyView = itemView;
         }
         for (var j = this.itemViews.length - 1; j >= i; --i){
             itemView = this.itemViews.pop();
@@ -344,6 +467,7 @@ JSClass("UITabViewItemsView", UIView, {
             itemView.removeFromSuperview();
             itemView.index = -1;
         }
+        this.tabView.nextKeyView = nextKeyView;
         this.setNeedsLayout();
     },
 
@@ -366,6 +490,66 @@ JSClass("UITabViewItemsView", UIView, {
         if (tabItemView){
             this.selectItemView(tabItemView);
         }
+    },
+
+    touchesBegan: function(touches, event){
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        this.activateItemView(tabItemView);
+    },
+
+    touchesMoved: function(touches, event){
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        this.activateItemView(tabItemView);
+    },
+
+    touchesEnded: function(touches, event){
+        this.activateItemView(null);
+        var touch = touches[0];
+        var location = touch.locationInView(this);
+        var tabItemView = this._tabItemViewAtLocation(location);
+        if (tabItemView){
+            this.selectItemView(tabItemView);
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        this.activateItemView(null);
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.space){
+            var itemView = this.keyItemView();
+            this.activateItemView(itemView);
+            return;
+        }
+        UITabViewItemView.$super.keyDown.call(this, event);
+    },
+
+    keyUp: function(event){
+        if (event.key === UIEvent.Key.space){
+            var itemView = this.keyItemView();
+            this.activateItemView(null);
+            if (itemView){
+                this.selectItemView(itemView);
+            }
+            return;
+        }
+        UITabViewItemView.$super.keyUp.call(this, event);
+    },
+
+    keyItemView: function(){
+        var itemView;
+        for (var i = 0, l = this.itemViews.length; i < l; ++i){
+            itemView = this.itemViews[i];
+            if (itemView.isFirstResponder()){
+                return itemView;
+            }
+        }
+        return null;
     },
 
     activateItemView: function(itemView){
@@ -460,7 +644,11 @@ JSClass("UITabViewStyler", JSObject, {
     },
 
     updateTabViewItemAtIndex: function(tabView, index){
-    }
+    },
+
+    viewForItemAtIndex: function(tabView, index){
+        return null;
+    },
 
 });
 
@@ -629,6 +817,10 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
                 itemProps.image = item.image;
             }
         }
+    },
+
+    viewForItemAtIndex: function(tabView, index){
+        return tabView.stylerProperties.itemsView.itemViews[index];
     },
 
 });
@@ -867,6 +1059,10 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
         var itemView = tabView.stylerProperties.itemsView.itemViews[itemIndex];
         var itemProps = itemView.stylerProperties;
         itemProps.imageView.templateColor = this._stateColors[item.state];
+    },
+
+    viewForItemAtIndex: function(tabView, index){
+        return tabView.stylerProperties.itemsView.itemViews[index];
     },
 
 });

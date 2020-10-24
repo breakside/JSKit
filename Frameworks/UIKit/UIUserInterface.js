@@ -44,3 +44,9 @@ UIUserInterface.PointerAccuracy = {
     coarse: 1,
     fine: 2
 };
+
+UIUserInterface.Contrast = {
+    unspecified: 0,
+    normal: 1,
+    high: 2
+};
