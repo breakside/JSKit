@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
+implements:
+  - UIAccessibility
 summary: The single application that runs all of the user interface
 description: |
   A `UIApplication` is created automatically by the `UIKit` boostrap code.

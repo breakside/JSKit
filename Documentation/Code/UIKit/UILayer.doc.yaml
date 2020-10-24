@@ -370,6 +370,18 @@ topics:
         description: |
           If set, a layer's background gradient is automatically drawn within
           the layer's `bounds` above any `backgroundColor` and under any border.
+      -
+        name: backgroundPath
+        introduced: 2020.42.0
+        kind: method
+        type: JSPath
+        summary: Get the path for the layer's background, including rounded corners
+        arguments:
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The optional transform to apply to the path
   -
     name: Borders
     members:
@@ -456,6 +468,21 @@ topics:
           will paint both vertical borders (left and right)
         see:
           - cornerRadius
+      -
+        name: borderPath
+        introduced: 2020.42.0
+        kind: method
+        type: JSPath
+        summary: Get the path for the layer's border, including rounded corners
+        arguments:
+          -
+            name: transform
+            type: JSAffineTransform
+            default: JSAffineTransform.Identity
+            summary: The optional transform to apply to the path
+        description: |
+          The border path is constructed so that stroking the path with the
+          layer's `borderWidth` paints a inner border on the layer.
       -
         name: Sides
         kind: enum
@@ -707,6 +734,13 @@ topics:
             name: rectangle
             type: JSRect
             summary: The rectangle in this layer's coordinate space
+      -
+        name: transformFromSuperlayer
+        introduced: 2020.42.0
+        kind: method
+        type: JSAffineTransform
+        summary: Get the transform that converts points in superlayer space
+          to this layer's space
   -
     name: Hit Testing
     members:

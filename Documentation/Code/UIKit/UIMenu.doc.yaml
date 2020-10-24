@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
+implements:
+  - UIAccessibility
 summary: A menu represents a set of actions that the user can take.
 description: |
   Menus are used throughout `UIKit`.
@@ -443,6 +445,32 @@ topics:
                     type: object
                     summary: The object to use as `this` when calling the
                       completion handler
+              -
+                name: windowForMenu
+                introduced: 2020.42.0
+                kind: method
+                type: UIWindow
+                summary: Returns the window that is displaying the given menu
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu being displayed
+              -
+                name: viewForItemAtIndex
+                introduced: 2020.42.0
+                kind: method
+                type: UIView
+                summary: Returns the view that representes the menu item at the given index
+                arguments:
+                  -
+                    name: menu
+                    type: UIMenu
+                    summary: The menu being displayed
+                  -
+                    name: itemIndex
+                    type: Number
+                    summary: The index of the item
       -
         name: UIMenuWindowStyler
         kind: class

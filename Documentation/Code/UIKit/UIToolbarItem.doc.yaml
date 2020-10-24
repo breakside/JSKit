@@ -336,6 +336,11 @@ topics:
                 type: String
                 summary: The title to show for the item
               -
+                name: accessibilityTitle
+                introduced: 20
+                type: String
+                summary: The title to use for the item in an accessibility context
+              -
                 name: tooltip
                 type: String
                 summary: The help text to show when the user hovers over the
@@ -526,6 +531,11 @@ topics:
         name: title
         type: String
         summary: The title that will be displayed for this item
+      -
+        name: accessibilityTitle
+        introduced: 20
+        type: String
+        summary: The title to use for the item in an accessibility context
       -
         name: tooltip
         type: String

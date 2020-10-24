@@ -29,6 +29,12 @@ topics:
           Implementations can treat a newline request as an `Enter`() key press,
           which may result in some action other than a newline insertion.
       -
+        name: insertLineBreak
+        introduced: 2020.42.0
+        summary: Insert a line break
+        description: |
+          Not considered the same as an `Enter`() keypress.
+      -
         name: insertTab
         summary: Insert a horizontal tab, or otherwise handle a `Tab`() keypress
         description: |
@@ -151,3 +157,133 @@ topics:
       -
         name: selectAll
         summary: Select everything
+  -
+    name: Control
+    members:
+      -
+        name: textInputLayer
+        introduced: 2020.42.0
+        type: UILayer
+        summary: The layer used to display the text
+      -
+        name: textInputLayoutManager
+        introduced: 2020.42.0
+        type: JSTextLayoutManager
+        summary: The layout manager used for the text
+      -
+        name: textInputSelections
+        introduced: 2020.42.0
+        type: UITextInputSelection[]
+        summary: The text selections
+  -
+    name: Types
+    members:
+      -
+        name: UITextInputSelection
+        kind: class
+        introduced: 2020.42.0
+        summary: Describes a selected range of text
+        topics:
+          -
+            name: Creating a selection
+            members:
+              -
+                name: Create a selection from a range
+                kind: constructor
+                summary: Create a selection from a range
+                arguments:
+                  -
+                    name: range
+                    type: JSRange
+                    summary: The range of selected characters
+                description: |
+                  Defaults to an `end`(UITextInput.SelectionInsertionPoint)
+                  insertion point and `beforeCurrentCharacter` affinity.
+              -
+                name: Create a selection from a range
+                prefix: full
+                kind: constructor
+                summary: Create a selection from a range, insertion point, and affinity
+                arguments:
+                  -
+                    name: range
+                    type: JSRange
+                    summary: The range of selected characters
+                  -
+                    name: insertionPoint
+                    type: UITextInput.SelectionInsertionPoint
+                    summary: The location for the cursor
+                  -
+                    name: affinity
+                    type: UITextInput.SelectionAffinity
+                    summary: The affinity for the cursor at a newline
+              -
+                name: Create a selection from a range
+                prefix: copy
+                kind: constructor
+                summary: Create a selection by copying another selection
+                arguments:
+                  -
+                    name: selection
+                    type: UITextInputSelection
+                    summary: The selectiont to copy
+          -
+            name: Properties
+            members:
+              -
+                name: range
+                type: JSRange
+                summary: The range of selected characters
+              -
+                name: insertionPoint
+                type: UITextInput.SelectionInsertionPoint
+                summary: The location for the cursor
+              -
+                name: affinity
+                type: UITextInput.SelectionAffinity
+                summary: The affinity for the cursor at a newline
+          -
+            name: Locations
+            members:
+              -
+                name: containsIndex
+                kind: method
+                type: boolean
+                summary: Checks if the given character index is within the
+                  selection range
+              -
+                name: insertionLocation
+                type: Number
+                summary: The character index of the insertion point
+      -
+        name: SelectionInsertionPoint
+        introduced: 2020.42.0
+        kind: enum
+        summary: The possible locations for a selection insertion point
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: start
+                summary: The insertion point is at the start of a selection range
+              -
+                name: end
+                summary: The insertion point is at the end of a selection range
+      -
+        name: SelectionAffinity
+        introduced: 2020.42.0
+        kind: enum
+        summary: The possible locations for a selection cursor at a line break
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: beforeCurrentCharacter
+                summary: The cursor should be placed before the current character,
+                  which may be at the start of a newline
+              -
+                name: afterPreviousCharacter
+                summary: The cursor should be placed after the previous character,
+                  which may be at the end of a line

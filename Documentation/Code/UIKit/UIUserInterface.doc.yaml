@@ -75,3 +75,29 @@ topics:
                 name: fine
                 summary: Able to make precsise selections, such as a mouse or
                   a pen/stylus.
+  -
+    name: Accessibility
+    members:
+      -
+        name: Contrast
+        introduced: 2020.42.0
+        kind: enum
+        summary: The possible contrast values
+        description: |
+          Some users may configure their environment for high contrast in order
+          to increase visibility
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: unspecified
+                summary: An unknown contrast level
+              -
+                name: normal
+                summary: The normal or default contrast level, indicating no
+                  special UI considerations are necessaary
+              -
+                name: high
+                summary: User interface elements should be drawn in hig
+                  contrast for easier visibility

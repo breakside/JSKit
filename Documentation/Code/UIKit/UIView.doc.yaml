@@ -966,6 +966,21 @@ topics:
 
           Each view can use the `fullKeyboardAccessEnabled` property to determine
           if it is appropriate to become a first responder.
+      -
+        name: focusRingPath
+        introduced: 2020.42.0
+        type: JSPath
+        nullable: true
+        summary: The path that will be used to draw a focus ring when this view
+          is a window's first responder
+        description: |
+          The default implementation returns the view's shape including rounded
+          corners.
+
+          To override, implement a getter named `getFocusRingPath()`().
+
+          Return `null` if you don't want your view to have a focus ring when it
+          is the first responder.
   -
     name: Gestures
     members:

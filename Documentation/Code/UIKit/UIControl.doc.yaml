@@ -343,6 +343,23 @@ topics:
                     name: maxSize
                     type: JSSize
                     summary: The constraints to consider when sizing the control
+              -
+                name: focusRingPathForControl
+                introduced: 2020.42.0
+                kind: method
+                type: JSPath
+                nullable: true
+                summary: Return the focus ring path to use for the given control
+                arguments:
+                  -
+                    name: control
+                    type: UIControl
+                    summary: The control to outline
+                description: |
+                  Defaults to the control's shape, including rounded corners.
+
+                  Useful for controls like `UICheckbox`, which draws a focus
+                  ring only around the checkbox button subview within the control.
       -
         name: styler
         type: UIControlStyler

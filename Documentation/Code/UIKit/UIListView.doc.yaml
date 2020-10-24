@@ -106,6 +106,12 @@ topics:
                 name: styler
                 type: UIListViewStyler
                 summary: The styler to use for this list view
+              -
+                name: showsFocusRing
+                introduced: 2020.42.0
+                type: boolean
+                summary: Indicates if the default focus ring should be drawn
+                  around the list view when it is a window's first responder
           -
             name: Cell Sizing
             members:
@@ -1360,6 +1366,12 @@ topics:
 
           So, `stylerProperties` is a place on each `UIListView` that a styler
           can store control-specific objects.
+      -
+        name: showsFocusRing
+        introduced: 2020.42.0
+        type: boolean
+        summary: Indicates if the default focus ring should be drawn
+          around the list view when it is a window's first responder
   -
     name: Cell Sizing
     members:

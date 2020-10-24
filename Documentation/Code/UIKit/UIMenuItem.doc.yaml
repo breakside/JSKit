@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
+implements:
+  - UIAccessibility
 summary: Menu items are selectable items within `UIMenu`s that perform actions
 topics:
   -

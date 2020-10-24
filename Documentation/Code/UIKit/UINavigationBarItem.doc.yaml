@@ -187,6 +187,11 @@ topics:
                 name: title
                 type: String
                 summary: The title to show for the item
+              -
+                name: accessibilityTitle
+                introduced: 2020.42.0
+                type: String
+                summary: The title to use for the item in accessibility contexts
           -
             name: Action
             members:
@@ -266,6 +271,11 @@ topics:
         name: title
         type: String
         summary: The title that will be displayed for this item
+      -
+        name: accessibilityTitle
+        introduced: 2020.42.0
+        type: String
+        summary: The title to use for the item in accessibility contexts
   -
     name: Named Actions
     members:

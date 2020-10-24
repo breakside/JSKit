@@ -297,6 +297,9 @@ topics:
               -
                 name: enter
               -
+                name: space
+                introduced: 2020.42.0
+              -
                 name: tab
               -
                 name: backspace

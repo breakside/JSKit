@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
 inherits: JSObject
+implements:
+  - UIAccessibility
 summary: Menu bar items are non-menu items placed on a menu bar
 description: |
   Bar items typically function like buttons, but can also be views that display
