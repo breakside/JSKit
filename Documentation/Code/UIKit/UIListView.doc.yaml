@@ -1617,6 +1617,11 @@ topics:
             type: JSIndexPath
             summary: The index path to match to a cell
         important: This method only searches visible cells
+      -
+        name: visibleIndexPaths
+        introduced: 2020.43.0
+        type: JSIndexPath[]
+        summary: The list of index paths corresponding to visible cells
   -
     name: Header & Footer Sizing
     members:
@@ -2415,6 +2420,19 @@ topics:
         description: |
           If you're using `allowsMultipleSelection`, this property will be
           `null` if anything but 1 row is selected.
+      -
+        name: setSelectedIndexPathAnimated
+        kind: method
+        summary: Set the selected index path with an animation
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            nullable: true
+            summary: The single index path to select
+        description: |
+          Setting the `indexPath`() to `null`() will deselect the current
+          selection with an animation
       -
         name: contextSelectedIndexPaths
         type: JSIndexPath[]

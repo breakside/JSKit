@@ -332,6 +332,75 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.CustomCellInit.length, 4);
     },
 
+    testVisibleIndexPaths: function(){
+        var CustomCell = UIListViewCell.$extend({
+            initWithReuseIdentifier: function(identifier, styler){
+                calls.CustomCellInit.push({identifier: identifier, styler: styler});
+                CustomCell.$super.initWithReuseIdentifier.call(this, identifier, styler);
+            }
+        }, "CustomCell1");
+        var calls = {
+            CustomCellInit: [],
+            numberOfSectionsInListView: [],
+            numberOfRowsInListViewSection: [],
+            cellForListViewAtIndexPath: []
+        };
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 100));
+        listView.registerCellClassForReuseIdentifier(CustomCell, "test");
+        listView.rowHeight = 40;
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                calls.numberOfSectionsInListView.push({listView: listView});
+                return 3;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                calls.numberOfRowsInListViewSection.push({listView: listView, sectionIndex: sectionIndex});
+                switch (sectionIndex){
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 0;
+                    case 2:
+                        return 1;
+                }
+            }
+        };
+
+        listView.delegate = {
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                calls.cellForListViewAtIndexPath.push({listView: listView, indexPath: indexPath});
+                var cell = listView.dequeueReusableCellWithIdentifier("test", indexPath);
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.windowServer.displayServer.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+        listView.reloadData();
+        TKAssert(listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
+        this.windowServer.displayServer.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+
+        var indexPaths = listView.visibleIndexPaths;
+        TKAssertEquals(indexPaths.length, 3);
+        TKAssertObjectEquals(indexPaths[0], JSIndexPath(0, 0));
+        TKAssertObjectEquals(indexPaths[1], JSIndexPath(0, 1));
+        TKAssertObjectEquals(indexPaths[2], JSIndexPath(0, 2));
+
+        listView.contentOffset = JSPoint(0, 60);
+        indexPaths = listView.visibleIndexPaths;
+        TKAssertEquals(indexPaths.length, 3);
+        TKAssertObjectEquals(indexPaths[0], JSIndexPath(0, 1));
+        TKAssertObjectEquals(indexPaths[1], JSIndexPath(0, 2));
+        TKAssertObjectEquals(indexPaths[2], JSIndexPath(2, 0));
+    },
+
     testRectForCell: function(){
         var CustomCell = UIListViewCell.$extend({
             initWithReuseIdentifier: function(identifier, styler){

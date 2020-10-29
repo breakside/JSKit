@@ -188,7 +188,6 @@ topics:
             name: Creating a selection
             members:
               -
-                name: Create a selection from a range
                 kind: constructor
                 summary: Create a selection from a range
                 arguments:
@@ -200,7 +199,6 @@ topics:
                   Defaults to an `end`(UITextInput.SelectionInsertionPoint)
                   insertion point and `beforeCurrentCharacter` affinity.
               -
-                name: Create a selection from a range
                 prefix: full
                 kind: constructor
                 summary: Create a selection from a range, insertion point, and affinity
@@ -218,7 +216,6 @@ topics:
                     type: UITextInput.SelectionAffinity
                     summary: The affinity for the cursor at a newline
               -
-                name: Create a selection from a range
                 prefix: copy
                 kind: constructor
                 summary: Create a selection by copying another selection
