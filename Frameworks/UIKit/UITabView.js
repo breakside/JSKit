@@ -224,7 +224,7 @@ JSClass("UITabView", UIView, {
 
     setNextKeyView: function(nextKeyView){
         if (this._items.length > 0){
-            var view = this.styler.viewForItemAtIndex(this._items.length - 1);
+            var view = this.styler.viewForItemAtIndex(this, this._items.length - 1);
             view.nextKeyView = nextKeyView;
         }else{
             UITabView.$super.setNextKeyView.call(this, nextKeyView);
@@ -449,7 +449,8 @@ JSClass("UITabViewItemsView", UIView, {
         var itemView;
         var previousKeyView = this.tabView;
         var nextKeyView = this.itemViews.length > 0 ? this.itemViews[this.itemViews.length - 1].nextKeyView : this.tabView.nextKeyView;
-        for (var i = 0, l = this.tabView.items.length; i < l; ++i){
+        var i, l;
+        for (i = 0, l = this.tabView.items.length; i < l; ++i){
             item = this.tabView.items[i];
             if (i < this.itemViews.length){
                 itemView = this.itemViews[i];
@@ -459,7 +460,10 @@ JSClass("UITabViewItemsView", UIView, {
                 this.itemViews.push(itemView);
             }
             itemView.index = i;
+        }
+        for (i = 0, l = this.itemViews.length; i < l; ++i){
             previousKeyView.nextKeyView = itemView;
+            previousKeyView = itemView;
         }
         for (var j = this.itemViews.length - 1; j >= i; --i){
             itemView = this.itemViews.pop();
