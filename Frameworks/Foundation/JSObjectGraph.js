@@ -33,22 +33,22 @@ JSClass("JSObjectGraph", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        var promises = [];
-        var id;
-        for (var i = 0, l = ids.length; i < l; ++i){
-            id = ids[i];
-            promises.push(this.object(id));
-        }
-        Promise.all(promises).then(function(objects){
-            for (var i = objects.length - 1; i >= 0; --i){
-                if (objects[i] === null){
-                    objects[i].splice(i, 1);
-                }
+        var index = 0;
+        var objects = [];
+        var loadNext = function(){
+            if (index < ids.length){
+                this.object(ids[index], function(result){
+                    if (result !== null){
+                        objects.push(result);
+                    }
+                    ++index;
+                    loadNext.call(this);
+                }, this);
+            }else{
+                completion.call(target, objects);
             }
-            completion.call(target, objects);
-        }, function(){
-            completion.call(target, []);
-        });
+        };
+        loadNext.call(this);
         return completion.promise;
     },
 
