@@ -301,6 +301,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     contentSeparatorColor: null,
     contentSeparatorSize: 0,
     titleColor: null,
+    titleTextAlignment: JSTextAlignment.center,
     itemColor: null,
     activeItemColor: null,
     disabledItemColor: null,
@@ -340,6 +341,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         }
         if (spec.containsKey("titleColor")){
             this.titleColor = spec.valueForKey("titleColor", JSColor);
+        }
+        if (spec.containsKey("titleTextAlignment")){
+            this.titleTextAlignment = spec.valueForKey("titleTextAlignment", JSTextAlignment);
         }
         if (spec.containsKey("itemColor")){
             this.itemColor = spec.valueForKey("itemColor", JSColor);
@@ -656,8 +660,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
                 backBarItem.title = backItem.title;
             }
 
+            props.backBarItemView.setImageForState(this.backButtonImage, UIControl.State.normal);
+
             if (backBarItem !== null){
-                props.backBarItemView.setImageForState(backBarItem.image, UIControl.State.normal);
                 props.backBarItemView.titleLabel.text = backBarItem.title;
                 props.backBarItemView.hidden = false;
             }else{
@@ -720,23 +725,32 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         }
 
         var availableTitleWidth = xRight - xLeft;
-        var centeredView;
+        var titleView;
         if (availableTitleWidth > 0){
             if (props.customView){
                 props.titleLabel.hidden = true;
                 props.customView.hidden = false;
-                centeredView = props.customView;
+                titleView = props.customView;
             }else{
                 props.titleLabel.hidden = false;
-                centeredView = props.titleLabel;
+                titleView = props.titleLabel;
             }
-            centeredView.sizeToFitSize(JSSize(availableTitleWidth, Number.MAX_VALUE));
-            var viewSize = centeredView.bounds.size;
+            titleView.sizeToFitSize(JSSize(availableTitleWidth, Number.MAX_VALUE));
+            var viewSize = titleView.bounds.size;
             var minX = xLeft;
             var maxX = xRight - viewSize.width;
             var centeredX = (size.width - viewSize.width) / 2;
             var centeredY = (size.height - viewSize.height) / 2;
-            centeredView.frame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
+            if (this.titleTextAlignment === JSTextAlignment.center){
+                titleView.frame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
+            }else if (this.titleTextAlignment === JSTextAlignment.right){
+                titleView.frame = JSRect(JSPoint(maxX - viewSize.width, centeredY), viewSize);
+            }else{
+                if (props.backBarItemView && props.backBarItemView.hidden){
+                    minX += props.backBarItemView.bounds.size.width;
+                }
+                titleView.frame = JSRect(JSPoint(minX, centeredY), viewSize);
+            }
         }else{
             props.titleLabel.hidden = true;
             if (props.customView){
