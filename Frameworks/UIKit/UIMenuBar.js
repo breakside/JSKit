@@ -115,6 +115,11 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Delegate
+
+    delegate: null,
+
+    // --------------------------------------------------------------------
     // MARK: - Style
 
     isOpaque: true,
@@ -342,18 +347,26 @@ JSClass("UIMenuBar", UIWindow, {
                 this.submenu.delegate = this;
                 this.openMenu(this.submenu, itemView);
             }else if (itemView._item.windowControllerClass){
-                this.windowController = itemView._item.windowControllerClass.init();
-                this.windowController.delegate = this;
-                var window = this.windowController.window;
-                var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
-                window.frame = JSRect(0, 0, maxWidth, 0);
-                window.sizeToFit();
-                window.maskedCorners = UILayer.Corners.maxY;
-                this.positionWindowUnderItemView(window, itemView);
-                this.windowController.autoPositionWindow = false;
-                this.windowController.makeKeyAndOrderFront();
+                var windowController = itemView._item.windowControllerClass.init();
+                this.openWindowControllerUnderItem(windowController, itemView._item);
             }
         }
+    },
+
+    openWindowControllerUnderItem: function(windowController, item){
+        var itemView = this.viewForItem(item);
+        this._highlightedItemView = itemView;
+        this._highlightedItemView.highlighted = true;
+        this.windowController = windowController;
+        this.windowController.delegate = this;
+        var window = this.windowController.window;
+        var maxWidth = Math.floor(this.screen.frame.size.width * 0.3);
+        window.frame = JSRect(0, 0, maxWidth, 0);
+        window.sizeToFit();
+        window.maskedCorners = UILayer.Corners.maxY;
+        this.positionWindowUnderItemView(window, itemView);
+        this.windowController.autoPositionWindow = false;
+        this.windowController.makeKeyAndOrderFront();
     },
 
     openMenu: function(menu, itemView){
