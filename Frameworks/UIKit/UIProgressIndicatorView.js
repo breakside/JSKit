@@ -157,12 +157,14 @@ JSClass("UIProgressIndicatorView", UIView, {
             var r = Math.min(center.x - bounds.origin.x, center.y - bounds.origin.y) - halfWidth;
             var a0 = -Math.PI / 2;
             var a1 = a0 + Math.PI * 2 * this._percentComplete;
-            context.beginPath();
-            context.moveToPoint(center.x, center.y);
-            context.addArc(center, r, a0, a1, true);
-            context.closePath();
-            context.setFillColor(this._progressBarColor);
-            context.fillPath();
+            if (this._percentComplete > 0){
+                context.beginPath();
+                context.moveToPoint(center.x, center.y);
+                context.addArc(center, r, a0, a1, true);
+                context.closePath();
+                context.setFillColor(this._progressBarColor);
+                context.fillPath();
+            }
             if (this._progressBorderWidth > 0){
                 context.setLineWidth(this._progressBorderWidth);
                 context.setStrokeColor(this._progressBorderColor);
