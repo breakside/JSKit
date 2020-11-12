@@ -105,7 +105,7 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
 
     testDataFileURL: function(){
         var data = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
-        var file = JSFile.initWithData(data, "test.dat", "application/octet-stream");
+        var file = JSFile.initWithData(data, "test.dat", JSMediaType("application/octet-stream"));
         var url = file.url;
         TKAssertNotNull(url);
         TKAssertEquals(url.scheme, 'blob');

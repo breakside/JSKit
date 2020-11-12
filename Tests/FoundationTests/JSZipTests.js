@@ -7,7 +7,7 @@ JSClass("JSZipTests", TKTestSuite, {
     testSingleTextFile: function(){
         var zip = JSZip.init();
         var data = "hello\n".utf8();
-        var file = JSFile.initWithData(data, "test.txt", "text/plain");
+        var file = JSFile.initWithData(data, "test.txt", JSMediaType("text/plain"));
         var expectation = TKExpectation.init();
         expectation.call(zip.addFile, zip, file, function(error){
             TKAssertNull(error);

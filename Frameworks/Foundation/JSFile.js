@@ -15,6 +15,7 @@
 
 // #import "Promise+JS.js"
 // #import "JSObject.js"
+// #import "JSMediaType.js"
 'use strict';
 
 JSClass("JSFile", JSObject, {
@@ -30,6 +31,9 @@ JSClass("JSFile", JSObject, {
 
     initWithPlaceholder: function(name, contentType){
         this._name = name;
+        if (typeof(contentType) == "string"){
+            contentType = JSMediaType(contentType);
+        }
         this._contentType = contentType;
     },
 
@@ -66,6 +70,9 @@ JSClass("JSDataFile", JSFile, {
     initWithData: function(data, name, contentType){
         this._data = data;
         this._name = name;
+        if (typeof(contentType) == "string"){
+            contentType = JSMediaType(contentType);
+        }
         this._contentType = contentType;
         this._size = data.length;
     },
