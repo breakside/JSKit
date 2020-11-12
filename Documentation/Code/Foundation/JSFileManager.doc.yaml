@@ -222,6 +222,18 @@ topics:
             type: JSURL
             summary: The URL of the item
       -
+        name: stateOfItemAtURL
+        introduced: 2020.44.0
+        kind: method
+        summary: Get the state of the item at the given URL
+        type: State
+        nullable: true
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The URL of the item
+      -
         name: ItemType
         kind: enum
         summary: The possible types of items in a file manager
@@ -264,6 +276,33 @@ topics:
                 name: updated
                 type: Number
                 summary: The unix timestamp of the item's most recent update
+      -
+        name: State
+        introduced: 2020.44.0
+        kind: class
+        anonymous: true
+        summary: The state attributes of a file manager item
+        topics:
+          -
+            name: Properties
+            members:
+              - 
+                name: downloading
+                type: Boolean
+                summary: Indicates the item is currently being downloaded
+              -
+                name: downloadedPercent
+                type: Number
+                nullable: true
+                summary: The percent of the item that has been downloaded
+              - 
+                name: uploading
+                type: Boolean
+                summary: Indicates the item is currently being downloaded
+              -
+                name: uploadedPercent
+                type: Number
+                summary: The percent of the item that has been uploaded
   -
     name: Creating Files & Directories
     members:
@@ -409,10 +448,10 @@ topics:
     name: Directory Contents
     members:
       -
-        name: Entry
+        name: Item
         kind: class
         anonymous: true
-        summary: A directory entry
+        summary: A directory item
         topics:
           -
             name: Properties
@@ -420,11 +459,11 @@ topics:
               - 
                 name: url
                 type: JSURL
-                summary: The full URL of the entry
+                summary: The full URL of the item
               -
                 name: name
                 type: String
-                summary: The name of the entry, relative to the directory
+                summary: The name of the item, relative to the directory
               -
                 name: itemType
                 type: ItemType
@@ -444,10 +483,10 @@ topics:
             type:
               arguments:
                 -
-                  name: entries
-                  type: Entry[]
+                  name: items
+                  type: Item[]
                   nullable: true
-                  summary: The directory's entries, or `null` if the URL
+                  summary: The directory's items, or `null` if the URL
                     does not exist or is not a directory
           -
             name: target
@@ -462,8 +501,8 @@ topics:
         return: Promise
         promise:
           resolve:
-            type: Entry[]
-            summary: The directory's entries
+            type: Item[]
+            summary: The directory's items
         arguments:
           -
             name: url
@@ -743,6 +782,57 @@ topics:
             name: url
             type: JSURL
             summary: The url of the link
+  -
+    name: Notifications
+    members:
+      -
+        name: addObserverForURL
+        introduced: 2020.44.0
+        kind: method
+        summary: Observe changes to a url
+        type: Number
+        return: A unique identifier to pass to `removeObseverForURL()`
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url to observer
+          -
+            name: name
+            type: Notification
+            summary: The name of the notification to observe
+          -
+            name: callback
+            type:
+              arguments:
+                -
+                  name: notification
+                  type: JSNotification
+                  summary: The notification
+            summary: The function to call with the notification
+          -
+            name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling the callback
+      -
+        name: removeObseverForURL
+        introduced: 2020.44.0
+        kind: method
+        summary: Stop observing changes to a URL
+        arguments:
+          -
+            name: url
+            type: JSURL
+            summary: The url to observer
+          -
+            name: name
+            type: Notification
+            summary: The name of the notification to observe
+          -
+            name: observerID
+            type: Number
+            summary: The unique identifier returned by `addObserverForURL()`
   -
     name: Permissions
     members:

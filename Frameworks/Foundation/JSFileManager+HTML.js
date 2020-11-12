@@ -262,6 +262,11 @@ JSClass("JSHTMLFileManager", JSFileManager, {
                 var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t, size: 0};
                 var request = transaction.metadata.add(metadata);
                 request.onsuccess = function JSFileManager_createDirectory_onsucess(){
+                    try{
+                        manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {url: url, name: metadata.name, itemType: metadata.itemType});
+                    }catch (e){
+                        logger.error("Failed to post notification: %{error}", e);
+                    }
                     completion(true);
                 };
                 request.onerror = function JSFileManager_createDirectory_onerror(e){
@@ -322,14 +327,22 @@ JSClass("JSHTMLFileManager", JSFileManager, {
                 }
                 dataRequest.onsuccess = function JSFileManager_createFile_onsuccess(e){
                     var t = manager.timestamp;
+                    var metadataRequest;
                     if (metadata === null){
                         metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file, created: t, updated: t, added: t, dataKey: e.target.result, size: data.length};
-                        transaction.metadata.add(metadata);
+                        metadataRequest = transaction.metadata.add(metadata);
                     }else{
                         metadata.updated = t;
                         metadata.size = data.length;
-                        transaction.metadata.put(metadata);
+                        metadataRequest = transaction.metadata.put(metadata);
                     }
+                    metadataRequest.onsuccess = function JSFileManager_createFile_metadata_onsuccess(e){
+                        try{
+                            manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {name: metadata.name, url: url, itemType: metadata.itemType});
+                        }catch (err){
+                            logger.error("Failed to post notification: %{error}", err);
+                        }
+                    };
                 };
                 dataRequest.onerror = function JSFileManager_createFile_onerror(e){
                     logger.error("Error creating file: %{error}", dataRequest.error);
@@ -391,6 +404,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         }
         var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
         transaction.addCompletion(completion, target);
+        var parent = url.removingLastPathComponent();
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
         manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_moveItem_metadata(metadata){
@@ -400,8 +414,18 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             }else{
                 var move = function JSFileManager_moveItem_move(toParentExists){
                     if (toParentExists){
-                        metadata.parent = toParent.path;
-                        transaction.metadata.put(metadata);
+                        var toMetadata = JSCopy(metadata);
+                        toMetadata.parent = toParent.path;
+                        toMetadata.name = toURL.lastPathComponent;
+                        var request = transaction.metadata.put(toMetadata);
+                        request.onsuccess = function JSFileManager_moveItem_onsuccess(){
+                            try{
+                                manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: metadata.name, itemType: metadata.itemType});
+                                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toMetadata.name, itemType: toMetadata.itemType});
+                            }catch (e){
+                                logger.error("Error posting notification: %{error}", e);
+                            }
+                        };
                     }else{
                         logger.info("could not create parent directory, aborting move transaction");
                         transaction.abort();
@@ -491,6 +515,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     },
 
     _copyFileInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
+        var manager = this;
         var getDataRequest = transaction.data.get(metadata.dataKey);
         getDataRequest.onsuccess = function JSFileManager_copyFile_getData_onsucess(e){
             var addDataRequest = transaction.data.add(e.target.result);
@@ -498,15 +523,30 @@ JSClass("JSHTMLFileManager", JSFileManager, {
                 var copiedMetadata = JSCopy(metadata);
                 copiedMetadata.parent = toParent.path;
                 copiedMetadata.dataKey = e.target.result;
-                transaction.metadata.put(copiedMetadata);
+                var metadataRequest = transaction.metadata.put(copiedMetadata);
+                metadataRequest.onsuccess = function JSFileManager_copyFile_addMetadata_onsuccess(){
+                    try{
+                        manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: copiedMetadata.name, itemType: copiedMetadata.itemType});
+                    }catch (e){
+                        logger.error("Error posting notification: %{error}", e);
+                    }
+                };
             };
         };
     },
 
     _copyMetadataInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
+        var manager = this;
         var copiedMetadata = JSCopy(metadata);
         copiedMetadata.parent = toParent.path;
-        transaction.metadata.put(copiedMetadata);
+        var request = transaction.metadata.put(copiedMetadata);
+        request.onsuccess = function JSFileManager_copyMetadata_onsuccess(){
+            try{
+                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: copiedMetadata.name, itemType: copiedMetadata.itemType});
+            }catch (e){
+                logger.error("Error posting notification: %{error}", e);
+            }
+        };
     },
 
     _copyDirectoryInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
@@ -578,13 +618,21 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     },
 
     _removeMetadataInTransactionAtURL: function(transaction, url, parent, metadata){
+        var manager = this;
         var lookup = [parent.path, url.lastPathComponent];
         var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
         var keyRequest = index.getKey(lookup);
         keyRequest.onsuccess = function JSFileManager_removeMetadata_onsuccess(e){
             var key = e.target.result;
             if (key !== undefined){
-                transaction.metadata.delete(key);
+                var request = transaction.metadata.delete(key);
+                request.onsuccess = function JSFileManager_removeMetadata_delete_onsuccess(){
+                    try{
+                        manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: metadata.name, itemType: metadata.itemType});
+                    }catch (e){
+                        logger.error("Error posting notification: %{error}", e);
+                    }
+                };
             }
         };
     },
@@ -743,7 +791,14 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             if (parentExists){
                 var t = manager.timestamp;
                 var metadata = {parent: parent.path, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink, created: t, updated: t, added: t, link: toURL.encodedString, size: 0};
-                transaction.metadata.add(metadata);
+                var request = transaction.metadata.add(metadata);
+                request.onsuccess = function JSFileManager_createSymbolicLink_onsuccess(){
+                    try{
+                        manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {name: metadata.name, itemType: metadata.itemType, url: url});
+                    }catch (e){
+                        logger.error("Error posting notification: %{error}", e);
+                    }
+                };
             }else{
                 logger.info("could not create parent directory, aborting create symlink transaction");
                 transaction.abort();

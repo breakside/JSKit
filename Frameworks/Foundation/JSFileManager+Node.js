@@ -155,18 +155,8 @@ JSClass("JSNodeFileManager", JSFileManager, {
         fs.lstat(path, function(error, stats){
             var attrs = null;
             if (!error){
-                var itemType;
-                if (stats.isSymbolicLink()){
-                    itemType = JSFileManager.ItemType.symbolicLink;
-                }else if (stats.isDirectory()){
-                    itemType = JSFileManager.ItemType.directory;
-                }else if (stats.isFile()){
-                    itemType = JSFileManager.ItemType.file;
-                }else{
-                    itemType = JSFileManager.ItemType.other;
-                }
                 attrs = {
-                    itemType: itemType,
+                    itemType: JSFileManager.ItemType.fromStat(stats),
                     created: Math.floor(stats.ctimeMs),
                     modified: Math.floor(stats.mtimeMs),
                     size: stats.size
@@ -208,6 +198,9 @@ JSClass("JSNodeFileManager", JSFileManager, {
                 fs.stat(path, function(error, stat){
                     if (error !== null){
                         fs.mkdir(path, function(error){
+                            if (!error){
+                                manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {url: url, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory});
+                            }
                             completion(error);
                         });
                     }else{
@@ -255,6 +248,9 @@ JSClass("JSNodeFileManager", JSFileManager, {
             if (parentExists){
                 var path = manager.pathForURL(url);
                 fs.writeFile(path, data, function(error){
+                    if (!error){
+                        manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {url: url, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file});
+                    }
                     completion.call(target, error === null);
                 });
             }else{
@@ -323,6 +319,7 @@ JSClass("JSNodeFileManager", JSFileManager, {
         if (url.path == toURL.path){
             throw new Error("JSFileManager.moveItemAtURL target and destination are the same");
         }
+        var parent = url.removingLastPathComponent();
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
         var path = manager.pathForURL(url);
@@ -331,8 +328,19 @@ JSClass("JSNodeFileManager", JSFileManager, {
         fs.stat(toParentPath, function(error, stat){
             var move = function(toParentExists){
                 if (toParentExists){
-                    fs.rename(path, toPath, function(error){
-                        completion.call(target, error === null);
+                    fs.stat(url, function(error, stat){
+                        if (!error){
+                            var itemType = JSFileManager.ItemType.fromStat(stat);
+                            fs.rename(path, toPath, function(error){
+                                if (!error){
+                                    manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: url.lastPathComponent, itemType: itemType});
+                                    manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toURL.lastPathComponent, itemType: itemType});
+                                }
+                                completion.call(target, error === null);
+                            });
+                        }else{
+                            completion.call(target, false);
+                        }
                     });
                 }else{
                     completion.call(target, false);
@@ -414,7 +422,12 @@ JSClass("JSNodeFileManager", JSFileManager, {
     _copyFileAtURL: function(url, toURL, completion, target){
         var path = this.pathForURL(url);
         var toPath = this.pathForURL(toURL);
+        var toParent = toURL.removingLastPathComponent();
+        var manager = this;
         fs.copyFile(path, toPath, function(error){
+            if (!error){
+                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toURL.lastPathComponent, itemType: JSFileManager.ItemType.file});
+            }
             completion.call(target, error === null);
         });
     },
@@ -423,8 +436,10 @@ JSClass("JSNodeFileManager", JSFileManager, {
         var manager = this;
         var path = manager.pathForURL(url);
         var toPath = manager.pathForURL(toURL);
+        var toParent = toURL.removingLastPathComponent();
         fs.mkdir(toPath, function(error){
             if (error === null){
+                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toURL.lastPathComponent, itemType: JSFileManager.ItemType.directory});
                 fs.readdir(path, function(error, files){
                     var i = 0;
                     var copyNextChild = function(){
@@ -495,8 +510,13 @@ JSClass("JSNodeFileManager", JSFileManager, {
     },
 
     _removeFileAtURL: function(url, completion, target){
+        var manager = this;
         var path = this.pathForURL(url);
+        var parent = url.removingLastPathComponent();
         fs.unlink(path, function(error){
+            if (!error){
+                manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: url.lastPathComponent, itemType: JSFileManager.ItemType.file});
+            }
             completion.call(target, error === null);
         });
     },
@@ -504,12 +524,16 @@ JSClass("JSNodeFileManager", JSFileManager, {
     _removeDirectoryAtURL: function(url, completion, target){
         var manager = this;
         var path = this.pathForURL(url);
+        var parent = url.removingLastPathComponent();
         fs.readdir(path, function(error, files){
             if (error === null){
                 var i = 0;
                 var removeNextChild = function(){
                     if (i == files.length){
                         fs.rmdir(path, function(error){
+                            if (!error){
+                                manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: url.lastPathComponent, itemType: JSFileManager.ItemType.directory});
+                            }
                             completion.call(target, error === null);
                         });
                     }else{
@@ -619,7 +643,12 @@ JSClass("JSNodeFileManager", JSFileManager, {
         }
         var path = this.pathForURL(url);
         var toPath = this.pathForURL(toURL);
+        var parent = url.removingLastPathComponent();
+        var manager = this;
         fs.symlink(toPath, path, function(error){
+            if (!error){
+                manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidAddItem, {url: url, name: url.lastPathComponent, itemType: JSFileManager.ItemType.symbolicLink});
+            }
             completion.call(target, error === null);
         });
         return completion.promise;
@@ -660,3 +689,16 @@ JSClass("JSNodeFileManager", JSFileManager, {
     },
 
 });
+
+JSFileManager.ItemType.fromStat = function(stat){
+    if (stat.isSymbolicLink()){
+        return JSFileManager.ItemType.symbolicLink;
+    }
+    if (stat.isDirectory()){
+        return JSFileManager.ItemType.directory;
+    }
+    if (stat.isFile()){
+        return JSFileManager.ItemType.file;
+    }
+    return JSFileManager.ItemType.other;
+};

@@ -1,6 +1,6 @@
 // Copyright 2020 Breakside Inc.
 //
-// Licensed under the Breakside Public License, Version 1.0 (the "License");
+// Licen sed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
 // If a copy of the License was not distributed with this file, you may
 // obtain a copy at
@@ -15,6 +15,7 @@
 
 // #import "JSURL.js"
 // #import "JSObject.js"
+// #import "JSNotificationCenter.js"
 'use strict';
 
 JSClass("JSFileManager", JSObject, {
@@ -51,12 +52,141 @@ JSClass("JSFileManager", JSObject, {
     },
 
     // --------------------------------------------------------------------
-    // MARK: - Checking for Items
+    // MARK: - Item Attributes & State
 
     itemExistsAtURL: function(url, completion, target){
     },
 
     attributesOfItemAtURL: function(url, completion, target){
+    },
+
+    stateOfItemAtURL: function(url){
+        if (this._statesByURL === null){
+            this._statesByURL = {};
+        }
+        var key = url.encodedString;
+        var state = this._statesByURL[key];
+        if (!state){
+            state = this._statesByURL[key] = {
+                downloading: false,
+                uploading: false,
+                downloadedPercent: null,
+                uploadedPercent: null
+            };
+        }
+        return state;
+    },
+
+    _statesByURL: null,
+
+    _cleanupStateForURL: function(url){
+        var key = url.encodedString;
+        var state = this._statesByURL[url];
+        if (!state.downloading && !state.uploading){
+            delete this._statesByURL[url];
+        }
+    },
+
+    _beginDownloadingItemAtURL: function(url){
+        var state = this.stateOfItemAtURL(url);
+        state.downloading = true;
+        state.downloadedPercent = 0;
+        this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+    },
+
+    _updateDownloadingProgressForItemAtURL: function(url, loaded, total){
+        var state = this.stateOfItemAtURL(url);
+        state.downloadedPercent = loaded / total;
+        this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+    },
+
+    _endDownloadingItemAtURL: function(url){
+        var state = this.stateOfItemAtURL(url);
+        state.downloading = false;
+        state.downloadedPercent = null;
+        this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+        this._cleanupStateForURL(url);
+    },
+
+    _beginUploadingItemAtURL: function(url, total){
+        var state = this.stateOfItemAtURL(url);
+        state.uploading = true;
+        state.uploadedPercent = 0;
+        state._uploadTotal = total;
+        state._uploadProgress = 0;
+        this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+        do {
+            url = url.removingLastPathComponent();
+            state = this.stateOfItemAtURL(url);
+            if (!state.uploading){
+                state.uploading = true;
+                state._uploadTotal = 0;
+                state._uploadProgress = 0;
+            }
+            state._uploadTotal += total;
+            state.uploadedPercent = state._uploadProgress / state._uploadTotal;
+            this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+        }while (url.pathComponents.length > 1);
+    },
+
+    _updateUploadingProgressForItemAtURL: function(url, loaded, total){
+        var state = this.stateOfItemAtURL(url);
+        var added = loaded - state._uploadProgress;
+        if (added > 0){
+            state._uploadProgress = loaded;
+            state.uploadedPercent = state._uploadProgress / state._uploadTotal;
+            this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+            do{
+                url = url.removingLastPathComponent();
+                state = this.stateOfItemAtURL(url);
+                state._uploadProgress += added;
+                state.uploadedPercent = state._uploadProgress / state._uploadTotal;
+                this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+            }while (url.pathComponents.length > 1);
+        }
+    },
+
+    _endUploadingItemAtURL: function(url){
+        var state = this.stateOfItemAtURL(url);
+        var added = state._uploadTotal - state._uploadProgress;
+        state.uploading = false;
+        state.uploadedPercent = null;
+        this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+        this._cleanupStateForURL(url);
+        do{
+            url = url.removingLastPathComponent();
+            state = this.stateOfItemAtURL(url);
+            state._uploadProgress += added;
+            state.uploadedPercent = state._uploadProgress / state._uploadTotal;
+            if (state._uploadProgress === state._uploadTotal){
+                state.uploading = false;
+                this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+                this._cleanupStateForURL(url);
+            }else if (added > 0){
+                this.postNotificationForURL(url, JSFileManager.Notification.itemDidChangeState, {url: url});
+            }
+        }while (url.pathComponents.length > 1);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Observing changes
+
+    notificationCenter: JSLazyInitProperty("_createNotificationCenter"),
+
+    _createNotificationCenter: function(){
+        return JSNotificationCenter.init();
+    },
+
+    addObserverForURL: function(url, name, callback, target){
+        return this.notificationCenter.addObserver(name, url.encodedString, callback, target);
+    },
+
+    removeObserverForURL: function(url, name, observerId){
+        this.notificationCenter.removeObserver(name, observerId);
+    },
+
+    postNotificationForURL: function(url, name, userInfo){
+        this.notificationCenter.post(name, url.encodedString, userInfo);
     },
 
     // --------------------------------------------------------------------
@@ -162,4 +292,20 @@ JSFileManager.Scheme = {
     http: 'http',
     https: 'https',
     blob: 'blob'
+};
+
+JSFileManager.Notification = {
+    directoryDidAddItem: "JSFileManager.Notification.directoryDidAddItem",
+    directoryDidRemoveItem: "JSFileManager.Notification.directoryDidRemoveItem",
+    itemDidChangeState: "JSFileManager.Notification.itemDidChangeState"
+};
+
+JSFileManager.compareItemsByNameDirectoriesFirst = function(a, b){
+    if (a.itemType === JSFileManager.ItemType.directory && b.itemType !== JSFileManager.ItemType.directory){
+        return -1;
+    }
+    if (a.itemType !== JSFileManager.ItemType.directory && b.itemType === JSFileManager.ItemType.directory){
+        return 1;
+    }
+    return a.name.localeCompare(b.name);
 };
