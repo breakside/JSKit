@@ -220,6 +220,8 @@ JSClass("JSURL", JSObject, {
     },
 
     appendPathComponents: function(components, isFinalDirectory){
+        var finalComponent = components[components.length - 1];
+        isFinalDirectory = isFinalDirectory || (finalComponent && finalComponent.endsWith("/"));
         if (this._pathComponents === null){
             this._pathComponents = componentsFromPath(this._path);
         }

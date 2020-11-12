@@ -651,7 +651,7 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.encodedString, "file:///.");
 
         url.setPathComponents([".", "/"]);
-        TKAssertExactEquals(url.encodedString, "file:///.");
+        TKAssertExactEquals(url.encodedString, "file:///./");
 
         url.setPathComponents(["..", "relative"]);
         TKAssertExactEquals(url.encodedString, "file:///../relative");
@@ -698,7 +698,7 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.encodedString, ".");
 
         url.setPathComponents([".", "/"]);
-        TKAssertExactEquals(url.encodedString, ".");
+        TKAssertExactEquals(url.encodedString, "./");
 
         url.setPathComponents(["/", "."]);
         TKAssertExactEquals(url.encodedString, "/.");
@@ -756,7 +756,7 @@ JSClass('JSURLTests', TKTestSuite, {
 
         url = JSURL.initWithString("file:///test");
         url.appendPathComponent("/");
-        TKAssertExactEquals(url.encodedString, "file:///test");
+        TKAssertExactEquals(url.encodedString, "file:///test/");
 
         url = JSURL.initWithString("file:///test");
         url.appendPathComponent(".");
