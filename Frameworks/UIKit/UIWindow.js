@@ -1146,6 +1146,7 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
     activeTitleColor: null,
     inactiveTitleColor: null,
     shadowRadius: 40,
+    inactiveShadowRadius: 25,
     cornerRadius: 6,
     backgroundColor: null,
     shadowColor: null,
@@ -1297,11 +1298,13 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
                 iconView.templateColor = this.activeTitleColor;
             }
             titleLabel.textColor = this.activeTitleColor;
+            window.shadowRadius = this.shadowRadius;
         }else{
             if (iconView){
                 iconView.templateColor = this.inactiveTitleColor;
             }
             titleLabel.textColor = this.inactiveTitleColor;
+            window.shadowRadius = this.inactiveShadowRadius;
         }
         if (window.isMainWindow){
             closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
