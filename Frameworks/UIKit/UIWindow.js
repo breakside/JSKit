@@ -175,7 +175,7 @@ JSClass('UIWindow', UIView, {
     setToolbar: function(toolbar){
         this._toolbar = toolbar;
         this._styler.updateWindow();
-        this.seetNeedsLayout();
+        this.setNeedsLayout();
     },
 
     _validateToolbar: function(){
@@ -277,6 +277,7 @@ JSClass('UIWindow', UIView, {
     layoutSubviews: function(){
         UIWindow.$super.layoutSubviews.call(this);
         this._styler.layoutWindow(this);
+        this._styler.updateFocusRingInWindow(this);
     },
 
     // -------------------------------------------------------------------------
@@ -337,14 +338,14 @@ JSClass('UIWindow', UIView, {
 
     becomeKey: function(){
         this._styler.updateWindow(this);
-        this._styler.updateFocusRingInWindow(this);
+        this.setNeedsLayout();
         this.contentView.windowDidChangeKeyStatus();
         this._validateToolbar();
     },
 
     resignKey: function(){
         this._styler.updateWindow(this);
-        this._styler.updateFocusRingInWindow(this);
+        this.setNeedsLayout();
         this.contentView.windowDidChangeKeyStatus();
     },
 
@@ -634,7 +635,7 @@ JSClass('UIWindow', UIView, {
             }
             if (this._firstResponder !== previousResponder){
                 this._validateToolbar();
-                this._styler.updateFocusRingInWindow(this);
+                this.setNeedsLayout();
                 this.windowServer.windowDidChangeResponder(this);
             }
         }
