@@ -96,10 +96,11 @@ JSClass("DBObjectDatabase", JSObject, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (!this.isValidID(obj.id)){
-            completion.call(target, false);
-            return;
+            logger.error("Cannot save object without a valid id");
+            JSRunLoop.main.schedule(completion, target, false);
+        }else{
+            this.store.save(obj, completion, target);
         }
-        this.store.save(obj, completion, target);
         return completion.promise;
     },
 
@@ -108,10 +109,9 @@ JSClass("DBObjectDatabase", JSObject, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (!this.isValidID(obj.id)){
-            completion.call(target, false);
-            return;
-        }
-        if (this.store.isKindOfClass(DBEphemeralObjectStore)){
+            logger.error("Cannot save expiring object without a valid id");
+            JSRunLoop.main.schedule(completion, target, false);
+        }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
             this.store.saveExpiring(obj, lifetimeInterval, completion, target);
         }else{
             logger.error("Cannot save expiring object in a persistent data store");
@@ -125,10 +125,9 @@ JSClass("DBObjectDatabase", JSObject, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (!this.isValidID(id)){
-            completion.call(target, false);
-            return;
-        }
-        if (this.store.isKindOfClass(DBEphemeralObjectStore)){
+            logger.error("Cannot increment without a valid id");
+            JSRunLoop.main.schedule.call(completion, target, false);
+        }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
             this.store.incrementExpiring(id, lifetimeInterval, completion, target);
         }else{
             logger.error("Cannot increment expiring counter in a persistent data store");
@@ -142,10 +141,11 @@ JSClass("DBObjectDatabase", JSObject, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         if (!this.isValidID(id)){
-            completion.call(target, false);
-            return;
+            logger.error("Cannot delete object without a valid id");
+            JSRunLoop.main.schedule(completion, target, false);
+        }else{
+            this.store.delete(id, completion, target);
         }
-        this.store.delete(id, completion, target);
         return completion.promise;
     },
 
