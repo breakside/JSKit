@@ -123,6 +123,12 @@ JSClass("UIMenu", JSObject, {
         return item;
     },
 
+    addSeparatorItem: function(){
+        var item = UIMenuItem.initSeparator();
+        this.addItem(item);
+        return item;
+    },
+
     insertItemAtIndex: function(item, index){
         this._items.splice(index, 0, item);
         item.index = index;
