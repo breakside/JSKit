@@ -580,7 +580,7 @@ JSClass('UIWindow', UIView, {
     },
 
     keyDown: function(event){
-        if (this.escapeClosesWindow && event.key == UIEvent.Key.escape && event.modifiers === UIEvent.Modifier.none){
+        if (this._allowsClose && this.escapeClosesWindow && event.key == UIEvent.Key.escape && event.modifiers === UIEvent.Modifier.none){
             this.close();
             return;
         }
