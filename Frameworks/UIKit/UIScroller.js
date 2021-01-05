@@ -63,7 +63,7 @@ JSClass("UIScroller", UIControl, {
 
     setKnobProportion: function(knobProportion){
         if (knobProportion !== this._knobProportion){
-            this._knobProportion = knobProportion;
+            this._knobProportion = isNaN(knobProportion) ? 0 : knobProportion;
             this.setNeedsLayout();
         }
     },

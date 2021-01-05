@@ -176,8 +176,8 @@ JSClass('UIScrollView', UIView, {
         // The calculations are are fairly straightfoward:
         // - knob proportion is the size of the visible area divided by the total scrollable size including insets
         // - value is the amount we've scrolled divided by the total amount we can scroll
-        this._verticalScroller.knobProportion = Math.min(1, this._contentFrameSize.height / (this._contentSize.height + this._contentInsets.top + this._contentInsets.bottom));
-        this._horizontalScroller.knobProportion = Math.min(1, this._contentFrameSize.width / (this._contentSize.width + this._contentInsets.left + this._contentInsets.right));
+        this._verticalScroller.knobProportion = Math.min(1, this._contentFrameSize.height / (this._contentSize.height + this._contentInsets.height));
+        this._horizontalScroller.knobProportion = Math.min(1, this._contentFrameSize.width / (this._contentSize.width + this._contentInsets.width));
         if (minY == maxY){
             this._verticalScroller.value = 0;
         }else{
