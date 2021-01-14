@@ -1619,7 +1619,7 @@ topics:
         important: This method only searches visible cells
       -
         name: visibleIndexPaths
-        introduced: 2020.43.0
+        introduced: 2021.2.0
         type: JSIndexPath[]
         summary: The list of index paths corresponding to visible cells
   -
