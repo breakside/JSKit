@@ -429,19 +429,27 @@ JSClass("UITextField", UIControl, {
     rightAccessoryVisibility: JSDynamicProperty('_rightAccessoryVisibility', 0),
 
     setLeftImage: function(image){
-        var templateColor = this._styler.leftAccessoryColor;
-        var imageView = UIImageView.initWithImage(image);
-        imageView.automaticRenderMode = JSImage.RenderMode.template;
-        imageView.templateColor = templateColor;
-        this.leftAccessoryView = imageView;
+        if (image === null){
+            this.leftAccessoryView = null;
+        }else{
+            var templateColor = this._styler.leftAccessoryColor;
+            var imageView = UIImageView.initWithImage(image);
+            imageView.automaticRenderMode = JSImage.RenderMode.template;
+            imageView.templateColor = templateColor;
+            this.leftAccessoryView = imageView;
+        }
     },
 
     setRightImage: function(image){
-        var templateColor = this._styler.rightAccessoryColor;
-        var imageView = UIImageView.initWithImage(image);
-        imageView.automaticRenderMode = JSImage.RenderMode.template;
-        imageView.templateColor = templateColor;
-        this.rightAccessoryView = imageView;
+        if (image === null){
+            this.rightAccessoryView = null;
+        }else{
+            var templateColor = this._styler.rightAccessoryColor;
+            var imageView = UIImageView.initWithImage(image);
+            imageView.automaticRenderMode = JSImage.RenderMode.template;
+            imageView.templateColor = templateColor;
+            this.rightAccessoryView = imageView;
+        }
     },
 
     setLeftAccessoryView: function(view){
