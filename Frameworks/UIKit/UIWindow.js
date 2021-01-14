@@ -375,6 +375,9 @@ JSClass('UIWindow', UIView, {
     },
 
     close: function(){
+        if (!this._isOpen){
+            return;
+        }
         if (this.viewController){
             this.viewController.viewWillDisappear(false);
         }else if (this._contentViewController){
