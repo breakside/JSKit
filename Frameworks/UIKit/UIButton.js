@@ -683,7 +683,7 @@ JSClass("UIButtonImageStyler", UIButtonStyler, {
         }
         this._color = color;
         this.activeColor = this._color.colorDarkenedByPercentage(0.2);
-        this.disabledTitleColor = this._color.colorWithAlpha(0.5);
+        this.disabledColor = this._color.colorWithAlpha(0.5);
     },
 
     initializeControl: function(button){
