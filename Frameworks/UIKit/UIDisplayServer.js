@@ -218,8 +218,12 @@ JSClass("UIDisplayServer", JSObject, {
     },
 
     _removeLayerFromUpdateQueues: function(layer){
-        this.layerLayoutQueue.remove(layer);
-        this.layerDisplayQueue.remove(layer);
+        if (this.layerLayoutQueue.remove(layer)){
+            layer._needsLayout = true;
+        }
+        if (this.layerDisplayQueue.remove(layer)){
+            layer._needsDisplay = true;
+        }
         this.layerRepositionQueue.remove(layer);
         if (layer.objectID in this.layerAnimationQueue){
             delete this.layerAnimationQueue[layer.objectID];
@@ -394,10 +398,11 @@ UIDisplayServerQueue.prototype = {
 
     remove: function(value){
         if (!this.contains(value)){
-            return;
+            return false;
         }
         var link = this.map[value.objectID];
         this._removeLink(link);
+        return true;
     },
 
     _removeLink: function(link){
