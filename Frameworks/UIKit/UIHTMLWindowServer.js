@@ -1015,9 +1015,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     handleAccessibilityFirstResponderChanged: function(notification){
         var window = notification.sender;
         var responder = window.firstResponder || window;
-        var context = this.contextForAccessibilityElement(responder);
-        if (context !== null){
-            context.updateAccessibilityFocus(responder);
+        if (responder.isAccessibilityElement){
+            var context = this.contextForAccessibilityElement(responder);
+            if (context !== null){
+                context.updateAccessibilityFocus(responder);
+            }
         }
     }
 
