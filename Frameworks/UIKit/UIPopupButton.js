@@ -110,13 +110,18 @@ JSClass("UIPopupButton", UIControl, {
     // MARK: - Adding Items
 
     addItemWithTitle: function(title, tag){
-        var item = this.menu.addItemWithTitle(title, 'menuDidSelectItem', this);
+        return this.insertItemWithTitleAtIndex(title, this.menu.items.length, tag);
+    },
+
+    insertItemWithTitleAtIndex: function(title, index, tag){
+        var item = UIMenuItem.initWithTitle(title, "menuDidSelectItem", this);
         item.enabled = true;
         if (tag){
             item.tag = tag;
         }
+        this.menu.insertItemAtIndex(item, index);
         if (this.menu.items.length === 1){
-            this.selectedIndex = 0;
+            this.selectedIndex = index;
             this._selectedItem.state = UIMenuItem.State.on;
             this._updateTitleForItem(this._selectedItem);
         }
@@ -296,7 +301,7 @@ JSClass("UIPopupButton", UIControl, {
             this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
         }
         this.active = false;
-        this.menu.delegate = null;
+        // this.menu.delegate = null;
     },
 
     menuDidClose: function(menu){
@@ -819,7 +824,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     },
 
     intrinsicSizeOfControl: function(button){
-        return button.image.size;
+        return button._imageView.intrinsicSize;
     },
 
 });

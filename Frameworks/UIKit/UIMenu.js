@@ -347,10 +347,10 @@ JSClass("UIMenu", JSObject, {
         this._contextTarget = null;
         this._styler.dismissMenu(this, animated, function(){
             if (this.delegate && this.delegate.menuDidClose){
-                this.delegate.menuDidClose(this);
                 if (completion){
                     completion.call(target);
                 }
+                this.delegate.menuDidClose(this);
             }
         }, this);
     },
