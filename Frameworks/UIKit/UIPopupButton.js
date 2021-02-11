@@ -116,7 +116,7 @@ JSClass("UIPopupButton", UIControl, {
     insertItemWithTitleAtIndex: function(title, index, tag){
         var item = UIMenuItem.initWithTitle(title, "menuDidSelectItem", this);
         item.enabled = true;
-        if (tag){
+        if (tag !== null && tag !== undefined){
             item.tag = tag;
         }
         this.menu.insertItemAtIndex(item, index);

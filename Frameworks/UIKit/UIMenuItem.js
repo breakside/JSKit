@@ -125,11 +125,11 @@ JSClass("UIMenuItem", JSObject, {
 
     setTag: function(tag){
         if (this.menu){
-            if (this._tag){
+            if (this._tag !== null){
                 delete this.menu._itemsByTag[this._tag];
             }
             this._tag = tag;
-            if (this._tag){
+            if (this._tag !== null){
                 this.menu._itemsByTag[this._tag] = this;
             }
         }else{
