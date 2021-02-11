@@ -29,14 +29,6 @@ JSClass("JSFile", JSObject, {
         return JSDataFile.initWithData(data, name, contentType);
     },
 
-    initWithPlaceholder: function(name, contentType){
-        this._name = name;
-        if (typeof(contentType) == "string"){
-            contentType = JSMediaType(contentType);
-        }
-        this._contentType = contentType;
-    },
-
     readData: function(completion, target){
     },
 
