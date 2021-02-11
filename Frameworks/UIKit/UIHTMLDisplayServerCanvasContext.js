@@ -164,6 +164,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.cleanupAfterDisplay();
             this.needsCustomDisplay = false;
         }
+        if (layer._domPointerEventsNone){
+            this.style.pointerEvents = "none";
+        }
     },
 
     resetForDisplay: function(){
@@ -1108,6 +1111,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     updateAccessibilityFocus: function(accessibility){
+        var ariaRole = ariaRoleForAccessibility(accessibility);
         this.element.focus();
         // if (focusedAccessibility === null || focusedAccessibility === undefined){
         //     this.element.removeAttribute("aria-activedescendant");

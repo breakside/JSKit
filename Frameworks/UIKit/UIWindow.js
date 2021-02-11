@@ -1079,7 +1079,7 @@ JSClass("UIWindowStyler", JSObject, {
 
     initializeWindow: function(window){
         var focusRingLayer = UIFocusRingLayer.init();
-        focusRingLayer.userInteractionEnabled = false;
+        focusRingLayer._domPointerEventsNone = true;
         focusRingLayer.color = this.focusRingColor;
         focusRingLayer.width = this.focusRingWidth;
         focusRingLayer.hidden = true;
