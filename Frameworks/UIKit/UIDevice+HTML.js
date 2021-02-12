@@ -20,24 +20,28 @@
 
 (function(){
 
-var device = UIDevice.init();
+try{
+    var device = UIDevice.init();
 
-device.supportsTouchInput = ('ontouchstart' in document.body) && navigator.maxTouchPoints > 0;
-var primaryPointerHovers = window.matchMedia('(hover)').matches;
-var primaryFinePointer = window.matchMedia('(pointer: fine)').matches;
+    device.supportsTouchInput = ('ontouchstart' in document.body) && navigator.maxTouchPoints > 0;
+    var primaryPointerHovers = window.matchMedia('(hover)').matches;
+    var primaryFinePointer = window.matchMedia('(pointer: fine)').matches;
 
-if (primaryFinePointer){
-    device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.fine;
-    if (primaryPointerHovers){
-        device.primaryPointerType = UIUserInterface.PointerType.cursor;
-    }else{
+    if (primaryFinePointer){
+        device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.fine;
+        if (primaryPointerHovers){
+            device.primaryPointerType = UIUserInterface.PointerType.cursor;
+        }else{
+            device.primaryPointerType = UIUserInterface.PointerType.touch;
+        }
+    }else if (device.supportsTouchInput){
+        device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.coarse;
         device.primaryPointerType = UIUserInterface.PointerType.touch;
     }
-}else if (device.supportsTouchInput){
-    device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.coarse;
-    device.primaryPointerType = UIUserInterface.PointerType.touch;
-}
 
-UIDevice.shared = device;
+    UIDevice.shared = device;
+}catch (e){
+    // assumed to be in a worker env, where UIDevice isn't really applicable
+}
 
 })();
