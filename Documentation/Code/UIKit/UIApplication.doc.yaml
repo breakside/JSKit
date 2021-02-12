@@ -77,6 +77,23 @@ topics:
 
                   });
                   ````
+              -
+                name: applicationShouldWarnBeforeExit
+                introduced: 2021.6.0
+                environment: html
+                summary: Called for HTML applications when the user is closing the page
+                type: boolean
+                return: \`true` if you want the browser to prompt the user before the page closes
+                arguments:
+                  -
+                    name: application
+                    type: UIApplication
+                    summary: The application
+                description: |
+                  Typically used to prevent the user from losing unsaved changes.
+                note: Browsers don't allow any customization of the message shown to users,
+                  and might ingore the request if they don't think the user has interacted
+                  with the page.
           -
             name: Application Updates
             members:

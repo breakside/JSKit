@@ -83,6 +83,13 @@ UIApplication.definePropertiesFromExtensions({
         this['_event_' + e.type](e);
     },
 
+    _event_beforeunload: function(e){
+        if (this.delegate.applicationShouldWarnBeforeExit && this.delegate.applicationShouldWarnBeforeExit(this)){
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    },
+
     _event_error: function(e){
         var error = e.error;
         if (e.filename.startsWith(this._baseURL.encodedString)){
@@ -144,6 +151,7 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
         if (error === null){
             window.addEventListener('error', application);
             window.addEventListener('unhandledrejection', application);
+            window.addEventListener('beforeunload', application);
         }
         if (bootstrapper){
             bootstrapper.applicationLaunchResult(application, error);
