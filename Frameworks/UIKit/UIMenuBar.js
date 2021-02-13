@@ -340,6 +340,7 @@ JSClass("UIMenuBar", UIWindow, {
             this.makeKey();
         }
         this._highlightedItemView = itemView;
+        var windowController;
         if (this._highlightedItemView){
             this._highlightedItemView.highlighted = true;
             if (itemView._item.menu){
@@ -347,8 +348,13 @@ JSClass("UIMenuBar", UIWindow, {
                 this.submenu.delegate = this;
                 this.openMenu(this.submenu, itemView);
             }else if (itemView._item.windowControllerClass){
-                var windowController = itemView._item.windowControllerClass.init();
+                windowController = itemView._item.windowControllerClass.init();
                 this.openWindowControllerUnderItem(windowController, itemView._item);
+            }else if (itemView._item.delegate !== null && itemView._item.delegate.windowControllerForMenuBarItem){
+                windowController = itemView._item.delegate.windowControllerForMenuBarItem(itemView._item);
+                if (windowController !== null && windowController !== undefined){
+                    this.openWindowControllerUnderItem(windowController, itemView._item);
+                }
             }
         }
     },
@@ -509,7 +515,7 @@ JSClass("UIMenuBar", UIWindow, {
     },
 
     mouseDownOnItemView: function(itemView, event){
-        if (itemView._item.menu || itemView._item.windowControllerClass){
+        if (itemView._item.menu || itemView._item.windowControllerClass || (itemView._item.delegate && itemView._item.delegate.windowControllerForMenuBarItem)){
             if (itemView !== this._highlightedItemView){
                 this._selectMenuItemView(itemView);
                 this._itemDownTimestamp = event.timestamp;
@@ -632,6 +638,12 @@ JSClass("UIMenuBar", UIWindow, {
 
 });
 
+JSProtocol("UIMenuBarDelegate", JSProtocol, {
+
+    windowControllerForMenuBarItem: function(menuBarItem){}
+
+});
+
 JSClass("UIMenuBarItem", JSObject, {
     title: JSDynamicProperty('_title', null),
     image: null,
@@ -639,6 +651,7 @@ JSClass("UIMenuBarItem", JSObject, {
     target: null,
     action: null,
     menu: null,
+    delegate: null,
     windowControllerClass: null,
     tooltip: null,
     customView: null,
@@ -684,6 +697,9 @@ JSClass("UIMenuBarItem", JSObject, {
         }
         if (spec.containsKey("accessibilityHint")){
             this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey("delegate");
         }
     },
 
@@ -962,16 +978,29 @@ JSClass("UIMenuBarItemView", UIView, {
 
 JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
+    shouldSendAction: function(){
+        if (this._item.menu !== null){
+            return false;
+        }
+        if (this._item.windowControllerClass !== null){
+            return false;
+        }
+        if (this._item.delegate !== null && this._item.delegate.windowControllerForMenuBarItem){
+            return false;
+        }
+        return true;
+    },
+
     mouseDown: function(event){
         this._menuBar.mouseDownOnItemView(this, event);
-        if (!this._item.menu && !this._item.windowControllerClass){
+        if (this.shouldSendAction()){
             this.highlighted = true;
         }
     },
 
     mouseDragged: function(event){
         this._menuBar.mouseDraggedOnItemView(this, event);
-        if (!this._item.menu && !this._item.windowControllerClass){
+        if (this.shouldSendAction()){
             var location = event.locationInView(this);
             this.highlighted = this.containsPoint(location);
         }
@@ -979,7 +1008,7 @@ JSClass("UIMenuBarButton", UIMenuBarItemView, {
 
     mouseUp: function(event){
         this._menuBar.mouseUpOnItemView(this, event);
-        if (!this._item.menu && !this._item.windowControllerClass){
+        if (this.shouldSendAction()){
             if (this.highlighted){
                 this.highlighted = false;
                 this.window.application.sendAction(this._item.action, this._item.target, this._item);

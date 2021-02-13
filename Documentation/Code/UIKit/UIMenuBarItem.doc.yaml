@@ -268,6 +268,18 @@ topics:
                   with completely custom content.
 
                   Specified as an alternative to an `action` or `menu`.
+
+                  If you need to prepare the window controller, use `delegate`
+                  instead.
+              -
+                name: delegate
+                introduced: 2021.6.0
+                type: UIMenuBarItemDelegate
+                summary: A delegate that can provide a window controller when
+                  the item is clicked
+                description: |
+                  Allows the delegate an opportunity to prepare the window
+                  controller, which isn't available when using `windowControllerClass`.
           -
             name: Accessibility
             members:
@@ -377,6 +389,33 @@ topics:
           with completely custom content.
 
           Specified as an alternative to an `action` or `menu`.
+      -
+        name: delegate
+        introduced: 2021.6.0
+        type: UIMenuBarItemDelegate
+        summary: A delegate that can create a window controller with a chance
+          to prepare it first
+        description: |
+          Useful when showing a window controller that requires some setup
+          after construction
+      -
+        name: UIMenuBarItemDelegate
+        introduced: 2021.6.0
+        kind: protocol
+        summary: The menu item delegate protocol
+        topics:
+          -
+            name: Showing Windows
+            members:
+              -
+                name: windowControllerForMenuBarItem
+                type: UIWindowController
+                summary: Create and prepare a window controller to be shown
+                  in response to the menu item selection
+                description: |
+                  Using a delgate function instead of a `windowControllerClass`
+                  allows the delegate more control over how the window controller
+                  is instantiated and configured.
   -
     name: State
     members:
