@@ -1258,6 +1258,24 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
 
     init: function(){
         UITextFieldDefaultStyler.$super.init.call(this);
+        this._commonDefaultStylerInit();
+    },
+
+    initWithSpec: function(spec){
+        UITextFieldDefaultStyler.$super.initWithSpec.call(this, spec);
+        this._commonDefaultStylerInit();
+        if (spec.containsKey("activeColor")){
+            this.activeColor = spec.valueForKey("activeColor", JSColor);
+        }
+        if (spec.containsKey("inactiveColor")){
+            this.inactiveColor = spec.valueForKey("inactiveColor", JSColor);
+        }
+        if (spec.containsKey("textInsets")){
+            this.textInsets = spec.valueForKey("textInsets", JSInsets);
+        }
+    },
+
+    _commonDefaultStylerInit: function(){
         this.activeColor = JSColor.black;
         this.inactiveColor = JSColor.initWithWhite(0.8);
         this.textInsets = JSInsets(3, 0);
