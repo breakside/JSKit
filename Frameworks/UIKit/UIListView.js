@@ -821,7 +821,10 @@ JSClass("UIListView", UIScrollView, {
         if (this._visibleItems.length === 0){
             return;
         }
+        var i = 0;
+        var l = this._visibleItems.length;
         var firstVisibleItem = this._visibleItems[0];
+        var item;
         var y = this._contentOffset.y - this._cellsContainerView.frame.origin.y + this._contentInsets.top;
         if (firstVisibleItem.kind !== VisibleItem.Kind.header){
             // Create a detached header that will stick to the top.
@@ -837,18 +840,20 @@ JSClass("UIListView", UIScrollView, {
                 this._cellsContainerView.addSubview(this._stickyHeader);
 
                 // position to line up no lower than the bottom of final item in section
-                var i = 1;
-                for (var l = this._visibleItems.length; i < l && this._visibleItems[i].indexPath.section === section; ++i){
+                for (i = 1; i < l && this._visibleItems[i].indexPath.section === section; ++i){
                 }
-                var item = this._visibleItems[i - 1];
+                item = this._visibleItems[i - 1];
                 this._stickyHeader.position = JSPoint(this._stickyHeader.position.x, Math.min(y + this._stickyHeader.anchorPoint.y * this._stickyHeader.bounds.size.height, item.view.position.y + (1 - item.view.anchorPoint.y) * item.view.bounds.size.height - (1 - this._stickyHeader.anchorPoint.y) * this._stickyHeader.bounds.size.height));
             }else{
                 this._stickyHeader = null;
             }
-        }else{
-            // Our visible first item is a header, make sure it sticks to the top.
-            // Use .transform instead of .position so other logic can still rely on the original position when placing adjacent items
-            firstVisibleItem.view.transform = JSAffineTransform.Translated(0, Math.max(0, y - (firstVisibleItem.view.position.y - firstVisibleItem.view.anchorPoint.y * firstVisibleItem.view.bounds.size.height)));
+        }
+
+        for (; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.kind === VisibleItem.Kind.header){            
+                item.view.transform = JSAffineTransform.Translated(0, Math.max(0, y - (item.view.position.y - item.view.anchorPoint.y * item.view.bounds.size.height)));
+            }
         }
     },
 
@@ -968,10 +973,13 @@ JSClass("UIListView", UIScrollView, {
     _updateVisibleItemsNormal: function(){
         var visibleRect = this.contentView.convertRectToView(this.contentView.bounds, this._cellsContainerView);
 
-        if (this._visibleItems.length > 0){
-            var firstVisibleItem = this._visibleItems[0];
-            if (firstVisibleItem.kind === VisibleItem.Kind.header){
-                firstVisibleItem.view.transform = JSAffineTransform.Identity;
+        if (this._headersStickToTop){
+            var item;
+            for (var i = 0, l = this._visibleItems.length; i < l; ++i){
+                item = this._visibleItems[i];
+                if (item.kind === VisibleItem.Kind.header){
+                    item.view.transform = JSAffineTransform.Identity;
+                }
             }
         }
         
