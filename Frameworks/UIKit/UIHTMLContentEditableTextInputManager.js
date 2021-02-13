@@ -79,7 +79,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             this.addEventListeners();
             this._editableElement.focus();
         }
-        this.updateDocumentSelection();
+        this.windowServer.displayServer.schedule(this.updateDocumentSelection, this);
     },
 
     updateDocumentSelection: function(){
