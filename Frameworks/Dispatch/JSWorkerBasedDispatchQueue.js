@@ -77,6 +77,15 @@ JSClass("JSWorkerBasedDispatchQueue", JSDispatchQueue, {
         }
     },
 
+    destroy: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.close();
+        completion.call(target);
+        return completion.promise;
+    }
+
 });
 
 JSClass("JSWorkerBasedDispatchQueueWorker", JSObject, {

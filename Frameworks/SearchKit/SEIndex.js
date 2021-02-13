@@ -66,6 +66,12 @@ JSClass("SEIndex", JSObject, {
         this.store.search(words, wordOptions, this.rankerClass, function(documentIDs){
             completion.call(target, documentIDs);
         }, this);
+    },
+
+    close: function(completion, target){
+        this.store.close(function(){
+            completion.call(target);
+        }, this);
     }
 
 });

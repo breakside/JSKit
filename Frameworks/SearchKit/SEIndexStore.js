@@ -23,6 +23,10 @@ JSClass("SEIndexStore", JSObject, {
     },
 
     search: function(words, options, rankerClass, completion, target){
+    },
+
+    close: function(completion, target){
+        completion.call(target);
     }
 
 });

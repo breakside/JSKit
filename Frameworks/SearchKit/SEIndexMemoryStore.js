@@ -47,6 +47,10 @@ JSClass("SEIndexMemoryStore", SEIndexStore, {
                 completion.call(target, documentIDs);
             }
         });
+    },
+
+    close: function(completion, target){
+        this.dispatchQueue.destroy(completion, target);
     }
 
 });

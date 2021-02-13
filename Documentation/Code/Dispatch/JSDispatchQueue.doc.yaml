@@ -93,3 +93,14 @@ topics:
             type: any[]
             summary: The arguments that will be passed to the `jobClass`
               instanace when it is initiated
+  -
+    name: Destroying a Queue
+    members:
+      -
+        name: destroy
+        introduced: 2021.6.0
+        kind: method
+        summary: Destroy any resources used by the queue
+        description: |
+          In an HTML environment, for example, this will terminate the web
+          worker that handles the queue's jobs.

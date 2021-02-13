@@ -23,6 +23,9 @@ JSClass("JSDispatchQueue", JSObject, {
     },
 
     enqueue: function(jobClass, args, completion, target){
+    },
+
+    destroy: function(completion, target){
     }
 
 });
