@@ -57,7 +57,7 @@ JSClass("UIPopupButton", UIControl, {
             this._imageView.image = spec.valueForKey("image", JSImage);
         }
         if (spec.containsKey('menu')){
-            this._menu = spec.valueForKey("menu");
+            this._menu = spec.valueForKey("menu", UIMenu);
         }else if (spec.containsKey('options')){
             var options = spec.valueForKey('options');
             for (var i = 0, l = options.length; i < l; ++i){

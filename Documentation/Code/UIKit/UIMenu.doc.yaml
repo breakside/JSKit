@@ -15,7 +15,7 @@ description: |
 topics:
   -
     name: Creating a Menu
-    member:
+    members:
       -
         name: initWithStyler
         kind: init

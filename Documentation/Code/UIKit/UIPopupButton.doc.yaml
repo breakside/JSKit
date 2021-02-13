@@ -42,6 +42,16 @@ topics:
                       - Uranus
                       - Neptune
                   ````
+
+                  If you need more fine-grained control over the popup menu,
+                  use the `menu` property.
+              -
+                name: menu
+                type: UIMenu
+                summary: The menu to display when the button is clicked
+                description: |
+                  Use when `options` doesn't allow for the level of detail you
+                  need
           -
             name: Style
             members:
