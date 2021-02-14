@@ -398,6 +398,33 @@ topics:
           Shows a line along the bottom of the text field
         topics:
           -
+            name: Creating a default text styler
+            members:
+              -
+                name: Spec File Properties
+                introduced: 2021.6.0
+                kind: spec
+                summary: The properties that can be used in spec file for a default text styler
+                topics:
+                  -
+                    name: Line
+                    members:
+                      -
+                        name: activeColor
+                        type: JSColor
+                        summary: The color of the line when the text field is active
+                      -
+                        name: inactiveColor
+                        type: JSColor
+                        summary: The color of the line when the text field is inactive
+                  -
+                    name: Text
+                    members:
+                      -
+                        name: textInsets
+                        type: JSInsets
+                        summary: The amount to inset text from the edges
+          -
             name: Line
             members:
               -

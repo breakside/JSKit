@@ -158,6 +158,41 @@ topics:
             type: String
             summary: A unique identifier for the item
       -
+        name: insertItemWithTitleAtIndex
+        introduced: 2021.6.0
+        kind: method
+        summary: Insert a popup menu item with the given title at the
+          given index
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the item in the popup menu
+          -
+            name: index
+            type: Number
+            summary: The index in the menu items list at which to insert the new item
+      -
+        name: insertItemWithTitleAtIndex
+        introduced: 2021.6.0
+        suffix: tag
+        kind: method
+        summary: Insert a popup menu item with the given title and tag at the
+          given index
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title for the item in the popup menu
+          -
+            name: index
+            type: Number
+            summary: The index in the menu items list at which to insert the new item
+          -
+            name: tag
+            type: String
+            summary: A unique identifier for the item
+      -
         name: removeAllItems
         kind: method
         summary: Clear the popup menu of all items
@@ -496,6 +531,70 @@ topics:
 
           It contains no extra properties from `UIPopupButtonCustomStyler`, but
           sets their initial values differently.
+      -
+        name: UIPopupButtonImageStyler
+        introduced: 2021.6.0
+        kind: class
+        inherits: UIPopupButtonStyler
+        summary: Configures a popup styler that colors a template image in
+          coordination with a pull-down menu
+        topics:
+          -
+            name: Creating an image styler
+            members:
+              -
+                name: initWithColor
+                type: init
+                summary: Create an image styler with the given normal color
+                arguments:
+                  -
+                    name: color
+                    type: JSColor
+                    summary: The normal state color
+                description: |
+                  Active and disabled colors will be set to initial values
+                  derived from the normal color
+              -
+                name: Spec File Properties
+                type: spec
+                summary: Spec file properties for a popup button image styler
+                topics:
+                  -
+                    name: Image Colors
+                    members:
+                      -
+                        name: normalColor
+                        type: JSColor
+                        summary: The color of the temlate image when the button is in its
+                          normal state
+                      -
+                        name: disabledColor
+                        type: JSColor
+                        summary: The color of the temlate image when the button is in its
+                          disabled state
+                      -
+                        name: activeColor
+                        type: JSColor
+                        summary: The color of the temlate image when the button is in its
+                          active state
+          -
+            name: Image Colors
+            members:
+              -
+                name: normalColor
+                type: JSColor
+                summary: The color of the temlate image when the button is in its
+                  normal state
+              -
+                name: disabledColor
+                type: JSColor
+                summary: The color of the temlate image when the button is in its
+                  disabled state
+              -
+                name: activeColor
+                type: JSColor
+                summary: The color of the temlate image when the button is in its
+                  active state
       -
         name: Styler
         kind: enum
