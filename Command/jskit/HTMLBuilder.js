@@ -43,6 +43,7 @@ JSClass("HTMLBuilder", Builder, {
         'connections': {valueType: "integer", default: 1024, help: "The port on which the static http server will be configured"},
         'docker-owner': {default: null, help: "The docker repo prefix to use when building a docker image"},
         'docker-image': {default: null, help: "The name to use when building a docker image"},
+        'docker-tag': {default: null, help: "An optional docker tag for the built image"},
         'no-docker': {kind: "flag", help: "Don't build the docker image"},
         'env': {default: null, help: "A file with environmental variables for this build"}
     },
@@ -818,9 +819,9 @@ JSClass("HTMLBuilder", Builder, {
 
         const { spawn } = require('child_process');
         var args = ["build", "-t", identifier];
-        if (!this.debug){
+        if (this.arguments["docker-tag"] !== null){
             args.push("-t");
-            args.push(makeTag(this.buildId));
+            args.push(makeTag(this.arguments["docker-tag"]));
         }
         args.push('.');
         var cwd = this.fileManager.pathForURL(this.buildURL);

@@ -150,14 +150,22 @@ topics:
           If no `DockerOwner` is present in `Info.json` the docker image will
           not include an `owner/` prefix
       -
-        introduced: 2020.32.0
         name: --docker-image
+        introduced: 2020.32.0
         type: String
         summary: The name to use when creating a docker image
         description: |
           Defaults to the final component of the project's `JSBundleIdentifier`.
 
           Always lowercased.
+      -
+        name: --docker-tag
+        introduced: 2021.7.0
+        type: String
+        summary: An optional tag for the built docker image
+        description: |
+          This tag is in addition to the `JSBundleVersion` tag, which is
+          always added for non-debug builds.
       -
         name: --no-docker
         type: flag
