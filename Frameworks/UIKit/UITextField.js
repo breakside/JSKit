@@ -784,6 +784,7 @@ JSClass("UITextField", UIControl, {
         this.sendActionsForEvents(UIControl.Event.editingChanged);
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('attributedText');
+        this.didChangeValueForBinding('integerValue');
         this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
     },
 
