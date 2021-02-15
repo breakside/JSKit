@@ -15,51 +15,40 @@
 
 // #import UIKit
 // #import "UIMockWindowServer.js"
+// #import "UIMockFontDescriptor.js"
 "use strict";
 
 JSClass("UIMockApplication", UIApplication, {
 
     init: function(){
         var bundle = JSBundle.initWithDictionary({Info: {}});
-        var windowServer = UIMockWindowServer.init();
-        UIMockApplication.$super.initWithBundle.call(this, bundle, windowServer);
-        JSFont.registerDummySystemFont();
+        this.initWithBundle(bundle);
+        JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
     },
 
-    mockStart: function(completion, target){
+    initWithBundle: function(bundle){
+        var windowServer = UIMockWindowServer.init();
+        UIMockApplication.$super.initWithBundle.call(this, bundle, windowServer);
+    },
+
+    _launch: function(completion, target){
+        this.setup(completion, target);
+    },
+
+    stop: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNull);
         }
-        JSFileManager.shared.open(function(state){
-            switch (state){
-                case JSFileManager.State.success:
-                    JSUserDefaults.shared.open(function(){
-                        completion.call(target, null);
-                    }, this);
-                    break;
-                case JSFileManager.State.genericFailure:
-                    completion.call(target, JSFileManager.shared.error || new Error("Failed to open filesystem"));
-                    break;
-                case JSFileManager.State.conflictingVersions:
-                    completion.call(target, new Error("JSKIT_CLOSE_OTHER_INSTANCES"));
-            }
+        UIMockApplication.$super.stop.call(this, function(){
+            this.deinit();
+            JSFileManager.shared.destroy(function(){
+                completion.call(target, null); 
+            });
         }, this);
         return completion.promise;
     },
 
-    mockStop: function(completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNull);
-        }
-        this.deinit();
-        JSFileManager.shared.destroy(function(){
-            completion.call(target, null); 
-        });
-        return completion.promise;
-    },
-
     deinit: function(){
-        JSFont.unregisterDummySystemFont();
         UIMockApplication.$super.deinit.call(this);
     }
 

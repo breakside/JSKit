@@ -277,31 +277,31 @@ JSClass("UIDisplayServer", JSObject, {
 
     registerFontDescriptors: function(descriptors, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(Promise.resolveNull);
         }
         if (descriptors.length === 0){
             completion.call(target, null);
-            return;
-        }
-        var remaining = descriptors.length;
-        var firstError = null;
-        var handleRegistration = function(error){
-            if (error !== null && firstError === null){
-                firstError = error;
+        }else{
+            var remaining = descriptors.length;
+            var firstError = null;
+            var handleRegistration = function(error){
+                if (error !== null && firstError === null){
+                    firstError = error;
+                }
+                --remaining;
+                if (remaining === 0){
+                    completion.call(target, firstError);
+                }
+            };
+            for (var i = 0, l = descriptors.length; i < l; ++i){
+                this.registerFontDescriptor(descriptors[i], handleRegistration, this);
             }
-            --remaining;
-            if (remaining === 0){
-                completion.call(target, firstError);
-            }
-        };
-        for (var i = 0, l = descriptors.length; i < l; ++i){
-            this.registerFontDescriptor(descriptors[i], handleRegistration, this);
         }
         return completion.promise;
     },
 
     registerFontDescriptor: function(descriptor, completion, target){
-
+        completion.call(target, null);
     },
 
     // -------------------------------------------------------------------------

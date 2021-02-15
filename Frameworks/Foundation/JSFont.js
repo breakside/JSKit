@@ -227,23 +227,14 @@ JSFont.registerSystemFont = function(familyName, weight, style){
     this._systemFontDescriptor = JSResourceFontDescriptor.descriptorWithFamily(familyName, weight || JSFont.Weight.regular, style || JSFont.Style.normal);
 };
 
-JSFont.registerDummySystemFont = function(){
-    var descriptor = JSFontDescriptor.init();
-    descriptor._family = 'Dummy';
-    descriptor._weight = JSFont.Weight.regular;
-    descriptor._style = JSFont.Style.normal;
-    descriptor._face = 'Regular';
-    descriptor._postScriptName = 'Dummy';
-    descriptor._ascender = 1700;
-    descriptor._descender = -300;
-    descriptor._unitsPerEM = 2048;
-    JSFont._systemFontDescriptor = descriptor;
+JSFont.registerSystemFontDescriptor = function(descriptor){
+    this._systemFontDescriptor = descriptor;
 };
 
-JSFont.unregisterDummySystemFont = function(){
-    if (this._systemFontDescriptor){
-        this._systemFontDescriptor = null;
-    }
+JSFont.unregisterAllFonts = function(){
+    JSResourceFontDescriptor.descriptorsByFamily = {};
+    JSResourceFontDescriptor.descriptorsByName = {};
+    this._systemFontDescriptor = null;
 };
 
 JSFont.systemFontOfSize = function(pointSize){

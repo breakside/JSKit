@@ -49,6 +49,7 @@ JSClass('UIApplication', UIResponder, {
 
     deinit: function(){
         shared = null;
+        JSFont.unregisterAllFonts();
     },
 
     launchOptions: function(){
@@ -131,7 +132,10 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
-    run: function(callback){
+    run: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNull);
+        }
         // User Defaults are enabled by default, but can be disabled in Info
         var needsUserDefaults = this.bundle.info[UIApplication.InfoKeys.requiresUserDefaults] !== false;
         // File Manager is enabled by default, but can be disabled in Info; however, needing user defaults implies needing file manager
@@ -149,13 +153,13 @@ JSClass('UIApplication', UIResponder, {
                                 JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
                                     logger.info("User defaults opened");
                                     try{
-                                        this._launch(callback);
+                                        this._launch(completion, target);
                                     }catch (e){
-                                        callback(e);
+                                        completion.call(target, e);
                                     }
                                 }, this);
                             }else{
-                                this._launch(callback);
+                                this._launch(completion, target);
                             }
                             break;
                         case JSFileManager.State.genericFailure:
@@ -167,45 +171,51 @@ JSClass('UIApplication', UIResponder, {
                             throw new Error("JSKIT_CLOSE_OTHER_INSTANCES");
                     }
                 }catch(e){
-                    callback(e);
+                    completion.call(target, e);
                 }
             }, this);
         }else{
             try{
-                this._launch(callback);
+                this._launch(completion, target);
             }catch(e){
-                callback(e);
+                completion.call(target, e);
             }
         }
+        return completion.promise;
     },
 
     _stopCalled: false,
 
     stop: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
         if (this._stopCalled){
-            return;
-        }
-        this._stopCalled = true;
-        logger.info("Stopping application");
-        var _close = function(){
-            JSUserDefaults.shared.close(function(){
-                completion.call(target);
-            });
-        };
-        if (this.delegate && this.delegate.applicationWillTerminate){
-            this.delegate.applicationWillTerminate(_close);
+            completion.call(target);
         }else{
-            _close();
+            this._stopCalled = true;
+            logger.info("Stopping application");
+            var _close = function(){
+                JSUserDefaults.shared.close(function(){
+                    completion.call(target);
+                });
+            };
+            if (this.delegate && this.delegate.applicationWillTerminate){
+                this.delegate.applicationWillTerminate(_close);
+            }else{
+                _close();
+            }
         }
+        return completion.promise;
     },
 
     update: function(){
     },
 
-    _launch: function(callback){
+    _launch: function(completion, target){
         this.setup(function(error){
             if (error !== null){
-                callback(error);
+                completion.call(target, error);
                 return;
             }
             try{
@@ -223,10 +233,10 @@ JSClass('UIApplication', UIResponder, {
                     throw new Error("No window initiated on application launch.  ApplicationDelegate needs to show a window during .applicationDidFinishLaunching()");
                 }
             }catch (e){
-                callback(e);
+                completion.call(target, e);
                 return;
             }
-            callback(null);
+            completion.call(target, null);
         }, this);
     },
 

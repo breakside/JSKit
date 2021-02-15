@@ -42,13 +42,12 @@ JSClass("UIApplicationTests", TKTestSuite, {
 
     setup: function(){
         this.windowServer = UIMockWindowServer.init();
-        var bundle = JSBundle.initWithDictionary({Info: {}});
+        var bundle = JSBundle.initWithDictionary({Info: {},});
         this.app = UIApplication.initWithBundle(bundle, this.windowServer);
-        JSFont.registerDummySystemFont();
+        JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
     },
 
     teardown: function(){
-        JSFont.unregisterDummySystemFont();
         this.app.deinit();
         this.app = null;
     },

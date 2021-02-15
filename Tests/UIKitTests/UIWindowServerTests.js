@@ -27,13 +27,12 @@ JSClass("UIWindowServerTests", TKTestSuite, {
         this.windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {}});
         this.app = UIApplication.initWithBundle(bundle, this.windowServer);
-        JSFont.registerDummySystemFont();
+        JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
     },
 
     teardown: function(){
         this.app.deinit();
         this.app = null;
-        JSFont.unregisterDummySystemFont();
     },
 
     testWindowLevels: function(){

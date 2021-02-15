@@ -107,7 +107,7 @@ JSClass('SKApplication', JSObject, {
     },
 
     setupFonts: function(){
-        JSFont.registerBundleFonts(JSBundle.mainBundle);
+        JSFont.registerBundleFonts(this.bundle);
     },
 
     setupDelegate: function(){
