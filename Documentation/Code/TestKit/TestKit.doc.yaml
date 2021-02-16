@@ -404,6 +404,27 @@ topics:
         description: |
           Throws an exception if `typeof(obj)` != `expectedType`
       -
+        introduced: 2021.7.1
+        name: TKAssertInstance
+        kind: function
+        summary: Throws an exception if the given object is not an instance of the given type
+        arguments:
+          -
+            name: obj
+            type: any
+            summary: The test value
+          -
+            name: expectedType
+            type: Type
+            summary: The expected type
+          -
+            name: message
+            type: String
+            default: '""'
+            summary: The error message to include in the exception
+        description: |
+          Throws an exception if `obj instanceof expectedType` is `false`
+      -
         introduced: 2020.40.0
         name: TKAssertPromiseRejected
         kind: function

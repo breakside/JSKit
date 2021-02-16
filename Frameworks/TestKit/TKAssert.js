@@ -264,3 +264,9 @@ JSGlobalObject.TKAssertType = function(a, type, message){
         throw new TKAssertion('TKAssertType ' + (a) + ' is not of type ' + type + '. ' + (message || ''));
     }
 };
+
+JSGlobalObject.TKAssertInstance = function(a, b, message){
+    if (!(a instanceof b)){
+        throw new TKAssertion('TKAssertInstance ' + (a) + ' is not of type ' + b + '. ' + (message || ''));
+    }
+};
