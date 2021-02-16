@@ -777,15 +777,15 @@ JSClass("UITextField", UIControl, {
         }else if (!this._isEmpty && insertedLength === 0 && !this._textLayer.hasText()){
             this._updateIsEmpty(true);
         }
-        if (this.delegate && this.delegate.textFieldDidChange){
-            this.delegate.textFieldDidChange(this);
-        }
-        this._didChange = true;
-        this.sendActionsForEvents(UIControl.Event.editingChanged);
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('attributedText');
         this.didChangeValueForBinding('integerValue');
         this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.editingChanged);
+        if (this.delegate && this.delegate.textFieldDidChange){
+            this.delegate.textFieldDidChange(this);
+        }
+        this._didChange = true;
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){

@@ -151,9 +151,9 @@ JSClass("UICheckbox", UIControl, {
 
     _toggle: function(){
         this.on = !this.on;
+        this.didChangeValueForBinding('on');
         this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
         this.active = false;
-        this.didChangeValueForBinding('on');
     },
 
     setOn: function(isOn){

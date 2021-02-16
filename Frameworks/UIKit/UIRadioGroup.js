@@ -64,6 +64,14 @@ JSClass("UIRadioGroup", UIControl, {
         this.setNeedsLayout();
     },
 
+    _selectRadioButtonAtIndex: function(index){
+        if (this.selectedIndex != index){
+            this.selectedIndex = index;
+            this.didChangeValueForBinding('selectedIndex');
+            this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
+        }
+    },
+
     setSelectedIndex: function(selectedIndex){
         if (this.selectedIndex != selectedIndex){
             if (this._selectedIndex >= 0){
@@ -73,7 +81,6 @@ JSClass("UIRadioGroup", UIControl, {
             if (this._selectedIndex >= 0){
                 this.buttons[this._selectedIndex].on = true;
             }
-            this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
         }
     },
 
@@ -278,8 +285,7 @@ JSClass("UIRadioButton", UIControl, {
     },
 
     _select: function(){
-        this._group.selectedIndex = this._index;
-        this._group.didChangeValueForBinding('selectedIndex');
+        this._group._selectRadioButtonAtIndex(this._index);
         this.active = false;
     },
 
