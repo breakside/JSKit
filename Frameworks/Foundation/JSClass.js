@@ -236,6 +236,10 @@ JSClass.prototype = {
 
     nameOfOutletConnectionMethod: function(key){
         return '_connectOutlet' + key.capitalizedString();
+    },
+
+    toString: function(){
+        return this.className;
     }
 };
 
