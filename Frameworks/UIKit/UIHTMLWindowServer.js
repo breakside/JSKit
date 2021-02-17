@@ -668,9 +668,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
-        UIPasteboard.general.dataTransfer = e.clipboardData;
-        this.keyWindow.application.sendAction('cut');
-        UIPasteboard.general.dataTransfer = null;
+        UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
+            this.keyWindow.application.sendAction('cut');
+        }, this);
     },
 
     copy: function(e){
@@ -680,9 +680,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
-        UIPasteboard.general.dataTransfer = e.clipboardData;
-        this.keyWindow.application.sendAction('copy');
-        UIPasteboard.general.dataTransfer = null;
+        UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
+            this.keyWindow.application.sendAction('copy');
+        }, this);
     },
 
     paste: function(e){
@@ -692,9 +692,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this.keyWindow === null){
             return;
         }
-        UIPasteboard.general.dataTransfer = e.clipboardData;
-        this.keyWindow.application.sendAction('paste');
-        UIPasteboard.general.dataTransfer = null;
+        UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
+            this.keyWindow.application.sendAction('paste');
+        }, this);
     },
 
     beforecut: function(e){
@@ -1054,6 +1054,15 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         this._locallySetTypes = {};
     },
 
+    withDataTransfer: function(dataTransfer, action, target){
+        try{
+            this.dataTransfer = dataTransfer;
+            action.call(target);
+        }finally{
+            this.dataTransfer = null;
+        }
+    },
+
     setDataTransfer: function(dataTransfer){
         this._dataTransfer = dataTransfer;
         this._dataTransferTypeSet = null;
@@ -1101,6 +1110,10 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
                     throw e;
                 }
             }
+        }else if (navigator.clipboard){
+            navigator.clipboard.writeText(combinedString).catch(function(e){
+                logger.warn("Failed to write to clipboard: %{error}", e);
+            });
         }
     },
 
