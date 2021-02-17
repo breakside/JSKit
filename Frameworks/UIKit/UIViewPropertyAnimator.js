@@ -64,6 +64,7 @@ JSClass("UIViewPropertyAnimator", JSObject, {
     },
 
     _completeAnimations: function(){
+        this._percentComplete = this._transaction.percentComplete;
         this._transaction = null;
         var block;
         for (var i = 0, l = this.completionBlocks.length; i < l; ++i){
