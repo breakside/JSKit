@@ -46,8 +46,21 @@ topics:
         static: true
         type: JSGradient
         summary: Create a two-color gradient from positions `0` to `1`
+        arguments:
+          -
+            name: color1
+            type: JSColor
+            summary: The first color
+          -
+            name: color2
+            type: JSColor
+            summary: The second color
         description: |
-          Shortcut for:
+          ````
+          var gradient = JSGradient.gradientBetweenColors(JSColor.red, JSColor.blue);
+          ````
+
+          is the same as
 
           ````
           var gradient = JSGradient.initWithStops(0, JSColor.red, 1, JSColor.blue);
