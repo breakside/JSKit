@@ -38,7 +38,8 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this.supportsBeforeinputEvent = "onbeforeinput" in HTMLElement.prototype;
+        // NOTE: onbeforeinput insn't exposed in Chrome even though it supports the beforeinput event
+        this.supportsBeforeinputEvent = ("onbeforeinput" in HTMLElement.prototype) || userAgentKnownToSupportBeforeInput();
         this.styleElement = this.domDocument.createElement("style");
         this.styleElement.type = "text/css";
         this.domDocument.head.appendChild(this.styleElement);
@@ -280,5 +281,19 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     }
 
 });
+
+var userAgentKnownToSupportBeforeInput = function(){
+    // User agent checks aren't ideal, but Chrome doesn't expose the fact
+    // that it supports the beforeinput event
+    try{
+        var matches = navigator.userAgent.match(/Chrome\/(\d+)/);
+        if (matches !== null){
+            return parseInt(matches[1]) >= 88;
+        }
+    }catch (e){
+        logger(e);
+    }
+    return false;
+};
 
 })();
