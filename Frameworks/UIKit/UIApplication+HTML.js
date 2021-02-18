@@ -87,6 +87,8 @@ UIApplication.definePropertiesFromExtensions({
         if (this.delegate.applicationShouldWarnBeforeExit && this.delegate.applicationShouldWarnBeforeExit(this)){
             e.preventDefault();
             e.returnValue = "";
+        }else{
+            this.windowServer.stop(true);
         }
     },
 

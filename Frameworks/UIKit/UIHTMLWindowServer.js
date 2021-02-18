@@ -256,8 +256,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this[e.type](e);
     },
 
-    stop: function(){
-        UIHTMLWindowServer.$super.stop.call(this);
+    stop: function(graceful){
+        UIHTMLWindowServer.$super.stop.call(this, graceful);
         this.removeEventListeners();
         this.removeMediaListeners();
         this.stopObservingAccessibilityNotifications();
