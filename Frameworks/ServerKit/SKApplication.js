@@ -15,6 +15,7 @@
 
 // #import Foundation
 // #import "SKSecrets.js"
+// #import "SKSecretsEnvironmentProvider.js"
 'use strict';
 
 (function(){

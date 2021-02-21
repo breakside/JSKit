@@ -221,7 +221,7 @@ JSClass("Builder", JSObject, {
         await project.load();
         var args = {};
         var builder = FrameworkBuilder.initWithProject(project, args);
-        builder.debug = this.debug || this.bundleType == 'node' || this.bundleType == 'tests';
+        builder.debug = this.debug || this.bundleType == 'node' || this.bundleType == 'tests' || this.bundleType == 'api';
         builder.printer = this.printer;
         builder.buildsRootURL = this.buildsRootURL;
         builder.workingDirectoryURL = this.workingDirectoryURL;

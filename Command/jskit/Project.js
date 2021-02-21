@@ -91,6 +91,14 @@ JSClass("Project", JSObject, {
             roots = roots.concat(resourceImportPaths);
         }else if (this.info.JSBundleType == 'tests'){
             await this._recursivelyAddAnyJavascriptInDirectory(this.url, roots);
+        }else if (this.info.JSBundleType == "api"){
+            if (this.info.APIResponder){
+                roots.push(this.info.APIResponder + ".js");
+            }
+            await this.loadResources();
+            await this.loadIncludeDirectoryURLs();
+            resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
+            roots = roots.concat(resourceImportPaths);
         }
         var envRoots = this.info.JSBundleEnvironments;
         if (envRoots && envs){
@@ -186,6 +194,9 @@ JSClass("Project", JSObject, {
             return {path: this.info.EntryPoint || this.name + '.js', fn: null};
         }
         if (this.info.JSBundleType == 'tests'){
+            return null;
+        }
+        if (this.info.JSBundleType == "api"){
             return null;
         }
         return {
