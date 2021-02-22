@@ -39,7 +39,7 @@ JSClass("UIMenuTests", TKTestSuite, {
     },
 
     setup: function(){
-        this.app = UIMockApplication.init();
+        this.app = UIMockApplication.initEmpty();
         this.windowServer = this.app.windowServer;
         this.baseWindow = UIRootWindow.initWithApplication(this.app);
         this.baseWindow.contentView = UIView.init();

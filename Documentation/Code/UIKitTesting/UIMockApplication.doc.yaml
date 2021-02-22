@@ -1,0 +1,82 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: class
+inherits: UIApplication
+summary: A mock application for `UIKit` testing
+description: |
+  Typically you'll create and start a `UIMockApplication` in your test's
+  `setup()`(TKTestSuite.setup) method, and then stop it in your test's
+  `teardown()` method.
+
+  ````
+  // #import Messages
+  // #import TestKit
+  // #import UIKitTesting
+  'use strict';
+
+  JSClass("MessagesViewControllerTests", TKTestSuite, {
+
+      application: null,
+      window: null,
+
+      setup: async function(){
+          // Create a mock application using your app's information (mainBundle)
+          this.application = UIMockApplication.init();
+
+          // Start the application
+          // Note: For a mock application this will not result in your
+          // ApplicationDelegate.applicationDidFinishLaunching() being called.
+          await this.application.run();
+
+          // Since your app delegate isn't called, your intial windows are not
+          // created, leavining each test free to setup its own window
+          this.window = UIWindow.init();
+          this.window.makeKeyAndOrderFront();
+      },
+
+      teardown: async function(){
+          // An application must be stopped or else subsequent tests might not
+          // run correctly
+          await this.application.stop();
+          this.application = null;
+      }
+
+  });
+  ````
+topics:
+  - name: Creating a mock Application
+    members:
+      - name: init
+        kind: init
+        summary: Create an application that uses your application's main bundle
+  - name: Setup and Teardown
+    members:
+      - name: run
+        kind: method
+        summary: Start an application
+        description: |
+          Call in your test's `setup`(TKTestSuite.setup) method
+      - name: stop
+        kind: method
+        summary: Stop an application
+        description: |
+          Call in your test's `teardown`(TKTestSuite.setup) method
+        important: |
+          If you don't call `stop()`, subsequent tests may not run properly
+  - name: Display Updates
+    members:
+      - name: updateDisplay
+        kind: method
+        summary: Update drawing and layouts for views and layers
+      - name: updateDisplay
+        suffix: delta
+        kind: method
+        summary: Update drawing and layouts for views and layers at a precice time
+          interval from the previous update
+        arguments:
+          - name: intervalFromPreviousUpdate
+            type: JSTimeInterval
+            summary: A specific interval since the previous update
+        description: |
+          Using a specific time interval aides in testing things like animations,
+          allowing you to set the display time to exactly what you want.

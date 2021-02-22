@@ -38,10 +38,9 @@ JSClass("MockLayer", JSObject, {
 JSClass("UIApplicationTests", TKTestSuite, {
 
     app: null,
-    windowServer: null,
 
     setup: function(){
-        this.windowServer = UIMockWindowServer.init();
+        var windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {},});
         this.app = UIApplication.initWithBundle(bundle, this.windowServer);
         JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
@@ -97,23 +96,23 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var window2 = UIWindow.initWithApplication(this.app);
         TKAssertEquals(this.app.windows.length, 0);
         window1.open();
-        this.windowServer.displayServer.updateDisplay(1);
+        this.app.updateDisplay();
         TKAssertEquals(this.app.windows.length, 1);
         window2.open();
-        this.windowServer.displayServer.updateDisplay(1.1);
+        this.app.updateDisplay();
         TKAssertEquals(this.app.windows.length, 2);
         window2.close();
-        this.windowServer.displayServer.updateDisplay(1.2);
+        this.app.updateDisplay();
         TKAssertEquals(this.app.windows.length, 1);
         window1.close();
-        this.windowServer.displayServer.updateDisplay(1.3);
+        this.app.updateDisplay();
         TKAssertEquals(this.app.windows.length, 0);
     },
 
     testKeyWindow: function(){
         var window1 = UIWindow.initWithApplication(this.app);
         window1.makeKeyAndOrderFront();
-        this.windowServer.displayServer.updateDisplay(1);
+        this.app.updateDisplay();
         TKAssertNotNull(this.app.keyWindow);
         TKAssertExactEquals(this.app.keyWindow, window1);
     },
@@ -122,7 +121,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var window1 = UIWindow.initWithApplication(this.app);
         window1.open();
         window1.makeMain();
-        this.windowServer.displayServer.updateDisplay(1);
+        this.app.updateDisplay();
         TKAssertNotNull(this.app.mainWindow);
         TKAssertExactEquals(this.app.mainWindow, window1);
     },
@@ -178,7 +177,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var lastSender = null;
         var window1 = UIWindow.initWithApplication(this.app);
         window1.makeKeyAndOrderFront();
-        this.windowServer.displayServer.updateDisplay(1);
+        this.app.updateDisplay();
         var viewClass = UIView.$extend({
             canBecomeFirstResponder: function(){
                 return true;

@@ -21,6 +21,10 @@
 JSClass("UIMockApplication", UIApplication, {
 
     init: function(){
+        this.initWithBundle(JSBundle.mainBundle);
+    },
+
+    initEmpty: function(){
         var bundle = JSBundle.initWithDictionary({Info: {}});
         this.initWithBundle(bundle);
         JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
@@ -50,6 +54,16 @@ JSClass("UIMockApplication", UIApplication, {
 
     deinit: function(){
         UIMockApplication.$super.deinit.call(this);
+    },
+
+    displayTime: 0,
+
+    updateDisplay: function(dt){
+        if (dt === undefined){
+            dt = 1;
+        }
+        this.displayTime += dt;
+        this.windowServer.displayServer.updateDisplay(this.displayTime);
     }
 
 });

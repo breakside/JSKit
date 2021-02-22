@@ -21,7 +21,7 @@
 JSClass("UIResponderTests", TKTestSuite, {
 
     setup: function(){
-        this.application = UIMockApplication.init();
+        this.application = UIMockApplication.initEmpty();
     },
 
     teardown: function(){

@@ -20,13 +20,11 @@
 
 JSClass("UIOutlineViewTests", TKTestSuite, {
 
-    windowServer: null,
     app: null,
     window: null,
 
     setup: function(){
-        this.app = UIMockApplication.init();
-        this.windowServer = this.app.windowServer;
+        this.app = UIMockApplication.initEmpty();
         this.window = UIRootWindow.initWithApplication(this.app);
         this.window.makeKeyAndOrderFront();
     },
@@ -34,7 +32,6 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
     teardown: function(){
         this.app.deinit();
         this.app = null;
-        this.windowServer = null;
         this.window = null;
     },
 
@@ -124,9 +121,9 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
         outlineView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
 
         var iterator = outlineView._indexPathIteratorForSection(0);
         TKAssertNotNull(iterator.indexPath);
@@ -269,7 +266,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         outlineView.reloadData();
         TKAssert(outlineView.layer.needsLayout());
@@ -277,7 +274,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 0);
         TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView[0].outlineView, outlineView);
@@ -416,7 +413,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         outlineView.reloadData();
         TKAssert(outlineView.layer.needsLayout());
@@ -424,7 +421,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 0);
         TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updatedDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView[0].outlineView, outlineView);

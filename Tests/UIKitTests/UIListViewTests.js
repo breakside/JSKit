@@ -20,13 +20,11 @@
 
 JSClass("UIListViewTests", TKTestSuite, {
 
-    windowServer: null,
     app: null,
     window: null,
 
     setup: function(){
-        this.app = UIMockApplication.init();
-        this.windowServer = this.app.windowServer;
+        this.app = UIMockApplication.initEmpty();
         this.window = UIRootWindow.initWithApplication(this.app);
         this.window.makeKeyAndOrderFront();
     },
@@ -34,7 +32,6 @@ JSClass("UIListViewTests", TKTestSuite, {
     teardown: function(){
         this.app.deinit();
         this.app = null;
-        this.windowServer = null;
         this.window = null;
     },
 
@@ -96,14 +93,14 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         listView.reloadData();
         TKAssert(listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
@@ -175,14 +172,14 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         listView.reloadData();
         TKAssert(listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
@@ -273,14 +270,14 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         listView.reloadData();
         TKAssert(listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
@@ -377,14 +374,14 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         listView.reloadData();
         TKAssert(listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
         TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
 
         var indexPaths = listView.visibleIndexPaths;
@@ -436,9 +433,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
 
         var rect = listView.rectForCellAtIndexPath(JSIndexPath(0, 0));
         TKAssertObjectEquals(rect, JSRect(0, 0, 300, 40));
@@ -517,9 +514,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
 
         // 50
         // 60
@@ -543,7 +540,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertEquals(listView.contentSize.height, 440);
 
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssertEquals(listView.contentSize.height, 360);
         listView.contentOffset = JSPoint(0, 340);
         TKAssertEquals(listView.contentOffset.y, 260);
@@ -576,7 +573,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -594,9 +591,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 1));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
         TKAssertNotNull(cell4);
@@ -624,7 +621,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -641,7 +638,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -698,7 +695,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -716,9 +713,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.cover);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
         TKAssertNotNull(cell4);
@@ -746,7 +743,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -763,7 +760,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -820,7 +817,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -838,9 +835,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
         TKAssertNotNull(cell4);
@@ -868,7 +865,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -885,7 +882,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -942,7 +939,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -960,9 +957,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 3));
         TKAssertNotNull(cell4);
@@ -990,7 +987,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1007,7 +1004,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1064,7 +1061,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1083,9 +1080,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 2));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -1120,7 +1117,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 320);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1140,7 +1137,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1202,7 +1199,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1221,9 +1218,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.cover);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -1258,7 +1255,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 320);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1278,7 +1275,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1340,7 +1337,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1359,9 +1356,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.push);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -1396,7 +1393,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 320);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1416,7 +1413,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1478,7 +1475,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1497,9 +1494,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 2), UIListView.RowAnimation.fold);
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -1534,7 +1531,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 320);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1554,7 +1551,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1616,7 +1613,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1635,9 +1632,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 2));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -1672,7 +1669,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 320);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 0);
@@ -1692,7 +1689,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertNull(cell0.indexPath);
@@ -1754,7 +1751,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -1772,9 +1769,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 4));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
         TKAssertObjectEquals(cell1.indexPath, JSIndexPath(0, 1));
         TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 2));
@@ -1793,7 +1790,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -1807,7 +1804,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 0);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -1861,9 +1858,9 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
         listView.contentOffset = JSPoint(0, 100);
-        this.windowServer.displayServer.updateDisplay(1.1);
+        this.app.updateDisplay();
         TKAssertFloatEquals(listView.contentView.layer.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.bounds.origin.y, 100);
 
@@ -1885,10 +1882,10 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 1));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
 
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
         TKAssertObjectEquals(cell3.indexPath, JSIndexPath(0, 2));
         TKAssertObjectEquals(cell4.indexPath, JSIndexPath(0, 3));
@@ -1907,7 +1904,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 360);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
@@ -1921,7 +1918,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 80);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell2.indexPath, JSIndexPath(0, 1));
@@ -1975,7 +1972,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         listView.scrollToRect(JSRect(0, 80, 300, 150));
 
@@ -1998,9 +1995,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 5));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
         var cell6 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -2039,7 +2036,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 240);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2062,7 +2059,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 40);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertObjectEquals(cell0.indexPath, JSIndexPath(0, 0));
@@ -2131,7 +2128,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         listView.scrollToRect(JSRect(0, 160, 300, 150));
 
@@ -2154,9 +2151,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.deleteRowAtIndexPath(JSIndexPath(0, 8));
 
         // first update triggers the list view edit prep
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at start & end
         var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
         var cell3 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -2195,7 +2192,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 240);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell1 moving to the left, all following cells moving up)
         TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
@@ -2218,7 +2215,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 125);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         TKAssertNull(cell5.indexPath);
@@ -2286,7 +2283,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2303,9 +2300,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 1));
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNotNull(cell4);
@@ -2328,7 +2325,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2343,7 +2340,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2393,7 +2390,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2410,9 +2407,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.push);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNotNull(cell4);
@@ -2435,7 +2432,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2450,7 +2447,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell4.layer.presentation.position.y, 40);
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2500,7 +2497,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2517,9 +2514,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.fold);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0.5);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNotNull(cell4);
@@ -2542,7 +2539,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2557,7 +2554,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell4.layer.presentation.position.y, 40);
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2607,7 +2604,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2624,9 +2621,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 1), UIListView.RowAnimation.right);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNotNull(cell4);
@@ -2649,7 +2646,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2664,7 +2661,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell4.layer.presentation.position.y, 60);
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 0.5);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2714,9 +2711,9 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
         listView.contentOffset = JSPoint(0, 100);
-        this.windowServer.displayServer.updateDisplay(1.1);
+        this.app.updateDisplay();
 
         // initial cells
         var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -2733,9 +2730,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 1));
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNull(cell1);
@@ -2753,7 +2750,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
@@ -2767,7 +2764,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 120);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -2817,9 +2814,9 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
         listView.contentOffset = JSPoint(0, 100);
-        this.windowServer.displayServer.updateDisplay(1.1);
+        this.app.updateDisplay();
 
         // initial cells
         var cell2 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -2836,9 +2833,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         numberOfRows = 10;
         listView.insertRowAtIndexPath(JSIndexPath(0, 8));
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell1 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         TKAssertNull(cell1);
@@ -2856,7 +2853,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 400);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell2.layer.presentation.position.x, 150);
@@ -2869,7 +2866,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.position.y, 220);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.x, 0);
         TKAssertFloatEquals(listView.contentView.layer.presentation.bounds.origin.y, 100);
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -2919,7 +2916,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -2939,9 +2936,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.insertRowAtIndexPath(JSIndexPath(0, 3));
         listView.insertRowAtIndexPath(JSIndexPath(0, 4));
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -2978,7 +2975,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 520);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -2997,7 +2994,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
         TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3053,7 +3050,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3073,9 +3070,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.push);
         listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.push);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -3114,7 +3111,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 520);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -3135,7 +3132,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
         TKAssertFloatEquals(cell6.layer.presentation.alpha, 1);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3193,7 +3190,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3213,9 +3210,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.fold);
         listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.fold);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -3254,7 +3251,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 520);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -3275,7 +3272,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.alpha, 0.5);
         TKAssertFloatEquals(cell6.layer.presentation.alpha, 0.5);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3333,7 +3330,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3353,9 +3350,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.insertRowAtIndexPath(JSIndexPath(0, 3), UIListView.RowAnimation.right);
         listView.insertRowAtIndexPath(JSIndexPath(0, 4), UIListView.RowAnimation.right);
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 1));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 2));
@@ -3394,7 +3391,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 520);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -3415,7 +3412,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell5.layer.presentation.alpha, 0.5);
         TKAssertFloatEquals(cell6.layer.presentation.alpha, 0.5);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3473,7 +3470,7 @@ JSClass("UIListViewTests", TKTestSuite, {
 
         this.window.contentView.addSubview(listView);
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay(1.0);
+        this.app.updateDisplay();
 
         // initial cells
         var cell0 = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3491,9 +3488,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         listView.insertRowAtIndexPath(JSIndexPath(0, 0));
         listView.insertRowAtIndexPath(JSIndexPath(0, 3));
 
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay();
         // second update kicks off the animations
-        this.windowServer.displayServer.updateDisplay(2.0);
+        this.app.updateDisplay(0);
         // new visible cell should appear at end
         var cell4 = listView.cellAtIndexPath(JSIndexPath(0, 0));
         var cell5 = listView.cellAtIndexPath(JSIndexPath(0, 3));
@@ -3522,7 +3519,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(listView.contentSize.width, 300);
         TKAssertFloatEquals(listView.contentSize.height, 440);
 
-        this.windowServer.displayServer.updateDisplay(2.5);
+        this.app.updateDisplay(0.5);
         // cells should be mid-animation
         // (cell4 moving and everything following pushing down)
         TKAssertFloatEquals(cell0.layer.presentation.position.x, 150);
@@ -3540,7 +3537,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertFloatEquals(cell4.layer.presentation.alpha, 1);
         TKAssertFloatEquals(cell5.layer.presentation.alpha, 1);
 
-        this.windowServer.displayServer.updateDisplay(3.0);
+        this.app.updateDisplay(0.5);
 
         // final positions
         var cell = listView.cellAtIndexPath(JSIndexPath(0, 0));
@@ -3624,7 +3621,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         listView.reloadData();
         TKAssert(listView.layer.needsLayout());
@@ -3632,7 +3629,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
         TKAssertExactEquals(calls.headerViewForListViewSection.length, 0);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         TKAssert(!listView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
@@ -3870,9 +3867,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
 
         listView.selectedIndexPaths = [
             JSIndexPath(0, 0),
@@ -3910,7 +3907,7 @@ JSClass("UIListViewTests", TKTestSuite, {
         ], UIListView.RowAnimation.none);
         sections[0] += 3;
         sections[2] += 1;
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         var selected = listView.selectedIndexPaths;
         TKAssertEquals(selected.length, 6);
         TKAssertObjectEquals(selected[0], JSIndexPath(0, 0));
@@ -3942,9 +3939,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
 
         listView.selectedIndexPaths = [
             JSIndexPath(0, 3),
@@ -3954,7 +3951,7 @@ JSClass("UIListViewTests", TKTestSuite, {
             JSIndexPath(0,3)
         ], UIListView.RowAnimation.none);
         sections[0] += 1;
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         selected = listView.selectedIndexPaths;
         TKAssertEquals(selected.length, 1);
         TKAssertObjectEquals(selected[0], JSIndexPath(0, 4));
@@ -3980,9 +3977,9 @@ JSClass("UIListViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(listView);
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         listView.reloadData();
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
 
         listView.selectedIndexPaths = [
             JSIndexPath(0, 3),
@@ -3992,7 +3989,7 @@ JSClass("UIListViewTests", TKTestSuite, {
             JSIndexPath(0,2)
         ], UIListView.RowAnimation.none);
         sections[0] += 1;
-        this.windowServer.displayServer.updateDisplay();
+        this.app.updateDisplay();
         selected = listView.selectedIndexPaths;
         TKAssertEquals(selected.length, 1);
         TKAssertObjectEquals(selected[0], JSIndexPath(0, 2));

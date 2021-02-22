@@ -1,0 +1,62 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: framework
+summary: Mock classes for testing `UIKit`-based applications
+codeURL: Frameworks/UIKitTesting/
+description: |
+  `UIKitTesting` is designed to provide a way of testing `UIKit`
+  applications without actually running in a browser.
+
+  Essentially, the tests use a mock `UIApplication` subclass that doesn't need a
+  browser environment to run.
+
+  All of your UI code runs exactly as it would in a browser, it just isn't drawn
+  to a DOM document.
+
+  ````
+  // #import Messages
+  // #import TestKit
+  // #import UIKitTesting
+  'use strict';
+
+  JSClass("MessagesViewControllerTests", TKTestSuite, {
+
+      application: null,
+      window: null,
+
+      setup: async function(){
+          // Create a mock application using your app's information (mainBundle)
+          this.application = UIMockApplication.init();
+
+          // Start the application
+          // Note: For a mock application this will not result in your
+          // ApplicationDelegate.applicationDidFinishLaunching() being called.
+          await this.application.run();
+
+          // Since your app delegate isn't called, your intial windows are not
+          // created, leavining each test free to setup its own window
+          this.window = UIWindow.init();
+          this.window.makeKeyAndOrderFront();
+      },
+
+      teardown: async function(){
+          // An application must be stopped or else subsequent tests might not
+          // run correctly
+          await this.application.stop();
+          this.application = null;
+      },
+
+      testInitWithSpec: function(){
+          var viewController = MessagesViewController.initWithSpecName("MessageViewController");
+          TKAssertNotNull(viewController);
+          window.contentViewController = viewController;
+          // ... test anything you need in viewController
+      }
+
+  });
+  ````
+
+topics:
+  - name: Mock Classes
+    members:
+      - UIMockApplication
