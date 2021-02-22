@@ -121,9 +121,9 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
         outlineView.reloadData();
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
 
         var iterator = outlineView._indexPathIteratorForSection(0);
         TKAssertNotNull(iterator.indexPath);
@@ -266,7 +266,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         outlineView.reloadData();
         TKAssert(outlineView.layer.needsLayout());
@@ -274,7 +274,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 0);
         TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView[0].outlineView, outlineView);
@@ -413,7 +413,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         };
 
         this.window.contentView.addSubview(outlineView);
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         outlineView.reloadData();
         TKAssert(outlineView.layer.needsLayout());
@@ -421,7 +421,7 @@ JSClass("UIOutlineViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.outlineViewIsExandableAtIndexPath.length, 0);
         TKAssertExactEquals(calls.outlineViewNumberOfChildrenAtIndexPath.length, 0);
         TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
-        this.app.updatedDisplay();
+        this.app.updateDisplay();
         TKAssert(!outlineView.layer.needsLayout());
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView.length, 1);
         TKAssertExactEquals(calls.numberOfSectionsInOutlineView[0].outlineView, outlineView);

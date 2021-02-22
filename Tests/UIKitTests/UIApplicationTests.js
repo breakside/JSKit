@@ -42,7 +42,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
     setup: function(){
         var windowServer = UIMockWindowServer.init();
         var bundle = JSBundle.initWithDictionary({Info: {},});
-        this.app = UIApplication.initWithBundle(bundle, this.windowServer);
+        this.app = UIApplication.initWithBundle(bundle, windowServer);
         JSFont.registerSystemFontDescriptor(UIMockFontDescriptor.init());
     },
 
@@ -96,23 +96,23 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var window2 = UIWindow.initWithApplication(this.app);
         TKAssertEquals(this.app.windows.length, 0);
         window1.open();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertEquals(this.app.windows.length, 1);
         window2.open();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertEquals(this.app.windows.length, 2);
         window2.close();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertEquals(this.app.windows.length, 1);
         window1.close();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertEquals(this.app.windows.length, 0);
     },
 
     testKeyWindow: function(){
         var window1 = UIWindow.initWithApplication(this.app);
         window1.makeKeyAndOrderFront();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertNotNull(this.app.keyWindow);
         TKAssertExactEquals(this.app.keyWindow, window1);
     },
@@ -121,7 +121,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var window1 = UIWindow.initWithApplication(this.app);
         window1.open();
         window1.makeMain();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         TKAssertNotNull(this.app.mainWindow);
         TKAssertExactEquals(this.app.mainWindow, window1);
     },
@@ -177,7 +177,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
         var lastSender = null;
         var window1 = UIWindow.initWithApplication(this.app);
         window1.makeKeyAndOrderFront();
-        this.app.updateDisplay();
+        this.app.windowServer.displayServer.updateDisplay();
         var viewClass = UIView.$extend({
             canBecomeFirstResponder: function(){
                 return true;
