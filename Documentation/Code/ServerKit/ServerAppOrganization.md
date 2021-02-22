@@ -3,9 +3,6 @@ Creating a Node-based SKApplication
 
 *Throughout this document, we'll use the example of a Messages application.*
 
-Using the `jskit` command line utilty, a server-based application is created
-with the `jskit add`(jskit.add) subcommand.
-
 The first step is to create a workspace for your application's various
 projects.  Even this simplest server application has two projects: the `ServerKit`
 app itself and a companion `TestKit` project.

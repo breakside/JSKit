@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "../ServerKit/SKValidatingObject.js"
+// #import "SKValidatingObject.js"
 "use strict";
 
 JSGlobalObject.APIValidatingObject = SKValidatingObject;

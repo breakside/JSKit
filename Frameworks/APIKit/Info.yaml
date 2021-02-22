@@ -1,10 +1,10 @@
 JSBundleType: framework
 JSBundleIdentifier: io.breakside.JSKit.APIKit
-JSBundleVersion: 2021.7.3
+JSBundleVersion: 2021.8.0
 JSDevelopmentLanguage: en
 JSCopyright: Copyright © 2020 Breakside Inc.
-JSBundleEnvironments:
-   awslambda: APIKit+Lambda.js
+JSIncludeDirectories:
+   - ../ServerKit
 JSLicenseNotice: |
    Licensed under the Breakside Public License, Version 1.0 (the "License");
    you may not use this file except in compliance with the License.

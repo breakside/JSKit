@@ -1,0 +1,6 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: APIKit Project Organization
+kind: document
+summary: An overview of how the files and folders of a node-based
+  \`APIKit` project are organized
+description: APIProjectOrganization.md

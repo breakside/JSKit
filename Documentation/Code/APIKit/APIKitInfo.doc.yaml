@@ -1,0 +1,82 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: APIKit Info
+introduced: 2021.8.0
+kind: dictionary
+summary: A file of api properties
+description: |
+  The api's `Info` file is a YAML or JSON dictionary that contains
+  properties instructing the handler on how to initialize.
+
+  The file should be named either `Info.yaml` or `Info.json` and placed at the
+  root of the application's project.
+
+  Among other things, the `Info` file
+  - Indicates the api type
+  - Uniquely identifies the api
+  - Lists the api version
+  - Points to the `APIResponder`
+  - Lists possible `APISecrets`
+topics:
+  -
+    name: Identification
+    members:
+      -
+        name: JSBundleType
+        type: String
+        summary: The type of project
+        description: |
+          Must be `api`
+      -
+        name: JSBundleIdentifier
+        type: String
+        summary: The globally unique identifier for the application
+        description: |
+          A bundle identifier should be globally unique, so the use of a
+          reverse-domain syntax is strongly encouraged.
+
+          For example, the identifier for this documentation viewer is
+          ````
+          io.breakside.JSKit.DocViewer
+          ````
+      -
+        name: JSBundleVersion
+        type: String
+        summary: A series of dot-separated integers representing the
+          applications current production version
+        description: |
+          The version number is used by the build system for such things as
+          tagging the Docker image, so it's important to keep the number
+          up to date when building production builds.
+
+          While no exact convention is defined, we recommend using a
+          Major.Minor.Bufix style version number.
+  -
+    name: API Responder
+    members:
+      -
+        name: APIResponder
+        type: String
+        summary: The name of a class that should be instantiated as the
+          \`APIResponder`(APIKit.APIResponder) subclass for handling the request
+        description: |
+          An api is required to have a responder that subclasses
+          `APIResponder`(APIKit.APIResponder).
+
+          When specified as a class name here, the api handler will
+          instantiate an object of that class to act the responder.
+  -
+    name: API Secrets
+    members:
+      -
+        name: APISecrets
+        type: String[]
+        summary: A list of names corresponding to properties that will be created
+          on the responder's `secrets`(APIKit.APIResponder.secrets) member.
+  -
+    name: Language Support
+    members:
+      -
+        name: JSDevelopmentLanguage
+        type: String
+        summary: A language identifier that will be used as a final option
+          if none of the user's preferred languages are supported by the app.

@@ -1,6 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 introduced: 2020.1.0
 kind: framework
+environment: node
 summary: A platform for HTTP based server applications
 codeURL: Frameworks/ServerKit/
 description: |

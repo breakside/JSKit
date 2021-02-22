@@ -41,6 +41,7 @@ JSClass("APIBuilder", Builder, {
     resourcesURL: null,
     frameworksURL: null,
     apiURL: null,
+    zipPaths: null,
 
     setup: async function(){
         await APIBuilder.$super.setup.call(this);
@@ -64,6 +65,13 @@ JSClass("APIBuilder", Builder, {
         await this.fileManager.createDirectoryAtURL(this.resourcesURL);
         await this.fileManager.createDirectoryAtURL(this.frameworksURL);
         await this.fileManager.createDirectoryAtURL(this.apiURL);
+        this.zipPaths = [
+            this.resourcesURL.lastPathComponent,
+            this.frameworksURL.lastPathComponent,
+            this.apiURL.lastPathComponent
+        ];
+        this.project.info.APIService = this.arguments.service;
+        this.shouldTag = false;
     },
 
     build: async function(){
@@ -78,7 +86,11 @@ JSClass("APIBuilder", Builder, {
                 await this.buildAWSLambda();
                 break;
         }
+        await this.bundleDependencies();
         await this.bundleInfo();
+        if (!this.debug){
+            await this.zipBundle();
+        }
         await this.finish();
     },
 
@@ -97,7 +109,7 @@ JSClass("APIBuilder", Builder, {
     },
 
     bundleFrameworks: async function(){
-        var frameworks = await this.buildFrameworks(this.imports.frameworks, ["node", this.arguments.service]);
+        var frameworks = await this.buildFrameworks(this.imports.frameworks, "node");
         for (let i = 0, l = frameworks.length; i < l; ++i){
             let framework = frameworks[i];
             if (framework.url){
@@ -186,7 +198,7 @@ JSClass("APIBuilder", Builder, {
         if (isMain){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
             js += 'var path = require("path");\n';
-            js += 'JSBundle.nodeRootPath = path.dirname(__filename);\n';
+            js += 'JSBundle.nodeRootPath = path.dirname(path.dirname(__filename));\n';
         }
         var jsURL = parentURL.appendingPathComponent("%s-bundle.js".sprintf(info.JSBundleIdentifier));
         await this.fileManager.createFileAtURL(jsURL, js.utf8());
@@ -225,7 +237,7 @@ JSClass("APIBuilder", Builder, {
             lines.push('require("./%s");'.sprintf(path));
         }
         lines.push("exports.handler = async (event) => {");
-        lines.push("  return await APILambda(event)");
+        lines.push("  return await APILambda(event);");
         lines.push("};");
         var index = lines.join("\n").utf8();
         await this.fileManager.createFileAtURL(indexURL, index);
@@ -235,6 +247,70 @@ JSClass("APIBuilder", Builder, {
         if (this.debug){
             this.commands.push("node --inspect-brk " + localPath);
         }
+        this.zipPaths.push(indexURL.lastPathComponent);
+    },
+
+    bundleDependencies: async function(){
+        var packageURL = this.project.url.appendingPathComponent("package.json");
+        var exists = await this.fileManager.itemExistsAtURL(packageURL);
+        if (!exists){
+            return;
+        }
+        var toURL = this.bundleURL.appendingPathComponent("package.json");
+        await this.fileManager.copyItemAtURL(packageURL, toURL);
+
+        const { spawn } = require('child_process');
+        var cwd = this.fileManager.pathForURL(this.bundleURL);
+        var args = ["install"];
+        var npm = spawn("npm", args, {cwd: cwd});
+        var err = "";
+        var builder = this;
+        npm.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+        return new Promise(function(resolve, reject){
+            npm.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Failed to install dependencies\n" + err));
+                    return;
+                }
+                resolve();
+            });
+            npm.on('error',function(){
+                builder.printer.print("Warning: npm not available, skipping bundle archive\n");
+                resolve();
+            });
+        });
+    },
+
+    zipBundle: async function(){
+        const { spawn } = require('child_process');
+        var cwd = this.fileManager.pathForURL(this.bundleURL);
+        var path = "%s.zip".sprintf(cwd.substr(0, cwd.length - 1));
+        var args = ["-r", path].concat(this.zipPaths);
+        var zip = spawn("zip", args, {cwd: cwd});
+        var err = "";
+        var builder = this;
+        zip.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+        return new Promise(function(resolve, reject){
+            zip.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Failed to zip api bundle\n" + err));
+                    return;
+                }
+                resolve();
+            });
+            zip.on('error',function(){
+                builder.printer.print("Warning: zip not available, skipping bundle archive\n");
+                resolve();
+            });
+        });
     }
 
 });

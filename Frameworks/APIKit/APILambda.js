@@ -35,12 +35,13 @@ JSGlobalObject.APILambda = async function(event){
         }
         let secrets = APISecrets.initWithNames(this.bundle.info.APISecrets || []);
         secrets.addProvider(APISecretsEnvironmentProvider.initWithEnvironment(JSEnvironment.current));
+        let pathParameters = event.pathParameters || {};
         let request = APIRequest.initFromLambdaEvent(event);
-        let responder = responderClass.initWithRequest(request, response, secrets);
-        var method = responder.methodForRequestMethod(request.method);
+        let responder = responderClass.initWithRequest(request, response, pathParameters, secrets);
+        var method = responder.objectMethodForRequestMethod(request.method);
         if (typeof(method) == 'function'){
             await responder.prepare();
-            let obj = await method.call(responder, request, response);
+            let obj = await method.call(responder);
             if (obj !== null && obj !== undefined){
                 response.object = obj;
             }

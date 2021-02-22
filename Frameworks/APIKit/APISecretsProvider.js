@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "../ServerKit/SKSecretsProvider.js"
+// #import "SKSecretsProvider.js"
 'use strict';
 
 JSGlobalObject.APISecretsProvider = SKSecretsProvider;

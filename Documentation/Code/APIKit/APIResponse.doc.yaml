@@ -1,0 +1,136 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: class
+inherits: JSObject
+summary: Represents an HTTP response from an API to a client
+description: |
+  Responses are typically created by api handler intialization process and then
+  populated by an `APIResponder`
+topics:
+  - name: Status
+    members:
+      - name: StatusCode
+        kind: enum
+        suffix: enum
+        summary: The possible HTTP status codes
+        topics:
+          - name: Options
+            members:
+              - name: unknown
+                value: "-1"
+              - name: noResponse
+                value: "0"
+              - name: continue
+                value: "100"
+              - name: switchingProtocols
+                value: "101"
+              - name: ok
+                value: "200"
+              - name: created
+                value: "201"
+              - name: accepted
+                value: "202"
+              - name: nonAuthorativeInformation
+                value: "203"
+              - name: noContent
+                value: "204"
+              - name: resetContent
+                value: "205"
+              - name: partialContent
+                value: "206"
+              - name: multipleChoices
+                value: "300"
+              - name: movedPermanently
+                value: "301"
+              - name: found
+                value: "302"
+              - name: seeOther
+                value: "303"
+              - name: notModified
+                value: "304"
+              - name: useProxy
+                value: "305"
+              - name: temporaryRedirect
+                value: "306"
+              - name: badRequest
+                value: "400"
+              - name: unauthorized
+                value: "401"
+              - name: paymentRequired
+                value: "402"
+              - name: forbidden
+                value: "403"
+              - name: notFound
+                value: "404"
+              - name: methodNotAllowed
+                value: "405"
+              - name: notAcceptable
+                value: "406"
+              - name: proxyAuthenticationRequired
+                value: "407"
+              - name: requestTimeout
+                value: "408"
+              - name: conflict
+                value: "409"
+              - name: gone
+                value: "410"
+              - name: lengthRequired
+                value: "411"
+              - name: preconditionFailed
+                value: "412"
+              - name: payloadTooLarge
+                value: "413"
+              - name: uriTooLong
+                value: "414"
+              - name: unsupportedMediaType
+                value: "415"
+              - name: rangeNotSatisfiable
+                value: "416"
+              - name: expectationFailed
+                value: "417"
+              - name: upgradeRequired
+                value: "426"
+              - name: internalServerError
+                value: "500"
+              - name: notImplemented
+                value: "501"
+              - name: badGateway
+                value: "502"
+              - name: serviceUnavailable
+                value: "503"
+              - name: gatewayTimeout
+                value: "504"
+              - name: httpVersionNotSupported
+                value: "505"
+      - name: statusCode
+        type: StatusCode
+        summary: The status code for the response
+      - name: headerMap
+        type: JSMimeHeaderMap
+        summary: The headers for this response
+  - name: Response Body
+    members:
+      - name: data
+        type: JSData
+        summary: The respone body bytes
+      - name: object
+        type: dictionary
+        summary: A JSON-encodable object
+        description: |
+          Automatically sets the response `contentType` to `"application/json; charset=utf-8"`(),
+          and the response `data` to the UTF-8 encoded JSON serialization of the
+          given object.
+      - name: contentType
+        type: String
+        summary: The content type of the response body
+      - name: conentLength
+        type: Number
+        summary: The content length of the response body
+  - name: Caching
+    members:
+      - name: etag
+        type: String
+        summary: The unique identifier of the resource for caching purposes
+      - name: lastModified
+        type: JSDate
+        summary: The last modified time of the resource for caching purposes
