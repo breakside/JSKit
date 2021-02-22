@@ -1,98 +1,79 @@
 copyright: Copyright © 2020 Breakside Inc.
-introduced: 2020.1.0
+introduced: 2021.8.0
 kind: class
 inherits: JSObject
-summary: Represents an HTTP request from a client to an `HTTPServer`
+summary: Represents an HTTP request from a client to an API
 description: |
-  Requests are typically created by the internals of `HTTPServer` and then
-  handed to a `SKHTTPResponder` for inspection.
+  Requests are created by the api handler initializstion process and then
+  handed to an `APIResponder` for inspection.
 topics:
-  -
-    name: Request Info
+  - name: Request Info
     members:
-      -
-        name: url
+      - name: url
         type: JSURL
         summary: The URL of the request
         note: If no `"Host"` header was sent, this url will not contain
           host or scheme values.
         see:
           - origin
-      -
-        name: method
+      - name: method
         type: String
         summary: The method of the request
         description: |
-          `SKHTTPServer` automatically matches the request's method to
-          a matching method on the `SKHTTPResponder` instance.
-      -
-        name: headerMap
+          The api handler automatically matches the request's method to
+          a matching method on the `APIResponder` instance.
+      - name: headerMap
         type: JSMIMEHeaderMap
         summary: The headers included in the request
-      -
-        name: origin
+      - name: origin
         type: String
         nullable: true
         summary: The value of the `"Origin"` header in the request
-      -
-        introduced: 2020.28.0
-        name: tag
-        type: String
-        summary: A short unique identifier useful for tracking a request when logging
-      -
-        introduced: 2020.28.0
-        name: receivedAt
+      - name: receivedAt
         type: JSDate
         summary: The timestamp when the request was received
   -
     name: Request Body
     members:
-      -
-        name: contentType
+      - name: contentType
         type: JSMediaType
         summary: The content type of the request body
-      -
-        name: getValidObject
+      - name: getValidObject
         kind: method
         summary: Get an instance of the given class created with
           \`initWithValidatingObject()`
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
-          -
-            name: completion
+              the `APIValidatingConstruction` protocol.
+          - name: completion
             type:
               arguments:
-                -
-                  name: error
-                  type: SKValidatingObject.Error
+                - name: error
+                  type: APIValidatingObject.Error
                   nullable: true
                   summary: The error, if the object could not be validated
-                -
-                  name: valid
+                - name: valid
                   type: JSObject
                   mullable: true
                   summary: The fully validated object, after being constructed
-                    with the `SKValidatingObject` protocol's
+                    with the `APIValidatingObject` protocol's
                     `initWithValidatingObject()`
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidObject()` is the recommended way to create objects from user
           input in a request.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidObject(CommentRequest);
@@ -118,32 +99,30 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        name: getValidObject
+      - name: getValidObject
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidating
+            type: APIValidating
             summary: An instance of the given class
         summary: Get an instance of the given class created with
           \`initWithValidatingObject()`, returned via a promise
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
+              the `APIValidatingConstruction` protocol.
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidObject()` is the recommended way to create objects from user
           input in a request.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidObject(CommentRequest);
@@ -169,49 +148,42 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        introduced: 2020.28.0
-        name: getValidForm
+      - name: getValidForm
         kind: method
         summary: Get an instance of the given class created from a form body with
           \`initWithValidatingObject()`
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
-          -
-            name: completion
+              the `APIValidatingConstruction` protocol.
+          - name: completion
             type:
               arguments:
-                -
-                  name: error
-                  type: SKValidatingObject.Error
+                - name: error
+                  type: APIValidatingObject.Error
                   nullable: true
                   summary: The error, if the object could not be validated
-                -
-                  name: valid
+                - name: valid
                   type: JSObject
                   mullable: true
                   summary: The fully validated object, after being constructed
-                    with the `SKValidatingObject` protocol's
+                    with the `APIValidatingObject` protocol's
                     `initWithValidatingObject()`
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidForm()` is the recommended way to create objects from user
           input in a form request.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidForm(CommentRequest);
@@ -237,33 +209,30 @@ topics:
 
           1. Content-Type equal to `"application/x-www-form-urlencoded"`
           2. Valid form data
-      -
-        introduced: 2020.28.0
-        name: getValidForm
+      - name: getValidForm
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidating
+            type: APIValidating
             summary: An instance of the given class
         summary: Get an instance of the given class created from a form request with
           \`initWithValidatingObject()`, returned via a promise
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
+              the `APIValidatingConstruction` protocol.
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidForm()` is the recommended way to create objects from user
           input in a form request.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidForm(CommentRequest);
@@ -289,24 +258,20 @@ topics:
 
           1. Content-Type equal to `"application/x-www-form-urlencoded"`
           2. Valid form data
-      -
-        name: getValidatingObject
+      - name: getValidatingObject
         kind: method
         summary: Get the request's body as an validation-wrapped object decoded
           from JSON in a callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
-                -
-                  name: validator
-                  type: SKValidatingObject
+                - name: validator
+                  type: APIValidatingObject
                   mullable: true
                   summary: The request's JSON body decoded into an object and
                     wrapped in a validator
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -316,7 +281,7 @@ topics:
           input while ensuring it meets input validation requirements.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidatingObject();
@@ -336,14 +301,13 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        name: getValidatingObject
+      - name: getValidatingObject
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidatingObject
+            type: APIValidatingObject
             summary: The request's body object wrapped in a validator
         summary: Get the request's body object wrapped in a validator with a promise
         description: |
@@ -351,7 +315,7 @@ topics:
           input while ensuring it meets input validation requirements.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidatingObject();
@@ -371,25 +335,21 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        introduced: 2020.28.0
-        name: getValidatingForm
+      - name: getValidatingForm
         kind: method
         summary: Get the request's body as an validation-wrapped object decoded
           from a form in a callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
                 -
                   name: validator
-                  type: SKValidatingObject
+                  type: APIValidatingObject
                   mullable: true
                   summary: The request's form body decoded into an object and
                     wrapped in a validator
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -399,7 +359,7 @@ topics:
           input while ensuring it meets input validation requirements.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidatingForm();
@@ -419,15 +379,13 @@ topics:
 
           1. Content-Type equal to `"application/x-www-form-urlencoded"`
           2. Valid form data
-      -
-        introduced: 2020.28.0
-        name: getValidatingForm
+      - name: getValidatingForm
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidatingObject
+            type: APIValidatingObject
             summary: The request's body form wrapped in a validator
         summary: Get the request's body form wrapped in a validator with a promise
         description: |
@@ -435,7 +393,7 @@ topics:
           input while ensuring it meets input validation requirements.
 
           ````
-          JSClass("CommentsResponder", SKHTTPResponder, {
+          JSClass("CommentsResponder", APIResponder, {
 
             post: async function(){
               var comment = await this.request.getValidatingForm();
@@ -455,23 +413,19 @@ topics:
 
           1. Content-Type equal to `"application/x-www-form-urlencoded"`
           2. Valid form data
-      -
-        name: getObject
+      - name: getObject
         kind: method
         summary: Get the request's body as an object decoded from JSON in a
           callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
-                -
-                  name: obj
+                - name: obj
                   type: object
                   mullable: true
                   summary: The request's JSON body decoded into an object
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -482,8 +436,7 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        name: getObject
+      - name: getObject
         suffix: promise
         kind: method
         type: Promise
@@ -498,15 +451,12 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        introduced: 2020.28.0
-        name: getForm
+      - name: getForm
         kind: method
         summary: Get the request's body as a JSFormFieldMap in a
           callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
                 -
@@ -514,8 +464,7 @@ topics:
                   type: JSFormFieldMap
                   mullable: true
                   summary: The request's form body
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -526,9 +475,7 @@ topics:
 
           1. Content-Type equal to `"application/x-www-form-urlencoded"`
           2. Valid form data
-      -
-        introduced: 2020.28.0
-        name: getForm
+      - name: getForm
         suffix: promise
         kind: method
         type: Promise
@@ -543,13 +490,11 @@ topics:
 
           1. Content-Type equal to `"application/json; charset=utf-8"`
           2. Valid JSON data
-      -
-        name: getData
+      - name: getData
         kind: method
         summary: Get the request's body data in a callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
                 -
@@ -557,14 +502,12 @@ topics:
                   type: JSData
                   mullable: true
                   summary: The request's data, or `null` if there was an error
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
-      -
-        name: getData
+      - name: getData
         suffix: promise
         kind: method
         type: Promise
@@ -573,92 +516,76 @@ topics:
             type: JSData
             summary: The request's body data
         summary: Get the request's body data with a promise
-  -
-    name: Query String
+  - name: Query String
     members:
-      -
-        introduced: 2020.28.0
-        name: getValidQuery
+      - name: getValidQuery
         kind: method
         summary: Get an instance of the given class created from the request's query string with
           \`initWithValidatingObject()`
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
-          -
-            name: completion
+              the `APIValidatingConstruction` protocol.
+          - name: completion
             type:
               arguments:
-                -
-                  name: error
-                  type: SKValidatingObject.Error
+                - name: error
+                  type: APIValidatingObject.Error
                   nullable: true
                   summary: The error, if the object could not be validated
-                -
-                  name: valid
+                - name: valid
                   type: JSObject
                   mullable: true
                   summary: The fully validated object, after being constructed
-                    with the `SKValidatingObject` protocol's
+                    with the `APIValidatingObject` protocol's
                     `initWithValidatingObject()`
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidQuery()` is the recommended way to create objects from user
           input in a query string.
-      -
-        introduced: 2020.28.0
-        name: getValidQuery
+      - name: getValidQuery
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidating
+            type: APIValidating
             summary: An instance of the given class
         summary: Get an instance of the given class created from the request's query string with
           \`initWithValidatingObject()`, returned via a promise
         arguments:
-          -
-            name: validatingContructionClass
+          - name: validatingContructionClass
             type: JSClass
             summary: The class of object to instantiate.  Must implement
-              the `SKValidatingConstruction` protocol.
+              the `APIValidatingConstruction` protocol.
         description: |
           Creates an instance with all input validated via a
-          `SKValidatingObject` passed to the init method.
+          `APIValidatingObject` passed to the init method.
 
           `getValidQuery()` is the recommended way to create objects from user
           input in a query string.
-      -
-        introduced: 2020.28.0
-        name: getValidatingQuery
+      - name: getValidatingQuery
         kind: method
         summary: Get the request's query string as an validation-wrapped object decoded
           from a form in a callback function
         arguments:
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
-                -
-                  name: validator
-                  type: SKValidatingObject
+                - name: validator
+                  type: APIValidatingObject
                   mullable: true
                   summary: The request's query string decoded into an object and
                     wrapped in a validator
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -670,15 +597,13 @@ topics:
           Unless you need to extract fields at different times, we recommend
           using `getValidQuery()` instead because it validates all the input
           upfront and allows for a more structured pattern to validate input.
-      -
-        introduced: 2020.28.0
-        name: getValidatingQuery
+      - name: getValidatingQuery
         suffix: promise
         kind: method
         type: Promise
         promise:
           resolve:
-            type: SKValidatingObject
+            type: APIValidatingObject
             summary: The request's body query string wrapped in a validator
         summary: Get the request's body query string wrapped in a validator with a promise
         description: |
@@ -688,31 +613,16 @@ topics:
           Unless you need to extract fields at different times, we recommend
           using `getValidQuery()` instead because it validates all the input
           upfront and allows for a more structured pattern to validate input.
-  -
-    name: Response
+  - name: Caching
     members:
-      -
-        name: response
-        type: SKHTTPResponse
-        summary: The response object that will be sent for this request
-      -
-        name: close
-        kind: method
-        summary: Close the client connection immediately
-  -
-    name: Caching
-    members:
-      -
-        name: needsEntity
+      - name: needsEntity
         kind: method
         summary: Check if the client needs a new version of the resource
         arguments:
-          -
-            name: lastModified
+          - name: lastModified
             type: JSDate
             summary: The time the resource was last modified
-          -
-            name: etag
+          - name: etag
             type: String
             summary: The current unique tag for the resource
         description: |

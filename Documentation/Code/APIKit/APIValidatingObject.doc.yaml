@@ -1,0 +1,704 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: class
+inherits: JSObject
+summary: An object wrapper that can return properties after performing input
+  validation on their values
+description: |
+  Used by `APIRequest` to provide user input in a form that can be
+  easily validated.
+
+  `APIValidatingObject` supports type checking, range checking, or any
+  arbitrary validation function you want to provide.
+topics:
+  - name: Creating a Validating Object
+    summary:
+      - name: initWithObject
+        kind: init
+        summary: Wrap the given object so its properties can be validated
+        arguments:
+          - name: object
+            type: dictionary
+            summary: The dictionary to wrap
+      - name: initWithForm
+        kind: init
+        summary: Wrap the given form so its properties can be validated
+        arguments:
+          - name: form
+            type: JSFormFieldMap
+            summary: The form to wrap
+  - name: Validation Errors
+    members:
+      - name: ErrorInfo
+        kind: class
+        anonymous: true
+        topics:
+          - name: Properties
+            members:
+              - name: field
+                type: String
+                summary: The name of the field within the validation context
+              - name: problem
+                type: String
+                summary: The kind of problem encountered
+          - name: Type Problems
+            members:
+              - name: expected
+                type: String
+                nullable: true
+                summary: The expected type, when `problem` is `"type"`
+          - name: Range Problems
+            members:
+              - name: format
+                type: String
+                nullable: true
+                summary: The epected format, when `problem` is `"format"`
+          - name: Range Problems
+            members:
+              - name: min
+                type: Number
+                nullable: true
+                summary: The minimum allowed value, when `problem` is `"range"`,
+                  or the minimum length, when `problem` is `"length"`
+              - name: max
+                type: Number
+                nullable: true
+                summary: The maximum allowed value, when `problem` is `"range"`,
+                  or the maximum length, when `problem` is `"length"`
+              - name: provided
+                type: Number
+                nullable: true
+                summary: The provided value, when `problem` is `"range"`,
+                  or the provided length, when `problem` is `"length"`
+      - name: Error
+        kind: class
+        summary: An error class that is thrown for validation failures
+        description: |
+          If an `APIValidatingObject.Error` is thrown during a request,
+          the `APIServer` will respond with a status code of
+          `APIResponse.StatusCode.badRequest` and a JSON body that
+          includes the error's `message`.
+        topics:
+          - name: Creating an Error
+            members:
+              - name: Error
+                kind: constructor
+                summary: Create a validation error with a message
+                arguments:
+                  - name: info
+                    type: ErrorInfo
+                  - name: message
+                    type: String
+                    default: "undefined"
+                    summary: An otional custom message
+          - name: Properties
+            members:
+              - name: info
+                type: ErrorInfo
+                summary: A structed data description of the error
+              - name: message
+                type: String
+                summary: A developer-readable message
+  - name: String Properties
+    members:
+      - name: stringForKey
+        kind: method
+        type: String
+        summary: Get a string for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a string, an error will be thrown
+      - name: stringForKey
+        suffix: custom
+        kind: method
+        type: String
+        summary: Get a string for the given required key and validate using
+          a custom function
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: validator
+            type:
+              arguments:
+                - name: string
+                  type: String
+                  summary: The string to validate
+            summary: The custom validator function to use
+        description: |
+          If the key is missing or isn't a string, an error will be thrown.
+
+          The custom validator should throw a `APIValidatingObject.Error` for
+          any string that is not valid.
+      - name: stringForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a string for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a string, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: stringForKey
+        suffix: default-custom
+        kind: method
+        type: String
+        summary: Get a string for the given key and validate using
+          a custom function, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+          - name: validator
+            type:
+              arguments:
+                - name: string
+                  type: String
+                  summary: The string to validate
+            summary: The custom validator function to use
+        description: |
+          If the key isn't a string, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+
+          The custom validator should throw a `APIValidatingObject.Error` for
+          any string that is not valid.
+      - name: stringForKeyInLengthRange
+        kind: method
+        type: String
+        summary: Get a string for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum length of the string
+          - name: max
+            type: Number
+            summary: The maximum length of the string
+      - name: stringForKeyInLengthRange
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a string for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum length of the string
+          - name: max
+            type: Number
+            summary: The maximum length of the string
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key is missing, the provided default value will be returned 
+      - name: emailForKey
+        kind: method
+        type: String
+        summary: Get a email address for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an email address, an error will be thrown
+      - name: emailForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a email address for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't an email address, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: phoneForKey
+        kind: method
+        type: String
+        summary: Get a phone number for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an phone number, an error will be thrown
+      - name: phoneForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a phone number for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a phone number, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: urlForKey
+        kind: method
+        type: JSURL
+        summary: Get a url for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an url, an error will be thrown
+      - name: urlForKey
+        suffix: default
+        kind: method
+        type: String
+        summary: Get a url for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: String
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a url, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+  - name: Number Properties
+    members:
+      - name: numberForKey
+        kind: method
+        type: Number
+        summary: Get a number for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a number, an error will be thrown
+      - name: numberForKey
+        suffix: custom
+        kind: method
+        type: Number
+        summary: Get a number for the given required key and validate using
+          a custom function
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: validator
+            type:
+              arguments:
+                - name: number
+                  type: Number
+                  summary: The number to validate
+            summary: The custom validator function to use
+        description: |
+          If the key is missing or isn't a number, an error will be thrown.
+
+          The custom validator should throw a `APIValidatingObject.Error` for
+          any number that is not valid.
+      - name: numberForKey
+        suffix: default
+        kind: method
+        type: Number
+        summary: Get a number for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: Number
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a number, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: numberForKey
+        suffix: default-custom
+        kind: method
+        type: Number
+        summary: Get a number for the given key and validate using
+          a custom function, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: Number
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+          - name: validator
+            type:
+              arguments:
+                - name: number
+                  type: Number
+                  summary: The number to validate
+            summary: The custom validator function to use
+        description: |
+          If the key isn't a number, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+
+          The custom validator should throw a `APIValidatingObject.Error` for
+          any string that is not valid.
+      - name: numberForKeyInRange
+        kind: method
+        type: Number
+        summary: Get a number for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum value for the number
+          - name: max
+            type: Number
+            summary: The maximum value for the number
+        description: |
+          If the key is missing, isn't a number, or is outside the given range,
+          an error will be thrown.
+        note: You can use `Infinity` or `-Infinity` for max or min to indicate
+          no limit.
+      - name: numberForKeyInRange
+        suffix: default
+        kind: method
+        type: Number
+        summary: Get a number for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum value for the number
+          - name: max
+            type: Number
+            summary: The maximum value for the number
+          - name: defaultValue
+            type: Number
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't a number or isn't within the given range,
+          an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+        note: You can use `Infinity` or `-Infinity` for max or min to indicate
+          no limit.
+      - name: integerForKey
+        kind: method
+        type: Number
+        summary: Get an integer for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't an integer, an error will be thrown.
+      - name: integerForKey
+        suffix: default
+        kind: method
+        type: Number
+        summary: Get an integer for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: Number
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't an integer an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: integerForKeyInRange
+        kind: method
+        type: Number
+        summary: Get an integer for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum value for the integer
+          - name: max
+            type: Number
+            summary: The maximum value for the integer
+        description: |
+          If the key is missing, isn't an integer, or is outside the given range,
+          an error will be thrown.
+        note: You can use `Infinity` or `-Infinity` for max or min to indicate
+          no limit.
+      - name: integerForKeyInRange
+        suffix: default
+        kind: method
+        type: Number
+        summary: Get an integer for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: min
+            type: Number
+            summary: The minimum value for the number
+          - name: max
+            type: Number
+            summary: The maximum value for the number
+          - name: defaultValue
+            type: Number
+            nullable: true
+            summary: The value to return if the key is not in the object.  May
+              be `null`.
+        description: |
+          If the key isn't an integer or isn't within the given range,
+          an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+        note: You can use `Infinity` or `-Infinity` for max or min to indicate
+          no limit.
+  - name: Boolean Properties
+    members:
+      - name: booleanForKey
+        kind: method
+        type: boolean
+        summary: Get a boolean for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a boolean, an error will be thrown
+      - name: booleanForKey
+        suffix: default
+        kind: method
+        type: boolean
+        summary: Get a boolean for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: boolean
+            summary: The value to return if the key is not in the object
+        description: |
+          If the key isn't a boolean, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+  - name: Object Properties
+    members:
+      - name: objectForKey
+        kind: method
+        type: APIValidatingObject
+        summary: Get a validating object for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a object, an error will be thrown
+      - name: objectForKey
+        suffix: default
+        kind: method
+        type: APIValidatingObject
+        summary: Get a validating object for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: object
+            summary: The value to return if the key is not in the object
+        description: |
+          If the key isn't a object, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+      - name: validObjectForKey
+        kind: method
+        type: APIValidatingConstruction
+        summary: Get a fully validated instance of the given calss for the given
+          required key
+        arguments:
+          - name: validatingConstructionClass
+            type: JSClass
+            summary: The class of object to instantiate
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a object, an error will be thrown
+      - name: validObjectForKey
+        suffix: default
+        kind: method
+        type: APIValidatingConstruction
+        summary: Get a fully validated instance of the given calss for the given
+          key, or return a default value
+        arguments:
+          - name: validatingConstructionClass
+            type: JSClass
+            summary: The class of object to instantiate
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: object
+            summary: The value to return if the key is not in the object
+        description: |
+          If the key isn't a object, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+  - name: Array Properties
+    members:
+      - name: arrayForKey
+        kind: method
+        type: APIValidatingObject
+        summary: Get a validating array for the given required key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+        description: |
+          If the key is missing or isn't a array, an error will be thrown
+      - name: arrayForKey
+        suffix: default
+        kind: method
+        type: APIValidatingObject
+        summary: Get a validating array for the given key, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: Array
+            summary: The value to return if the key is not in the object
+        description: |
+          If the key isn't a object, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+  - name: Set Validation
+    members:
+      - name: optionForKey
+        kind: method
+        type: any
+        summary: Verify that the input is included in a given set of allowed
+          values
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: optionSet
+            type: Set
+            summary: The allowed values
+        description: |
+          If the key is missing or isn't a valid option, an error will be thrown
+      - name: optionForKey
+        suffix: default
+        kind: method
+        type: any
+        summary: Verify that the input is included in a given set of allowed
+          values, or return a default value
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: optionSet
+            type: Set
+            summary: The allowed values
+          - name: defaultValue
+            type: option
+            summary: The value to return if the key is not in the object
+        description: |
+          If the key isn't a valid option, an error will be thrown.
+
+          If the key is missing entirely, the `defaultValue`() will be returned.
+  - name: Data Properties
+    members:
+      - name: base64DataForKey
+        kind: method
+        type: JSData
+        summary: Get the data that is base64-encoded in the given key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+      - name: base64DataForKey
+        suffix: default
+        kind: method
+        type: JSData
+        summary: Get the data that is base64-encoded in the given key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: boolean
+            summary: The value to return if the key is not in the object
+      - name: base64URLDataForKey
+        kind: method
+        type: JSData
+        summary: Get the data that is base64url-encoded in the given key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+      - name: base64URLDataForKey
+        suffix: default
+        kind: method
+        type: JSData
+        summary: Get the data that is base64url-encoded in the given key
+        arguments:
+          - name: key
+            type: String
+            summary: The name of property to validate
+          - name: defaultValue
+            type: boolean
+            summary: The value to return if the key is not in the object
+  - name: Wrapped Arrays
+    members:
+      - name: length
+        type: Number
+        summary: The number of items in the wrapped array

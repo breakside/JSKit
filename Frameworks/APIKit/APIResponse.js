@@ -14,7 +14,7 @@
 // limitations under the License.
 
 // #import Foundation
-// #import "SKHTTPHeaders.js"
+// #import "APIHeaders.js"
 'use strict';
 
 var HTTPHeaderProperty = function(headerName, valueType){
@@ -50,6 +50,9 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
                             value = value.substr(1, value.length - 2).replace('\\"', '"');
                         }
                         break;
+                    case HTTPHeaderValueType.mediaType:
+                        value = JSMediaType(value);
+                        break;
                 }
             }
             return value;
@@ -69,6 +72,9 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
                 case HTTPHeaderValueType.quoted:
                     value = '"' + value.replace('"', '\\"') + '"';
                     break;
+                case HTTPHeaderValueType.mediaType:
+                    value = value.toString();
+                    break;
             }
             this.headerMap.set(headerName, value);
         }
@@ -87,20 +93,20 @@ var HTTPHeaderValueType = {
     text: 0,
     integer: 1,
     date: 2,
-    quoted: 3
+    quoted: 3,
+    mediaType: 4
 };
 
-JSClass("SKHTTPResponse", JSObject, {
+JSClass("APIResponse", JSObject, {
 
     statusCode: JSDynamicProperty('_statusCode', JSURLResponse.StatusCode.ok),
-    contentType: HTTPHeaderProperty(SKHTTPHeaders.contentType),
-    contentLength: HTTPHeaderProperty(SKHTTPHeaders.contentLength, HTTPHeaderValueType.integer),
-    etag: HTTPHeaderProperty(SKHTTPHeaders.etag, HTTPHeaderValueType.quoted),
-    lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),
+    contentType: HTTPHeaderProperty(APIHeaders.contentType, HTTPHeaderValueType.mediaType),
+    contentLength: HTTPHeaderProperty(APIHeaders.contentLength, HTTPHeaderValueType.integer),
+    etag: HTTPHeaderProperty(APIHeaders.etag, HTTPHeaderValueType.quoted),
+    lastModified: HTTPHeaderProperty(APIHeaders.lastModified, HTTPHeaderValueType.date),
     headerMap: JSReadOnlyProperty('_headerMap', null),
-    tag: null,
-    loggingEnabled: true,
-    _needsHeaderWrite: true,
+    data: JSDynamicProperty('_data', null),
+    object: JSDynamicProperty(),
 
     init: function(){
         this._headerMap = JSMIMEHeaderMap();
@@ -114,30 +120,32 @@ JSClass("SKHTTPResponse", JSObject, {
         return this._headerMap.get(name);
     },
 
-    complete: function(){
-    },
-
-    writeHeader: function(){
-    },
-
-    writeHeaderIfNeeded: function(){
-        if (this._needsHeaderWrite){
-            this._needsHeaderWrite = false;
-            this.writeHeader();
+    getObject: function(){
+        var contentType = this.contentType;
+        if (contentType === null){
+            return null;
+        }
+        if (contentType.mime != 'application/json'){
+            return null;
+        }
+        if (this._data === null){
+            return null;
+        }
+        try{
+            var json = this._data.stringByDecodingUTF8();
+            return JSON.parse(json);
+        }catch (e){
+            return null;
         }
     },
 
-    writeString: function(str){
-        this.writeData(str.utf8());
-    },
-
-    writeData: function(data){
-    },
-
-    writeFile: function(filePath){
+    setObject: function(object){
+        var json = JSON.stringify(object);
+        this.data = json.utf8();
+        this.contentType = JSMediaType('application/json', {charset: 'utf-8'});
     }
 
 });
 
-SKHTTPResponse.StatusCode = JSURLResponse.StatusCode;
-SKHTTPResponse.Header = SKHTTPHeaders;
+APIResponse.StatusCode = JSURLResponse.StatusCode;
+APIResponse.Header = APIHeaders;

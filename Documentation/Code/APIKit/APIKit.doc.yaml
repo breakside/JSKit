@@ -1,0 +1,53 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: framework
+environment: node
+summary: A platform for serverless HTTP APIs like AWS Lambda via API Gateway
+codeURL: Frameworks/APIKit/
+description: |
+  `APIKit` is designed to provide a `Foundation`-based platform
+  that can be used in serverless environments like AWS Lambda, allowing
+  your serverless code to leverage `JSKit` features like `Foundation`,
+  `SecurityKit`, and `TestKit`.
+
+  When an `APIKit` project is built and bundled, it generates a Lambda-compatible
+  event handler that invokes your custom `APIResponder` subclass.
+topics:
+  - name: Project
+    members:
+      - APIProjectOrganization
+      - APIKitInfo
+  - name: Responding to Requests
+    members:
+      - APIResponder
+      - APIRequest
+      - APIResponse
+      - name: APIHeaders
+        kind: enum
+        summary: A set of well known HTTP headers
+        topics:
+          - name: Options
+            members:
+              - name: contentType
+                value: '"Content-Type"'
+                summary: The header that specifies the content type
+              - name: contentLength
+                value: '"Content-Length"'
+                summary: The header that specifies the content legth
+              - name: etag
+                value: '"ETag"'
+                summary: The header that specifies the tag used for caching
+              - name: lastModified
+                value: '"Last-Modified"'
+                summary: The header that specifies the last modified date for
+                  caching
+      - APIError
+  - name: Input Validation
+    members:
+      - APIValidatingObject
+      - APIValidatingConstruction
+  - name: API Secrets
+    members:
+      - APISecrets
+      - APISecretsProvider
+      - APISecretsEnvironmentProvider

@@ -50,6 +50,17 @@ description: |
   server.  For example, code that draws to the screen in the browser using `UIKit`,
   can draw to PDF files on the server with `PDFKit`.
 
+  Serverless APIs
+  ===================
+
+  JSKit also makes it easy to create serverless APIs for use with services such
+  as AWS API Gateway and AWS Lambda.  With `APIKit`, you can create API handlers
+  that leverage `Foundation`, `SecurityKit`, or other JSKit frameworks.
+
+  You can share code with `UIKit` front ends, `ServerKit` backends, or among
+  multiple `APIKit` handlers.  `TestKit` ensures your API code is well tested
+  and ready to go.
+
   Code, Document, Test, Deploy
   ============================
 
@@ -78,6 +89,7 @@ topics:
     members:
       - UIKit/UIKit
       - ServerKit/ServerKit
+      - APIKit/APIKit
   -
     name: Core Frameworks
     summary: The foundational frameworks that are useful no matter the
@@ -107,3 +119,4 @@ topics:
     members:
       - TestKit/TestKit
       - ServerKitTesting/ServerKitTesting
+      - UIKitTesting/UIKitTesting

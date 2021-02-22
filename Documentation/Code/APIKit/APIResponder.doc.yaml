@@ -1,0 +1,201 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: class
+inherits: JSObject
+summary: Responders are called on by an api handler to populate an
+  \`APIResponse` for an `APIPRequest`
+description: |
+  Responders are at the center of your api's code.  While the
+  api initialization code handles of basic setup, responders are where
+  your code takes over.
+
+  Each api project has a single `APIResponder` that handles one or more
+  HTTP methods.
+
+  Method Name Matching
+  =================
+  Because an HTTP request can include an arbitrary string for its
+  `method`(APIRequest.method), `APIResponder` takes care to ensure that
+  internal or private code cannot be invoked directly by whoever constructed
+  the request.
+
+  1. Only methods defined directly on the `APIResponder` subclass are
+     eligable to match the request method.
+  1. The request method is converted to all-lowercase before matching,
+     meaning that any camelCased methods will not match.
+  1. Methods beginning with an underscore `"_"` will never be matched
+
+  ````
+  JSClass("CommentResponder", APIResponder, {
+
+    // Will be called for any GET request
+    get: async function(){
+
+    },
+
+    // Will be called for any POST request
+    post: async function(){
+
+    },
+
+    // Will be called for any MyCustomMethod request
+    mycustommethod: async function(){
+
+    },
+
+    // Will never be called directly for a request (isn't all lowercase)
+    helperMethod: function(){
+
+    },
+
+    // Will never be called directly for a request (starts with underscore)
+    _helper: function(){
+
+    }
+
+  });
+  ````
+
+  Responder Preparation
+  ===========
+  Because a responder represents a particular resource, it will often need
+  to run similar code regardless of the method being invoked.  For example,
+  the same data loading or authentication may need to happen on both GET and POST
+  requests.
+
+  To facilitate this, the `prepare()` method is called before calling any method.
+
+  Path parameters
+  ===========
+  API providers like AWS API Gateway allow you to define variables in
+  URL path components like `"/comment/{id}"`, where any value matches
+  the `id`() parameter.
+
+  The responder is automatically assigned properties from such URL pattern
+  matching. In this case, a responder would be assigned the `id` property
+  to whatever value was actually in the request URL.
+topics:
+  - name: Request & Response
+    members:
+      - name: request
+        type: APIRequest
+        summary: The request that matched to this responder
+      - name: response
+        type: APIResponse
+        summary: The response to popuplate
+      - name: "[pathParameter]"
+        type: any
+        summary: The value of a named path component parameter
+        description: |
+          API providers like AWS API Gateway allow you to define variables in
+          URL path components like `"/comment/{id}"`, where any value matches
+          the `id`() parameter.
+
+          The responder is automatically assigned properties from such URL pattern
+          matching. In this case, a responder would be assigned the `id` property
+          to whatever value was actually in the request URL.
+  - name: Configuration Secrets
+    members:
+      - name: secrets
+        type: APISecrets
+        summary: The secrets available to this api
+        description: |
+          By default, secrets are read from environment variables.
+
+          Specify the names of the secrets you need in your `Info`(APIKitInfo)
+          file's `APISecrets`(APIKitInfo.APISecrets).
+
+          For environment variables, the a secret name like `mySecret`() is
+          mapped to an environmental variable named `MY_SECRET`().
+
+          If you want to retrieve secrets from a different location, add a
+          custom `APISecretsProvider` during the `prepare()` method.
+  - name: Responding
+    members:
+      - name: prepare
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: undefined
+        summary: Run preparation common to all methods
+        description: |
+          `prepare()` is called before any `[httpMethod]()` is called, and
+          gives your responder an opportunity to do common prep work like
+          authentication or data loading.
+      - name: "[httpMethod]"
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: object
+            summary: A JSON-encodable object to send at the response
+            nullable: true
+        summary: Handle the given HTTP method and populate a response
+        description: |
+          To respond with a JSON object, simply return the object and `APIKit`
+          will automatically set the response `data`(APIResponse.data) to the JSON-serialized
+          version of the object, `contentType`(APIResponse.contentType) to
+          `"application/json; charset=utf-8"`(), and `statusCode`(APIResponse.statusCode)
+          to `ok`(APIResponse.StatusCode.ok).
+
+          For more control over the response, set values on the `response` object
+          directly and don't return anything.
+  - name: Method Name Matching
+    members:
+      - name: objectMethodForRequestMethod
+        kind: method
+        type: function
+        summary: Gets the responder's method that matches the request's
+          method
+        arguments:
+          - name: requestMethod
+            type: String
+            summary: The request's method
+        description: |
+          Because an HTTP request can include an arbitrary string for its
+          `method`(APIRequest.method), `APIResponder` takes care to ensure that
+          internal or private code cannot be invoked directly by whoever constructed
+          the request.
+
+          The default implementation performs the follwing logic:
+
+          1. Only methods defined directly on the `APIResponder` subclass are
+             eligable to match the request method.
+          1. The request method is converted to all-lowercase before matching,
+             meaning that any camelCased methods will not match.
+          1. Methods beginning with an underscore `"_"` will never be matched
+
+          ````
+          JSClass("CommentResponder", APIResponder, {
+
+            // Will be called for any GET request
+            get: async function(){
+
+            },
+
+            // Will be called for any POST request
+            post: async function(){
+
+            },
+
+            // Will be called for any MyCustomMethod request
+            mycustommethod: async function(){
+
+            },
+
+            // Will never be called directly for a request (isn't all lowercase)
+            helperMethod: function(){
+
+            },
+
+            // Will never be called directly for a request (starts with underscore)
+            _helper: function(){
+
+            }
+
+          });
+          ````
+
+          You can override this method if the default behavior is not
+          suitable for your needs.

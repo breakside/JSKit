@@ -189,6 +189,9 @@ jobs:
       - name: Test ServerKit
         run: npx jskit test Tests/ServerKitTests
 
+      - name: Test APIKit
+        run: npx jskit test Tests/APIKitTests
+
       - name: Test UIKit
         run: npx jskit test Tests/UIKitTests
 

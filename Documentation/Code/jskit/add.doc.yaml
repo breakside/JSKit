@@ -28,7 +28,7 @@ description: |
   Test projects are automatically created for you when you call `add` for a
   `framework`, `html`, or `http` project type.
 invocations:
-  - framework|html|http|test <project-name>
+  - framework|html|http|api|test <project-name>
 topics:
   -
     name: Project Type
@@ -55,6 +55,15 @@ topics:
           A companion `TestKit` project will be automatically created along side
           the new project.  For example, if you create a framework project
           called `MessagesServer`, a `MessagesServerTests` project will also be
+          created.
+      -
+        name: api
+        introduced: 2021.8.0
+        summary: Create an `APIKit` based application
+        description: |
+          A companion `TestKit` project will be automatically created along side
+          the new project.  For example, if you create a framework project
+          called `Contact`, a `ContactTests` project will also be
           created.
       -
         name: test

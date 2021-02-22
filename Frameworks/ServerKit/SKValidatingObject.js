@@ -14,7 +14,6 @@
 // limitations under the License.
 
 // #import Foundation
-// #import "SKHTTPError.js"
 'use strict';
 
 JSClass("SKValidatingObjectPropertyProvider", JSObject, {

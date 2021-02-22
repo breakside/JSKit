@@ -318,7 +318,7 @@ JSClass("NodeBuilder", Builder, {
     buildNPM: async function(){
         await this.buildPackageJSON();
         await this.copyPackageLock();
-        await this.linkeNodeModules();
+        await this.linkNodeModules();
     },
 
     buildPackageJSON: async function(){
@@ -353,7 +353,7 @@ JSClass("NodeBuilder", Builder, {
         await this.fileManager.copyItemAtURL(packageURL, toURL);
     },
 
-    linkeNodeModules: async function(){
+    linkNodeModules: async function(){
         var modulesURL = this.project.url.appendingPathComponent('node_modules');
         var exists = await this.fileManager.itemExistsAtURL(modulesURL);
         if (!exists){

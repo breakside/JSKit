@@ -14,7 +14,6 @@
 // limitations under the License.
 
 // #import Foundation
-// #import "SKSecretsEnvironmentProvider.js"
 'use strict';
 
 JSClass("SKSecrets", JSObject, {

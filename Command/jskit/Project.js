@@ -91,6 +91,14 @@ JSClass("Project", JSObject, {
             roots = roots.concat(resourceImportPaths);
         }else if (this.info.JSBundleType == 'tests'){
             await this._recursivelyAddAnyJavascriptInDirectory(this.url, roots);
+        }else if (this.info.JSBundleType == "api"){
+            if (this.info.APIResponder){
+                roots.push(this.info.APIResponder + ".js");
+            }
+            await this.loadResources();
+            await this.loadIncludeDirectoryURLs();
+            resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
+            roots = roots.concat(resourceImportPaths);
         }
         var envRoots = this.info.JSBundleEnvironments;
         if (envRoots && envs){
@@ -188,6 +196,9 @@ JSClass("Project", JSObject, {
         if (this.info.JSBundleType == 'tests'){
             return null;
         }
+        if (this.info.JSBundleType == "api"){
+            return null;
+        }
         return {
             path: 'main.js',
             fn: 'main'
@@ -208,6 +219,11 @@ JSClass("Project", JSObject, {
 
     findIncludeDirectoryURLs: async function(){
         var stack = [this.url];
+        if (this.info.JSIncludeDirectories){
+            for (let path of this.info.JSIncludeDirectories){
+                stack.push(JSURL.initWithString(path, this.url));
+            }
+        }
         var urls = [];
         while (stack.length > 0){
             let url = stack.shift();
@@ -478,12 +494,14 @@ JSClass("Project", JSObject, {
                 return {names: new Set(["Info.yaml", "Info.json", "Dockerfile", "conf", "www", this.licenseFilename]), extensions: new Set()};
             case "node":
                 return {names: new Set(["Info.yaml", "Info.json", "package.json", "Dockerfile", "README.md", this.licenseFilename]), extensions: new Set()};
+            case "api":
+                return {names: new Set(["Info.yaml", "Info.json", "package.json", this.licenseFilename]), extensions: new Set()};
             case "framework":
                 return {names: new Set(["Info.yaml", "Info.json", this.licenseFilename]), extensions: new Set()};
             case "tests":
                 return {names: new Set(["Info.yaml", "Info.json", this.licenseFilename]), extensions: new Set()};
             default:
-                return {names: new Set(), blacklist: new Set()};
+                return {names: new Set(), extensions: new Set()};
         }
     },
 

@@ -1,0 +1,5 @@
+JSBundleType: api
+JSBundleIdentifier: com.yourcompany.${PROJECT_NAME_FILE_SAFE}
+JSBundleVersion: 1.0.0
+JSDevelopmentLanguage: en
+APIResponder: ${PROJECT_NAME_FILE_SAFE}

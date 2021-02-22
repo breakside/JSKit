@@ -24,7 +24,7 @@ JSClass("AddCommand", Command, {
     help: "Add a project to an existing workspace",
 
     options: {
-        template: {kind: "positional", help: "The project template to use as a starting point", allowed: ["html", "http", "node", "framework", "tests"]},
+        template: {kind: "positional", help: "The project template to use as a starting point", allowed: ["html", "http", "api", "node", "framework", "tests"]},
         name: {kind: "positional", help: "The name for the new project"}
     },
 

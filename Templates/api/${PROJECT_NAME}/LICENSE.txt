@@ -1,0 +1,4 @@
+Copyright 2020
+
+Redistribution and use in source and binary forms, with or without
+modification, is prohibited without specific prior written permission.

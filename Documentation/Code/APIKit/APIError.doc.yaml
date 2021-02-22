@@ -1,0 +1,29 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.0
+kind: class
+summary: A wrapper for an HTTP error status code and message
+description: |
+  If an `APIError` is thrown at any time during the processing of
+  a request, the API handler will return a response with the
+  error's `statusCode`.
+topics:
+  - name: Creating an Error
+    members:
+      - name: APIError
+        kind: constructor
+        summary: Create a new HTTP error with a status code and message
+        arguments:
+          - name: statusCode
+            type: APIResponse.StatusCode
+            summary: The status code to send in the HTTP response
+          - name: message
+            type: String
+            summary: The error message for logging purposes
+  - name: Properties
+    members:
+      - name: statusCode
+        type: APIResponse.StatusCode
+        summary: The status code to send in the HTTP response
+      - name: message
+        type: String
+        summary: The error message for logging purposes

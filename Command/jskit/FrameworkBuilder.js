@@ -154,7 +154,9 @@ JSClass("FrameworkBuilder", Builder, {
             for (let i = 0, l = imports.files.length; i < l; ++i){
                 let file = imports.files[i];
                 let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
-                // FIXME: convert .. path components to _parent_
+                while (bundledPath.startsWith("../")){
+                    bundledPath = bundledPath.substr(3);
+                }
                 if (env == 'generic'){
                     genericFiles.add(bundledPath);
                 }
@@ -203,6 +205,9 @@ JSClass("FrameworkBuilder", Builder, {
             for (let i = 0, l = imports.files.length; i < l; ++i){
                 let file = imports.files[i];
                 let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+                while (bundledPath.startsWith("../")){
+                    bundledPath = bundledPath.substr(3);
+                }
                 let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
                 if (env == 'generic'){
                     genericFiles.add(bundledPath);

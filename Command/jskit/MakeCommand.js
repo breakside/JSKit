@@ -19,6 +19,7 @@
 // #import "FrameworkBuilder.js"
 // #import "NodeBuilder.js"
 // #import "HTMLBuilder.js"
+// #import "APIBuilder.js"
 // #import "TestBuilder.js"
 // #import "Printer.js"
 'use strict';
