@@ -36,7 +36,7 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
         configurable: true,
         enumerable: false,
         value: function HTTPHeaderProperty_get(){
-            var value = this.headerMap.get(headerName);
+            var value = this.headerMap.get(headerName, null);
             if (value !== null){
                 switch (valueType){
                     case HTTPHeaderValueType.integer:

@@ -27,7 +27,7 @@ APIResponse.definePropertiesFromExtensions({
             }
             response.multiValueHeaders[header.name].push(header.value);
         }
-        let data = response.data;
+        let data = this.data;
         if (data !== null){
             response.isBase64Encoded = true;
             response.body = data.base64StringRepresentation();

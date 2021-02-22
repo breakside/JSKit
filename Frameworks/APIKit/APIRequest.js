@@ -32,7 +32,7 @@ JSClass("APIRequest", JSObject, {
 
     initWithMethodAndURL: function(method, url, headerMap){
         this._method = method;
-        this._url = url;
+        this._url = JSURL.initWithURL(url);
         this._headerMap = headerMap || JSMIMEHeaderMap();
         this.receivedAt = JSDate.now;
         var host = this._headerMap.get('Host', null);
@@ -107,7 +107,11 @@ JSClass("APIRequest", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        if (!this.contentType || this.contentType.mime !== 'application/json' || this.contentType.parameters.charset !== String.Encoding.utf8){
+        if (!this.contentType || this.contentType.mime !== 'application/json'){
+            completion.call(target, null);
+            return completion.promise;
+        }
+        if (this.contentType.parameters.charset && this.contentType.parameters.charset !== String.Encoding.utf8){
             completion.call(target, null);
             return completion.promise;
         }
@@ -116,7 +120,7 @@ JSClass("APIRequest", JSObject, {
                 completion.call(target, null);
                 return;
             }
-            var json = String.initWithData(data, this.contentType.parameters.charset);
+            var json = String.initWithData(data, String.Encoding.utf8);
             var obj = null;
             try{
                 obj = JSON.parse(json);

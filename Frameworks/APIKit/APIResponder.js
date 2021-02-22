@@ -8,7 +8,9 @@ JSClass("APIResponder", JSObject, {
         this.response = response;
         this.secrets = secrets;
         for (let name in pathParameters){
-            this[name] = pathParameters[name];
+            if (!(name in this)){
+                this[name] = pathParameters[name];
+            }
         }
     },
 

@@ -13,6 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "APILambda.js"
-// #import "APIRequest+Lambda.js"
-// #import "APIResponse+Lambda.js"
+// #import APIKit
+// #import TestKit
+"use strict";
+
+JSClass("APIErrorTests", TKTestSuite, {
+
+    testConstructor: function(){
+        var error = APIError(APIResponse.StatusCode.notFound, "not found");
+        TKAssertInstance(error, APIError);
+        TKAssertInstance(error, Error);
+        TKAssertEquals(error.statusCode, 404);
+        TKAssertEquals(error.message, "not found");
+        if (Error.captureStackTrace){
+            TKAssertType(error.stack, "string");
+        }
+    }
+
+});

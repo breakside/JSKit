@@ -26,9 +26,11 @@ APIRequest.definePropertiesFromExtensions({
         if (event.version == "2.0"){
             method = event.requestContext.http.method;
             url.path = event.requestContext.http.path;
-            for (let name in event.headers){
-                let value = event.headers[name];
-                headerMap.add(name, value);
+            if (event.headers){
+                for (let name in event.headers){
+                    let value = event.headers[name];
+                    headerMap.add(name, value);
+                }
             }
             if (typeof(event.rawQueryString) === "string"){
                 query.decode(event.rawQueryString.utf8(), true);
@@ -36,19 +38,23 @@ APIRequest.definePropertiesFromExtensions({
         }else{
             method = event.httpMethod;
             url.path = event.path;
-            for (let name in event.multiValueQueryStringParameters){
-                let values = event.multiValueQueryStringParameters[name];
-                for (let value of values){
-                    query.add(name, value);
+            if (event.multiValueQueryStringParameters){
+                for (let name in event.multiValueQueryStringParameters){
+                    let values = event.multiValueQueryStringParameters[name];
+                    for (let value of values){
+                        query.add(name, value);
+                    }
                 }
             }
-            for (let name in event.multiValueHeaders){
-                let headers = event.multiValueHeaders[name];
-                for (let value of headers){
-                    headerMap.add(name, value);
+            if (event.multiValueHeaders){
+                for (let name in event.multiValueHeaders){
+                    let headers = event.multiValueHeaders[name];
+                    for (let value of headers){
+                        headerMap.add(name, value);
+                    }
                 }
             }
-            if (event.body !== null){
+            if (event.body !== null && event.body !== undefined){
                 if (event.isBase64Encoded){
                     data = event.body.dataByDecodingBase64();
                 }else{

@@ -22,18 +22,16 @@
 
 var logger = JSLog("api", "lambda");
 
-JSGlobalObject.APILambda = async function(event){
+JSGlobalObject.APILambda = async function(event, bundle){
+    bundle = bundle || JSBundle.mainBundle;
     let response = APIResponse.init();
     try{
-        let responderClassName = JSBundle.mainBundle.info.APIResponder;
+        let responderClassName = bundle.info.APIResponder;
         if (!responderClassName){
             throw new Error("Missing APIResponder in Info.yaml");
         }
-        let responderClass = JSClass.FromName(JSBundle.mainBundle.info.APIResponder);
-        if (responderClass === null){
-            throw new Error("Could not find class '%s'".sprintf(JSBundle.mainBundle.info.APIResponder));
-        }
-        let secrets = APISecrets.initWithNames(this.bundle.info.APISecrets || []);
+        let responderClass = JSClass.FromName(bundle.info.APIResponder);
+        let secrets = APISecrets.initWithNames(bundle.info.APISecrets || []);
         secrets.addProvider(APISecretsEnvironmentProvider.initWithEnvironment(JSEnvironment.current));
         let pathParameters = event.pathParameters || {};
         let request = APIRequest.initFromLambdaEvent(event);
