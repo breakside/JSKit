@@ -100,7 +100,7 @@ var HTTPHeaderValueType = {
 JSClass("APIResponse", JSObject, {
 
     statusCode: JSDynamicProperty('_statusCode', JSURLResponse.StatusCode.ok),
-    contentType: HTTPHeaderProperty(APIHeaders.contentType),
+    contentType: HTTPHeaderProperty(APIHeaders.contentType, HTTPHeaderValueType.mediaType),
     contentLength: HTTPHeaderProperty(APIHeaders.contentLength, HTTPHeaderValueType.integer),
     etag: HTTPHeaderProperty(APIHeaders.etag, HTTPHeaderValueType.quoted),
     lastModified: HTTPHeaderProperty(APIHeaders.lastModified, HTTPHeaderValueType.date),

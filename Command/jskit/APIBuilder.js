@@ -124,7 +124,6 @@ JSClass("APIBuilder", Builder, {
         await this.fileManager.copyItemAtURL(framework.url, bundledURL);
         await this.addFrameworkSources(framework, "generic");
         await this.addFrameworkSources(framework, "node");
-        await this.addFrameworkSources(framework, "awslambda");
         await this.addBundleJS(bundledURL, bundledURL.appendingPathComponent("Resources", true), framework.info, framework.resources);
         if (framework.info.JSBundleIdentifier == 'io.breakside.JSKit.Dispatch'){
             throw new Error("Cannot use Dispatch in api projects");
@@ -212,8 +211,9 @@ JSClass("APIBuilder", Builder, {
     bundleJavascript: async function(){
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
-            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
-            let bundledURL = JSURL.initWithString(bundledPath, this.apiURL);
+            let projectPath = file.url.encodedStringRelativeTo(this.project.url);
+            let bundledURL = JSURL.initWithString(projectPath, this.apiURL);
+            let bundledPath = bundledURL.encodedStringRelativeTo(this.bundleURL);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
             this.executableRequires.push(bundledPath);
         }

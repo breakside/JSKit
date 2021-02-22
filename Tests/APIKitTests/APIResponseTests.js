@@ -95,6 +95,7 @@ JSClass("APIResponseTests", TKTestSuite, {
         TKAssertEquals(lambdaResponse.body, "eyJvbmUiOjEsInR3byI6IjIifQ==");
         TKAssertEquals(lambdaResponse.isBase64Encoded, true);
         TKAssertEquals(lambdaResponse.multiValueHeaders["Content-Type"].length, 1);
+        TKAssertType(lambdaResponse.multiValueHeaders["Content-Type"][0], "string");
         TKAssertEquals(lambdaResponse.multiValueHeaders["Content-Type"][0], "application/json; charset=\"utf-8\"");
     }
 
