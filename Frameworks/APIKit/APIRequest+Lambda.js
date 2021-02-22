@@ -54,12 +54,12 @@ APIRequest.definePropertiesFromExtensions({
                     }
                 }
             }
-            if (event.body !== null && event.body !== undefined){
-                if (event.isBase64Encoded){
-                    data = event.body.dataByDecodingBase64();
-                }else{
-                    data = event.body.utf8();
-                }
+        }
+        if (event.body !== null && event.body !== undefined){
+            if (event.isBase64Encoded){
+                data = event.body.dataByDecodingBase64();
+            }else{
+                data = event.body.utf8();
             }
         }
         if (query.fields.length > 0){
