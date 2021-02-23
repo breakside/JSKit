@@ -26,7 +26,7 @@ JSClass("APIResponder", JSObject, {
 
     definePropertiesFromPathParameters: function(pathParameters){
         for (let name in pathParameters){
-            if (!(name in this)){
+            if (this[name] === undefined || this[name] === null){
                 this[name] = pathParameters[name];
             }
         }
