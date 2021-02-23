@@ -199,3 +199,13 @@ topics:
 
           You can override this method if the default behavior is not
           suitable for your needs.
+  - name: Testing
+    members:
+      - name: initWithRequest
+        introduced: 2021.8.1
+        kind: init
+        summary: Create a responder with the given request
+        arguments:
+          - name: request
+            type: APIRequest
+            summary: The request for this responder

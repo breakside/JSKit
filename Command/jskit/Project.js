@@ -92,9 +92,6 @@ JSClass("Project", JSObject, {
         }else if (this.info.JSBundleType == 'tests'){
             await this._recursivelyAddAnyJavascriptInDirectory(this.url, roots);
         }else if (this.info.JSBundleType == "api"){
-            if (this.info.APIResponder){
-                roots.push(this.info.APIResponder + ".js");
-            }
             await this.loadResources();
             await this.loadIncludeDirectoryURLs();
             resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
@@ -197,7 +194,7 @@ JSClass("Project", JSObject, {
             return null;
         }
         if (this.info.JSBundleType == "api"){
-            return null;
+            return {path: this.info.APIResponder + '.js', fn: null};
         }
         return {
             path: 'main.js',

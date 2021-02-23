@@ -1,0 +1,12 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.1
+kind: framework
+summary: Mock classes for testing `APIKit`-based projects
+codeURL: Frameworks/APIKitTesting/
+description: |
+  `APIKitTesting` is designed to provide a way of testing `APIKit`
+  applications without actually running in a serverless environment.
+topics:
+  - name: Mock Classes
+    members:
+      - APIMockRequest

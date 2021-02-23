@@ -120,3 +120,4 @@ topics:
       - TestKit/TestKit
       - ServerKitTesting/ServerKitTesting
       - UIKitTesting/UIKitTesting
+      - APIKitTesting/APIKitTesting

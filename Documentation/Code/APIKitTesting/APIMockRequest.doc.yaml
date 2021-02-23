@@ -1,0 +1,60 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.8.1
+kind: class
+inherits: APIRequest
+summary: Represents an mock HTTP request from a client to an API
+topics:
+  - name: Creating a Mock Request
+    members:
+      - name: initWithMethodAndURL
+        kind: init
+        summary: Create an empty request with the given method and URL
+        arguments:
+          - name: method
+            type: JSURLRequest.Method
+            summary: The HTTP method for the request
+          - name: url
+            type: JSURL
+            summary: The URL for the request
+      -
+        name: initWithMethodAndURL
+        suffix: object
+        summmary: Create a JSON request with the given method, URL, and object
+        arguments:
+          - name: method
+            type: JSURLRequest.Method
+            summary: The HTTP method for the request
+          - name: url
+            type: JSURL
+            summary: The URL for the request
+          - name: object
+            type: any
+            summary: A JSON-encodable object for the request body
+      -
+        name: initWithMethodAndURL
+        suffix: form
+        summmary: Create a form request with the given method, URL, and form
+        arguments:
+          - name: method
+            type: JSURLRequest.Method
+            summary: The HTTP method for the request
+          - name: url
+            type: JSURL
+            summary: The URL for the request
+          - name: form
+            type: JSFormFieldMap
+            summary: A form for the request body
+      -
+        name: initWithMethodAndURL
+        suffix: data
+        summmary: Create a data request with the given method, URL, and data
+        arguments:
+          - name: method
+            type: JSURLRequest.Method
+            summary: The HTTP method for the request
+          - name: url
+            type: JSURL
+            summary: The URL for the request
+          - name: data
+            type: JSData
+            summary: Data for the request body

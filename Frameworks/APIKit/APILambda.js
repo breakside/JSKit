@@ -31,11 +31,13 @@ JSGlobalObject.APILambda = async function(event, bundle){
             throw new Error("Missing APIResponder in Info.yaml");
         }
         let responderClass = JSClass.FromName(bundle.info.APIResponder);
-        let secrets = APISecrets.initWithNames(bundle.info.APISecrets || []);
-        secrets.addProvider(APISecretsEnvironmentProvider.initWithEnvironment(JSEnvironment.current));
-        let pathParameters = event.pathParameters || {};
         let request = APIRequest.initFromLambdaEvent(event);
-        let responder = responderClass.initWithRequest(request, response, pathParameters, secrets);
+        let responder = responderClass.initWithRequest(request, response);
+        responder.secrets = APISecrets.initWithNames(bundle.info.APISecrets || []);
+        responder.secrets.addProvider(APISecretsEnvironmentProvider.initWithEnvironment(JSEnvironment.current));
+        if (event.pathParameters){
+            responder.definePropertiesFromPathParameters(event.pathParameters);
+        }
         var method = responder.objectMethodForRequestMethod(request.method);
         if (typeof(method) == 'function'){
             await responder.prepare();
