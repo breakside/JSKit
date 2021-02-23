@@ -11,18 +11,19 @@ topics:
         summary: Create an empty request with the given method and URL
         arguments:
           - name: method
-            type: JSURLRequest.Method
+            type: String
             summary: The HTTP method for the request
           - name: url
             type: JSURL
             summary: The URL for the request
       -
         name: initWithMethodAndURL
+        kind: init
         suffix: object
-        summmary: Create a JSON request with the given method, URL, and object
+        summary: Create a JSON request with the given method, URL, and object
         arguments:
           - name: method
-            type: JSURLRequest.Method
+            type: String
             summary: The HTTP method for the request
           - name: url
             type: JSURL
@@ -32,11 +33,12 @@ topics:
             summary: A JSON-encodable object for the request body
       -
         name: initWithMethodAndURL
+        kind: init
         suffix: form
-        summmary: Create a form request with the given method, URL, and form
+        summary: Create a form request with the given method, URL, and form
         arguments:
           - name: method
-            type: JSURLRequest.Method
+            type: String
             summary: The HTTP method for the request
           - name: url
             type: JSURL
@@ -46,11 +48,12 @@ topics:
             summary: A form for the request body
       -
         name: initWithMethodAndURL
+        kind: init
         suffix: data
-        summmary: Create a data request with the given method, URL, and data
+        summary: Create a data request with the given method, URL, and data
         arguments:
           - name: method
-            type: JSURLRequest.Method
+            type: String
             summary: The HTTP method for the request
           - name: url
             type: JSURL
