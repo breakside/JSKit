@@ -383,6 +383,9 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewWillDisappear(false);
         }
+        if (this.openAnimator !== null){
+            this.openAnimator.stopAndCallCompletions();
+        }
         if (this.closeAnimator !== null){
             var self = this;
             this.closeAnimator.addCompletion(function(){
@@ -756,8 +759,10 @@ JSClass('UIWindow', UIView, {
                 return;
             }
             if (event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.leftMouseDragged || event.type == UIEvent.Type.rightMouseDown || event.type == UIEvent.Type.rightMouseDragged){
-                modal.makeKeyAndOrderFront();
-                modal.indicateModalStatus();
+                if (modal._isOpen){
+                    modal.makeKeyAndOrderFront();
+                    modal.indicateModalStatus();
+                }
                 return;
             }
         }

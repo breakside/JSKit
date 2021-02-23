@@ -64,8 +64,10 @@ JSClass("UIViewPropertyAnimator", JSObject, {
     },
 
     _completeAnimations: function(){
-        this._percentComplete = this._transaction.percentComplete;
-        this._transaction = null;
+        if (this._transaction !== null){
+            this._percentComplete = this._transaction.percentComplete;
+            this._transaction = null;
+        }
         var block;
         for (var i = 0, l = this.completionBlocks.length; i < l; ++i){
             block = this.completionBlocks[i];
@@ -119,6 +121,9 @@ JSClass("UIViewPropertyAnimator", JSObject, {
     },
 
     stopAndCallCompletions: function(){
+        if (this._transaction === null){
+            return;
+        }
         this.stop();
         this._completeAnimations();
     }
