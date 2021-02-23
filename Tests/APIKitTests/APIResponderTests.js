@@ -14,16 +14,47 @@ JSClass("APIResponderTests", TKTestSuite, {
                 });
             }
         }, "TestAPIResponder");
-        var pathParameters = {id: "test"};
         var url = JSURL.initWithString("http://breakside.io/test/request");
         var request = APIRequest.initWithMethodAndURL("GET", url);
         var response = APIResponse.init();
-        var secrets = APISecrets.init();
-        var responder = cls.initWithRequest(request, response, pathParameters, secrets);
+        var responder = cls.initWithRequest(request, response);
         TKAssertExactEquals(responder.request, request);
         TKAssertExactEquals(responder.response, response);
-        TKAssertExactEquals(responder.secrets, secrets);
-        TKAssertExactEquals(responder.id, "test");
+
+        url = JSURL.initWithString("http://breakside.io/test/request");
+        request = APIRequest.initWithMethodAndURL("GET", url);
+        responder = cls.initWithRequest(request);
+        TKAssertExactEquals(responder.request, request);
+        TKAssertNotNull(responder.response);
+    },
+
+    testDefinePropertiesFromPathParameters: function(){
+        var cls = APIResponder.$extend({
+            id: null,
+            test2: "hi",
+            get: function(){
+                return new Promise(function(resolve, reject){
+                    resolve({
+                        message: "hello"
+                    });
+                });
+            }
+        }, "TestAPIResponder");
+        var url = JSURL.initWithString("http://breakside.io/test/request");
+        var request = APIRequest.initWithMethodAndURL("GET", url);
+        var response = APIResponse.init();
+        var responder = cls.initWithRequest(request, response);
+        TKAssertNull(responder.id);
+        TKAssertUndefined(responder.test);
+        TKAssertEquals(responder.test2, "hi");
+        responder.definePropertiesFromPathParameters({
+            id: "1",
+            test: "hello",
+            test2: "changed"
+        });
+        TKAssertEquals(responder.id, "1");
+        TKAssertEquals(responder.test, "hello");
+        TKAssertEquals(responder.test2, "hi");
     },
 
     testObjectMethodForRequestMethod: function(){

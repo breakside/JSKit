@@ -32,8 +32,7 @@ topics:
       - name: receivedAt
         type: JSDate
         summary: The timestamp when the request was received
-  -
-    name: Request Body
+  - name: Request Body
     members:
       - name: contentType
         type: JSMediaType

@@ -1,0 +1,7 @@
+{
+    "node": true,
+    "strict": "global",
+    "newcap": false,
+    "multistr": true,
+    "esversion": 8
+}
