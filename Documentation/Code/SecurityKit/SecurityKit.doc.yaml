@@ -15,48 +15,43 @@ description: |
   `SecurityKit` also has support for commonly used technologies such as JSON
   Web Tokens via `SECJSONWebToken`.
 topics:
-  -
-    name: Encryption
+  - name: Encryption
     members:
       - SECCipher
       - SECKey
-      -
-        name: SECKeyPair
+      - name: SECKeyPair
         copyright: Copyright © 2020 Breakside Inc.
         kind: class
         anonymous: true
         introduced: 2020.1.0
         summary: A pair of public and private key
         topics:
-          -
-            name: Keys
+          - name: Keys
             members:
-              -
-                name: public
+              - name: public
                 type: SECKey
                 summary: The public key
-              -
-                name: private
+              - name: private
                 type: SECKey
                 summary: The private key
-  -
-    name: Signatures & Hashes
+  - name: Signatures & Hashes
     members:
       - SECHash
       - SECHMAC
       - SECSign
       - SECVerify
-  -
-    name: Secure Storage
+  - name: Key Management
+    mebers:
+      - SECKeystore
+  - name: Secure Storage
     members:
       - SECKeychain
       - SECPassword
-  -
-    name: JSON Web Tokens
+  - name: JSON Web Tokens
     members:
       - SECJSONWebToken
-  -
-    name: Authentication
+      - SECJSONWebAlgorithms
+  - name: Authentication
     members:
       - SECOneTimePassword
       - SECDeviceAuthentication

@@ -23,6 +23,17 @@ JSClass("SECSign", JSObject, {
     initWithAlgorithm: function(algorithm){
     },
 
+    initForJWK: function(jwk){
+        if (jwk.kty != "RSA" && jwk.kty !== "EC"){
+            return null;
+        }
+        var algorithm = jwkAlgorithm[jwk.alg];
+        if (!algorithm){
+            return null;
+        }
+        this.initWithAlgorithm(algorithm);
+    },
+
     createKeyPair: function(options, completion, target){
     },
 
@@ -30,6 +41,19 @@ JSClass("SECSign", JSObject, {
     },
 
     createKeyFromJWK: function(jwk, completion, target){        
+    },
+
+    createKeyFromKeystore: function(keystore, kid, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var jwk = keystore.jwkForIdentifier(kid);
+        if (jwk !== null){
+            this.createKeyFromJWK(jwk, completion, target);
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
     },
 
     update: function(data){
@@ -53,4 +77,13 @@ SECSign.EllipticCurve = {
     p256: "P-256",
     p384: "P-384",
     p521: "P-521"
+};
+
+var jwkAlgorithm = {
+    "RS256": SECSign.rsaSHA256,
+    "RS384": SECSign.rsaSHA384,
+    "RS512": SECSign.rsaSHA512,
+    "ES256": SECSign.ellipticCurveSHA256,
+    "ES384": SECSign.ellipticCurveSHA384,
+    "ES512": SECSign.ellipticCurveSHA512
 };

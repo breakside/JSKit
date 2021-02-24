@@ -24,7 +24,7 @@ JSClass("SECVerify", JSObject, {
     },
 
     initForJWK: function(jwk){
-        if (jwk.kty != "RSA"){
+        if (jwk.kty != "RSA" && jwk.kty != "EC"){
             return null;
         }
         var algorithm = jwkAlgorithm[jwk.alg];
@@ -52,6 +52,12 @@ SECVerify.Algorithm = {
     ellipticCurveSHA256: "ec.sha256",
     ellipticCurveSHA384: "ec.sha384",
     ellipticCurveSHA512: "ec.sha512"
+};
+
+SECVerify.EllipticCurve = {
+    p256: "P-256",
+    p384: "P-384",
+    p521: "P-521"
 };
 
 var jwkAlgorithm = {

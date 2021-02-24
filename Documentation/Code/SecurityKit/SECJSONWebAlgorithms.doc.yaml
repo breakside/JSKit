@@ -1,0 +1,64 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2021.8.2
+summary: Common constants for JSON Web Token, JSON Web Key, and related objects
+topics:
+  - name: Constants
+    members:
+      - name: Algorithm
+        kind: enum
+        summary: The supported signature algorithms
+        description: |
+          Corresponds to the `alg` property within a JWT header
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: The JWT is not signed
+              - name: hmacSHA256
+                summary: The JWT is signed with a symmetric HMAC using SHA256
+              - name: hmacSHA384
+                summary: The JWT is signed with a symmetric HMAC using SHA384
+              - name: hmacSHA512
+                summary: The JWT is signed with a symmetric HMAC using SHA512
+              - name: rsaSHA256
+                summary: The JWT is signed with a RSA using SHA256
+              - name: rsaSHA384
+                summary: The JWT is signed with a RSA using SHA384
+              - name: rsaSHA512
+                summary: The JWT is signed with a RSA using SHA512
+              - name: ellipticCurveSHA256
+                summary: The JWT is signed with a RSA using SHA256
+              - name: ellipticCurveSHA384
+                summary: The JWT is signed with a RSA using SHA384
+              - name: ellipticCurveSHA512
+                summary: The JWT is signed with a RSA using SHA512
+      - name: KeyType
+        kind: enum
+        summary: The types of `JSONWebKey`s
+        description: |
+          Corresponds to the `kty` property within a `JSONWebKey`
+        topics:
+          -
+            name: Options
+            members:
+              - name: symmetric
+                summary: The key uses a symmetric algorithm
+              - name: rsa
+                summary: The key uses the RSA algorithm
+              - name: ellipticCurve
+                summary: The key uses the Elliptic Curve algorithm
+      - name: EllipticCurve
+        kind: enum
+        summary: The supported named curves
+        topics:
+          -
+            name: Options
+            members:
+              - name: p256
+                summary: The `P-256`() curve, also known as `secp256r1`()
+              - name: p384
+                summary: The `P-384`() curve, also known as `secp384r1`()
+              - name: p521
+                summary: The `P-521`() curve, also known as `secp521r1`()

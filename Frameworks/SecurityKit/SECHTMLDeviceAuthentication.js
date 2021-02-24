@@ -17,7 +17,7 @@
 // #import "SECCipher.js"
 // #import "SECCBOR.js"
 // #import "SECHash.js"
-// #import "SECJSONWebToken.js"
+// #import "SECJSONWebAlgorithms.js"
 // jshint browser: true
 /* global AuthenticatorAttestationResponse */
 'use strict';
@@ -234,16 +234,16 @@ var jwkForCoseKey = function(coseKey, kid){
         key_ops: ["verify"]
     };
     if (coseKey.kty == 2){
-        jwk.kty = SECJSONWebToken.KeyType.ellipticCurve;
+        jwk.kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
         switch (coseKey.alg){
             case -7:
-                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA256;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA256;
                 break;
             case -35:
-                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA384;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA384;
                 break;
             case -36:
-                jwk.alg = SECJSONWebToken.Algorithm.ellipticCurveSHA512;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA512;
                 break;
             default:
                 return null;
@@ -266,16 +266,16 @@ var jwkForCoseKey = function(coseKey, kid){
         return jwk;
     }
     if (coseKey.kty == 0){ // RSA
-        jwk.kty = SECJSONWebToken.KeyType.rsa;
+        jwk.kty = SECJSONWebAlgorithms.KeyType.rsa;
         switch (coseKey.alg){
             case -257:
-                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA256;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA256;
                 break;
             case -258:
-                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA384;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA384;
                 break;
             case -259:
-                jwk.alg = SECJSONWebToken.Algorithm.rsaSHA512;
+                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA512;
                 break;
             default:
                 return null;

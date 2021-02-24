@@ -119,6 +119,48 @@ topics:
             name: keyData
             type: JSData
             summary: The key's data, obtained from an external source
+      -
+        name: createKeyFromJWK
+        introduced: 2021.8.2
+        kind: method
+        summary: Create a `SECKey` from a jwk and receive a callback with the
+          result
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JWK that contains the key data
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The new key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: createKeyFromJWK
+        introduced: 2021.8.2
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The new key
+        summary: Create a `SECKey` from a jwk and provide the result with a promise
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JWK that contains the key data
   -
     name: Generating a Signature
     members:

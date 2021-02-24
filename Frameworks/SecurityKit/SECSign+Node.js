@@ -17,7 +17,7 @@
 // #import "SECNodeKey.js"
 // #import "SECASN1.js"
 // #import "SECASN1Parser.js"
-// #import "SECJSONWebToken.js"
+// #import "SECJSONWebAlgorithms.js"
 // jshint node: true
 'use strict';
 
@@ -99,28 +99,28 @@ SECSign.definePropertiesFromExtensions({
                 var kty = null;
                 switch (this.algorithm){
                     case SECSign.Algorithm.rsaSHA256:
-                        alg = SECJSONWebToken.Algorithm.rsaSHA256;
-                        kty = SECJSONWebToken.KeyType.rsa;
+                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA256;
+                        kty = SECJSONWebAlgorithms.KeyType.rsa;
                         break;
                     case SECSign.Algorithm.rsaSHA384:
-                        alg = SECJSONWebToken.Algorithm.rsaSHA384;
-                        kty = SECJSONWebToken.KeyType.rsa;
+                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA384;
+                        kty = SECJSONWebAlgorithms.KeyType.rsa;
                         break;
                     case SECSign.Algorithm.rsaSHA512:
-                        alg = SECJSONWebToken.Algorithm.rsaSHA512;
-                        kty = SECJSONWebToken.KeyType.rsa;
+                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA512;
+                        kty = SECJSONWebAlgorithms.KeyType.rsa;
                         break;
                     case SECSign.Algorithm.ellipticCurveSHA256:
-                        alg = SECJSONWebToken.Algorithm.ellipticCurveSHA256;
-                        kty = SECJSONWebToken.KeyType.ellipticCurve;
+                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA256;
+                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
                         break;
                     case SECSign.Algorithm.ellipticCurveSHA384:
-                        alg = SECJSONWebToken.Algorithm.ellipticCurveSHA384;
-                        kty = SECJSONWebToken.KeyType.ellipticCurve;
+                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA384;
+                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
                         break;
                     case SECSign.Algorithm.ellipticCurveSHA512:
-                        alg = SECJSONWebToken.Algorithm.ellipticCurveSHA512;
-                        kty = SECJSONWebToken.KeyType.ellipticCurve;
+                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA512;
+                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
                         break;
                     default:
                         throw new Error("Unable to map SECSign algorithm to JWK");
@@ -140,7 +140,7 @@ SECSign.definePropertiesFromExtensions({
                 var pem;
                 var parser;
                 var sequence;
-                if (kty == SECJSONWebToken.KeyType.rsa){
+                if (kty == SECJSONWebAlgorithms.KeyType.rsa){
                     pem = pair.public.keyData;
                     parser = SECASN1Parser.initWithPEM(pem, "RSA PUBLIC KEY");
                     sequence = parser.parse();
@@ -160,7 +160,7 @@ SECSign.definePropertiesFromExtensions({
                         privateJWK.dq = sequence.values[7].data.base64URLStringRepresentation();
                         privateJWK.qi = sequence.values[8].data.base64URLStringRepresentation();
                     }
-                }else if (kty == SECJSONWebToken.KeyType.ellipticCurve){
+                }else if (kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
                     pem = pair.public.keyData;
                     parser = SECASN1Parser.initWithPEM(pem, "PUBLIC KEY");
                     sequence = parser.parse();
@@ -171,15 +171,15 @@ SECSign.definePropertiesFromExtensions({
                     var pointLength;
                     switch (derCurve){
                         case derNamedCurves[SECSign.EllipticCurve.p256]:
-                            publicJWK.crv = SECJSONWebToken.EllipticCurve.p256;
+                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
                             pointLength = 32;
                             break;
                         case derNamedCurves[SECSign.EllipticCurve.p384]:
-                            publicJWK.crv = SECJSONWebToken.EllipticCurve.p384;
+                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
                             pointLength = 48;
                             break;
                         case derNamedCurves[SECSign.EllipticCurve.p521]:
-                            publicJWK.crv = SECJSONWebToken.EllipticCurve.p521;
+                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
                             pointLength = 66;
                             break;
                         default:
@@ -211,15 +211,15 @@ SECSign.definePropertiesFromExtensions({
                     derCurve = optional.value.stringValue;
                     switch (derCurve){
                         case derNamedCurves[SECSign.EllipticCurve.p256]:
-                            privateJWK.crv = SECJSONWebToken.EllipticCurve.p256;
+                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
                             pointLength = 32;
                             break;
                         case derNamedCurves[SECSign.EllipticCurve.p384]:
-                            privateJWK.crv = SECJSONWebToken.EllipticCurve.p384;
+                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
                             pointLength = 48;
                             break;
                         case derNamedCurves[SECSign.EllipticCurve.p521]:
-                            privateJWK.crv = SECJSONWebToken.EllipticCurve.p521;
+                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
                             pointLength = 66;
                             break;
                         default:
@@ -255,7 +255,7 @@ SECSign.definePropertiesFromExtensions({
             completion = Promise.completion();
         }
         var der, base64, pem, key;
-        if (jwk.kty == SECJSONWebToken.KeyType.rsa){
+        if (jwk.kty == SECJSONWebAlgorithms.KeyType.rsa){
             // RSA private key ASN.1 syntax:
             // RSAPrivateKey ::= SEQUENCE {
             //     version           Version,
@@ -302,7 +302,7 @@ SECSign.definePropertiesFromExtensions({
             }else{
                 JSRunLoop.main.schedule(completion, target, null);
             }
-        }else if (jwk.kty == SECJSONWebToken.KeyType.ellipticCurve){
+        }else if (jwk.kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
             // ECPrivateKey ::= SEQUENCE {
             //   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
             //   privateKey     OCTET STRING,
@@ -312,13 +312,13 @@ SECSign.definePropertiesFromExtensions({
             try{
                 var namedCurve;
                 switch (jwk.crv){
-                    case SECJSONWebToken.EllipticCurve.p256:
+                    case SECJSONWebAlgorithms.EllipticCurve.p256:
                         namedCurve = derNamedCurves[SECSign.EllipticCurve.p256];
                         break;
-                    case SECJSONWebToken.EllipticCurve.p384:
+                    case SECJSONWebAlgorithms.EllipticCurve.p384:
                         namedCurve = derNamedCurves[SECSign.EllipticCurve.p384];
                         break;
-                    case SECJSONWebToken.EllipticCurve.p521:
+                    case SECJSONWebAlgorithms.EllipticCurve.p521:
                         namedCurve = derNamedCurves[SECSign.EllipticCurve.p521];
                         break;
                     default:

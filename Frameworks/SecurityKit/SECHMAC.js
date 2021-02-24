@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "SECJSONWebAlgorithms.js"
 'use strict';
 
 JSClass("SECHMAC", JSObject, {
@@ -27,6 +28,27 @@ JSClass("SECHMAC", JSObject, {
     },
 
     createKeyWithData: function(data, completion, target){
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        if (jwk.kty == SECJSONWebAlgorithms.KeyType.symmetric){
+            if (typeof(jwk.k) == "string"){
+                try{
+                    var data = jwk.k.dataByDecodingBase64URL();
+                    this.createKeyWithData(data, completion, target);
+                }catch (e){
+                    completion.call(target, null);
+                }
+            }else{
+                completion.call(target, null);
+            }
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
     },
 
     update: function(data){
