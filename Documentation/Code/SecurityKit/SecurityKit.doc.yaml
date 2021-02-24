@@ -41,7 +41,7 @@ topics:
       - SECSign
       - SECVerify
   - name: Key Management
-    mebers:
+    members:
       - SECKeystore
   - name: Secure Storage
     members:

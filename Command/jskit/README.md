@@ -23,6 +23,17 @@ In fact, you can even share the exact same code between the browser and the
 server.  For example, code that draws to the screen in the browser using [UIKit](https://docs.jskit.dev/uikit),
 can draw to PDF files on the server with [PDFKit](https://docs.jskit.dev/pdfkit).
 
+Serverless APIs
+===================
+
+JSKit also makes it easy to create serverless APIs for use with services such
+as AWS API Gateway and AWS Lambda.  With [APIKit](https://docs.jskit.dev/apikit), you can create API handlers
+that leverage [Foundation](https://docs.jskit.dev/foundation), [SecurityKit](https://docs.jskit.dev/securitykit), or other JSKit frameworks.
+
+You can share code with [UIKit](https://docs.jskit.dev/uikit) front ends, [ServerKit](https://docs.jskit.dev/serverkit) backends, or among
+multiple [APIKit](https://docs.jskit.dev/apikit) handlers.  [TestKit](https://docs.jskit.dev/testkit) ensures your API code is well tested
+and ready to go.
+
 Code, Document, Test, Deploy
 ============================
 
