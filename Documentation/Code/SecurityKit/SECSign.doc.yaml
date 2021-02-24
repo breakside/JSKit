@@ -51,6 +51,19 @@ topics:
         description: |
           After creating a signer, you'll need to call `update()` any number of
           times and finally call `sign()` to compute the signature.
+      -
+        name: initFromJWK
+        introduced: 2021.8.2
+        kind: init
+        summary: Create a signer for the given JSON Web Key
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JWK that contains the signing algorithm information
+        description: |
+          After creating a signer, you'll need to call `update()` any number of
+          times and finally call `sign()` to compute the signature.
   -
     name: Creating Keys
     members:
@@ -196,6 +209,56 @@ topics:
             name: jwk
             type: JSONWebKey
             summary: The JSON Web Key to convert
+      -
+        name: createKeyFromKeystore
+        introduced: 2021.8.2
+        kind: method
+        summary: Create a single key from information contained in a keystore
+        arguments:
+          -
+            name: keystore
+            type: SECKeystore
+            summary: The keystore that contains the key data
+          -
+            name: identifier
+            type: String
+            summary: The identifier of the key in the keystore
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: key
+                  type: SECKey
+                  nullable: true
+                  summary: The new key, or `null` on error
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      -
+        name: createKeyFromKeystore
+        introduced: 2021.8.2
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: SECKey
+            summary: The new key
+        summary: Create a single key from information contained in a keystore and
+          provide the result in a promise
+        arguments:
+          -
+            name: keystore
+            type: SECKeystore
+            summary: The keystore that contains the key data
+          -
+            name: identifier
+            type: String
+            summary: The identifier of the key in the keystore
       -
         name: RSAOptions
         kind: class

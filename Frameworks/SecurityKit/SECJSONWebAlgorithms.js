@@ -14,26 +14,35 @@
 // limitations under the License.
 
 // #import Foundation
-'use strict';
+"use strict";
 
-JSClass("SECHash", JSObject, {
-
-    initWithAlgorithm: function(algorithm, keyData){
-    },
-
-    update: function(data){
-    },
-
-    digest: function(completion, target){
-    }
+JSClass("SECJSONWebAlgorithms", JSObject, {    
 
 });
 
-SECHash.Algorithm = {
-    sha256: "sha256",
-    sha384: "sha384",
-    sha512: "sha512",
-    rsaSHA256: "rsa.sha256",
-    rsaSHA384: "rsa.sha384",
-    rsaSHA512: "rsa.sha512",
+SECJSONWebAlgorithms.Algorithm = {
+
+    none: 'none',
+    hmacSHA256: "HS256",
+    hmacSHA384: "HS384",
+    hmacSHA512: "HS512",
+    rsaSHA256: "RS256",
+    rsaSHA384: "RS384",
+    rsaSHA512: "RS512",
+    ellipticCurveSHA256: "ES256",
+    ellipticCurveSHA384: "ES384",
+    ellipticCurveSHA512: "ES512",
+
+};
+
+SECJSONWebAlgorithms.KeyType = {
+    symmetric: "oct",
+    rsa: "RSA",
+    ellipticCurve: "EC"
+};
+
+SECJSONWebAlgorithms.EllipticCurve = {
+    p256: "P-256",
+    p384: "P-384",
+    p521: "P-521"
 };

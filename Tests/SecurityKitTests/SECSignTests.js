@@ -107,4 +107,18 @@ JSClass("SECSignTests", TKTestSuite, {
         this.wait(expectation, 2.0);
     },
 
+    testCreateKeyFromKeystore: function(){
+        var signer = SECSign.initWithAlgorithm(SECSign.Algorithm.rsaSHA256);
+        var expectation = TKExpectation.init();
+        expectation.call(signer.createJWKPair, signer, {}, function(keys){
+            TKAssertNotNull(keys);
+            var keystore = SECKeystore.init();
+            keystore.addJWK(keys.private);
+            expectation.call(signer.createKeyFromKeystore, signer, keystore, keys.private.kid, function(key){
+                TKAssertNotNull(key);
+            }, this);
+        }, this);
+        this.wait(expectation, 2.0);
+    }
+
 });

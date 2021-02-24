@@ -15,6 +15,7 @@
 
 // #import Foundation
 // #import "SECDataKey.js"
+// #import "SECJSONWebAlgorithms.js"
 /* global SECHash, SECPassword */
 'use strict';
 
@@ -121,24 +122,37 @@ JSClass("SECCipher", JSObject, {
         return completion.promise;
     },
 
-    createKeyWithName: function(name, keystore, completion, target){
+    createKeyFromJWK: function(jwk, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        keystore.keyForName(name, function(keyData){
-            if (keyData === null){
-                completion.call(target, null);
-                return;
-            }
-            this.createKeyWithData(keyData, function(key){
-                keyData.zero();
-                if (key === null){
+        if (jwk.kty == SECJSONWebAlgorithms.KeyType.symmetric){
+            if (typeof(jwk.k) == "string"){
+                try{
+                    var data = jwk.k.dataByDecodingBase64URL();
+                    this.createKeyWithData(data, completion, target);
+                }catch (e){
                     completion.call(target, null);
-                    return;
                 }
-                completion.call(target, key);
-            }, this);
-        }, this);
+            }else{
+                completion.call(target, null);
+            }
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
+    },
+
+    createKeyFromKeystore: function(keystore, kid, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var data = keystore.dataForIdentifier(kid);
+        if (data !== null){
+            this.createKeyWithData(data, completion, target);
+        }else{
+            completion.call(target, null);
+        }
         return completion.promise;
     },
 

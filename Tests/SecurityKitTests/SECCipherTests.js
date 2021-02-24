@@ -546,4 +546,64 @@ JSClass("SECCipherTests", TKTestSuite, {
         this.wait(expectation, 5.0);
     },
 
+    testCreateKeyFromJWK: function(){
+        var expectation = TKExpectation.init();
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        var data = "not a real key for encryption!!!".utf8();
+        var jwk = {
+            kty: "oct",
+            k: data.base64URLStringRepresentation()
+        };
+        expectation.call(cipher.createKeyFromJWK, cipher, jwk, function(key){
+            TKAssertNotNull(key);
+        }, this);
+        this.wait(expectation, 2.0);
+    },
+
+    testCreateKeyFromRSAJWK: function(){
+        var expectation = TKExpectation.init();
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        var jwk = {
+            kty: "RSA"
+        };
+        expectation.call(cipher.createKeyFromJWK, cipher, jwk, function(key){
+            TKAssertNull(key);
+        }, this);
+        this.wait(expectation, 2.0);
+    },
+
+    testCreateKeyFromKeystore: function(){
+        var expectation = TKExpectation.init();
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        var keystore = SECKeystore.init();
+        var data = "not a real key for encryption!!!".utf8();
+        var jwk = {
+            kid: "key1",
+            kty: "oct",
+            k: data.base64URLStringRepresentation()
+        };
+        keystore.addJWK(jwk);
+        expectation.call(cipher.createKeyFromKeystore, cipher, keystore, "key1", function(key){
+            TKAssertNotNull(key);
+        }, this);
+        this.wait(expectation, 2.0);
+    },
+
+    testCreateKeyFromKeystoreNotFound: function(){
+        var expectation = TKExpectation.init();
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesCipherBlockChaining);
+        var keystore = SECKeystore.init();
+        var data = "not a real key for encryption!!!".utf8();
+        var jwk = {
+            kid: "key1",
+            kty: "oct",
+            k: data.base64URLStringRepresentation()
+        };
+        keystore.addJWK(jwk);
+        expectation.call(cipher.createKeyFromKeystore, cipher, keystore, "key2", function(key){
+            TKAssertNull(key);
+        }, this);
+        this.wait(expectation, 2.0);
+    },
+
 });

@@ -17,6 +17,7 @@
 // #import "SECHMAC.js"
 // #import "SECVerify.js"
 // #import "SECSign.js"
+// #import "SECJSONWebAlgorithms.js"
 'use strict';
 
 (function(){
@@ -223,25 +224,20 @@ JSClass("SECJSONWebToken", JSObject, {
     },
 
     _signHMAC: function(algorithm, jwk, chunks, completion, target){
-        if (jwk.kty === SECJSONWebToken.KeyType.symmetric && typeof(jwk.k) == "string"){
-            var keyData = jwk.k.dataByDecodingBase64URL();
-            var hash = SECHMAC.initWithAlgorithm(algorithm);
-            hash.createKeyWithData(keyData, function(key){
-                if (key === null){
-                    completion.call(target, null);
-                    return;
-                }
-                hash.key = key;
-                for (var i = 0, l = chunks.length; i < l; ++i){
-                    hash.update(chunks[i]);
-                }
-                hash.sign(function(computed){
-                    completion.call(target, computed);
-                });
+        var hash = SECHMAC.initWithAlgorithm(algorithm);
+        hash.createKeyFromJWK(jwk, function(key){
+            if (key === null){
+                completion.call(target, null);
+                return;
+            }
+            hash.key = key;
+            for (var i = 0, l = chunks.length; i < l; ++i){
+                hash.update(chunks[i]);
+            }
+            hash.sign(function(computed){
+                completion.call(target, computed);
             });
-        }else{
-            completion.call(target, null);
-        }
+        });
     },
 
     _signAsymmetric: function(algorithm, jwk, chunks, completion, target){
@@ -262,32 +258,11 @@ JSClass("SECJSONWebToken", JSObject, {
 
 });
 
-SECJSONWebToken.Algorithm = {
+SECJSONWebToken.Algorithm = SECJSONWebAlgorithms.Algorithm;
 
-    none: 'none',
-    hmacSHA256: "HS256",
-    hmacSHA384: "HS384",
-    hmacSHA512: "HS512",
-    rsaSHA256: "RS256",
-    rsaSHA384: "RS384",
-    rsaSHA512: "RS512",
-    ellipticCurveSHA256: "ES256",
-    ellipticCurveSHA384: "ES384",
-    ellipticCurveSHA512: "ES512",
+SECJSONWebToken.KeyType = SECJSONWebAlgorithms.KeyType;
 
-};
-
-SECJSONWebToken.KeyType = {
-    symmetric: "oct",
-    rsa: "RSA",
-    ellipticCurve: "EC"
-};
-
-SECJSONWebToken.EllipticCurve = {
-    p256: "P-256",
-    p384: "P-384",
-    p521: "P-521"
-};
+SECJSONWebToken.EllipticCurve = SECJSONWebAlgorithms.EllipticCurve;
 
 var dot = JSData.initWithArray([0x2E]);
 

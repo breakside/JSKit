@@ -16,7 +16,7 @@
 // #import "SECVerify.js"
 // #import "SECNodeKey.js"
 // #import "SECASN1.js"
-// #import "SECJSONWebToken.js"
+// #import "SECJSONWebAlgorithms.js"
 // jshint node: true
 'use strict';
 
@@ -53,7 +53,7 @@ SECVerify.definePropertiesFromExtensions({
             completion = Promise.completion();
         }
         var der, base64, pem, key;
-        if (jwk.kty == SECJSONWebToken.KeyType.rsa){
+        if (jwk.kty == SECJSONWebAlgorithms.KeyType.rsa){
             // RSA public key ASN.1 syntax:
             // RSAPublicKey ::= SEQUENCE {
             //     modulus           INTEGER,  -- n
@@ -76,19 +76,19 @@ SECVerify.definePropertiesFromExtensions({
             }else{
                 JSRunLoop.main.schedule(completion, target, null);
             }
-        }else if (jwk.kty == SECJSONWebToken.KeyType.ellipticCurve){
+        }else if (jwk.kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
             // SPKI format
             try{
                 var derCurve;
                 switch (jwk.crv){
-                    case SECJSONWebToken.EllipticCurve.p256:
-                        derCurve = derNamedCurves[SECSign.EllipticCurve.p256];
+                    case SECJSONWebAlgorithms.EllipticCurve.p256:
+                        derCurve = derNamedCurves[SECVerify.EllipticCurve.p256];
                         break;
-                    case SECJSONWebToken.EllipticCurve.p384:
-                        derCurve = derNamedCurves[SECSign.EllipticCurve.p384];
+                    case SECJSONWebAlgorithms.EllipticCurve.p384:
+                        derCurve = derNamedCurves[SECVerify.EllipticCurve.p384];
                         break;
-                    case SECJSONWebToken.EllipticCurve.p384:
-                        derCurve = derNamedCurves[SECSign.EllipticCurve.p384];
+                    case SECJSONWebAlgorithms.EllipticCurve.p384:
+                        derCurve = derNamedCurves[SECVerify.EllipticCurve.p384];
                         break;
                     default:
                         throw new Error("Unknown jwk.crv");
@@ -119,9 +119,9 @@ SECVerify.definePropertiesFromExtensions({
 });
 
 var derNamedCurves = {};
-derNamedCurves[SECSign.EllipticCurve.p256] = "1.2.840.10045.3.1.7";
-derNamedCurves[SECSign.EllipticCurve.p384] = "1.3.132.0.34";
-derNamedCurves[SECSign.EllipticCurve.p512] = "1.3.132.0.35";
+derNamedCurves[SECVerify.EllipticCurve.p256] = "1.2.840.10045.3.1.7";
+derNamedCurves[SECVerify.EllipticCurve.p384] = "1.3.132.0.34";
+derNamedCurves[SECVerify.EllipticCurve.p512] = "1.3.132.0.35";
 
 var nodeAlgorithms = {};
 nodeAlgorithms[SECVerify.Algorithm.rsaSHA256] = {name: 'rsa', hash: 'sha256'};

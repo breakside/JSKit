@@ -51,6 +51,19 @@ topics:
         description: |
           After creating a verifier, you'll need to call `update()` any number of
           times and finally call `verify()` to check against a signature.
+      -
+        name: initFromJWK
+        introduced: 2021.8.2
+        kind: init
+        summary: Create a verifier for the given JSON Web Key
+        arguments:
+          -
+            name: jwk
+            type: JSONWebKey
+            summary: The JWK that contains the verifying algorithm information
+        description: |
+          After creating a verifier, you'll need to call `update()` any number of
+          times and finally call `verify()` to check against the signature.
   -
     name: Verifying Data
     members:
