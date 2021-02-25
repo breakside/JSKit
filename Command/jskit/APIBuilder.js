@@ -370,6 +370,23 @@ JSClass("APIBuilder", Builder, {
                 }
                 lambdaEvent.multiValueQueryStringParameters[field.name].push(field.value);
             }
+            var setAccessHeaders = function(){
+                var origin = request.headers.origin;
+                if (origin){
+                    response.setHeader("Access-Control-Allow-Origin", origin);
+                    response.setHeader("Vary", "Origin");
+                    if (request.headers['access-control-request-method']){
+                        response.setHeader("Access-Control-Allow-Methods", "*");
+                    }
+                    if (request.headers['access-control-request-header']){
+                        response.setHeader("Access-Control-Allow-Headers", "*");
+                    }
+                    if (request.method == "OPTIONS"){
+                        response.setHeader("Access-Control-Max-Age", 60 * 60);
+                    }
+                }
+
+            };
             request.on("data", function(buffer){
                 chunks.push(JSData.initWithNodeBuffer(buffer));
             });
@@ -378,34 +395,41 @@ JSClass("APIBuilder", Builder, {
                     var data  = JSData.initWithChuncks(chunks);
                     lambdaEvent.body = data.base64StringRepresentation();
                 }
-                var envData = fileManager.contentsAtURL(envURL, function(envData){
-                    var env = {};
-                    if (envData !== null){
-                        env = JSEnvironment.initWithData(envData).getAll();
-                    }
-                    var child = child_process.fork(moduleName, {
-                        cwd: cwd,
-                        env: env
-                    });
-                    child.on("message", function(lambdaResponse){
-                        for (let name in lambdaResponse.multiValueHeaders){
-                            response.setHeader(name, lambdaResponse.multiValueHeaders[name]);
+                if (request.method == "OPTIONS"){
+                    setAccessHeaders();
+                    response.writeHead(200);
+                    response.end();
+                }else{
+                    var envData = fileManager.contentsAtURL(envURL, function(envData){
+                        var env = {};
+                        if (envData !== null){
+                            env = JSEnvironment.initWithData(envData).getAll();
                         }
-                        response.writeHead(lambdaResponse.statusCode);
-                        if (lambdaResponse.body){
-                            let data;
-                            if (lambdaResponse.isBase64Encoded){
-                                data = lambdaResponse.body.dataByDecodingBase64();
-                            }else{
-                                data = lambdaResponse.body.utf8();
+                        var child = child_process.fork(moduleName, {
+                            cwd: cwd,
+                            env: env
+                        });
+                        child.on("message", function(lambdaResponse){
+                            for (let name in lambdaResponse.multiValueHeaders){
+                                response.setHeader(name, lambdaResponse.multiValueHeaders[name]);
                             }
-                            response.write(data.nodeBuffer());
-                        }
-                        response.end();
-                        child.kill();
+                            setAccessHeaders();
+                            response.writeHead(lambdaResponse.statusCode);
+                            if (lambdaResponse.body){
+                                let data;
+                                if (lambdaResponse.isBase64Encoded){
+                                    data = lambdaResponse.body.dataByDecodingBase64();
+                                }else{
+                                    data = lambdaResponse.body.utf8();
+                                }
+                                response.write(data.nodeBuffer());
+                            }
+                            response.end();
+                            child.kill();
+                        });
+                        child.send(lambdaEvent);
                     });
-                    child.send(lambdaEvent);
-                });
+                }
             });
         };
 
