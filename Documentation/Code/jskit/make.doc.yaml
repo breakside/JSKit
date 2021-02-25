@@ -137,6 +137,29 @@ topics:
         description: |
           Defaults to `8081`
   -
+    name: API Specific Arguments
+    summary: For use when calling `make` on projects that have a `api` type
+    members:
+      -
+        name: --http-port
+        introduced: 2021.8.4
+        suffix: api
+        type: Number
+        summary: The local port on which to run a debug api sever
+        description: |
+          Only applicable if the `--debug` flag is also used
+      -
+        name: --debug-env
+        introduced: 2021.8.4
+        suffix: api
+        type: String
+        summary: A local file that contains environment variables for the
+          debug api server
+        description: |
+          Only applicable if the `--debug` flag is also used.
+
+          Defaults to `".env"`().  Relative to the working directory.
+  -
     name: Docker-Related Arguments
     summary: For use when calling `make` on projects that have an `html` or `node` type
     members:

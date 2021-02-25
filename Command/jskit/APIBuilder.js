@@ -25,12 +25,17 @@
 //     - API
 //       - ...javascript...
 
+var http = require('http');
+var child_process = require("child_process");
+
 JSClass("APIBuilder", Builder, {
 
     bundleType: "api",
 
     options: {
         "service": {default: "awslambda", options: ["awslambda"], help: "The service on which the api will run"},
+        "http-port": {valueType: "integer", default: null, help: "Start a debug server on this port"},
+        "debug-env": {default: ".env", help: "Use this env file for debug server requests"}
     },
 
     // -----------------------------------------------------------------------
@@ -92,6 +97,9 @@ JSClass("APIBuilder", Builder, {
             await this.zipBundle();
         }
         await this.finish();
+        if (this.debug && this.arguments["http-port"]){
+            this.startDebugServer(this.arguments["http-port"]);
+        }
     },
 
     findImports: async function(){
@@ -248,6 +256,21 @@ JSClass("APIBuilder", Builder, {
             this.commands.push("node --inspect-brk " + localPath);
         }
         this.zipPaths.push(indexURL.lastPathComponent);
+
+        if (this.debug){
+            var debugURL = this.bundleURL.appendingPathComponent("debugrequesthandler.js");
+            lines = [];
+            lines.push("var index = require('./index.js');");
+            lines.push("process.on('message', function(event){");
+            lines.push("  index.handler(event).then(function(response){");
+            lines.push("    process.send(response);");
+            lines.push("  }, function(error){");
+            lines.push("    process.send({statusCode: 500, body: JSON.stringify({message: error.message, stack: error.stack})});");
+            lines.push("  });");
+            lines.push("});");
+            var debug = lines.join("\n").utf8();
+            await this.fileManager.createFileAtURL(debugURL, debug);
+        }
     },
 
     bundleDependencies: async function(){
@@ -311,6 +334,92 @@ JSClass("APIBuilder", Builder, {
                 resolve();
             });
         });
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Debug Server
+
+    startDebugServer: async function(port){
+        var cwd = this.fileManager.pathForURL(this.bundleURL);
+        var moduleName = "debugrequesthandler.js";
+        var envURL = this.workingDirectoryURL.appendingPathComponent(this.arguments["debug-env"]);
+        var fileManager = this.fileManager;
+        var handleRequest = function(request, response){
+            var url = JSURL.initWithString(request.url);
+            var lambdaEvent = {
+                version: "1.0",
+                httpMethod: request.method,
+                path: url.path,
+                multiValueQueryStringParameters: {},
+                multiValueHeaders: {},
+                body: null,
+                isBase64Encoded: true
+            };
+            var chunks = [];
+            for (let i = 0, l = request.rawHeaders.length; i < l - 1; i += 2){
+                let name = request.rawHeaders[i];
+                let value = request.rawHeaders[i + 1];
+                if (!(name in lambdaEvent.multiValueHeaders)){
+                    lambdaEvent.multiValueHeaders[name] = [];
+                }
+                lambdaEvent.multiValueHeaders[name].push(value);
+            }
+            for (let field of url.query.fields){
+                if (!(field.name in lambdaEvent.multiValueQueryStringParameters)){
+                    lambdaEvent.multiValueQueryStringParameters[field.name] = [];
+                }
+                lambdaEvent.multiValueQueryStringParameters[field.name].push(field.value);
+            }
+            request.on("data", function(buffer){
+                chunks.push(JSData.initWithNodeBuffer(buffer));
+            });
+            request.on("end", function(){
+                if (chunks.length > 0){
+                    var data  = JSData.initWithChuncks(chunks);
+                    lambdaEvent.body = data.base64StringRepresentation();
+                }
+                var envData = fileManager.contentsAtURL(envURL, function(envData){
+                    var env = {};
+                    if (envData !== null){
+                        env = JSEnvironment.initWithData(envData).getAll();
+                    }
+                    var child = child_process.fork(moduleName, {
+                        cwd: cwd,
+                        env: env
+                    });
+                    child.on("message", function(lambdaResponse){
+                        for (let name in lambdaResponse.multiValueHeaders){
+                            response.setHeader(name, lambdaResponse.multiValueHeaders[name]);
+                        }
+                        response.writeHead(lambdaResponse.statusCode);
+                        if (lambdaResponse.body){
+                            let data;
+                            if (lambdaResponse.isBase64Encoded){
+                                data = lambdaResponse.body.dataByDecodingBase64();
+                            }else{
+                                data = lambdaResponse.body.utf8();
+                            }
+                            response.write(data.nodeBuffer());
+                        }
+                        response.end();
+                        child.kill();
+                    });
+                    child.send(lambdaEvent);
+                });
+            });
+        };
+
+        var server = http.createServer(handleRequest);
+
+        port = await new Promise(function(resolve, reject){
+            server.listen(port, '127.0.0.1', function(){
+                resolve(server.address().port);
+            });
+        });
+
+        var url = JSURL.initWithString("http://localhost/");
+        url.port = port;
+        this.printer.print("Local debug api at %s\n".sprintf(url.encodedString));
     }
 
 });
