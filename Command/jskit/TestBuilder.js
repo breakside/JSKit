@@ -220,7 +220,7 @@ JSClass("TestBuilder", Builder, {
         }
         var json = JSON.stringify(bundle, null, this.debug ? 2 : 0);
         var js = "'use strict';\nJSBundle.bundles['%s'] = %s;\n".sprintf(info.JSBundleIdentifier, json);
-        if (info.JSBundleType == "html" || info.JSBundleType == "node"){
+        if (info.JSBundleType == "html" || info.JSBundleType == "node" || info.JSBundleType == "api"){
             js += 'JSBundle.mainBundleIdentifier = "%s";\n'.sprintf(info.JSBundleIdentifier);
         }
         if (isTestBundle){
