@@ -680,13 +680,13 @@ topics:
           required key
         arguments:
           -
-            name: validatingConstructionClass
-            type: JSClass
-            summary: The class of object to instantiate
-          -
             name: key
             type: String
             summary: The name of property to validate
+          -
+            name: validatingConstructionClass
+            type: JSClass
+            summary: The class of object to instantiate
         description: |
           If the key is missing or isn't a object, an error will be thrown
       -
@@ -698,13 +698,13 @@ topics:
           key, or return a default value
         arguments:
           -
-            name: validatingConstructionClass
-            type: JSClass
-            summary: The class of object to instantiate
-          -
             name: key
             type: String
             summary: The name of property to validate
+          -
+            name: validatingConstructionClass
+            type: JSClass
+            summary: The class of object to instantiate
           -
             name: defaultValue
             type: object

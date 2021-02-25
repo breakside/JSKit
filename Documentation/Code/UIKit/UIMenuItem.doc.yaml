@@ -61,7 +61,7 @@ topics:
             summary: The object to use as `this` when calling the action
               function
       -
-        name: initWithSeparator
+        name: initSeparator
         kind: init
         summary: Create a separator item
         description: |

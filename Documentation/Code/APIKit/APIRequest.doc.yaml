@@ -526,45 +526,6 @@ topics:
             type: JSClass
             summary: The class of object to instantiate.  Must implement
               the `APIValidatingConstruction` protocol.
-          - name: completion
-            type:
-              arguments:
-                - name: error
-                  type: APIValidatingObject.Error
-                  nullable: true
-                  summary: The error, if the object could not be validated
-                - name: valid
-                  type: JSObject
-                  mullable: true
-                  summary: The fully validated object, after being constructed
-                    with the `APIValidatingObject` protocol's
-                    `initWithValidatingObject()`
-          - name: target
-            type: object
-            default: "undefined"
-            summary: The object to use as `this` when calling the completion
-              function
-        description: |
-          Creates an instance with all input validated via a
-          `APIValidatingObject` passed to the init method.
-
-          `getValidQuery()` is the recommended way to create objects from user
-          input in a query string.
-      - name: getValidQuery
-        suffix: promise
-        kind: method
-        type: Promise
-        promise:
-          resolve:
-            type: APIValidating
-            summary: An instance of the given class
-        summary: Get an instance of the given class created from the request's query string with
-          \`initWithValidatingObject()`, returned via a promise
-        arguments:
-          - name: validatingContructionClass
-            type: JSClass
-            summary: The class of object to instantiate.  Must implement
-              the `APIValidatingConstruction` protocol.
         description: |
           Creates an instance with all input validated via a
           `APIValidatingObject` passed to the init method.
@@ -575,36 +536,6 @@ topics:
         kind: method
         summary: Get the request's query string as an validation-wrapped object decoded
           from a form in a callback function
-        arguments:
-          - name: completion
-            type:
-              arguments:
-                - name: validator
-                  type: APIValidatingObject
-                  mullable: true
-                  summary: The request's query string decoded into an object and
-                    wrapped in a validator
-          - name: target
-            type: object
-            default: "undefined"
-            summary: The object to use as `this` when calling the completion
-              function
-        description: |
-          A validating object provides a simple interface to extract user
-          input while ensuring it meets input validation requirements.
-
-          Unless you need to extract fields at different times, we recommend
-          using `getValidQuery()` instead because it validates all the input
-          upfront and allows for a more structured pattern to validate input.
-      - name: getValidatingQuery
-        suffix: promise
-        kind: method
-        type: Promise
-        promise:
-          resolve:
-            type: APIValidatingObject
-            summary: The request's body query string wrapped in a validator
-        summary: Get the request's body query string wrapped in a validator with a promise
         description: |
           A validating object provides a simple interface to extract user
           input while ensuring it meets input validation requirements.
