@@ -379,7 +379,7 @@ JSClass("SKValidatingObject", JSObject, {
             return defaultValue;
         }
         if (!optionSet.has(value)){
-            throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "options", options: optionSet});
+            throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "options", options: Array.from(optionSet)});
         }
         return value;
     },
@@ -413,7 +413,7 @@ JSClass("SKValidatingObject", JSObject, {
             for (var i = 0, l = items.length; i < l; ++i){
                 item = items[i];
                 if (!optionSet.has(item)){
-                    throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "options", options: optionSet});
+                    throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "options", options: Array.from(optionSet)});
                 }
             }
         }
