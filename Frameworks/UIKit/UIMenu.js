@@ -346,10 +346,10 @@ JSClass("UIMenu", JSObject, {
     _dismiss: function(animated, completion, target){
         this._contextTarget = null;
         this._styler.dismissMenu(this, animated, function(){
+            if (completion){
+                completion.call(target);
+            }
             if (this.delegate && this.delegate.menuDidClose){
-                if (completion){
-                    completion.call(target);
-                }
                 this.delegate.menuDidClose(this);
             }
         }, this);

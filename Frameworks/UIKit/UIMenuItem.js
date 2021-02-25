@@ -137,6 +137,16 @@ JSClass("UIMenuItem", JSObject, {
         }
     },
 
+    setSubmenu: function(submenu){
+        if (this._submenu !== null){
+            this._submenu.supermenu = null;
+        }
+        this._submenu = submenu;
+        if (this._submenu !== null){
+            this._submenu.supermenu = this.menu;
+        }
+    },
+
     // MARK: - Accessibility
 
     // Visibility
