@@ -136,10 +136,10 @@ JSClass("HTMLBuilder", Builder, {
     // -----------------------------------------------------------------------
     // MARK: - Environment
 
-    _workingDirectoryEnvironment: null,
+    _buildEnvironment: null,
 
     setupEnvironment: async function(){
-        this._workingDirectoryEnvironment = JSEnvironment.current;
+        this._buildEnvironment = JSEnvironment.init();
         var url;
         if (this.arguments.env){
             url = this.workingDirectoryURL.appendingPathComponent(this.arguments.env);
@@ -153,28 +153,22 @@ JSClass("HTMLBuilder", Builder, {
         try{
             var contents = await this.fileManager.contentsAtURL(url);
             if (contents !== null){
-                this._workingDirectoryEnvironment = JSEnvironment.initWithData(contents);
+                this._buildEnvironment = JSEnvironment.initWithData(contents);
             }
         }catch(e){
         }
     },
 
     getEnvironment: function(name, defaultValue){
-        if (this._workingDirectoryEnvironment){
-            return this._workingDirectoryEnvironment.get(name, getenv(name, defaultValue));
+        if (this._buildEnvironment){
+            return this._buildEnvironment.get(name, getenv(name, defaultValue));
         }
         return getenv(name, defaultValue);
     },
 
     populateEnvironment: async function(){
         await this.setupEnvironment();
-        var envs = this.project.info.UIApplicationEnvironment;
-        this.project.info.UIApplicationEnvironment = {};
-        if (envs){
-            for (var i = 0, l = envs.length; i < l; ++i){
-                this.project.info.UIApplicationEnvironment[envs[i]] = this.getEnvironment(envs[i]);
-            }
-        }
+        this.project.info.HTMLApplicationEnvironment = this._buildEnvironment.getAll();
     },
 
     // ----------------------------------------------------------------------
@@ -503,7 +497,7 @@ JSClass("HTMLBuilder", Builder, {
                             preflightId: this.preflightId,
                             preflightSrc: this.preflightURL.encodedStringRelativeTo(this.wwwURL),
                             serviceWorkerSrc: this.serviceWorkerURL ? this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL) : null,
-                            environment: this.project.info.UIApplicationEnvironment,
+                            environment: this.project.info.HTMLApplicationEnvironment,
                             buildId: this.buildId,
                             bundleId: this.project.info.JSBundleIdentifier,
                             gitRevision: this.project.info.GitRevision,

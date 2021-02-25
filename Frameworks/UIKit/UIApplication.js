@@ -41,6 +41,9 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
 
+    bundle: null,
+    environment: null,
+
     // MARK: - Initialization & Startup
 
     initWithWindowServer: function(windowServer){
@@ -389,10 +392,7 @@ JSClass('UIApplication', UIResponder, {
     },
 
     getenv: function(name, defaultValue){
-        if (name in this.bundle.info.UIApplicationEnvironment){
-            return this.bundle.info.UIApplicationEnvironment[name];
-        }
-        return defaultValue;
+        return this.environment.get(name, defaultValue);
     },
 
     // Visibility

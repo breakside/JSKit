@@ -299,6 +299,27 @@ topics:
           Loop up the responder chain starting from `target` until a responder
           is found that responds to the `action`.
   -
+    name: Environment
+    summary:
+      -
+        name: environment
+        introduced: 2021.8.4
+        type: JSEnvironment
+        summary: The application's environment
+        description: |
+          For HTML-based applications, which run as completely static
+          code, the environment is established at build time.
+
+          For debug builds, a local `.env`() file is used by default, or
+          you can specify a different file with the `--env`(make.--env) flag.
+
+          For non-debug builds, the filename in `HTMLProductionEnvironment` is
+          used, relative to the project directory. It defaults to `production.env`.
+          You can specify a different file with the `--env`(make.--env) flag.
+        important: For HTML applications, all environment variables are visble
+          to anyone inpsecting the published code, so take care to only include
+          non-secret configuration varaibles.
+  -
     name: HTML Based Applicatons
     summary:
       -

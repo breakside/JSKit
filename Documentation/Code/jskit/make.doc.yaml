@@ -125,6 +125,18 @@ topics:
           ========
 
           - `1024` - for all builds
+      -
+        name: --env
+        introduced: 2021.8.4
+        type: String
+        summary: A environment file to use for this build
+        description: |
+          Defaults
+          ========
+
+          - debug builds: `.env`() in the current working directory
+          - production builds: value of `HTMLProductionEnvironment`, relative
+            to the project directory
   -
     name: Node/HTTP Specific Arguments
     summary: For use when calling `make` on projects that have a `node` type

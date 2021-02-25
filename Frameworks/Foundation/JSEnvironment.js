@@ -20,6 +20,10 @@ JSClass("JSEnvironment", JSObject, {
 
     _valuesByName: null,
 
+    init: function(){
+        this._valuesByName = {};
+    },
+
     initWithData: function(data){
         this._valuesByName = {};
         var text = data.stringByDecodingUTF8();
