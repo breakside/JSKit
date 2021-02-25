@@ -27,7 +27,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
 
     stringForKey: function(key){
         var s = this.obj[key];
-        if (s !== undefined){
+        if (s !== undefined && s !== null){
             if (typeof(s) !== "string"){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "string"});
             }
@@ -37,7 +37,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
 
     numberForKey: function(key){
         var n = this.obj[key];
-        if (n !== undefined){
+        if (n !== undefined && n !== null){
             if (typeof(n) != "number" || isNaN(n) || !isFinite(n)){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "number"});
             }
@@ -47,7 +47,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
 
     booleanForKey: function(key){
         var b = this.obj[key];
-        if (b !== undefined){
+        if (b !== undefined && b !== null){
             if (b !== true && b !== false){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "boolean"});
             }
@@ -57,7 +57,7 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
 
     arrayValueProviderForKey: function(key){
         var a = this.obj[key];
-        if (a !== undefined){
+        if (a !== undefined && a !== null){
             if (typeof(a) !== "object" || !(a instanceof Array)){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "array"});
             }
@@ -68,8 +68,8 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
 
     objectValueProviderForKey: function(key){
         var o = this.obj[key];
-        if (o !== undefined){
-            if (typeof(o) !== "object" || o === null || (o instanceof Array)){
+        if (o !== undefined && o !== null){
+            if (typeof(o) !== "object" || (o instanceof Array)){
                 throw new SKValidatingObject.Error({field: this.prefix + key, problem: "type", expected: "object"});
             }
             return SKValidatingObjectPropertyProvider.initWithObject(o, this.prefix + key + '.');
@@ -222,7 +222,7 @@ JSClass("SKValidatingObject", JSObject, {
             validator = defaultValue;
             defaultValue = undefined;
         }
-        if (n === undefined){
+        if (n === undefined || n === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -276,7 +276,7 @@ JSClass("SKValidatingObject", JSObject, {
             validator = defaultValue;
             defaultValue = undefined;
         }
-        if (value === undefined){
+        if (value === undefined || value === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -327,7 +327,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     booleanForKey: function(key, defaultValue){
         var b = this.valueProvider.booleanForKey(key);
-        if (b === undefined){
+        if (b === undefined || b === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -372,7 +372,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     optionForKey: function(key, optionSet, defaultValue){
         var value = this.valueProvider.stringForKey(key);
-        if (value === undefined){
+        if (value === undefined || value === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -386,7 +386,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     urlForKey: function(key, defaultValue){
         var stringValue = this.valueProvider.stringForKey(key);
-        if (stringValue === undefined){
+        if (stringValue === undefined || stringValue === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -401,7 +401,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     stringsBySplittingKey: function(key, delimiter, optionSet, defaultValue){
         var stringValue = this.valueProvider.stringForKey(key);
-        if (stringValue === undefined){
+        if (stringValue === undefined || stringValue === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -422,7 +422,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     base64DataForKey: function(key, defaultValue){
         var stringValue = this.valueProvider.stringForKey(key);
-        if (stringValue === undefined){
+        if (stringValue === undefined || stringValue === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
@@ -437,7 +437,7 @@ JSClass("SKValidatingObject", JSObject, {
 
     base64URLDataForKey: function(key, defaultValue){
         var stringValue = this.valueProvider.stringForKey(key);
-        if (stringValue === undefined){
+        if (stringValue === undefined || stringValue === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
             }
