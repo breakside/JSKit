@@ -426,9 +426,9 @@ topics:
 
           ````
           DrawingControl.Event = Object.create(UIControl.Event, {
-            pointAdded:   {value: UIControl.State.firstUserEvent},
-            pointRemoved: {value: UIControl.State.firstUserEvent << 1},
-            pointMoved:   {value: UIControl.State.firstUserEvent << 2},
+            pointAdded:   {value: UIControl.Event.firstUserEvent},
+            pointRemoved: {value: UIControl.Event.firstUserEvent << 1},
+            pointMoved:   {value: UIControl.Event.firstUserEvent << 2},
           });
           ````
         topics:
