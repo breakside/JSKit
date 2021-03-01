@@ -134,6 +134,22 @@ topics:
                 name: upgradeRequired
                 value: "426"
               -
+                name: preconditionRequired
+                introduced: 2021.9.0
+                value: "428"
+              -
+                name: tooManyRequests
+                introduced: 2021.9.0
+                value: "429"
+              -
+                name: requestHeaderFieldsTooLarge
+                introduced: 2021.9.0
+                value: "431"
+              -
+                name: unavailableForLegalReasons
+                introduced: 2021.9.0
+                value: "451"
+              -
                 name: internalServerError
                 value: "500"
               -
