@@ -134,5 +134,6 @@ topics:
       -
         name: response
         type: JSURLResponse
+        nullable: true
         summary: The response from the server
         note: Will be `null` until the server actually responds

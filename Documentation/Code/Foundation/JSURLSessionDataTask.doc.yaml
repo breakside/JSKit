@@ -41,7 +41,8 @@ topics:
       -
         name: response
         type: JSURLResponse
+        nullable: true
         summary: The final response received from the server
         description: |
-          This is a shortcut to the `JSURLRequest.response` propertuy on
+          This is a shortcut to the `JSURLRequest.response` property on
           `currentRequest`.
