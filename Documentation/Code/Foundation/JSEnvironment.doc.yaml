@@ -68,3 +68,87 @@ topics:
             name: defaultValue
             type: any
             summary: The value to return if the variable is not found
+      -
+        name: stringForName
+        introduced: 2021.9.0
+        kind: method
+        type: String
+        nullable: true
+        summary: Get the value for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name
+      -
+        name: urlForName
+        introduced: 2021.9.0
+        kind: method
+        type: JSURL
+        nullable: true
+        summary: Get a URL by parsing the string for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name or invalid URL
+      -
+        name: integerForName
+        introduced: 2021.9.0
+        kind: method
+        type: Number
+        nullable: true
+        summary: Get a Number by parsing the string for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name or invalid integer
+      -
+        name: base64DataForName
+        introduced: 2021.9.0
+        kind: method
+        type: JSURL
+        nullable: true
+        summary: Get JSData by parsing the base64 string for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name or invalid base64
+      -
+        name: base64URLDataForName
+        introduced: 2021.9.0
+        kind: method
+        type: JSURL
+        nullable: true
+        summary: Get JSData by parsing the base64-url string for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name or invalid base64-url
+      -
+        name: hexDataForName
+        introduced: 2021.9.0
+        kind: method
+        type: JSURL
+        nullable: true
+        summary: Get JSData by parsing the hex string for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `null`() for unknown name or invalid hex

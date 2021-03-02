@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "JSObject.js"
+// #import "JSURL.js"
 'use strict';
 
 JSClass("JSEnvironment", JSObject, {
@@ -59,6 +60,58 @@ JSClass("JSEnvironment", JSObject, {
 
     getAll: function(){
         return JSCopy(this._valuesByName);
+    },
+
+    stringForName: function(name){
+        return this.get(name, null);
+    },
+
+    integerForName: function(name){
+        var s = this.stringForName(name);
+        if (s !== null){
+            var n = parseInt(s);
+            if (!isNaN(n)){
+                return n;
+            }
+        }
+        return null;
+    },
+
+    urlForName: function(name){
+        return JSURL.initWithString(this.stringForName(name));
+    },
+
+    base64DataForName: function(name){
+        var base64 = this.stringForName(name);
+        if (base64 !== null){
+            try{
+                return base64.dataByDecodingBase64();
+            }catch (e){
+            }
+        }
+        return null;
+    },
+
+    base64URLDataForName: function(name){
+        var base64 = this.stringForName(name);
+        if (base64 !== null){
+            try{
+                return base64.dataByDecodingBase64URL();
+            }catch(e){
+            }
+        }
+        return null;
+    },
+
+    hexDataForName: function(name){
+        var hex = this.stringForName(name);
+        if (hex !== null){
+            try{
+                return hex.dataByDecodingHex();
+            }catch (e){
+            }
+        }
+        return null;
     }
 
 });
