@@ -186,7 +186,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('mousedown', this, false);
         this.rootElement.addEventListener('mouseup', this, false);
         this.rootElement.addEventListener('mousemove', this, false);
-        this.rootElement.addEventListener('wheel', this, false);
+        this.rootElement.addEventListener('wheel', this, {passive: false, capture: false});
         this.rootElement.addEventListener('gesturestart', this, false);
         this.rootElement.addEventListener('gesturechange', this, false);
         this.rootElement.addEventListener('gestureend', this, false);
