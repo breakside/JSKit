@@ -91,6 +91,21 @@ topics:
             type: String
             summary: The password to send to the server
       -
+        introduced: 2021.9.0
+        name: addBasicAuthorization
+        suffix: username
+        kind: method
+        summary: Adds an `Authorization`() header for the `Basic`() scheme
+          with only a username
+        arguments:
+          -
+            name: username
+            type: String
+            summary: The username to send to the server
+        description: |
+          Some APIs use basic auth with a token as the username and no
+          password.
+      -
         introduced: 2020.28.0
         name: addBearerAuthorization
         kind: method

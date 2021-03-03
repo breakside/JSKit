@@ -114,7 +114,12 @@ JSClass("JSURLRequest", JSObject, {
     },
 
     addBasicAuthorization: function(username, password){
-        var combined = username + ":" + password;
+        var combined;
+        if (password){
+            combined = username + ":" + password;
+        }else{
+            combined = username;
+        }
         var encoded = combined.utf8().base64StringRepresentation();
         this.headerMap.add("Authorization", "Basic " + encoded);
     },
