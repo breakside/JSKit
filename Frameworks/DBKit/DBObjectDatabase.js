@@ -122,16 +122,16 @@ JSClass("DBObjectDatabase", JSObject, {
 
     incrementExpiring: function(id, lifetimeInterval, completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
         if (!this.isValidID(id)){
             logger.error("Cannot increment without a valid id");
-            JSRunLoop.main.schedule.call(completion, target, false);
+            JSRunLoop.main.schedule.call(completion, target, null);
         }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
             this.store.incrementExpiring(id, lifetimeInterval, completion, target);
         }else{
             logger.error("Cannot increment expiring counter in a persistent data store");
-            JSRunLoop.main.schedule(completion, target, false);
+            JSRunLoop.main.schedule(completion, target, null);
         }
         return completion.promise;
     },
