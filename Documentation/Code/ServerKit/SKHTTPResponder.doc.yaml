@@ -383,7 +383,7 @@ topics:
               var token = this.request.headerMap.get('X-MyBlog-Token');
               var user = await this.context.getUserForToken(token);
               var hasPermission = user.canPerformBlogPostMethod(this.request.method);
-              return SKHTTPServerAuthorization(hasPermission, user);
+              return SKHTTPAuthorization(hasPermission, user);
             }
 
           });
