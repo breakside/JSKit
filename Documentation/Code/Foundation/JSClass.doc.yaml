@@ -447,7 +447,7 @@ topics:
           ImageReader.subclassesByExt = {};
 
           ImageReader.$extend = function(extensions, className){
-            var subclass = this.$super.$extend.call(this, extensions, className);
+            var subclass = JSObject.$extend.call(this, extensions, className);
             ImageReader.subclassesByExt[subclass.prototype.ext] = subclass;
             return subclass;
           };
