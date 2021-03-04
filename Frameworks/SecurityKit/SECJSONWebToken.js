@@ -30,6 +30,9 @@ JSClass("SECJSONWebToken", JSObject, {
     unverifiedPayload: JSReadOnlyProperty('_unverifiedPayload'),
 
     initWithString: function(str){
+        if (str === null || str === undefined){
+            return null;
+        }
         var parts = str.split('.');
         if (parts.length !== 3){
             return null;
