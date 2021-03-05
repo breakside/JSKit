@@ -71,7 +71,7 @@ JSClass("JSURLSession", JSObject, {
             task.progressDelegate.taskDidReceiveBodyData(task, totalReceived, totalExpected);
         }
         if (this.delegate && this.delegate.urlSessionTaskDidSendBodyData){
-            this.delegate.urlSessoinTaskDidReceiveBodyData(this, task, totalReceived, totalExpected);
+            this.delegate.urlSessionTaskDidReceiveBodyData(this, task, totalReceived, totalExpected);
         }
     },
 
