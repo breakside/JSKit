@@ -154,8 +154,10 @@ JSClass("SKHTTPServer", JSObject, {
 
             // 4. Open the context
             }).then(function(authenticated){
-                responder.context.authenticated = authenticated;
-                return responder.context.open();
+                if (responder.context !== null){
+                    responder.context.authenticated = authenticated;
+                    return responder.context.open();
+                }
 
             // 5. Call the method
             }).then(function(){
