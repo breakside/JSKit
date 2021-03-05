@@ -39,6 +39,10 @@ JSClass("JSHTMLURLSessionDataTask", JSURLSessionDataTask, {
         if (this.cancelation === null){
             this.cancelation = JSHTMLHTTPClient.shared.send(this.currentRequest, {
                 redirect: function(url){
+                    var fakeRedirectResponse = JSURLResponse.init();
+                    fakeRedirectResponse.statusCode = JSURLResponse.StatusCode.found;
+                    fakeRedirectResponse.headerMap.add("Location", url.encodedString);
+                    this._currentRequest.response = fakeRedirectResponse;
                     this._currentRequest = this._originalRequest.redirectedRequestToURL(url);
                 },
                 uploadProgress: function(sent, total){
