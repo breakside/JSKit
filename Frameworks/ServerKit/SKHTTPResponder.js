@@ -59,6 +59,10 @@ JSClass("SKHTTPResponder", JSObject, {
         var statusCode = SKHTTPResponse.StatusCode.internalServerError;
         if (error instanceof SKHTTPError){
             statusCode = error.statusCode;
+            if (error.object !== null){
+                this.sendObject(error.object, statusCode);
+                return;
+            }
         }
         this.sendStatus(statusCode);
     },

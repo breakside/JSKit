@@ -15,16 +15,18 @@
 
 'use strict';
 
-JSGlobalObject.SKHTTPError = function(statusCode, message){
+JSGlobalObject.SKHTTPError = function(statusCode, message, object){
     if (this === undefined){
         return new SKHTTPError(statusCode, message);
     }
     if (statusCode instanceof SKHTTPError){
         this.statusCode = statusCode.statusCode;
         this.message = statusCode.message;
+        this.object = statusCode.object;
     }else{
         this.statusCode = statusCode;
         this.message = message;
+        this.object = object || null;
     }
     if (Error.captureStackTrace){
         Error.captureStackTrace(this, SKHTTPError);

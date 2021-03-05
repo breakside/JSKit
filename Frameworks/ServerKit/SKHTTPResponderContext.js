@@ -15,6 +15,7 @@
 
 // #import Foundation
 // #import "SKHTTPResponse.js"
+// #import "SKHTTPError.js"
 'use strict';
 
 JSClass("SKHTTPResponderContext", JSObject, {
@@ -31,6 +32,21 @@ JSClass("SKHTTPResponderContext", JSObject, {
 
     open: function(){
         return Promise.resolve();
-    }
+    },
+
+    assert: function(condition, statusCode, message){
+        if (!condition){
+            throw new SKHTTPError(statusCode, message);
+        }
+    },
+
+    assertEquals: function(a, b, statusCode, message){
+        this.assert(a === b, statusCode, message);
+    },
+
+    assertNotNull: function(a, statusCode, message){
+        this.assert(a !== null, statusCode, message);
+    },
+
 
 });
