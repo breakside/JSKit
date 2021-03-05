@@ -20,6 +20,7 @@
 // #import "DBFileStore.js"
 // #import "DBRemoteStore.js"
 // #import "DBMemoryStore.js"
-// #import "DBSecureObjectDatabase.js"
+// #import "DBEncryptedObject.js"
 // #import "DBObjectGraph.js"
+// #import "DBStorable.js"
 // #import "DBID.js"

@@ -1,0 +1,231 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.10.0
+inherits: JSObject
+summary: Interface for saving and retrieving objects from databases
+description: |
+  A `DBObjectDatabase` is what you'll typically create and interact with
+  in your application.
+
+  Supported object stores:
+  - MongoDB
+  - Redis
+  - Memory
+  - File
+topics:
+  - name: Creating an object database
+    members:
+      - name: initWithURL
+        kind: init
+        summary: Create an object database with an underlying store appropriate
+          for the URL
+        arguments:
+          - name: url
+            type: JSURL
+            summary: The url with database connection information
+        description: |
+          Supported URLs:
+
+          - `mongodb://`()
+          - `redis://`()
+          - `file://`()
+      - name: initInMemory
+        kind: init
+        summary: Create an in-memory object database
+        description: |
+          Useful in testing and local development environments as a zero-dependency
+          stand-in for other ephemeral stores like Redis.
+  - name: Retrieving Objects
+    members:
+      - name: object
+        kind: method
+        summary: Load an object from the underlying store
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: DBStorable
+                  nullable: true
+                  summary: The loaded object, or `null` if no object was found
+            summary: The function to call when the object is loaded
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: objectOfClass
+        kind: method
+        summary: Load an object from the underlying store on if its type matches
+          the expected class
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: expectedClass
+            type: JSClass
+            summary: The expected class of the object
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: DBStorable
+                  nullable: true
+                  summary: The loaded object, or `null` if no object was found
+            summary: The function to call when the object is loaded
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Useful when the `id`() you receive is untrusted, like in a URL or
+          other user input.
+
+          For a regular `object()` call, the `id`() determines the kind of class
+          to instantiate.  When the `id`() is untrusted, coming from some place
+          other than the database itself or other internal source, `objectOfClass()`
+          protects against unexpected object loads.
+
+          For example, say you have a database with messages and users:
+
+          ````
+          // #import DBKit
+          "use strict";
+
+          JSClass("Message", JSObject, {
+            id: null,
+            text: null,
+          });
+
+          JSClass("User", JSObject, {
+            id: null,
+            name: null,
+          });
+
+          var database = DBObjectDatabase.initWithURL(url);
+          database.registerClassForPrefix(Message, "msg");
+          database.registerClassForPrefix(User, "user");
+          ````
+
+          And then you have an HTTP reponder for the `/messages/*messageID`() url.
+
+          ````
+          // #import ServerKit
+          "use strict";
+
+          JSClass("MessageContext", SKHTTPResponderContext, {
+
+            database: null,
+            messageID: null, // parsed from URL
+            message: null,
+
+            load: async function(){
+              this.message = await this.database.objectOfClass(this.messageID, Message);
+            }
+
+          });
+          ````
+
+          Consider the two URLs:
+
+          - `/messages/msg_xxxx1234`
+          - `/messages/user_xxxx1234`
+
+          Both are valid URLs, and the second one could cause problems if you
+          didn't use `objectOfClass()` because it would blindly load a `User`()
+          into the `this.message`() property.
+  - name: Saving Objects
+    members:
+      - name: save
+        kind: method
+        summary: Save an object to the underlying store
+        arguments:
+          - name: object
+            type: DBStorable
+            summary: The object to save in the database
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the save succeeded or not
+            summary: The function to call when the save completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: saveExpiring
+        kind: method
+        summary: Save an object with an expiration to the underlying ephemeral store
+        arguments:
+          - name: object
+            type: DBStorable
+            summary: The object to save in the database
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the object in seconds
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the save succeeded or not
+            summary: The function to call when the save completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Only available for object databases with an underlying ephemeral
+          store like Redis or memory
+  - name: Deleting Objects
+    members:
+      - name: delete
+        kind: method
+        summary: Delete an object from the underlying store
+        arguments:
+          - name: id
+            type: String
+            summary: The unique identifer of the object to delete
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the delete succeeded or not
+            summary: The function to call when the save completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+  - name: Counters
+    members:
+      - name: incrementExpiring
+        kind: method
+        summary: Increment a counter with an expiration in the underlying ephemeral store
+        arguments:
+          - name: id
+            type: String
+            summary: The unique counter id
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the counter in seconds
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the operation succeeded or not
+            summary: The function to call when the operation completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Useful for rate-limiting scenarios where you need an incrementing number
+          that automatically expires after a certain amount of time.
+          
+          Only available for object databases with an underlying ephemeral
+          store like Redis or memory

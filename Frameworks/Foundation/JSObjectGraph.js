@@ -1,5 +1,10 @@
 // #import "JSObject.js"
+// #import "JSLog.js"
 'use strict';
+
+(function(){
+
+var logger = JSLog("foundation", "objectgraph");
 
 JSClass("JSObjectGraph", JSObject, {
 
@@ -24,6 +29,15 @@ JSClass("JSObjectGraph", JSObject, {
         }
         this.loadObjectForID(id, function(obj){
             this.addObjectForID(obj, id);
+            if (obj !== null && obj.awakeInGraph){
+                var promise = obj.awakeInGraph(this);
+                if (promise instanceof Promise){
+                    promise.then(function(){
+                        completion.call(target, obj);
+                    });
+                    return;
+                }
+            }
             completion.call(target, obj);
         }, this);
         return completion.promise;
@@ -57,3 +71,5 @@ JSClass("JSObjectGraph", JSObject, {
     },
 
 });
+
+})();

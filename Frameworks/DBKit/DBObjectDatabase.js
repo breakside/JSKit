@@ -19,6 +19,8 @@
 // #import "DBMemoryStore.js"
 // #import "DBEphemeralObjectStore.js"
 // #import "DBID.js"
+// #import "DBEncryptedObject.js"
+// #import "DBStorableClassResolver.js"
 /* global DBSecureObjectDatabase, DBRedisStore, DBMongoStore */
 'use strict';
 
@@ -56,63 +58,123 @@ JSClass("DBObjectDatabase", JSObject, {
     initInMemory: function(){
         var store = DBMemoryStore.init();
         this.initWithObjectStore(store);
+        this.storableClassResolver = DBStorableClassResolver.init();
     },
 
     initWithObjectStore: function(store){
         this.store = store;
+        this.encryptionDefaults = {
+            algorithm: SECCipher.Algorithm.aesCBC,
+            keyIdentifer: null,
+            keyBitLength: null,
+        };
     },
 
     id: DBID,
-
-    tableForID: DBID.tableForID,
 
     object: function(id, completion, target){
         if (!completion){
             completion = Promise.completion();
         }
-        if (!this.isValidID(id)){
+        if (!DBID.isValid(id)){
             completion.call(target, null);
         }else{
-            this.store.object(id, completion, target);
+            this.store.object(id, function(dictionary){
+                var storable = dictionary;
+                var storableClass = this.storableClassResolver.classForID(id);
+                if (dictionary !== null){
+                    if (dictionary.dbkitSecure === true){
+                        storable = DBEncryptedObject.initFromStorableDictionary(dictionary);
+                        storable.id = dictionary.id;
+                        storable.objectClass = storableClass;
+                        storable.keystore = this.keystore;
+                    }else{
+                        if (storableClass !== null){
+                            storable = storableClass.initFromStorableDictionary(dictionary);
+                            storable.id = dictionary.id;
+                        }
+                    }
+                }
+                completion.call(target, storable);
+            }, this);
         }
         return completion.promise;
     },
 
-    requiredObject: function(id, errorfn, errorArg1){
-        var errorArgs = Array.prototype.slice.call(arguments, 2);
-        var db = this;
-        return new Promise(function(resolve, reject){
-            db.object(id).then(resolve);
-        }).then(function(object){
-            if (object === null){
-                throw errorfn.apply(undefined, errorArgs);
-            }
-            return object;
-        });
+    objectOfClass: function(id, cls, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        var idClass = this.storableClassResolver.classForID(id);
+        if (idClass !== null && idClass.isSubclassOfClass(cls)){
+            this.object(id, completion, target);
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
     },
 
-    save: function(obj, completion, target){
+    _pepareStorableForSave: function(storable, completion, target){
+        if (storable instanceof DBEncryptedObject){
+            storable.keystore = this.keystore;
+            storable.encrypt(this.encryptionDefaults.algorithm, this.encryptionDefaults.keyIdentifer, this.encryptionDefaults.keyBitLength, function(success){
+                if (!success){
+                    completion.call(target, null);
+                    return;
+                }
+                var dictionary = {
+                    id: storable.id,
+                    dbkitSecure: true,
+                };
+                storable.encodeToStorableDictionary(dictionary);
+                completion.call(target, dictionary);
+            }, this);
+        }else{
+            if (storable.encodeToStorableDictionary){
+                var dictionary = {
+                    id: storable.id
+                };
+                storable.encodeToStorableDictionary(dictionary);
+                storable = dictionary;
+            }
+            completion.call(target, storable);
+        }
+    },
+
+    save: function(storable, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidID(obj.id)){
+        if (!DBID.isValid(storable.id)){
             logger.error("Cannot save object without a valid id");
             JSRunLoop.main.schedule(completion, target, false);
         }else{
-            this.store.save(obj, completion, target);
+            this._pepareStorableForSave(storable, function(preparedStorable){
+                if (preparedStorable === null){
+                    completion.call(target, false);
+                    return;
+                }
+                this.store.save(preparedStorable, completion, target);
+            }, this);
         }
         return completion.promise;
     },
 
-    saveExpiring: function(obj, lifetimeInterval, completion, target){
+    saveExpiring: function(storable, lifetimeInterval, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidID(obj.id)){
+        if (!DBID.isValid(storable.id)){
             logger.error("Cannot save expiring object without a valid id");
             JSRunLoop.main.schedule(completion, target, false);
         }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
-            this.store.saveExpiring(obj, lifetimeInterval, completion, target);
+            this._pepareStorableForSave(storable, function(preparedStorable){
+                if (preparedStorable === null){
+                    completion.call(target, false);
+                    return;
+                }
+                this.store.saveExpiring(preparedStorable, lifetimeInterval, completion, target);
+            }, this);
         }else{
             logger.error("Cannot save expiring object in a persistent data store");
             JSRunLoop.main.schedule(completion, target, false);
@@ -124,7 +186,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        if (!this.isValidID(id)){
+        if (!DBID.isValid(id)){
             logger.error("Cannot increment without a valid id");
             JSRunLoop.main.schedule.call(completion, target, null);
         }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
@@ -140,7 +202,7 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        if (!this.isValidID(id)){
+        if (!DBID.isValid(id)){
             logger.error("Cannot delete object without a valid id");
             JSRunLoop.main.schedule(completion, target, false);
         }else{
@@ -149,30 +211,19 @@ JSClass("DBObjectDatabase", JSObject, {
         return completion.promise;
     },
 
-    secure: JSReadOnlyProperty('_secure', null),
+    encryptionDefaults: null,
+    keystore: null,
 
-    setKeystore: function(keystore){
-        if (keystore === null){
-            this._secure = null;
-        }else{
-            this._secure = DBSecureObjectDatabase.initWithKeystore(keystore, this.store);
-        }
+    setKeystore: function(keystore, defaultKeyIdentifier, keyBitLength){
+        this.keystore = keystore;
+        this.encryptionDefaults.keyIdentifer = defaultKeyIdentifier;
+        this.encryptionDefaults.keyBitLength = keyBitLength;
     },
 
-    isValidID: function(id){
-        if (id === undefined){
-            return false;
-        }
-        if (id === null){
-            return false;
-        }
-        if (typeof(id) !== "string"){
-            return false;
-        }
-        if (id.length === 0){
-            return false;
-        }
-        return true;
+    storableClassResolver: null,
+
+    registerStorableClass: function(storableClass, prefix){
+        this.storableClassResolver.addClassForPrefix(storableClass, prefix);
     }
 
 });

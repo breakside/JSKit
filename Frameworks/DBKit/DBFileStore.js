@@ -73,12 +73,12 @@ JSClass("DBFileStore", DBPersistentObjectStore, {
     _urlForID: function(id){
         var hashlen = 40;
         var i = id.length - hashlen;
-        var table = id.substr(0, i - 1);
+        var prefix = id.substr(0, i - 1);
         var hash1 = id.substr(i, 2);
         var hash2 = id.substr(i + 2, 2);
         var final = id.substr(i + 4);
         var components = [
-            table,
+            prefix,
             hash1,
             hash2,
             final

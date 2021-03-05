@@ -61,7 +61,7 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
             completion = Promise.completion();
         }
         try{
-            var collection = this.database.collection(DBID.tableForID(id));
+            var collection = this.database.collection(id.dbidPrefix);
             var cursor = collection.find({_id: id});
             cursor.next(function(error, mongoObject){
                 if (error){
@@ -90,7 +90,7 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         try{
-            var collection = this.database.collection(DBID.tableForID(object.id));
+            var collection = this.database.collection(object.id.dbidPrefix);
             var mongoObject = JSCopy(object);
             mongoObject._id = object.id;
             delete object.id;
@@ -114,7 +114,7 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
             completion = Promise.completion(Promise.resolveTrue);
         }
         try{
-            var collection = this.database.collection(DBID.tableForID(id));
+            var collection = this.database.collection(id.dbidPrefix);
             collection.deleteOne({_id: id}, {}, function(error){
                 if (error){
                     logger.error("Error deleting mongo object: %{error}", error);
