@@ -93,6 +93,23 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         this._saveExpiring(object, lifetimeInterval);
         JSRunLoop.main.schedule(completion, target, result);
         return completion.promise;
+    },
+
+    saveChange: function(id, change, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.object(id, function(obj){
+            obj = change(obj);
+            this.save(obj, function(success){
+                if (!success){
+                    completion.call(target, null);
+                    return;
+                }
+                completion.call(target, obj);
+            }, this);
+        }, this);
+        return completion.promise;
     }
 
 });

@@ -33,6 +33,10 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
         this.client.on('error', this.handleError.bind(this));
     },
 
+    initWithClient: function(client){
+        this.client = client;
+    },
+
     handleError: function(e){
         logger.error(e);
     },
@@ -172,6 +176,51 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             JSRunLoop.main.schedule(completion, target, null);
         }
         return completion.promise;
+    },
+
+    saveChange: function(id, change, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var maxRetires = 30;
+        var waitInterval = JSTimeInterval.milliseconds(20);
+        var retires = 0;
+        var store = this;
+        var redis = this.redis;
+        var trySave = function(){
+            redis.watch(id, function(error){
+                if (error !== null){
+                    logger.error("Failure calling redis watch: %{error}", error);
+                    completion.call(target, null);
+                    return;
+                }
+                store.object(id, function(obj){
+                    obj = change(obj);
+                    var multi = store.multi();
+                    var transactionStore = DBRedisStore.initWithClient(multi);
+                    transactionStore.save(obj, function(success){});
+                    multi.exec(function(error, results){
+                        if (error !== null){
+                            completion.call(target, null);
+                            return;
+                        }
+                        if (results === null){
+                            ++retires;
+                            if (retires > maxRetires){
+                                completion.call(target, null);
+                                return;
+                            }
+                            JSTimeInterval.scheduedTimerWithInterval(waitInterval, trySave);
+                            waitInterval = Math.min(1, waitInterval * 2);
+                            return;
+                        }
+                        completion.call(target, obj);
+                    });
+                });
+            });
+        };
+        trySave();
+        return completion.proimise;
     }
 
 });
