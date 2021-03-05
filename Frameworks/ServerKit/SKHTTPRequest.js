@@ -224,6 +224,61 @@ JSClass("SKHTTPRequest", JSObject, {
     getValidQuery: function(validatingClass){
         var validator = this.getValidatingQuery();
         return validatingClass.initWithValidatingObject(validator);
-    }
+    },
+
+    bearerToken: JSReadOnlyProperty(),
+
+    getBearerToken: function(){
+        var authorization = this.headerMap.get("Authorization", null);
+        if (authorization !== null){
+            if (authorization.startsWith("Bearer ")){
+                return authorization.substr(7);
+            }
+        }
+        return null;
+    },
+
+    username: JSReadOnlyProperty(),
+
+    getBasicAuthorization: function(){
+        var authorization = this.headerMap.get("Authorization", null);
+        if (authorization !== null){
+            if (authorization.startsWith("Basic ")){
+                try{
+                    var basic = authorization.substr(7).stringByDecodingBase64();
+                    return basic;
+                }catch (e){
+                    return null;
+                }
+            }
+        }
+        return null;
+    },
+
+    getUsername: function(){
+        var basic = this.getBasicAuthorization();
+        if (basic !== null){
+            var index = basic.indexOf(":");
+            if (index >= 0){
+                return basic.substr(0, index);
+            }
+            return basic;
+        }
+        return null;
+    },
+
+    password: JSReadOnlyProperty(),
+
+    getPassword: function(){
+        var basic = this.getBasicAuthorization();
+        if (basic !== null){
+            var index = basic.indexOf(":");
+            if (index >= 0){
+                return basic.substr(index + 1);
+            }
+            return null;
+        }
+        return null;
+    },
 
 });
