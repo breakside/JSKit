@@ -42,7 +42,7 @@ JSClass("JSHTMLURLSessionDataTask", JSURLSessionDataTask, {
                     var fakeRedirectResponse = JSURLResponse.init();
                     fakeRedirectResponse.statusCode = JSURLResponse.StatusCode.found;
                     fakeRedirectResponse.headerMap.add("Location", url.encodedString);
-                    this._currentRequest.response = fakeRedirectResponse;
+                    this._currentRequest._response = fakeRedirectResponse;
                     this._currentRequest = this._originalRequest.redirectedRequestToURL(url);
                 },
                 uploadProgress: function(sent, total){

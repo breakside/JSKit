@@ -60,8 +60,8 @@ TKTestSuite.$extend = function(extensions, name){
     var subclass = JSClass.prototype.$extend.call(this, extensions, name);
     if (name.endsWith("Tests")){
         this.RegisteredTestSuites.push(subclass);
-        this._FindTests(subclass);
     }
+    this._FindTests(subclass);
     return subclass;
 };
 
