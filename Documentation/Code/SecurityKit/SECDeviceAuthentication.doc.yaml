@@ -191,9 +191,8 @@ topics:
                 nullable: true
                 summary: More information required to verify a WebAuthn generated signature
                 important: |
-                  If present, indicates that the `signature` includes more input data than
-                  just the challenge.  Specifically, the signature was done over
-                  `authData || sha256(clientData)`.
+                  If present, indicates that a WebAuthn attestation is provided
+                  to perform verification of the key ownership and integrity
       -
         name: RegistrationWebAuthn
         kind: class
@@ -209,8 +208,8 @@ topics:
                 summary: The webauthn attestation result
               -
                 name: clientData
-                type: JSData
-                summary: The client data used in the signature calculation
+                type: String
+                summary: The base64-url encoded client data used in the signature calculation
       -
         name: RegistrationWebAuthnAttestation
         kind: class
@@ -232,8 +231,8 @@ topics:
                 summary: The attestation statement
               -
                 name: authData
-                type: object
-                summary: The authentication data
+                type: String
+                summary: The base64-encoded authentication data used in the attestation statement
       -
         name: PublicKeyAuthentication
         kind: class
@@ -279,7 +278,7 @@ topics:
             members:
               -
                 name: kid
-                type: string
+                type: String
                 summary: The key id for the public key counterpart of the private key that signed the request
                 description: |
                   Used to uniquely identify the key on your server
@@ -322,9 +321,9 @@ topics:
             members:
               -
                 name: authData
-                type: JSData
-                summary: The auth data used in the signature calculation
+                type: String
+                summary: The base64-url encoded auth data used in the signature calculation
               -
                 name: clientData
-                type: JSData
-                summary: The client data used in the signature calculation
+                type: String
+                summary: The base64-url encoded client data used in the signature calculation

@@ -15,6 +15,7 @@
 
 // #import "SECDeviceAuthentication.js"
 // #import "SECCipher.js"
+// #import "SECSign.js"
 // #import "SECCBOR.js"
 // #import "SECHash.js"
 // #import "SECJSONWebAlgorithms.js"
@@ -115,8 +116,10 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             }
             var clientData = JSData.initWithBuffer(credential.response.clientDataJSON);
             var attestationCBOR = JSData.initWithBuffer(credential.response.attestationObject);
-            var attestation = SECCBOR.parse(attestationCBOR);
-            var authData = attestation.authData;
+            var attestationParser = SECCBORParser.initWithData(attestationCBOR);
+            attestationParser.encodeDataAsBase64URL = true;
+            var attestation = attestationParser.parse();
+            var authData = attestation.authData.dataByDecodingBase64URL();
             var length = (authData[53] << 8) | authData[54];
             var keyParser = SECCBORParser.initWithData(authData);
             keyParser.offset = 55 + length;
@@ -126,7 +129,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 jwk: jwk,
                 webauthn: {
                     attestation: attestation,
-                    clientData: clientData
+                    clientData: clientData.base64URLStringRepresentation()
                 },
                 challenge: registration.challengeData
             };
