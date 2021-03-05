@@ -34,8 +34,9 @@ description: |
 
   Special Naming Conventions
   ==========
-  By convention, test suite subclasses end with `"Tests"`, as in
-  `"JSRectTests"`, but this is only a convention.
+  Test suite subclasses end with `"Tests"`, as in `"JSRectTests"`.  You can
+  create intermediate TKTestSuite subclasses for common code, and they won't
+  run unless their name ends with "Tests".
 
   Test cases, however, are any method on a suite that begins with `"test"`. If
   you need any support/helper methods, just make sure they don't start with
