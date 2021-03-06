@@ -22,6 +22,10 @@ JSClass("JSObjectGraph", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
+        if (id === null || id === undefined){
+            completion.call(target, null);
+            return completion.promise;
+        }
         var obj = this.objectsByID[id];
         if (obj !== undefined){
             completion.call(target, obj);
@@ -66,7 +70,7 @@ JSClass("JSObjectGraph", JSObject, {
         return completion.promise;
     },
 
-    loadObjectForID: function(completion, target){
+    loadObjectForID: function(id, completion, target){
         completion.call(target, null);
     },
 

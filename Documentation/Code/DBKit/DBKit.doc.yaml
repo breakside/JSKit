@@ -5,7 +5,7 @@ summary: Save and retrieve objects from databases
 codeURL: Frameworks/DBKit/
 description: |
   `DBKit` provides a standard way of storing objects in databases regardless
-  of the underlying database technology.
+  of the underlying technology.
 
   A `DBObjectDatabase` accesses an underlying data store, whether it be a
   persistent MongoDB server or an ephemeral Redis cache.

@@ -58,7 +58,6 @@ JSClass("DBObjectDatabase", JSObject, {
     initInMemory: function(){
         var store = DBMemoryStore.init();
         this.initWithObjectStore(store);
-        this.storableClassResolver = DBStorableClassResolver.init();
     },
 
     initWithObjectStore: function(store){
@@ -68,6 +67,7 @@ JSClass("DBObjectDatabase", JSObject, {
             keyIdentifer: null,
             keyBitLength: null,
         };
+        this.storableClassResolver = DBStorableClassResolver.init();
     },
 
     id: DBID,
