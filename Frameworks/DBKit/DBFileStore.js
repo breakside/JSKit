@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBPersistentObjectStore.js"
+// #import "DBObjectStore.js"
 'use strict';
 
-JSClass("DBFileStore", DBPersistentObjectStore, {
+JSClass("DBFileStore", DBObjectStore, {
 
     initWithURL: function(url, fileManager){
         this.url = url;

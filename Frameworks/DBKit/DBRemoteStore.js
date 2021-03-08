@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBPersistentObjectStore.js"
+// #import "DBObjectStore.js"
 'use strict';
 
 (function(){
 
 var logger = JSLog("dbkit", "client");
 
-JSClass("DBRemoteStore", DBPersistentObjectStore, {
+JSClass("DBRemoteStore", DBObjectStore, {
 
     initWithURL: function(url, urlSession){
         this.url = url;

@@ -13,13 +13,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBEphemeralObjectStore.js"
+// #import "DBObjectStore.js"
 // jshint node: true
 'use strict';
 
 var logger = JSLog("service", "redis");
 
-JSClass("DBRedisStore", DBEphemeralObjectStore, {
+JSClass("DBRedisStore", DBObjectStore, {
 
     initWithURL: function(url, redis){
         if (redis === undefined){
@@ -64,7 +64,7 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             });
         }catch (e){
             logger.error("Failure calling redis get: %{error}", e);
-            JSRunLoop.main.schedule(completion, null);
+            JSRunLoop.main.schedule(completion, undefined, null);
         }
     },
 
@@ -79,7 +79,7 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
                 json = JSON.stringify(object);
             }catch (e){
                 logger.error("Failed to serialize object for redis: %{error}", e);
-                JSRunLoop.main.schedule(completion, false);
+                JSRunLoop.main.schedule(completion, undefined, false);
                 return;
             }
             var args = [object.id, json];
@@ -97,7 +97,7 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             });
         }catch (e){
             logger.error("Failure calling redis set: %{error}", e);
-            JSRunLoop.main.schedule(completion, false);
+            JSRunLoop.main.schedule(completion, undefined, false);
         }
     },
 
@@ -116,7 +116,7 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             });
         }catch (e){
             logger.error("Failure calling redis del: %{error}", e);
-            JSRunLoop.main.schedule(completion, false);
+            JSRunLoop.main.schedule(completion, undefined, false);
         }
     },
 
@@ -158,7 +158,7 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             });
         }catch (e){
             logger.error("Failure calling redis incr: %{error}", e);
-            JSRunLoop.main.schedule(completion, null);
+            JSRunLoop.main.schedule(completion, undefined, null);
         }
     },
 

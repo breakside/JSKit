@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBPersistentObjectStore.js"
+// #import "DBObjectStore.js"
 // #import "DBID.js"
 // jshint node: true
 'use strict';
 
 var logger = JSLog("service", "mongodb");
 
-JSClass("DBMongoStore", DBPersistentObjectStore, {
+JSClass("DBMongoStore", DBObjectStore, {
 
     initWithURL: function(url, mongodb){
         if (mongodb === undefined){

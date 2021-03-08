@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBEphemeralObjectStore.js"
+// #import "DBObjectStore.js"
 'use strict';
 
-JSClass("DBMemoryStore", DBEphemeralObjectStore, {
+JSClass("DBMemoryStore", DBObjectStore, {
 
     init: function(){
         this.valuesByKey = {};
@@ -28,7 +28,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
     
     object: function(id, completion){
         var object = this._unexpiredDictionary(id);
-        JSRunLoop.main.schedule(completion, object);
+        JSRunLoop.main.schedule(completion, undefined, object);
     },
 
     _unexpiredDictionary: function(id){
@@ -47,7 +47,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
 
     delete: function(id, completion){
         this._delete(id);
-        JSRunLoop.main.schedule(completion, true);
+        JSRunLoop.main.schedule(completion, undefined, true);
     },
 
     _delete: function(key){
@@ -57,7 +57,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
 
     saveExpiring: function(object, lifetimeInterval, completion){
         this._saveExpiring(object, lifetimeInterval);
-        JSRunLoop.main.schedule(completion, true);
+        JSRunLoop.main.schedule(completion, undefined, true);
     },
 
     _saveExpiring: function(object, lifetimeInterval){
@@ -76,7 +76,7 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         }
         var result = ++object.count;
         this._saveExpiring(object, lifetimeInterval);
-        JSRunLoop.main.schedule(completion, result);
+        JSRunLoop.main.schedule(completion, undefined, result);
     },
 
     saveChange: function(id, change, completion, target){
