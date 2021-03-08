@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBEphemeralObjectStore.js"
+// #import "DBObjectStore.js"
 'use strict';
 
-JSClass("DBMemoryStore", DBEphemeralObjectStore, {
+JSClass("DBMemoryStore", DBObjectStore, {
 
     init: function(){
         this.valuesByKey = {};
@@ -26,16 +26,12 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
     valuesByKey: null,
     expirationsByKey: null,
     
-    object: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        var object = this._unexpiredObject(id);
-        JSRunLoop.main.schedule(completion, target, object);
-        return completion.promise;
+    object: function(id, completion){
+        var object = this._unexpiredDictionary(id);
+        JSRunLoop.main.schedule(completion, undefined, object);
     },
 
-    _unexpiredObject: function(id){
+    _unexpiredDictionary: function(id){
         var object = this.valuesByKey[id] || null;
         var expiration = this.expirationsByKey[id];
         if (expiration !== undefined && expiration <= JSDate.now.timeIntervalSince1970){
@@ -45,17 +41,13 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         return object;
     },
 
-    save: function(object, completion, target){
-        return this.saveExpiring(object, 0, completion, target);
+    save: function(object, completion){
+        this.saveExpiring(object, 0, completion);
     },
 
-    delete: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
+    delete: function(id, completion){
         this._delete(id);
-        JSRunLoop.main.schedule(completion, target, true);
-        return completion.promise;
+        JSRunLoop.main.schedule(completion, undefined, true);
     },
 
     _delete: function(key){
@@ -63,13 +55,9 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         delete this.expirationsByKey[key];
     },
 
-    saveExpiring: function(object, lifetimeInterval, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    saveExpiring: function(object, lifetimeInterval, completion){
         this._saveExpiring(object, lifetimeInterval);
-        JSRunLoop.main.schedule(completion, target, true);
-        return completion.promise;
+        JSRunLoop.main.schedule(completion, undefined, true);
     },
 
     _saveExpiring: function(object, lifetimeInterval){
@@ -81,17 +69,30 @@ JSClass("DBMemoryStore", DBEphemeralObjectStore, {
         }
     },
 
-    incrementExpiring: function(id, lifetimeInterval, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        var object = this._unexpiredObject(id);
+    incrementExpiring: function(id, lifetimeInterval, completion){
+        var object = this._unexpiredDictionary(id);
         if (object === null){
             object = {id: id, count: 0};
         }
         var result = ++object.count;
         this._saveExpiring(object, lifetimeInterval);
-        JSRunLoop.main.schedule(completion, target, result);
+        JSRunLoop.main.schedule(completion, undefined, result);
+    },
+
+    saveChange: function(id, change, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.object(id, function(obj){
+            obj = change(obj);
+            this.save(obj, function(success){
+                if (!success){
+                    completion.call(target, null);
+                    return;
+                }
+                completion.call(target, obj);
+            }, this);
+        }, this);
         return completion.promise;
     }
 

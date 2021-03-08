@@ -24,47 +24,52 @@ JSClass("DBObjectGraph", JSObjectGraph, {
 
     initWithObjectDatabase: function(database){
         DBObjectGraph.$super.init.call(this);
-        this.database = database;
-        this.classesByTable = {};
+        this.databases = [database];
+        this.databasesByPrefix = {};
     },
 
-    database: null,
+    addObjectDatabase: function(database){
+        this.databases.push(database);
+    },
 
-    loadObjectForID: function(id, completion, target){
-        this.database.object(id, function(dictionary){
-            if (dictionary === null){
-                completion.call(target, null);
-                return;
-            }
-            var cls = this.classForID(id);
+    databases: null,
+
+    objectOfClass: function(id, cls, completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        var database = this.databaseForID(id);
+        var idClass = database.storableClassResolver.classForID(id);
+        if (idClass !== null && idClass.isSubclassOfClass(cls)){
+            this.object(id, completion, target);
+        }else{
+            completion.call(target, null);
+        }
+        return completion.promise;
+    },
+
+    loadObjectForID: function(id, completion){
+        var database = this.databaseForID(id);
+        database.object(id, completion);
+    },
+
+    databasesByPrefix: null,
+
+    databaseForID: function(id){
+        var database = this.databasesByPrefix[id.dbidPrefix];
+        if (database){
+            return database;
+        }
+        var cls;
+        for (var i = 0, l = this.databases.length; i < l; ++i){
+            database = this.databases[i];
+            cls = database.storableClassResolver.classForID(id);
             if (cls !== null){
-                var obj = cls.allocate();
-                this.addObjectForID(obj, id);
-                obj.initFromDictionary(dictionary, this).then(function(result){
-                    if (result !== undefined){
-                        logger.warn("initFromDictionary should not return anything.  Resulting object graph not well defined");
-                        completion.call(target, null);
-                    }else{
-                        completion.call(target, obj);
-                    }
-                }, function(){
-                    completion.call(target, null);
-                });
-            }else{
-                completion.call(target, dictionary);
+                this.databasesByPrefix[id.dbidPrefix] = database;
+                return database;
             }
-        }, this);
-    },
-
-    classesByTable: null,
-
-    registerClassForTable: function(cls, table){
-        this.classesByTable[table] = cls;
-    },
-
-    classForID: function(id){
-        var table = this.database.tableForID(id);
-        return this.classesByTable[table] || null;
+        }
+        return this.databases[0];
     }
 
 });

@@ -13,14 +13,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBPersistentObjectStore.js"
+// #import "DBObjectStore.js"
 // #import "DBID.js"
 // jshint node: true
 'use strict';
 
 var logger = JSLog("service", "mongodb");
 
-JSClass("DBMongoStore", DBPersistentObjectStore, {
+JSClass("DBMongoStore", DBObjectStore, {
 
     initWithURL: function(url, mongodb){
         if (mongodb === undefined){
@@ -56,78 +56,66 @@ JSClass("DBMongoStore", DBPersistentObjectStore, {
     client: null,
     database: null,
 
-    object: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
+    object: function(id, completion){
         try{
-            var collection = this.database.collection(DBID.tableForID(id));
+            var collection = this.database.collection(id.dbidPrefix);
             var cursor = collection.find({_id: id});
             cursor.next(function(error, mongoObject){
                 if (error){
                     logger.error("Error fetching mongo object: %{error}", error);
-                    completion.call(target, null);
+                    completion(null);
                 }else{
                     if (mongoObject === null){
-                        completion.call(target, null);
+                        completion(null);
                     }else{
                         var object = JSCopy(mongoObject);
                         object.id = object._id;
                         delete object._id;
-                        completion.call(target, object);
+                        completion(object);
                     }
                 }
             });
         }catch (e){
             logger.error("Failed to get mongo object: %{error}", e);
-            completion.call(target, null);
+            completion(null);
         }
-        return completion.promise;
     },
 
-    save: function(object, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    save: function(object, completion){
         try{
-            var collection = this.database.collection(DBID.tableForID(object.id));
+            var collection = this.database.collection(object.id.dbidPrefix);
             var mongoObject = JSCopy(object);
             mongoObject._id = object.id;
             delete object.id;
             collection.replaceOne({_id: mongoObject._id}, mongoObject, {upsert: true}, function(error){
                 if (error){
                     logger.error("Error saving mongo object: %{error}", error);
-                    completion.call(target, false);
+                    completion(false);
                 }else{
-                    completion.call(target, true);
+                    completion(true);
                 }
             });
         }catch (e){
             logger.error("Failed to save mongo object: %{error}", e);
-            completion.call(target, false);
+            completion(false);
         }
-        return completion.promise;
     },
 
-    delete: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    delete: function(id, completion){
         try{
-            var collection = this.database.collection(DBID.tableForID(id));
+            var collection = this.database.collection(id.dbidPrefix);
             collection.deleteOne({_id: id}, {}, function(error){
                 if (error){
                     logger.error("Error deleting mongo object: %{error}", error);
-                    completion.call(target, false);
+                    completion(false);
                 }else{
-                    completion.call(target, true);
+                    completion(true);
                 }
             });
         }catch (e){
             logger.error("Failed to delete mongo object: %{error}", e);
-            completion.call(target, false);
+            completion(false);
         }
-        return completion.promise;
     }
 
 });

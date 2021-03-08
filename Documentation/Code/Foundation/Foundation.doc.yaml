@@ -86,6 +86,7 @@ topics:
       - JSNotificationCenter
       - JSNotification
       - JSEnvironment
+      - JSObjectGraph
   -
     name: Logging
     summary: Logging, telemetry, and error reporting

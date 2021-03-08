@@ -1,5 +1,17 @@
 // #import "JSObject.js"
+// #import "JSProtocol.js"
+// #import "JSLog.js"
 'use strict';
+
+(function(){
+
+var logger = JSLog("foundation", "objectgraph");
+
+JSProtocol("JSObjectGraphLoading", JSProtocol, {
+
+    awakeInGraph: function(){}
+
+});
 
 JSClass("JSObjectGraph", JSObject, {
 
@@ -17,15 +29,29 @@ JSClass("JSObjectGraph", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
+        if (id === null || id === undefined){
+            completion.call(target, null);
+            return completion.promise;
+        }
         var obj = this.objectsByID[id];
         if (obj !== undefined){
             completion.call(target, obj);
             return completion.promise;
         }
+        var graph = this;
         this.loadObjectForID(id, function(obj){
-            this.addObjectForID(obj, id);
+            graph.addObjectForID(obj, id);
+            if (obj !== null && obj.awakeInGraph){
+                var promise = obj.awakeInGraph(graph);
+                if (promise instanceof Promise){
+                    promise.then(function(){
+                        completion.call(target, obj);
+                    });
+                    return;
+                }
+            }
             completion.call(target, obj);
-        }, this);
+        });
         return completion.promise;
     },
 
@@ -52,8 +78,10 @@ JSClass("JSObjectGraph", JSObject, {
         return completion.promise;
     },
 
-    loadObjectForID: function(completion, target){
-        completion.call(target, null);
+    loadObjectForID: function(id, completion){
+        completion(null);
     },
 
 });
+
+})();

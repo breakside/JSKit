@@ -1,0 +1,32 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: framework
+introduced: 2021.10.0
+summary: Save and retrieve objects from databases
+codeURL: Frameworks/DBKit/
+description: |
+  `DBKit` provides a standard way of storing objects in databases regardless
+  of the underlying technology.
+
+  A `DBObjectDatabase` accesses an underlying data store, whether it be a
+  persistent MongoDB server or an ephemeral Redis cache.
+
+  `DBKit` aims to provide a higher layer of functionality than you get with a
+  core database module like `mongodb`() or `redis`(), tying into `Foundation`
+  concepts like automatically instantiating and serializing `JSObject`s.
+
+  Additionally, `DBKit` provides easy methods for best practices like encrypting
+  sensitive user data via `DBEncryptedObject`, which leverages `SecurityKit`
+  features like `SECKeystore`.
+topics:
+  - name: Object Storage
+    members:
+      - DBObjectDatabase
+      - DBObjectStore
+      - DBStorable
+      - DBID
+  - name: Secure Storage
+    members:
+      - DBEncryptedObject
+  - name: Object Graphs
+    members:
+      - DBObjectGraph

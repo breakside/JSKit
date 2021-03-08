@@ -68,8 +68,7 @@ description: |
   tying documentation, testing, and deployment all together.
 
 topics:
-  -
-    name: Getting Started
+  - name: Getting Started
     summary: Documents and tutorials that help you get started making great
       apps with `JSKit`
     members:
@@ -77,35 +76,30 @@ topics:
       - FirstApp
       - JavascriptSyntax
       - DevelopmentEnvironment
-  -
-    name: Command Line Utility
+  - name: Command Line Utility
     summary: The primary command line tools for creating, building, and
       testing `JSKit` based projects
     members:
       - jskit/jskit
-  -
-    name: Application Frameworks
+  - name: Application Frameworks
     summary: Frameworks that provide a way to build applications
     members:
       - UIKit/UIKit
       - ServerKit/ServerKit
       - APIKit/APIKit
-  -
-    name: Core Frameworks
+  - name: Core Frameworks
     summary: The foundational frameworks that are useful no matter the
       application platform
     members:
       - Foundation/Foundation
       - Dispatch/Dispatch
-  -
-    name: Security & Authentication
+  - name: Security & Authentication
     summary: Frameworks that can help with encryption, decryption, and
       user authentication
     members:
       - SecurityKit/SecurityKit
       - AuthKit/AuthKit
-  -
-    name: Images, PDFs, QR Codes
+  - name: Images, PDFs, QR Codes
     summary: Advanced graphics frameworks for applications that need to read
       or create PNG, JPEG, or PDF data.
     members:
@@ -113,8 +107,11 @@ topics:
       - PDFKit/PDFKit
       - FontKit/FontKit
       - QRKit/QRKit
-  -
-    name: Testing
+  - name: Database & Storage
+    summary: Frameworks for interacting with databases
+    members:
+      - DBKit/DBKit
+  - name: Testing
     summary: A comprehensive unit-test framework for testing your code
     members:
       - TestKit/TestKit

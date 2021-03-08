@@ -18,13 +18,21 @@
 
 JSClass("DBObjectStore", JSObject, {
 
-    object: function(id, completion, target){
+    object: function(id, completion){
     },
 
-    save: function(obj, completion, target){
+    save: function(obj, completion){
     },
 
-    delete: function(id, completion, target){
+    delete: function(id, completion){
+    },
+
+    // Optional for ephemeral databases
+
+    saveExpiring: function(obj, lifetimeInterval, completion){
+    },
+
+    incrementExpiring: function(id, lifetimeInterval, completion){
     },
 
 });

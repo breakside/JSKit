@@ -16,7 +16,7 @@
 // #import Foundation
 "use strict";
 
-JSGlobalObject.DBID = function(table){
+JSGlobalObject.DBID = function(prefix){
     var chunks = Array.prototype.slice.call(arguments, 1);
     if (chunks.length === 0){
         chunks.push(UUID.init());
@@ -38,9 +38,35 @@ JSGlobalObject.DBID = function(table){
     }
     hash.finish();
     var hex = hash.digest().hexStringRepresentation();
-    return table + '_' + hex;
+    return prefix + '_' + hex;
 };
 
-DBID.tableForID = function(id){
-    return id.substr(0, id.length - 41);
+DBID.isValid = function(id){
+    if (id === undefined){
+        return false;
+    }
+    if (id === null){
+        return false;
+    }
+    if (typeof(id) !== "string"){
+        return false;
+    }
+    if (id.length < 41){
+        return false;
+    }
+    if (id[id.length - 41] != "_"){
+        return false;
+    }
+    return true;
 };
+
+Object.defineProperties(String.prototype, {
+
+    dbidPrefix: {
+        enumerable: false,
+        get: function String_dbidPrefix(){
+            return this.substr(0, this.length - 41);
+        }
+    }
+
+});

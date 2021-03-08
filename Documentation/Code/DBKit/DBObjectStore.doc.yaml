@@ -1,0 +1,204 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.10.0
+inherits: JSObject
+summary: Abstract base class for all database backends
+description: |
+  A `DBObjectDatabase` uses a `DBObjectStore` to do the actual work of reading
+  and writing data to a backend system.
+
+  While `DBKit` has support for common database backends built-in, you can
+  subclass `DBObjectStore` to implement any other database.
+
+  A subclass must support three basic methods
+  - `object()`
+  - `save()`
+  - `delete()`
+
+  And optionally may support:
+  - `saveExpiring()`
+  - `incrementExpiring()`
+
+  While `DBObjectDatabase` deals with `DBStorable` items, automatically converting
+  `JSObject` instances to and from JSON-compatible dictionaries, `DBObjectStore`s
+  only deal with the plain JSON-compatible dictionaries.
+
+  Callbacks vs. Promises
+  =======
+  Each method supports either a callback or `Promise` variety.  If you want to
+  use a callback, don't return anything.  If you want to return a `Promise`
+  (or make your function `async`()), don't take a callback argument.
+topics:
+  - name: Retrieving Objects
+    members:
+      - name: object
+        kind: method
+        summary: Load an object for the given id and pass the result in a callback
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: dictionary
+                  nullable: true
+                  summary: The loaded object as a plain JSON-compatible dictionary, or `null` if no object was found
+            summary: The function to call when the object is loaded
+      - name: object
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            nullable: true
+            summary: The loaded object as a plain JSON-compatible dictionary, or `null` if no object was found
+        summary: Load an object for the given id with a `Promise`
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+  - name: Saving Objects
+    members:
+      - name: save
+        kind: method
+        summary: Save an object to and report the result using a callback
+        arguments:
+          - name: object
+            type: dictionary
+            summary: The plain JSON-compatible object dictionary to save in the database
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the save succeeded or not
+            summary: The function to call when the save completes
+      - name: save
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the save succeeded or not
+        summary: Save an object to and report the result in a `Promise`
+        arguments:
+          - name: object
+            type: dictionary
+            summary: The plain JSON-compatible object dictionary to save in the database
+      - name: saveExpiring
+        kind: method
+        summary: Optional method to save an object with an expiration and report the result with a callback
+        arguments:
+          - name: object
+            type: dictionary
+            summary: The plain JSON-compatible object dictionary to save in the database
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the object in seconds
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the save succeeded or not
+            summary: The function to call when the save completes
+        description: |
+          Subclasses are not required to implement this method
+      - name: saveExpiring
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the save succeeded or not
+        summary: Optional method to save an object with an expiration and report the result in a `Promise`
+        arguments:
+          - name: object
+            type: dictionary
+            summary: The plain JSON-compatible object dictionary to save in the database
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the object in seconds
+        description: |
+          Subclasses are not required to implement this method
+  - name: Deleting Objects
+    members:
+      - name: delete
+        kind: method
+        summary: Delete an object for the given id with a callback
+        arguments:
+          - name: id
+            type: String
+            summary: The unique identifer of the object to delete
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the delete succeeded or not
+            summary: The function to call when the save completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: delete
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the delete succeeded or not
+        summary: Delete an object for the given id in a `Promise`
+        arguments:
+          - name: id
+            type: String
+            summary: The unique identifer of the object to delete
+  - name: Counters
+    members:
+      - name: incrementExpiring
+        kind: method
+        summary: Optional method to increment a counter with an expiration with a callback
+        arguments:
+          - name: id
+            type: String
+            summary: The unique counter id
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the counter in seconds
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the operation succeeded or not
+            summary: The function to call when the operation completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Subclasses are not required to implement this method
+      - name: incrementExpiring
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the operation succeeded or not
+        summary: Optional method to increment a counter with an expiration in a `Promise`
+        arguments:
+          - name: id
+            type: String
+            summary: The unique counter id
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the counter in seconds
+        description: |
+          Subclasses are not required to implement this method

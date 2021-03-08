@@ -1,0 +1,199 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSObjectGraph
+kind: class
+introduced: 2021.10.0
+inherits: JSObject
+summary: A collection of inter-related objects that can be looked up by ID
+description: |
+  An object graph keeps references to objects with complex relationships so
+  they can ben loaded without duplicates or circular loops.
+
+  For example, the subclass `DBObjectGraph` loads objects from a database,
+  making sure to only send one query per object regardless of how many times
+  an object is referenced.
+
+  While you can use `JSObjectGraph` directly by adding objects with
+  `addObjectForID()`, you'll typically need to use a subclass that implements
+  `loadObjetForID()`, which can fetch objects from some data source.
+topics:
+  - name: Creating an object graph
+    members:
+      - name: init
+        kind: init
+        summary: Create an empty graph
+  - name: Accessing Objects
+    members:
+      - name: object
+        kind: method
+        summary: Get an object for the given identifier with a callback
+        arguments:
+          - name: id
+            type: String
+            summary: The identifer used when the object was added or loaded
+              into the graph
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: object
+                  nullable: true
+                  summary: The requested object, or `null` if none was found
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        see:
+          - addObjectForID
+          - loadObjetForID
+      - name: object
+        suffix: promise
+        kind: method
+        summary: Get an object for the given identifier with a promise
+        return: Promise
+        promise:
+          resolve:
+            type: object
+            nullable: true
+            summary: The requested object, or `null` if none was found
+        arguments:
+          - name: id
+            type: String
+            summary: The identifer used when the object was added or loaded
+              into the graph
+        see:
+          - addObjectForID
+          - loadObjetForID
+      - name: objects
+        kind: method
+        summary: Get a list of objects for the given identifiers with a callback
+        arguments:
+          - name: ids
+            type: String[]
+            summary: The identifers used when the objects were added or loaded
+              into the graph
+          - name: completion
+            type:
+              arguments:
+                - name: objects
+                  type: object[]
+                  summary: The requested objects
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        see:
+          - addObjectForID
+          - loadObjetForID
+      - name: objects
+        suffix: promise
+        kind: method
+        summary: Get a list of objects for the given identifiers with a promise
+        return: Promise
+        promise:
+          resolve:
+            type: object[]
+            summary: The requested objects
+        arguments:
+          - name: ids
+            type: String
+            summary: The identifers used when the objects were added or loaded
+              into the graph
+        see:
+          - addObjectForID
+          - loadObjetForID
+  - name: Populating the Graph
+    members:
+      - name: loadObjetForID
+        kind: method
+        summary: Implemented by subclasses to load an object from a data source
+        arguments:
+          - name: id
+            type: String
+            summary: The unique identifier of the object
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: object
+                  nullable: true
+                  summary: The fetched object, or `null` if no match is found
+            summary: The function to call once the object has loaded
+        description: |
+          The default implementation always returns `null`.
+
+          Implemented by subclasses to do whatever work is necessary to load
+          an object.
+
+          For example, `DBObjectGraph` tries to load the object for the given
+          `id`() from a database.
+      - name: addObjectForID
+        kind: method
+        summary: Add an object directly to the graph
+        arguments:
+          - name: object
+            type: object
+            summary: The object to add
+          - name: id
+            type: String
+            summary: The unique identifier of the object
+        description: |
+          Used to preload objects into the graph.
+
+          Useful when objects that need to be loaded will reference objects
+          that you already have references to via some other source.
+  - name: Hooking up References
+    members:
+      - name: JSObjectGraphLoading
+        kind: protocol
+        summary: Optional protocol for objects that are loaded into graphs
+        members:
+          - name: awakeInGraph
+            summary: Optional method called after an object is loaded into a graph
+              to allow for loading of references
+            type: Promise
+            nullable: true
+            promise:
+              resolve:
+                summary: Resovled when the object is done loading references
+            arguments:
+              - name: graph
+                type: JSObjectGraph
+                summary: The graph to use for loading references
+            description: |
+              Objects loaded into a `DBObjectGraph`, for example, will intially
+              be populated with only IDs referencing other objects.
+
+              Implementing `awakeInGraph()` gives each object a chance to load
+              actual objects for those references.
+
+              ````
+              #import DBKit
+              "use strict";
+
+              JSClass("User", JSObject, {
+
+                id: null,
+                name: null,
+
+              });
+
+              JSClass("Message", JSObject, {
+                id: null,
+
+                // fields stored in the database
+                senderID: null,
+                text: null,
+
+                // populated by awakeInGraph()
+                sender: null,
+
+                initFromStorableDictionary: function(dictionary){
+                  this.senderID = dictionary.senderID;
+                  this.text = dictionary.text;
+                },
+
+                awakeInGraph: async function(graph){
+                  this.sender = await graph.object(this.senderID);
+                }
+              })
+              ````

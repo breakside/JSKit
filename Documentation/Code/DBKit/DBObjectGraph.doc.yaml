@@ -1,0 +1,95 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.10.0
+inherits: JSObjectGraph
+summary: An object graph that loads objects from a `DBObjectDatabase`
+description: |
+  Consider using a `DBObjectGraph` when you need to load several inter-related
+  objects from a database (or databases) and want to ensure that each object
+  is only queried once.
+topics:
+  - name: Creating a Graph
+    members:
+      - name: initWithObjectDatabase
+        kind: init
+        summary: Create an object graph that loads objects from the given database
+        arguments:
+          - name: database
+            type: DBObjectDatabase
+            summary: The database that holds the objects
+      - name: addObjectDatabase
+        kind: method
+        summary: Add another database as a poential source of objects
+        arguments:
+          - name: database
+            type: DBObjectDatabase
+            summary: The database to add
+        description: |
+          When a graph loads objects from more than one database, it expects
+          that each database has a set of registered classes and id prefixes
+          via `registerStorableClass()`.  The first database with a matching
+          registration is used, or the database passed to `initWithObjectDatabase()`
+          is used as a default if not match is found.
+  - name: Loading Objects
+    members:
+      - name: objectOfClass
+        kind: method
+        summary: Load an object from the database only if its type matches
+          the expected class
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: expectedClass
+            type: JSClass
+            summary: The expected class of the object
+          - name: completion
+            type:
+              arguments:
+                - name: object
+                  type: DBStorable
+                  nullable: true
+                  summary: The loaded object, or `null` if no object was found
+            summary: The function to call when the object is loaded
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Useful when the `id`() you receive is untrusted, like in a URL or
+          other user input.
+
+          For a regular `object()` call, the `id`() determines the kind of class
+          to instantiate.  When the `id`() is untrusted, coming from some place
+          other than the database itself or other internal source, `objectOfClass()`
+          protects against unexpected object loads.
+
+          See `DBObjectDatabase.objectOfClass()` for a more detailed discussion.
+      - name: objectOfClass
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: DBStorable
+            nullable: true
+            summary: The loaded object, or `null` if no object was found
+        summary: Load an object from the database only if its type matches
+          the expected class
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: expectedClass
+            type: JSClass
+            summary: The expected class of the object
+        description: |
+          Useful when the `id`() you receive is untrusted, like in a URL or
+          other user input.
+
+          For a regular `object()` call, the `id`() determines the kind of class
+          to instantiate.  When the `id`() is untrusted, coming from some place
+          other than the database itself or other internal source, `objectOfClass()`
+          protects against unexpected object loads.
+
+          See `DBObjectDatabase.objectOfClass()` for a more detailed discussion.

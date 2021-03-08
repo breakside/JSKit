@@ -13,24 +13,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBPersistentObjectStore.js"
+// #import "DBObjectStore.js"
 'use strict';
 
-JSClass("DBFileStore", DBPersistentObjectStore, {
+JSClass("DBFileStore", DBObjectStore, {
 
     initWithURL: function(url, fileManager){
         this.url = url;
         this.fileManager = fileManager || JSFileManager.shared;
     },
 
-    object: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
+    object: function(id, completion){
         var url = this._urlForID(id);
         this.fileManager.contentsAtURL(url, function(contents){
             if (contents === null){
-                completion.call(target, null);
+                completion(null);
                 return;
             }
             var obj = null;
@@ -38,47 +35,38 @@ JSClass("DBFileStore", DBPersistentObjectStore, {
                 var json = contents.stringByDecodingUTF8();
                 obj = JSON.parse(json);
             }catch (e){
-                completion.call(target, null);
+                completion(null);
                 return;
             }
-            completion.call(target, obj);
+            completion(obj);
         }, this);
-        return completion.promise;
     },
 
-    save: function(obj, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    save: function(obj, completion){
         var url = this._urlForID(obj.id);
         var json = JSON.stringify(obj);
         var contents = json.utf8();
         this.fileManager.createFileAtURL(url, contents, function(success){
-            completion.call(target, success);
+            completion(success);
         }, this);
-        return completion.promise;
     },
 
-    delete: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    delete: function(id, completion){
         var url = this._urlForID(id);
         this.fileManager.removeItemAtURL(url, function(success){
-            completion.call(target, success);
+            completion(success);
         }, this);
-        return completion.promise;
     },
 
     _urlForID: function(id){
         var hashlen = 40;
         var i = id.length - hashlen;
-        var table = id.substr(0, i - 1);
+        var prefix = id.substr(0, i - 1);
         var hash1 = id.substr(i, 2);
         var hash2 = id.substr(i + 2, 2);
         var final = id.substr(i + 4);
         var components = [
-            table,
+            prefix,
             hash1,
             hash2,
             final
