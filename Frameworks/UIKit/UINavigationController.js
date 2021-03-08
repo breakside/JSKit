@@ -99,6 +99,11 @@ JSClass("UINavigationController", UIViewController, {
         }
         this._navigationBar = navigationBar;
         this._navigationBar._navigationController = this;
+        var items = [];
+        for (var i = 0, l = this._viewControllers.length; i < l; ++i){
+            items.push(this._viewControllers[i].navigationItem);
+        }
+        this._navigationBar.items = items;
     },
 
     // MARK: - View Controllers
@@ -120,9 +125,12 @@ JSClass("UINavigationController", UIViewController, {
             this._viewControllers[i].removeFromParentViewController();
         }
         this._viewControllers = JSCopy(viewControllers);
+        var items = [];
         for (i = 0, l = this._viewControllers.length; i < l; ++i){
             this.addChildViewController(this._viewControllers[i]);
+            items.push(this._viewControllers[i].navigationItem);
         }
+        this._navigationBar.items = items;
         this.view.insertSubviewBelowSibling(this.topViewController.view, this._navigationBar);
         this.view.setNeedsLayout();
     },
