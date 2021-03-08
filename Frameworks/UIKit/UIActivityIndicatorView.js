@@ -25,6 +25,10 @@ JSClass("UIActivityIndicatorView", UIView, {
     // --------------------------------------------------------------------
     // MARK: - Creating an Activity View
 
+    init: function(){
+        this.initWithStyle(UIActivityIndicatorView.Style.dark);
+    },
+
     initWithStyle: function(style){
         switch (style){
             case UIActivityIndicatorView.Style.dark:
