@@ -241,3 +241,35 @@ topics:
         name: run
         kind: method
         summary: Start the server listening for requests
+      -
+        name: stop
+        introduced: 2021.10.0
+        kind: method
+        summary: Gracefully stop the server with a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments: []
+            summary: A function to call when the sever is fully stopped
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+        description: |
+          Stops listening for new requets, and calls the `completion`() handler
+          when all outstanding requests are closed.
+      -
+        name: stop
+        suffix: promise
+        introduced: 2021.10.0
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: Resolved when the server is fully stopped
+        summary: Gracefully stop the server with a Promise
+        description: |
+          Stops listening for new requets, and resolves the returned promise
+          when all outstanding requests are closed.

@@ -40,7 +40,6 @@ SKHTTPServer.definePropertiesFromExtensions({
         }else{
             this._nodeHttpServer = http.createServer(this._handleNodeRequest.bind(this));
         }
-        this._setupEventHandlers();
         this._nodeHttpServer.listen(this.port);
         var networkInterfaces = os.networkInterfaces();
         var networkInterface;
@@ -56,8 +55,14 @@ SKHTTPServer.definePropertiesFromExtensions({
         }
     },
 
-    _setupEventHandlers: function(){
-        // this._nodeHttpServer.on('upgrade', this._handleNodeUpgrade.bind(this));
+    stop: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this._nodeHttpServer.close(function(){
+            completion.call(target);
+        });
+        return completion.promise;
     },
 
     _handleNodeRequest: function(nodeRequest, nodeResponse){

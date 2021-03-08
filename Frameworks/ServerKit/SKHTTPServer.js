@@ -58,6 +58,9 @@ JSClass("SKHTTPServer", JSObject, {
     run: function(){
     },
 
+    stop: function(completion, target){
+    },
+
     handleRequest: function(request, completion, target){
         if (!completion){
             completion = Promise.completion();

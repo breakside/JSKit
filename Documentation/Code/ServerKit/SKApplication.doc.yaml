@@ -64,6 +64,48 @@ topics:
 
                   ApplicationDelegate.initialize();
                   ````
+              -
+                name: applicationWillTerminate
+                summary: Called when the application receives a signal to
+                  shutdown, allowing an opportunity to gracefully shutdown
+                arguments:
+                  -
+                    name: application
+                    type: SKApplication
+                    summary: The application that will stop
+                  -
+                    name: signal
+                    type: Signal
+                    summary: The system signal that was sent to the application
+                  -
+                    name: completion
+                    type:
+                      arguments: []
+                    summary: A function to call when the graceful shutdown
+                      is complete
+                description: |
+                  Used to stop running services, close connections to databases, etc.
+              -
+                name: applicationWillTerminate
+                suffix: promise
+                summary: Called when the application receives a signal to
+                  shutdown, allowing an opportunity to gracefully shutdown
+                  with a Promise
+                type: Promise
+                promise:
+                  resolve:
+                    summary: Resolve when the graceful shutdown is complete
+                arguments:
+                  -
+                    name: application
+                    type: SKApplication
+                    summary: The application that will stop
+                  -
+                    name: signal
+                    type: Signal
+                    summary: The system signal that was sent to the application
+                description: |
+                  Used to stop running services, close connections to databases, etc.
       -
         name: delegate
         type: SKApplicationDelegate
@@ -109,3 +151,40 @@ topics:
 
           });
           ````
+  -
+    name: Constants
+    members:
+      -
+        name: Signal
+        kind: enum
+        summary: Process Signals
+        description: |
+          Used during `SKApplicationDelegate.applicationWillTerminate()`
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: hangup
+                value: 1
+                summary: Hangup
+              -
+                name: interrupt
+                value: 2
+                summary: Interrupt 
+              -
+                name: terminate
+                value: 15
+                summary: Terminate
+              -
+                name: SIGHUP
+                value: 1
+                summary: Hangup (alias of `hangup`)
+              -
+                name: SIGINT
+                value: 2
+                summary: Interrupt (alias of `interrupt`)
+              -
+                name: SIGTERM
+                value: 15
+                summary: Terminate (alias of `terminate`)

@@ -10,6 +10,10 @@ JSClass("ApplicationDelegate", JSObject, {
         this.httpServer.run();
     },
 
+    applicationWillTerminate: async function(application, signal){
+        await this.httpServer.stop();
+    },
+
     serverDidCreateContextForRequest: function(server, context, request){
     }
 

@@ -17,6 +17,8 @@
 // jshint node: true
 'use strict';
 
+var logger = JSLog("serverkit", "application");
+
 SKApplication.definePropertiesFromExtensions({
 
     rawProcessArguments: function(){
@@ -25,6 +27,35 @@ SKApplication.definePropertiesFromExtensions({
 
     _getWorkingDirectoryURL: function(){
         return JSFileManager.shared.urlForPath(process.cwd(), null, true);
+    },
+
+    _signal: function(signal){
+        switch (signal){
+            case SKApplication.Signal.terminate:
+            case SKApplication.Signal.interrupt:
+            case SKApplication.Signal.hangup:
+                this.stop(signal);
+                break;
+        }
     }
 
 });
+
+JSGlobalObject.SKApplicationMain = function SKApplicationMain(){
+    var application = SKApplication.init();
+    process.on("SIGTERM", function(){
+        application._signal(SKApplication.Signal.terminate);
+    });
+    process.on("SIGINT", function(){
+        application._signal(SKApplication.Signal.interrupt);
+    });
+    process.on("SIGHUP", function(){
+        application._signal(SKApplication.Signal.hangup);
+    });
+    application.run(function(error){
+        if (error !== null){
+            logger.error(error);
+            return;
+        }
+    });
+};

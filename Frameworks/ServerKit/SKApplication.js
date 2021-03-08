@@ -129,6 +129,34 @@ JSClass('SKApplication', JSObject, {
 
     _getWorkingDirectoryURL: function(){
         return null;
+    },
+
+    _isStopping: false,
+
+    stop: function(signal){
+        if (this._isStopping){
+            return;
+        }
+        this._isStopping = true;
+        this._gracefulShutdown(signal);
+    },
+
+    _gracefulShutdown: function(signal){
+        var app = this;
+        var shutdown = function(){
+            app.shutdown();
+        };
+        if (this.delegate && this.delegate.applicationWillTerminate){
+            var promise = this.delegate.applicationWillTerminate(this, signal, shutdown);
+            if (promise instanceof Promise){
+                promise.then(shutdown);
+            }
+        }else{
+            shutdown();
+        }
+    },
+
+    shutdown: function(){
     }
 
 });
@@ -146,14 +174,24 @@ Object.defineProperty(SKApplication, 'shared', {
     }
 });
 
-JSGlobalObject.SKApplicationMain = function SKApplicationMain(){
-    var application = SKApplication.init();
-    application.run(function(error){
-        if (error !== null){
-            logger.error(error);
-            return;
-        }
-    });
+SKApplication.Signal = {
+    SIGHUP: 1,      // terminate process    terminal line hangup
+    SIGINT: 2,      // terminate process    interrupt program
+    SIGQUIT: 3,     // create core image    quit program
+    SIGILL: 4,      // create core image    illegal instruction
+    SIGTRAP: 5,     // create core image    trace trap
+    SIGABRT: 6,     // create core image    abort program (formerly SIGIOT)
+    SIGKILL: 9,     // terminate process    kill program
+    SIGTERM: 15,    // terminate process    software termination signal
 };
+
+SKApplication.Signal.hangup = SKApplication.Signal.SIGHUP;
+SKApplication.Signal.interrupt = SKApplication.Signal.SIGINT;
+SKApplication.Signal.quit = SKApplication.Signal.SIGQUIT;
+SKApplication.Signal.illegalInstruction = SKApplication.Signal.SIGILL;
+SKApplication.Signal.trap = SKApplication.Signal.SIGTRAP;
+SKApplication.Signal.abort = SKApplication.Signal.SIGABRT;
+SKApplication.Signal.kill = SKApplication.Signal.SIGKILL;
+SKApplication.Signal.terminate = SKApplication.Signal.SIGTERM;
 
 })();
