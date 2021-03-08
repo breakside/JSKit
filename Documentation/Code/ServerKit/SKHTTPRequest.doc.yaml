@@ -608,6 +608,27 @@ topics:
           using `getValidQuery()` instead because it validates all the input
           upfront and allows for a more structured pattern to validate input.
   -
+    name: Authentication
+    members:
+      -
+        name: bearerToken
+        introduced: 2021.10.0
+        type: String
+        nullable: true
+        summary: The value of the token passed via Bearer authentication
+      -
+        name: username
+        introduced: 2021.10.0
+        type: String
+        nullable: true
+        summary: The value of the username passed via Basic authentication
+      -
+        name: password
+        introduced: 2021.10.0
+        type: String
+        nullable: true
+        summary: The value of the password passed via Basic authentication
+  -
     name: Response
     members:
       -

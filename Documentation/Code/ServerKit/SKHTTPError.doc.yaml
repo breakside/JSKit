@@ -23,6 +23,26 @@ topics:
             name: message
             type: String
             summary: The error message for logging purposes
+      -
+        name: SKHTTPError
+        kind: constructor
+        prefix: response
+        summary: Create a new HTTP error with a status code, message, and
+          response object
+        arguments:
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The status code to send in the HTTP response
+          -
+            name: message
+            type: String
+            summary: The error message for logging purposes
+          -
+            name: object
+            introduced: 2021.10.0
+            type: dictionary
+            summary: A JSON-compatible object to send as the response body
   -
     name: Properties
     members:
@@ -34,3 +54,8 @@ topics:
         name: message
         type: String
         summary: The error message for logging purposes
+      -
+        name: object
+        type: dictionary
+        nullable: true
+        summary: The object to send as a JSON response body

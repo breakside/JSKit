@@ -178,3 +178,65 @@ topics:
 
           });
           ````
+  -
+    name: Error Checking
+    members:
+      -
+        name: assert
+        introduced: 2021.10.0
+        kind: method
+        summary: Throw a `SKHTTPError` if the given condition is `false`
+        arguments:
+          -
+            name: condition
+            type: boolean
+            summary: The condition to check
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The error response status code
+          -
+            name: message
+            type: String
+            summary: The error message
+      -
+        name: assertEquals
+        introduced: 2021.10.0
+        kind: method
+        summary: Throw a `SKHTTPError` if the two values are not exactly
+          equal using the `===` operator
+        arguments:
+          -
+            name: a
+            type: any
+            summary: The first value
+          -
+            name: b
+            type: any
+            summary: The second value
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The error response status code
+          -
+            name: message
+            type: String
+            summary: The error message
+      -
+        name: assertEquals
+        introduced: 2021.10.0
+        kind: method
+        summary: Throw a `SKHTTPError` if the two value is `null`
+        arguments:
+          -
+            name: value
+            type: any
+            summary: The value to check
+          -
+            name: statusCode
+            type: SKHTTPResponse.StatusCode
+            summary: The error response status code
+          -
+            name: message
+            type: String
+            summary: The error message
