@@ -1,10 +1,17 @@
 // #import "JSObject.js"
+// #import "JSProtocol.js"
 // #import "JSLog.js"
 'use strict';
 
 (function(){
 
 var logger = JSLog("foundation", "objectgraph");
+
+JSProtocol("JSObjectGraphLoading", JSProtocol, {
+
+    awakeInGraph: function(){}
+
+});
 
 JSClass("JSObjectGraph", JSObject, {
 
@@ -31,10 +38,11 @@ JSClass("JSObjectGraph", JSObject, {
             completion.call(target, obj);
             return completion.promise;
         }
+        var graph = this;
         this.loadObjectForID(id, function(obj){
-            this.addObjectForID(obj, id);
+            graph.addObjectForID(obj, id);
             if (obj !== null && obj.awakeInGraph){
-                var promise = obj.awakeInGraph(this);
+                var promise = obj.awakeInGraph(graph);
                 if (promise instanceof Promise){
                     promise.then(function(){
                         completion.call(target, obj);
@@ -43,7 +51,7 @@ JSClass("JSObjectGraph", JSObject, {
                 }
             }
             completion.call(target, obj);
-        }, this);
+        });
         return completion.promise;
     },
 
@@ -70,8 +78,8 @@ JSClass("JSObjectGraph", JSObject, {
         return completion.promise;
     },
 
-    loadObjectForID: function(id, completion, target){
-        completion.call(target, null);
+    loadObjectForID: function(id, completion){
+        completion(null);
     },
 
 });

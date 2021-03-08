@@ -28,7 +28,7 @@ JSClass("DBObjectGraph", JSObjectGraph, {
         this.databasesByPrefix = {};
     },
 
-    addDatabase: function(database){
+    addObjectDatabase: function(database){
         this.databases.push(database);
     },
 
@@ -48,9 +48,9 @@ JSClass("DBObjectGraph", JSObjectGraph, {
         return completion.promise;
     },
 
-    loadObjectForID: function(id, completion, target){
+    loadObjectForID: function(id, completion){
         var database = this.databaseForID(id);
-        database.object(id, completion, target);
+        database.object(id, completion);
     },
 
     databasesByPrefix: null,

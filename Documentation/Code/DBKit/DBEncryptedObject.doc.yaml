@@ -1,0 +1,148 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.10.0
+implements:
+  - DBStorable
+summary: Wrapper for encrypting and decrypting sensitive data in object databases. 
+description: |
+  When you need to save sensitive user data in an object database, a
+  `DBEncryptedObject` takes care of the encryption and decryption for you.
+
+  It's essentially a wrapper for a sensitive storable object.
+
+  By design, `DBObjectDatabase` will automatically encrypt the wrapped object,
+  but will leave the decryption up to you in order to prevent any uncessessary
+  decryption.
+
+  In the simple example below, a `User` has a `PrivateKey` wrapped in a
+  `DBEncyptedObject`.
+
+  ````
+  #import DBKit
+  #import SecurityKit
+
+  JSClass("User", JSObject, {
+
+    id: null,
+    privateKey: null,
+
+    init: function(){
+      var key = PrivateKey.init();
+      this.id = DBID("user");
+      this.privateKey = DBEncyptedObject.initWithObject(key);
+    },
+
+    initFromStorableDictionary: function(dictionary){
+      this.privateKey = dictionary.privateKey; // intialize as a string id reference
+    },
+
+    encodeToStorableDictionary: function(dictionary){
+      // since we've overloaded privateKey to be either a string id reference 
+      // or a `DBEncyptedObject`, handle both cases when writing to dictionary
+      dictionary.privateKey = this.privateKey instanceof DBEncyptedObject ? this.privateKey.id : this.privateKey;
+    },
+
+    awakeInGraph: async function(graph){
+      this.privateKey = await graph.object(this.privateKey); // load the DBEncyptedObject
+    }
+
+  });
+
+  JSClass("PrivateKey", JSObject, {
+
+    id: null,
+    keyData: null,
+
+    init: function(){
+      this.id = DBID("pk");
+      this.keyData = SECCipher.getRandomData(32);
+    },
+
+    initFromStorableDictionary: function(dictionary){
+      this.keyData = dictionary.keyData.dataByDecodingBase64();
+    },
+
+    encodeToStorableDictionary: function(dictionary){
+      dictionary.keyData = this.keyData.base64StringRepresentation();
+    }
+
+    awakeInGraph: async function(graph){
+      this.privateKey = await graph.object(this.privateKey); // load the DBEncyptedObject
+    }
+
+  });
+
+  var database = DBObjectDatabase.initInMemory();
+  database.registerStorableClass(User, "user");
+  database.registerStorableClass(PrivateKey, "pk");
+
+  var user = User.init();
+  await database.save(user.privateKey); // automatically calls .encrypt()
+  await database.save(user);
+
+  // ....
+
+  var graph = DBOBjectGraph.initWithObjectDatabase(database);
+  var user = await graph.object("user_abc123");
+
+  // user.privateKey is a `DBEncryptedObject()`
+
+  await user.privateKey.decrypt();
+
+  // user.privateKey.object is the decrypted `PrivateKey`
+
+  ````
+topics:
+  - name: Creating an Encrypted Object
+    members:
+      - name: initWithObject
+        kind: init
+        summary: Create an encrypted object by wrapping another object
+        arguments:
+          - name: object
+            type: DBStorable
+            summary: The object to wrap
+        description: |
+          The encrypted object will take its `id` property from the given
+          wrapped object, so the wrapped object must already have its `id`
+          populated.
+  - name: Decrypting
+    members:
+      - name: object
+        type: DBStorable
+        nullable: true
+        summary: The wrapped object, which is `null` until `decrypt()` is called
+      - name: decrypt
+        kind: method
+        summary: Decrypt the wrapped object with a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the decryption operation succeeded
+            summary: The function that will be called when the operation completes
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: decrypt
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: Resolves when the operation completes
+        summary: Decrypt the wrapped object with a Promise
+  - name: Storable Implementation
+    members:
+      - name: id
+        type: String
+        summary: The unique identifier for the encrypted object is copied from
+          its wrapped object
+        description: |
+          Because the encrypted object is actually what gets written to the
+          database, it is free to use the wrapped object's identifier as its
+          own.  In practice, this makes the database identifiers easier to
+          understand and follow.

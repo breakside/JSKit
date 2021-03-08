@@ -7,6 +7,9 @@ description: |
   A `DBObjectDatabase` is what you'll typically create and interact with
   in your application.
 
+  You can create an object database with a URL for a supported underlying
+  `DBObjectStore`, or you can create your own `DBObjectStore` subclass.
+
   Supported object stores:
   - MongoDB
   - Redis
@@ -24,22 +27,114 @@ topics:
             type: JSURL
             summary: The url with database connection information
         description: |
-          Supported URLs:
+          Supported URLs for production environments:
 
-          - `mongodb://`()
-          - `redis://`()
-          - `file://`()
+          - `mongodb://user:pass@host:port/`()
+          - `redis://host:port/`()
+
+          Supported URLs for development environments:
+          - `file:///some/local/folder`()
+          - `file://relative/to/cwd`()
+
+          The abstraction provided by `DBObjectDatabase` makes it easy to
+          simplify local development environments.
+          For example, the `createDatabase()` pattern below allows for
+          local development environments that don't actually need a mogodb
+          instance because a local file store on a single machine works just
+          as well.
+
+          ````
+          #import ServerKit
+          #import DBKit
+
+          JSClass("ApplicationDelegate", JSObject, {
+
+            database: null,
+            httpServer: JSOutlet(),
+
+            applicationDidFinishLaunching: function(application, launchOptions){
+              this.database = this.createDatabase(application.secrets);
+
+              this.httpServer.port = launchOptions.port;
+              this.httpServer.run();
+            },
+
+            createDatabase: function(secrets){
+              // secrets.databaseURL can be mongodb:// for production environments
+              // and file:// for local development environments
+              var database = DBObjectDatabase.initWithURL(JSURL.initWithString(secrets.databaseURL));
+              // ...configure database with registerStorableClass()
+              return database;
+            },
+
+            serverDidCreateContextForRequest: function(server, context, request){
+              context.database = this.database;
+            }
+
+          });
+          ````
       - name: initInMemory
         kind: init
         summary: Create an in-memory object database
         description: |
           Useful in testing and local development environments as a zero-dependency
           stand-in for other ephemeral stores like Redis.
+
+          For example, the `createCacheDatabase()` pattern below allows for
+          simpler development environments that don't actually need a redis
+          instance because an in-memory store on a single local sever works
+          just as well.
+
+          ````
+          #import ServerKit
+          #import DBKit
+
+          JSClass("ApplicationDelegate", JSObject, {
+
+            cacheDatabase: null,
+            httpServer: JSOutlet(),
+
+            applicationDidFinishLaunching: function(application, launchOptions){
+              this.cacheDatabase = this.createCacheDatabase(application.secrets);
+
+              this.httpServer.port = launchOptions.port;
+              this.httpServer.run();
+            },
+
+            createCacheDatabase: function(secrets){
+              var database;
+              if (secrets.redisURL){
+                database = DBObjectDatabase.initWithURL(JSURL.initWithString(secrets.redisURL));
+              }else{
+                // No redis URL indicates development environment,
+                // fallback to in-memory database
+                database = DBObjectDatabase.initInMemory();
+              }
+              // ...configure database with registerStorableClass()
+              return database;
+            },
+
+            serverDidCreateContextForRequest: function(server, context, request){
+              context.cacheDatabase = this.cacheDatabase;
+            }
+
+          });
+          ````
+      - name: initWithObjectStore
+        kind: init
+        summary: Create an object database with a custom object store
+        arguments:
+          - name: store
+            type: DBObjectStore
+            summary: The custom object store
+        description: |
+          Useful when you need to create your own object store for an otherwise
+          unsupported database
   - name: Retrieving Objects
     members:
       - name: object
         kind: method
-        summary: Load an object from the underlying store
+        summary: Load an object from the underlying store with a callback
         arguments:
           - name: id
             type: String
@@ -56,9 +151,45 @@ topics:
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+        description: |
+          If you've registered classes using `registerStorableClass()`, the
+          returned object will be an instance of the matching class created with
+          `initFromStorableDictionary()`.
+
+          If no matching class is found, the returned object will be a
+          JSON-compatible dictionary.
+        note:
+          Enctyped objects will always be returned as `DBEncryptedObject`s that
+          still need to be decrypted manually to prevent any uncessessary
+          decription of sensitive data.
+      - name: object
+        suffix: Promise
+        kind: method
+        summary: Load an object from the underlying store as a `Promise`
+        type: Promise
+        promise:
+          resolve:
+            type: DBStorable
+            nullable: true
+            summary: The loaded object, or `null` if no object was found
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+        description: |
+          If you've registered classes using `registerStorableClass()`, the
+          returned object will be an instance of the matching class created with
+          `initFromStorableDictionary()`.
+
+          If no matching class is found, the returned object will be a
+          JSON-compatible dictionary.
+        note:
+          Enctyped objects will always be returned as `DBEncryptedObject`s that
+          still need to be decrypted manually to prevent any uncessessary
+          decription of sensitive data.
       - name: objectOfClass
         kind: method
-        summary: Load an object from the underlying store on if its type matches
+        summary: Load an object from the underlying store only if its type matches
           the expected class
         arguments:
           - name: id
@@ -136,11 +267,90 @@ topics:
           Both are valid URLs, and the second one could cause problems if you
           didn't use `objectOfClass()` because it would blindly load a `User`()
           into the `this.message`() property.
+        see:
+          - registerStorableClass
+      - name: objectOfClass
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: DBStorable
+            nullable: true
+            summary: The loaded object, or `null` if no object was found
+        summary: Load an object from the underlying store only if its type matches
+          the expected class
+        arguments:
+          - name: id
+            type: String
+            summary: The unique id for the object
+          - name: expectedClass
+            type: JSClass
+            summary: The expected class of the object
+        description: |
+          Useful when the `id`() you receive is untrusted, like in a URL or
+          other user input.
+
+          For a regular `object()` call, the `id`() determines the kind of class
+          to instantiate.  When the `id`() is untrusted, coming from some place
+          other than the database itself or other internal source, `objectOfClass()`
+          protects against unexpected object loads.
+
+          For example, say you have a database with messages and users:
+
+          ````
+          // #import DBKit
+          "use strict";
+
+          JSClass("Message", JSObject, {
+            id: null,
+            text: null,
+          });
+
+          JSClass("User", JSObject, {
+            id: null,
+            name: null,
+          });
+
+          var database = DBObjectDatabase.initWithURL(url);
+          database.registerClassForPrefix(Message, "msg");
+          database.registerClassForPrefix(User, "user");
+          ````
+
+          And then you have an HTTP reponder for the `/messages/*messageID`() url.
+
+          ````
+          // #import ServerKit
+          "use strict";
+
+          JSClass("MessageContext", SKHTTPResponderContext, {
+
+            database: null,
+            messageID: null, // parsed from URL
+            message: null,
+
+            load: async function(){
+              this.message = await this.database.objectOfClass(this.messageID, Message);
+            }
+
+          });
+          ````
+
+          Consider the two URLs:
+
+          - `/messages/msg_xxxx1234`
+          - `/messages/user_xxxx1234`
+
+          Both are valid URLs, and the second one could cause problems if you
+          didn't use `objectOfClass()` because it would blindly load a `User`()
+          into the `this.message`() property.
+        see:
+          - registerStorableClass
   - name: Saving Objects
     members:
       - name: save
         kind: method
-        summary: Save an object to the underlying store
+        summary: Save an object to the underlying store with a callback
         arguments:
           - name: object
             type: DBStorable
@@ -156,9 +366,44 @@ topics:
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+        description: |
+          If the storable object you pass implements `encodeToStorableDictionary()`,
+          that method will be called and its resulting JSON-compatible dictionary
+          will be stored in the database.
+
+          Otherwise, the storable object you pass is expected to be a JSON-compatible
+          dictionary itself.
+        note: |
+          If you pass a `DBEncryptedObject`, its `encrypt()` method will be
+          called automatically to update the encrypted payload to the latest
+          `encryptionDefaults`.
+      - name: save
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the save succeeded or not
+        summary: Save an object to the underlying store as a `Promise`
+        arguments:
+          - name: object
+            type: DBStorable
+            summary: The object to save in the database
+        description: |
+          If the storable object you pass implements `encodeToStorableDictionary()`,
+          that method will be called and its resulting JSON-compatible dictionary
+          will be stored in the database.
+
+          Otherwise, the storable object you pass is expected to be a JSON-compatible
+          dictionary itself.
+        note: |
+          If you pass a `DBEncryptedObject`, its `encrypt()` method will be
+          called automatically to update the encrypted payload to the latest
+          `encryptionDefaults`.
       - name: saveExpiring
         kind: method
-        summary: Save an object with an expiration to the underlying ephemeral store
+        summary: Save an object with an expiration to the underlying store with a callback
         arguments:
           - name: object
             type: DBStorable
@@ -177,14 +422,49 @@ topics:
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+        important: |
+          Not all underlying stores support `saveExpiring()`.
+
+          In `DBKit`, only Redis and memory based stores support `saveExpiring()`
         description: |
-          Only available for object databases with an underlying ephemeral
-          store like Redis or memory
+          If the storable object you pass implements `encodeToStorableDictionary()`,
+          that method will be called and its resulting JSON-compatible dictionary
+          will be stored in the database.
+
+          Otherwise, the storable object you pass is expected to be a JSON-compatible
+          dictionary itself.
+      - name: saveExpiring
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the save succeeded or not
+        summary: Save an object with an expiration to the underlying store as a `Promise`
+        arguments:
+          - name: object
+            type: DBStorable
+            summary: The object to save in the database
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the object in seconds
+        important: |
+          Not all underlying stores support `saveExpiring()`.
+
+          In `DBKit`, only Redis and memory based stores support `saveExpiring()`
+        description: |
+          If the storable object you pass implements `encodeToStorableDictionary()`,
+          that method will be called and its resulting JSON-compatible dictionary
+          will be stored in the database.
+
+          Otherwise, the storable object you pass is expected to be a JSON-compatible
+          dictionary itself.
   - name: Deleting Objects
     members:
       - name: delete
         kind: method
-        summary: Delete an object from the underlying store
+        summary: Delete an object from the underlying store with a callback
         arguments:
           - name: id
             type: String
@@ -200,11 +480,76 @@ topics:
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+      - name: delete
+        suffix: proimse
+        kind: method
+        type: Proimse
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the delete succeeded or not
+        summary: Delete an object from the underlying store as a `Promise`
+        arguments:
+          - name: id
+            type: String
+            summary: The unique identifer of the object to delete
+  - name: Encryption
+    members:
+      - name: encryptionDefaults
+        type: DBEncryptionOptions
+        summary: Encryption settings to use by default when saving `DBEncryptedObject`s
+      - name: keystore
+        type: SECKeystore
+        summary: The keystore to use when encrypting and decrypting `DBEncryptedObject`s
+        description: |
+          When an encrypted object is saved to the database, the `encryptionDefaults.keyIdentifier`
+          will be used, and that identifer will be saved along side the encrypted data.
+
+          So when an encrypted object is read from the database, the key identifier is known
+          even if the default key identifier has changed.  To successfully decrypt
+          the object, the original key must still exist in the `keystore`.
+
+          Therefore, while you can easily rotate a new key into the `keystore`
+          and make it the default, you should only ever rotate a key out of the
+          `keystore` if you no longer have objects encrypted with that key.
+        see:
+          - setKeystore
+      - name: setKeystore
+        kind: method
+        summary: Set the keystore and default key information
+        arguments:
+          - name: keystore
+            type: SECKeystore
+            summary: The keystore to use
+          - name: defaultKeyIdentifier
+            type: String
+            summary: The key identifier to set in `encryptionDefaults`
+          - name: keyBitLength
+            type: Number
+            summary: The key length to set in `encryptionDefaults`
+      - name: DBEncryptionOptions
+        kind: class
+        anonymous: true
+        summary: Possible encryption options
+        topics:
+          - name: Properties
+            members:
+              - name: algorithm
+                type: SECCipher.Algorithm
+                summary: The encryption algorithm to use when saving `DBEncryptedObject`s
+              -
+                name: keyIdentifier
+                type: String
+                summary: The identifier of the key to use when saving `DBEncryptedObject`s
+              -
+                name: keyBitLength
+                type: Number
+                summary: The length of the key, in bits
   - name: Counters
     members:
       - name: incrementExpiring
         kind: method
-        summary: Increment a counter with an expiration in the underlying ephemeral store
+        summary: Increment a counter with an expiration in the underlying store with a callback
         arguments:
           - name: id
             type: String
@@ -226,6 +571,80 @@ topics:
         description: |
           Useful for rate-limiting scenarios where you need an incrementing number
           that automatically expires after a certain amount of time.
-          
-          Only available for object databases with an underlying ephemeral
-          store like Redis or memory
+        important: |
+          Not all underlying stores support `incrementExpiring()`.
+
+          In `DBKit`, only Redis and memory based stores support `incrementExpiring()`
+      - name: incrementExpiring
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: Whether the operation succeeded or not
+        summary: Increment a counter with an expiration in the underlying store as a `Promise`
+        arguments:
+          - name: id
+            type: String
+            summary: The unique counter id
+          - name: lifetimeInterval
+            type: JSTimeInterval
+            summary: The lifetime of the counter in seconds
+        description: |
+          Useful for rate-limiting scenarios where you need an incrementing number
+          that automatically expires after a certain amount of time.
+        important: |
+          Not all underlying stores support `incrementExpiring()`.
+
+          In `DBKit`, only Redis and memory based stores support `incrementExpiring()`
+  - name: Automatic Object Instantiation
+    members:
+      - name: registerStorableClass
+        kind: method
+        summary: Register a `DBStorable`-implementing class as the kind to
+          instantiate when an object id contains the given prefix
+        arguments:
+          - name: storableClass
+            type: JSClass
+            summary: The `DBStorable`-implementing class
+          - name: prefix
+            type: String
+            summary: The `DBID()` preifx that corresponds to the given class
+        description: |
+          Object IDs are in a form of `"prefix_abc123"`(), where the `prefix`()
+          is used to indicate the type of object.
+
+          For example, a Messages application may have store message objects with
+          the `"msg"`() prefix, like `"msg_abc123"` and `"msg_def456"`.
+
+          Without registering a class to the prefix, calling `object()` will
+          return a plain JSON-compatible dictionary.
+
+          But if a class is registered to the prefix, calling `object()` will
+          return an instance of that class instatiated by `initFromStorableDictionary()`
+
+          ````
+          #import DBKit
+
+          JSClass("Message", JSObject, {
+
+            id: null,
+            text: null,
+
+            initFromStorableDictionary: function(dictionary){
+              this.text = dictionary.text;
+            },
+
+          })
+
+          var db = DBObjectDatabase.initInMemory();
+
+          var message = await db.object("msg_abc123");
+          // message will be a JSON dictionary
+
+          db.registerStorableClass(Message, "msg");
+
+          var message = await db.object("msg_abc123");
+          // message will be a Message instance
+          ````

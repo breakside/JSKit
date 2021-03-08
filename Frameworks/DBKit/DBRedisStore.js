@@ -43,16 +43,13 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
 
     client: null,
 
-    object: function(id, completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
+    object: function(id, completion){
         var client = this.client;
         try{
             client.get(id, function(error, json){
                 if (error !== null){
                     logger.log("Failed to get redis object: %{error}", error);
-                    completion.call(target, null);
+                    completion(null);
                     return;
                 }
                 var object = null;
@@ -60,33 +57,29 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
                     object = JSON.parse(json);
                 }catch (e){
                     logger.log("Failed to parse json from redis: %{error}", error);
-                    completion.call(target, null);
+                    completion(null);
                     return;
                 }
-                completion.call(target, object);
+                completion(object);
             });
         }catch (e){
             logger.error("Failure calling redis get: %{error}", e);
-            JSRunLoop.main.schedule(completion, target, null);
+            JSRunLoop.main.schedule(completion, null);
         }
-        return completion.promise;
     },
 
-    save: function(object, completion, target){
-        return this.saveExpiring(object, 0, completion, target);
+    save: function(object, completion){
+        this.saveExpiring(object, 0, completion);
     },
 
-    saveExpiring: function(object, lifetimeInterval, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    saveExpiring: function(object, lifetimeInterval, completion){
         try{
             var json = null;
             try{
                 json = JSON.stringify(object);
             }catch (e){
                 logger.error("Failed to serialize object for redis: %{error}", e);
-                JSRunLoop.main.schedule(completion, target, false);
+                JSRunLoop.main.schedule(completion, false);
                 return;
             }
             var args = [object.id, json];
@@ -97,50 +90,42 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
             this.client.set(args, function(error, result){
                 if (error !== null){
                     logger.log("Failed to save to redis: %{error}", error);
-                    completion.call(target, false);
+                    completion(false);
                     return;
                 }
-                completion.call(target, true);
+                completion(true);
             });
         }catch (e){
             logger.error("Failure calling redis set: %{error}", e);
-            JSRunLoop.main.schedule(completion, target, false);
+            JSRunLoop.main.schedule(completion, false);
         }
-        return completion.promise;
     },
 
-    delete: function(id, completion, target){
-        return this._delete(id, completion, target);
+    delete: function(id, completion){
+        this._delete(id, completion);
     },
 
-    _delete: function(key, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
+    _delete: function(key, completion){
         try{
             this.client.del(key, function(error, result){
                 if (error !== null){
-                    completion.call(target, false);
+                    completion(false);
                     return;
                 }
-                completion.call(target, true);
+                completion(true);
             });
         }catch (e){
             logger.error("Failure calling redis del: %{error}", e);
-            JSRunLoop.main.schedule(completion, target, false);
+            JSRunLoop.main.schedule(completion, false);
         }
-        return completion.promise;
     },
 
-    incrementExpiring: function(id, lifetimeInterval, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
+    incrementExpiring: function(id, lifetimeInterval, completion){
         try{
             var client = this.client;
             client.incr(id, function(error, result){
                 if (error !== null){
-                    completion.call(target, null);
+                    completion(null);
                     return;
                 }
                 try{
@@ -149,33 +134,32 @@ JSClass("DBRedisStore", DBEphemeralObjectStore, {
                         if (error !== null){
                             try{
                                 client.del(id, function(error, result){
-                                    completion.call(target, null);
+                                    completion(null);
                                 });
                             }catch (e){
                                 logger.error("Failure calling redis del on increment key: %{error}", error);
-                                completion.call(target, null);
+                                completion(null);
                             }
                         }else{
-                            completion.call(target, incrResult);
+                            completion(incrResult);
                         }
                     });
                 }catch (e){
                     logger.error("Failure calling redis expire: %{error}", e);
                     try{
                         client.del(id, function(error, result){
-                            completion.call(target, null);
+                            completion(null);
                         });
                     }catch (e){
                         logger.error("Failure calling redis del on increment key: %{error}", error);
-                        completion.call(target, null);
+                        completion(null);
                     }
                 }
             });
         }catch (e){
             logger.error("Failure calling redis incr: %{error}", e);
-            JSRunLoop.main.schedule(completion, target, null);
+            JSRunLoop.main.schedule(completion, null);
         }
-        return completion.promise;
     },
 
     saveChange: function(id, change, completion, target){

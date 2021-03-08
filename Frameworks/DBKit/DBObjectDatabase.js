@@ -17,7 +17,6 @@
 // #import "DBFileStore.js"
 // #import "DBRemoteStore.js"
 // #import "DBMemoryStore.js"
-// #import "DBEphemeralObjectStore.js"
 // #import "DBID.js"
 // #import "DBEncryptedObject.js"
 // #import "DBStorableClassResolver.js"
@@ -79,15 +78,16 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!DBID.isValid(id)){
             completion.call(target, null);
         }else{
-            this.store.object(id, function(dictionary){
+            var db = this;
+            var handler = function(dictionary){
                 var storable = dictionary;
-                var storableClass = this.storableClassResolver.classForID(id);
+                var storableClass = db.storableClassResolver.classForID(id);
                 if (dictionary !== null){
                     if (dictionary.dbkitSecure === true){
                         storable = DBEncryptedObject.initFromStorableDictionary(dictionary);
                         storable.id = dictionary.id;
                         storable.objectClass = storableClass;
-                        storable.keystore = this.keystore;
+                        storable.keystore = db.keystore;
                     }else{
                         if (storableClass !== null){
                             storable = storableClass.initFromStorableDictionary(dictionary);
@@ -96,7 +96,11 @@ JSClass("DBObjectDatabase", JSObject, {
                     }
                 }
                 completion.call(target, storable);
-            }, this);
+            };
+            var promise = this.store.object(id, handler);
+            if (promise instanceof Promise){
+                promise.then(handler);
+            }
         }
         return completion.promise;
     },
@@ -154,7 +158,13 @@ JSClass("DBObjectDatabase", JSObject, {
                     completion.call(target, false);
                     return;
                 }
-                this.store.save(preparedStorable, completion, target);
+                var handler = function(success){
+                    completion.call(target, success);
+                };
+                var promise = this.store.save(preparedStorable, handler);
+                if (promise instanceof Promise){
+                    promise.then(handler);
+                }
             }, this);
         }
         return completion.promise;
@@ -167,16 +177,22 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!DBID.isValid(storable.id)){
             logger.error("Cannot save expiring object without a valid id");
             JSRunLoop.main.schedule(completion, target, false);
-        }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
+        }else if (this.store.saveExpiring){
             this._pepareStorableForSave(storable, function(preparedStorable){
                 if (preparedStorable === null){
                     completion.call(target, false);
                     return;
                 }
-                this.store.saveExpiring(preparedStorable, lifetimeInterval, completion, target);
+                var handler = function(success){
+                    completion.call(target, success);
+                };
+                var promise = this.store.saveExpiring(preparedStorable, lifetimeInterval, handler);
+                if (promise instanceof Promise){
+                    promise.then(handler);
+                }
             }, this);
         }else{
-            logger.error("Cannot save expiring object in a persistent data store");
+            logger.error("%{public} does not support saveExpriring", this.store.$class.className);
             JSRunLoop.main.schedule(completion, target, false);
         }
         return completion.promise;
@@ -189,10 +205,16 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!DBID.isValid(id)){
             logger.error("Cannot increment without a valid id");
             JSRunLoop.main.schedule.call(completion, target, null);
-        }else if (this.store.isKindOfClass(DBEphemeralObjectStore)){
-            this.store.incrementExpiring(id, lifetimeInterval, completion, target);
+        }else if (this.store.incrementExpiring){
+            var handler = function(result){
+                completion.call(target, result);
+            };
+            var promise = this.store.incrementExpiring(id, lifetimeInterval, handler);
+            if (promise instanceof Promise){
+                promise.then(handler);
+            }
         }else{
-            logger.error("Cannot increment expiring counter in a persistent data store");
+            logger.error("%{public} does not support incrementExpiring", this.store.$class.className);
             JSRunLoop.main.schedule(completion, target, null);
         }
         return completion.promise;
@@ -206,7 +228,13 @@ JSClass("DBObjectDatabase", JSObject, {
             logger.error("Cannot delete object without a valid id");
             JSRunLoop.main.schedule(completion, target, false);
         }else{
-            this.store.delete(id, completion, target);
+            var handler = function(success){
+                completion.call(target, success);
+            };
+            var promise = this.store.delete(id, handler);
+            if (promise instanceof Promise){
+                promise.then(handler);
+            }
         }
         return completion.promise;
     },

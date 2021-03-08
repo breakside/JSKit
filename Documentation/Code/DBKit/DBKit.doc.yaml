@@ -10,14 +10,18 @@ description: |
   A `DBObjectDatabase` accesses an underlying data store, whether it be a
   persistent MongoDB server or an ephemeral Redis cache.
 
-  Seamless encryption for sensitive data is built-in leveraging `SecurityKit`
-  for secure data storage.
+  `DBKit` aims to provide a higher layer of functionality than you get with a
+  core database module like `mongodb`() or `redis`(), tying into `Foundation`
+  concepts like automatically instantiating and serializing `JSObject`s.
+
+  Additionally, `DBKit` provides easy methods for best practices like encrypting
+  sensitive user data via `DBEncryptedObject`, which leverages `SecurityKit`
+  features like `SECKeystore`.
 topics:
   - name: Object Storage
     members:
       - DBObjectDatabase
-      - DBPersistentObjectStore
-      - DBEphemeralObjectStore
+      - DBObjectStore
       - DBStorable
       - DBID
   - name: Secure Storage
@@ -25,4 +29,4 @@ topics:
       - DBEncryptedObject
   - name: Object Graphs
     members:
-      - DBoObjectGraph
+      - DBObjectGraph

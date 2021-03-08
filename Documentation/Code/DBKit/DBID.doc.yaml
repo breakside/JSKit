@@ -1,0 +1,45 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.10.0
+name: DBID
+kind: function
+summary: Create a unique identifier suitable for `DBStorable`
+type: String
+return: A new identifier with the given prefix
+arguments:
+  - name: prefix
+    type: String
+    summary: The prefix for the id, which identifies the type of object stored
+  - name: hashable
+    type: String|JSData
+    variable: true
+    summary: Elements to use in creating the identifier
+description: |
+  The basic format of a `DBID` a prefix concatentated with a SHA1 hash.
+
+  The `prefix` identifies the type of object and is used with features
+  such as `DBObjectDatabase.registerStorableClass()` to automatically
+  instantiate classes.
+
+  The SHA1 hash provides a way to re-create identifiers given the same
+  input data, a technique that can often replace the need for database
+  indexes.
+
+  Calling `DBID()` with just a `prefix`() argument and no `hashable`()
+  elements will create a random ID.
+
+  Calling `DBID()` with one or more `hashable`() arguments will use each
+  element in order to generate a SHA1 hash.
+  - `JSData` arguments will be hashed as-is
+  - `String` arguments will first be encoded using `utf8`(String.Encoding.utf8).  
+
+  ````
+  // Create a random ID
+  var id = DBID("user");
+
+  // Create an ID based on the SHA1 hash of an email.
+  // Allows you always re-create the ID given just the email.
+  var id = DBID("user", "test@breakside.io")
+
+  // Create an ID based on the SHA1 hash of two elements
+  var id = DBID("user", "google", someIDFromGoogle);
+  ````
