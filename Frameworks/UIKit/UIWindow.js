@@ -36,9 +36,13 @@ JSClass('UIWindow', UIView, {
     // MARK: - Creating a Window
 
     init: function(){
-        this._application = UIApplication.shared;
         UIWindow.$super.init.call(this);
         this._commonWindowInit();
+    },
+
+    initWithFrame: function(frame){
+        this._application = UIApplication.shared;
+        UIWindow.$super.initWithFrame.call(this, frame);
     },
 
     initWithApplication: function(application){
