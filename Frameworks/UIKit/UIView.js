@@ -256,11 +256,9 @@ JSClass('UIView', UIResponder, {
     },
 
     removeAllSubviews: function(){
-        for (var i = 0, l = this.subviews.length; i < l; ++i){
-            this.subview.removeFromSuperview();
+        for (var i = this.subviews.length - 1; i >= 0; --i){
+            this.subviews[i].removeFromSuperview();
         }
-        this.subviews = [];
-        this.subviewsDidChange();
     },
 
     _insertSubviewAtIndex: function(subview, index, layerIndex){
