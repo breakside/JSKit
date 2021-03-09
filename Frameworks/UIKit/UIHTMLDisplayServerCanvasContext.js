@@ -113,6 +113,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             case 'maskedBorders':
                 this.propertiesNeedingUpdate.borderWidth = true;
                 break;
+            case 'size':
+                this.propertiesNeedingUpdate.size = true;
+                if (layer.backgroundGradient !== null){
+                    this.propertiesNeedingUpdate.backgroundGradient = true;
+                }
+                break;
             default:
                 this.propertiesNeedingUpdate[property] = true;
                 break;
@@ -299,7 +305,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     updateHTMLProperty_backgroundGradient: function(layer){
-        this.style.backgroundImage = layer.presentation.backgroundGradient ? layer.presentation.backgroundGradient.cssString() : '';
+        this.style.backgroundImage = layer.presentation.backgroundGradient ? layer.presentation.backgroundGradient.cssString(this.bounds.size) : '';
     },
 
     updateHTMLProperty_borderWidth: function(layer){

@@ -81,20 +81,22 @@ JSClass('JSGradient', JSObject, {
         this.stops.push({position: position, color: color});
     },
 
-    cssString: function(){
+    cssString: function(size){
         var cssStops = [];
         var stop;
         for (var i = 0, l = this.stops.length; i < l; ++i){
             stop = this.stops[i];
             cssStops.push('%s %f%%'.sprintf(stop.color.cssString(), stop.position * 100));
         }
+        var start = JSPoint(this.start.x * size.width, this.start.y * size.height);
+        var end = JSPoint(this.end.x * size.width, this.end.y * size.height);
         // css degrees start with 0 at bottom and go clockwise
         // atan degrees start with 0 at right and go anticlockwise
         // If we flip x and y, and then flip start and end, the atan
         // calc should come out right.
-        var slope = (this.end.x - this.start.x) / (this.start.y - this.end.y);
+        var slope = (end.x - start.x) / (start.y - end.y);
         var angle = Math.atan(slope);
-        if (this.end.y > this.start.y){
+        if (end.y > start.y){
             angle += Math.PI;
         }
         angle = angle * 180 / Math.PI;
