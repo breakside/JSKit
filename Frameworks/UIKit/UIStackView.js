@@ -235,24 +235,31 @@ JSClass("UIStackViewVerticalNoDistributionLayoutManager", UIStackViewVerticalLay
     },
 
     sizeStackViewToFitSize: function(stackView, maxSize){
-        var stackSize = JSSize(stackView.bounds.size.width, stackView._contentInsets.height);
+        var stackSize = JSSize(0, stackView._contentInsets.height);
+        var maxViewSize = JSSize(maxSize.width, Number.MAX_VALUE);
         if (maxSize.width < Number.MAX_VALUE){
-            stackSize.width = maxSize.width;
+            maxViewSize.width = maxSize.width - stackView._contentInsets.width;
         }
-        var maxViewSize = JSSize(stackSize.width - stackView._contentInsets.width, Number.MAX_VALUE);
         var view;
         var size;
         var visibleViewCount = 0;
         for (var i = 0, l = stackView.subviews.length; i < l; ++i){
             view = stackView.subviews[i];
-            size = this.sizeView(view, maxViewSize);
+            size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 stackSize.height += view.bounds.size.height;
                 ++visibleViewCount;
+                if (size.width > stackSize.width){
+                    stackSize.width = size.width;
+                }
             }
         }
         if (visibleViewCount > 1){
             stackSize.height += (visibleViewCount - 1) * stackView._viewSpacing;
+        }
+        stackSize.width += stackView._contentInsets.width;
+        if (stackSize.width > maxSize.width){
+            stackSize.width = maxSize.width;
         }
         if (stackSize.height > maxSize.height){
             stackSize.height = maxSize.height;
@@ -286,8 +293,24 @@ JSClass("UIStackViewVerticalEqualDistributionLayoutManager", UIStackViewVertical
     },
 
     sizeStackViewToFitSize: function(stackView, maxSize){
-        var stackSize = JSSize(stackView.bounds.size.width, stackView.bounds.size.height);
+        var stackSize = JSSize(0, stackView.bounds.size.height);
+        var maxViewSize = JSSize(maxSize.width, Number.MAX_VALUE);
         if (maxSize.width < Number.MAX_VALUE){
+            maxViewSize.width = maxSize.width - stackView._contentInsets.width;
+        }
+        var view;
+        var size;
+        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
+            view = stackView.subviews[i];
+            size = this.sizeView(view, maxViewSize, true);
+            if (!view.hidden){
+                if (size.width > stackSize.width){
+                    stackSize.width = size.width;
+                }
+            }
+        }
+        stackSize.width += stackView._contentInsets.width;
+        if (stackSize.width > maxSize.width){
             stackSize.width = maxSize.width;
         }
         if (maxSize.height < Number.MAX_VALUE){
@@ -391,24 +414,31 @@ JSClass("UIStackViewHorizontalNoDistributionLayoutManager", UIStackViewHorizonta
     },
 
     sizeStackViewToFitSize: function(stackView, maxSize){
-        var stackSize = JSSize(stackView._contentInsets.width, stackView.bounds.size.height);
+        var stackSize = JSSize(stackView._contentInsets.width, 0);
+        var maxViewSize = JSSize(Number.MAX_VALUE, maxSize.height);
         if (maxSize.height < Number.MAX_VALUE){
-            stackSize.height = maxSize.height;
+            maxViewSize.height = maxSize.height - stackView._contentInsets.height;
         }
-        var maxViewSize = JSSize(Number.MAX_VALUE, stackSize.height - stackView._contentInsets.height);
         var view;
         var size;
         var visibleViewCount = 0;
         for (var i = 0, l = stackView.subviews.length; i < l; ++i){
             view = stackView.subviews[i];
-            size = this.sizeView(view, maxViewSize);
+            size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 stackSize.width += view.bounds.size.width;
                 ++visibleViewCount;
+                if (size.height > stackSize.height){
+                    stackSize.height = size.height;
+                }
             }
         }
         if (visibleViewCount > 1){
             stackSize.width += (visibleViewCount - 1) * stackView._viewSpacing;
+        }
+        stackSize.height += stackView._contentInsets.height;
+        if (stackSize.height > maxSize.height){
+            stackSize.height = maxSize.height;
         }
         if (stackSize.width > maxSize.width){
             stackSize.width = maxSize.width;
@@ -442,12 +472,28 @@ JSClass("UIStackViewHorizontalEqualDistributionLayoutManager", UIStackViewHorizo
     },
 
     sizeStackViewToFitSize: function(stackView, maxSize){
-        var stackSize = JSSize(stackView.bounds.size.width, stackView.bounds.size.width);
+        var stackSize = JSSize(stackView.bounds.size.width, 0);
+        var maxViewSize = JSSize(Number.MAX_VALUE, maxSize.height);
+        if (maxSize.height < Number.MAX_VALUE){
+            maxViewSize.height = maxSize.height - stackView._contentInsets.height;
+        }
+        var view;
+        var size;
+        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
+            view = stackView.subviews[i];
+            size = this.sizeView(view, maxViewSize, true);
+            if (!view.hidden){
+                if (size.height > stackSize.height){
+                    stackSize.height = size.height;
+                }
+            }
+        }
+        stackSize.height += stackView._contentInsets.height;
+        if (stackSize.height > maxSize.height){
+            stackSize.height = maxSize.height;
+        }
         if (maxSize.width < Number.MAX_VALUE){
             stackSize.width = maxSize.width;
-        }
-        if (maxSize.height < Number.MAX_VALUE){
-            stackSize.height = maxSize.height;
         }
         stackView.bounds = JSRect(JSPoint.Zero, stackSize);
     }

@@ -1336,12 +1336,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
 
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 0);
         TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 100);
         TKAssertEquals(stackView.bounds.size.height, 20);
 
         stackView.addSubview(view2);
@@ -1357,12 +1357,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.contentInsets = JSInsets(3, 4, 5, 6);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1378,12 +1378,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1408,12 +1408,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
 
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 0);
         TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 100);
         TKAssertEquals(stackView.bounds.size.height, 20);
 
         stackView.addSubview(view2);
@@ -1429,12 +1429,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.contentInsets = JSInsets(3, 4, 5, 6);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1450,12 +1450,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1480,12 +1480,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
 
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 0);
         TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 100);
         TKAssertEquals(stackView.bounds.size.height, 20);
 
         stackView.addSubview(view2);
@@ -1501,12 +1501,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.contentInsets = JSInsets(3, 4, 5, 6);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1522,12 +1522,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1552,12 +1552,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
 
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 0);
         TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 100);
         TKAssertEquals(stackView.bounds.size.height, 20);
 
         stackView.addSubview(view2);
@@ -1573,12 +1573,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.contentInsets = JSInsets(3, 4, 5, 6);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1594,12 +1594,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 8);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 28);
 
         stackView.addSubview(view2);
@@ -1623,16 +1623,18 @@ JSClass("UIStackViewTests", TKTestSuite, {
         var view2 = UIStackViewTestView.initWithIntrinsicSize(JSSize(200, 30));
         var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
 
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 0);
         TKAssertEquals(stackView.bounds.size.height, 300);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.width, 100);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.addSubview(view2);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
@@ -1644,16 +1646,18 @@ JSClass("UIStackViewTests", TKTestSuite, {
 
         stackView.removeAllSubviews();
         stackView.contentInsets = JSInsets(3, 4, 5, 6);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 300);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.addSubview(view2);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
@@ -1665,16 +1669,18 @@ JSClass("UIStackViewTests", TKTestSuite, {
 
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.width, 10);
         TKAssertEquals(stackView.bounds.size.height, 300);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.width, 110);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.addSubview(view2);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
@@ -1684,20 +1690,10 @@ JSClass("UIStackViewTests", TKTestSuite, {
         TKAssertEquals(stackView.bounds.size.width, 300);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
-        stackView.alignment = UIStackView.Alignment.leading;
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
-
-        stackView.alignment = UIStackView.Alignment.center;
-        stackView.sizeToFitSize(JSSize(300, 200));
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(300, Number.MAX_VALUE));
         TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
-
-        stackView.alignment = UIStackView.Alignment.trailing;
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
+        TKAssertEquals(stackView.bounds.size.height, 250);
     },
 
     testSizeToFitSizeHorizontalNoDistributionFullAlignment: function(){
@@ -1712,12 +1708,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
 
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 0);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 20);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 100);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1733,12 +1729,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.contentInsets = JSInsets(4, 3, 6, 5);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 8);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 28);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1754,12 +1750,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 8);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 28);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1784,12 +1780,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
 
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 0);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 20);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 100);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1805,12 +1801,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.contentInsets = JSInsets(4, 3, 6, 5);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 8);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 28);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1826,12 +1822,12 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.viewSpacing = 10;
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 8);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 28);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
 
         stackView.addSubview(view2);
         stackView.sizeToFitSize(JSSize(300, 200));
@@ -1850,84 +1846,80 @@ JSClass("UIStackViewTests", TKTestSuite, {
         stackView.distribution = UIStackView.Distribution.equal;
         stackView.alignment = UIStackView.Alignment.full;
 
-        var view1 = UIStackViewTestView.initWithIntrinsicSize(JSSize(100, 20));
-        var view2 = UIStackViewTestView.initWithIntrinsicSize(JSSize(200, 30));
-        var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(300, 40));
+        var view1 = UIStackViewTestView.initWithIntrinsicSize(JSSize(20, 100));
+        var view2 = UIStackViewTestView.initWithIntrinsicSize(JSSize(30, 200));
+        var view3 = UIStackViewTestView.initWithIntrinsicSize(JSSize(40, 300));
 
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(300, 200));
+        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.height, 0);
 
         stackView.addSubview(view1);
+        stackView.sizeToFitSize(JSSize(200, 300));
+        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.height, 100);
+
+        stackView.addSubview(view2);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 300);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
-        stackView.addSubview(view2);
+        stackView.addSubview(view3);
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
-
-        stackView.addSubview(view3);
-        stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.removeAllSubviews();
-        stackView.contentInsets = JSInsets(3, 4, 5, 6);
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
+        stackView.contentInsets = JSInsets(4, 3, 6, 5);
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(300, 200));
+        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
+        stackView.sizeToFitSize(JSSize(200, 300));
+        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
+
+        stackView.addSubview(view2);
+        stackView.bounds = JSRect(0, 0, 250, 250);
         stackView.sizeToFitSize(JSSize(300, 200));
         TKAssertEquals(stackView.bounds.size.width, 300);
         TKAssertEquals(stackView.bounds.size.height, 200);
 
-        stackView.addSubview(view2);
+        stackView.addSubview(view3);
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
-
-        stackView.addSubview(view3);
-        stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.removeAllSubviews();
         stackView.viewSpacing = 10;
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(300, 200));
+        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.height, 10);
 
         stackView.addSubview(view1);
-        stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
+        stackView.sizeToFitSize(JSSize(200, 300));
+        TKAssertEquals(stackView.bounds.size.width, 200);
+        TKAssertEquals(stackView.bounds.size.height, 110);
 
         stackView.addSubview(view2);
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
-        TKAssertEquals(stackView.bounds.size.height, 300);
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(300, 200));
+        TKAssertEquals(stackView.bounds.size.width, 300);
+        TKAssertEquals(stackView.bounds.size.height, 200);
 
         stackView.addSubview(view3);
-        stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
-
-        stackView.alignment = UIStackView.Alignment.leading;
         stackView.sizeToFitSize(JSSize(200, 300));
         TKAssertEquals(stackView.bounds.size.width, 200);
         TKAssertEquals(stackView.bounds.size.height, 300);
 
-        stackView.alignment = UIStackView.Alignment.center;
-        stackView.sizeToFitSize(JSSize(300, 200));
-        TKAssertEquals(stackView.bounds.size.width, 300);
-        TKAssertEquals(stackView.bounds.size.height, 200);
-
-        stackView.alignment = UIStackView.Alignment.trailing;
-        stackView.sizeToFitSize(JSSize(200, 300));
-        TKAssertEquals(stackView.bounds.size.width, 200);
+        stackView.bounds = JSRect(0, 0, 250, 250);
+        stackView.sizeToFitSize(JSSize(Number.MAX_VALUE, 300));
+        TKAssertEquals(stackView.bounds.size.width, 250);
         TKAssertEquals(stackView.bounds.size.height, 300);
     },
 
