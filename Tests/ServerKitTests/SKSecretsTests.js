@@ -92,6 +92,128 @@ JSClass("SKSecretsTests", TKTestSuite, {
 
         secret = secrets.other;
         TKAssertEquals(secret, "Here");
+    },
+
+    testValueForName: function(){
+        var env = {
+            firstTest: "Hello",
+            FIRST_TEST: "There",
+            SECOND_TEST: "World!"
+        };
+        var secrets = SKSecrets.initWithNames([
+            'firstTest'
+        ]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+        var secret = secrets.valueForName("firstTest");
+        TKAssertEquals(secret, "Hello");
+
+        secret = secrets.valueForName("secondTest");
+        TKAssertEquals(secret, "World!");
+
+        secret = secrets.valueForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testStringForName: function(){
+        var env = {
+            TEST_VAR: "Hello"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+        var secret = secrets.stringForName("testVar");
+        TKAssertEquals(secret, "Hello");
+
+        secret = secrets.stringForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testIntegerForName: function(){
+        var env = {
+            TEST_VAR: "123",
+            OTHER_VAR: "notanint"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+        var secret = secrets.integerForName("testVar");
+        TKAssertExactEquals(secret, 123);
+
+        secret = secrets.integerForName("otherVar");
+        TKAssertNull(secret);
+
+        secret = secrets.integerForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testURLForName: function(){
+        var env = {
+            TEST_VAR: "https://test.breakside.io",
+            OTHER_VAR: "😁"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+
+        var secret = secrets.urlForName("testVar");
+        TKAssertEquals(secret.encodedString, "https://test.breakside.io");
+
+        secret = secrets.urlForName("otherVar");
+        TKAssertNull(secret);
+
+        secret = secrets.urlForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testBase64DataForName: function(){
+        var env = {
+            TEST_VAR: "hello".utf8().base64StringRepresentation(),
+            OTHER_VAR: "@notbase64"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+
+        var secret = secrets.base64DataForName("testVar");
+        TKAssertEquals(secret.stringByDecodingUTF8(), "hello");
+
+        secret = secrets.base64DataForName("otherVar");
+        TKAssertNull(secret);
+
+        secret = secrets.base64DataForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testBase64URLDataForName: function(){
+        var env = {
+            TEST_VAR: "hello".utf8().base64URLStringRepresentation(),
+            OTHER_VAR: "@notbase64"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+
+        var secret = secrets.base64URLDataForName("testVar");
+        TKAssertEquals(secret.stringByDecodingUTF8(), "hello");
+
+        secret = secrets.base64URLDataForName("otherVar");
+        TKAssertNull(secret);
+
+        secret = secrets.base64URLDataForName("missing");
+        TKAssertNull(secret);
+    },
+
+    testHexDataForName: function(){
+        var env = {
+            TEST_VAR: "hello".utf8().hexStringRepresentation(),
+            OTHER_VAR: "nothex"
+        };
+        var secrets = SKSecrets.initWithNames([]);
+        secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+
+        var secret = secrets.hexDataForName("testVar");
+        TKAssertEquals(secret.stringByDecodingUTF8(), "hello");
+
+        secret = secrets.hexDataForName("otherVar");
+        TKAssertNull(secret);
+
+        secret = secrets.hexDataForName("missing");
+        TKAssertNull(secret);
     }
 
 });

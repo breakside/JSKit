@@ -48,6 +48,64 @@ JSClass("SKSecrets", JSObject, {
         return null;
     },
 
+    stringForName: function(name){
+        return this.valueForName(name);
+    },
+
+    integerForName: function(name){
+        var stringValue = this.stringForName(name);
+        if (stringValue !== null){
+            var n = parseInt(stringValue);
+            if (!isNaN(n)){
+                return n;
+            }
+        }
+        return null;
+    },
+
+    urlForName: function(name){
+        var urlString = this.stringForName(name);
+        if (urlString !== null){
+            return JSURL.initWithString(urlString);
+        }
+        return null;
+    },
+
+    base64DataForName: function(name){
+        var base64 = this.stringForName(name);
+        if (base64 !== null){
+            try{
+                return base64.dataByDecodingBase64();
+            }catch(e){
+                return null;
+            }
+        }
+        return null;
+    },
+
+    base64URLDataForName: function(name){
+        var base64 = this.stringForName(name);
+        if (base64 !== null){
+            try{
+                return base64.dataByDecodingBase64URL();
+            }catch(e){
+                return null;
+            }
+        }
+        return null;
+    },
+
+    hexDataForName: function(name){
+        var hex = this.stringForName(name);
+        if (hex !== null){
+            try{
+                return hex.dataByDecodingHex();
+            }catch (e){
+            }
+        }
+        return null;
+    },
+
     addProvider: function(provider){
         this.providers.push(provider);
     },

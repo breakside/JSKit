@@ -454,9 +454,10 @@ Object.defineProperties(String.prototype, {
             var b;
             for (var i = 0, l = this.length; i < l; i += 2, ++o){
                 b = parseInt(this.substr(i, 2), 16);
-                if (!isNaN(b)){
-                    data[o] = b;
+                if (isNaN(b)){
+                    throw new Error("Invalid hex character at %d".sprintf(i));
                 }
+                data[o] = b;
             }
             return data;
         }
