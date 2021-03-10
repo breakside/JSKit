@@ -45,6 +45,8 @@ JSClass("UIImageView", UIView, {
         }
         if (spec.containsKey("contentInsets")){
             this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
+        }else{
+            this._contentInsets = JSInsets.Zero;
         }
         if (spec.containsKey('image')){
             this.image = spec.valueForKey("image", JSImage);
