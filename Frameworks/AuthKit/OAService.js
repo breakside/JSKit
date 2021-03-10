@@ -18,7 +18,7 @@
 
 JSClass("OAService", JSObject, {
 
-    initWithIdentifier: function(identifier){
+    initWithIdentifier: function(identifier, urlSession){
         var bundle = JSBundle.initWithIdentifier('io.breakside.JSKit.AuthKit');
         var services = bundle.metadataForResourceName("Services").value;
         var info = services[identifier];
@@ -27,15 +27,17 @@ JSClass("OAService", JSObject, {
         }
         this.identifier = identifier;
         var endpointURL = JSURL.initWithString(info.endpoint);
-        this.initWithEndpointURL(endpointURL);
+        this.initWithEndpointURL(endpointURL, urlSession);
     },
 
-    initWithEndpointURL: function(endpointURL){
+    initWithEndpointURL: function(endpointURL, urlSession){
         this.discoveryURL = endpointURL.appendingPathComponents(['.well-known', 'openid-configuration']);
+        this.urlSession = urlSession || JSURLSession.shared;
     },
 
     identifier: null,
     discoveryURL: null,
+    urlSession: null,
     _isLoaded: false,
 
     load: function(completion, target){
@@ -46,7 +48,7 @@ JSClass("OAService", JSObject, {
             completion.call(target, true);
             return completion.promise;
         }
-        var task = JSURLSession.shared.dataTaskWithURL(this.discoveryURL, function(error){
+        var task = this.urlSession.dataTaskWithURL(this.discoveryURL, function(error){
             var response = task.response;
             if (!response || response.statusClass != JSURLResponse.StatusClass.success){
                 completion.call(target, false);
@@ -68,7 +70,11 @@ JSClass("OAService", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var task = JSURLSession.shared.dataTaskWithURL(this.keysURL, function(error){
+        if (this.keysURL === null){
+            completion.call(target, null);
+            return completion.promise;
+        }
+        var task = this.urlSession.dataTaskWithURL(this.keysURL, function(error){
             var response = task.response;
             if (!response || response.statusClass != JSURLResponse.StatusClass.success){
                 completion.call(target, false);

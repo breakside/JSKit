@@ -25,6 +25,7 @@ JSClass("OASession", JSObject, {
         this.scopes = ['openid', 'profile',  'email'];
         this.responseTypes = ['code'];
         this.state = JSSHA1Hash(SECCipher.getRandomData(20)).hexStringRepresentation();
+        this.urlSession = service.urlSession;
     },
 
     service: null,
@@ -35,6 +36,7 @@ JSClass("OASession", JSObject, {
     redirectURL: null,
     responseTypes: null,
     nonce: 1,
+    urlSession: null,
 
     authenticationURL: JSReadOnlyProperty(),
 
@@ -71,7 +73,7 @@ JSClass("OASession", JSObject, {
         var request = JSURLRequest.initWithURL(url);
         request.method = JSURLRequest.Method.POST;
         request.data = form.encode();
-        var task = JSURLSession.shared.dataTaskWithRequest(request, function(error){
+        var task = this.urlSession.dataTaskWithRequest(request, function(error){
             if (error !== null){
                 completion.call(target, null);
                 return;
