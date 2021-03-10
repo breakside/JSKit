@@ -412,19 +412,6 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (this.backButtonTitleInsets === null){
             this.backButtonTitleInsets = JSInsets(this.itemTitleInsets);
         }
-
-        this._backButtonStyler = UIButtonCustomStyler.init();
-        this._backButtonStyler.font = this.itemFont;
-        this._backButtonStyler.normalTitleColor = this.backButtonColor;
-        this._backButtonStyler.activeTitleColor = this.backButtonActiveColor;
-        this._backButtonStyler.titleInsets = this.backButtonTitleInsets;
-
-        this._buttonStyler = UIButtonCustomStyler.init();
-        this._buttonStyler.font = this.itemFont;
-        this._buttonStyler.normalTitleColor = this.itemColor;
-        this._buttonStyler.activeTitleColor = this.activeItemColor;
-        this._buttonStyler.disabledTitleColor = this.disabledItemColor;
-        this._buttonStyler.titleInsets = this.itemTitleInsets;
     },
 
     initializeBar: function(navigationBar){
@@ -455,6 +442,13 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     },
 
     createBackButton: function(navigationBar){
+        if (this._backButtonStyler === null){
+            this._backButtonStyler = UIButtonCustomStyler.init();
+            this._backButtonStyler.font = this.itemFont;
+            this._backButtonStyler.normalTitleColor = this.backButtonColor;
+            this._backButtonStyler.activeTitleColor = this.backButtonActiveColor;
+            this._backButtonStyler.titleInsets = this.backButtonTitleInsets;
+        }
         var button = UIButton.initWithStyler(this._backButtonStyler);
         button.addAction("_popNavigation", navigationBar);
         return button;
@@ -762,6 +756,14 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     viewForBarItem: function(barItem){
         if (barItem.view){
             return barItem.view;
+        }
+        if (this._buttonStyler === null){
+            this._buttonStyler = UIButtonCustomStyler.init();
+            this._buttonStyler.font = this.itemFont;
+            this._buttonStyler.normalTitleColor = this.itemColor;
+            this._buttonStyler.activeTitleColor = this.activeItemColor;
+            this._buttonStyler.disabledTitleColor = this.disabledItemColor;
+            this._buttonStyler.titleInsets = this.itemTitleInsets;
         }
         var button = UIButton.initWithStyler(this._buttonStyler);
         if (barItem.title){
