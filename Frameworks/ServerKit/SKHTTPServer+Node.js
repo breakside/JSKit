@@ -59,7 +59,9 @@ SKHTTPServer.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
+        logger.info("HTTP server closing, waiting for outstanding requests to close");
         this._nodeHttpServer.close(function(){
+            logger.info("HTTP server closed");
             completion.call(target);
         });
         return completion.promise;

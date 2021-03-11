@@ -57,7 +57,13 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
                 nodeHeaders[nodeName] = header.value;
             }
         }
-        this._nodeResponse.writeHead(this._statusCode, nodeHeaders);
+        try{
+            this._nodeResponse.writeHead(this._statusCode, nodeHeaders);
+        }catch (e){
+            logger.error(e);
+            this.statusCode = SKHTTPResponse.StatusCode.internalServerError;
+            this._nodeResponse.writeHead(this._statusCode);
+        }
         this._nodeResponse.flushHeaders();
     },
 
