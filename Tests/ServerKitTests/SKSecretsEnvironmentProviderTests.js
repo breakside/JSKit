@@ -23,7 +23,8 @@ JSClass("SKSecretsEnvironmentProviderTests", TKTestSuite, {
         var env = {
             firstTest: "Hello",
             FIRST_TEST: "There",
-            SECOND_TEST: "World!"
+            SECOND_TEST: "World!",
+            ONE_MORE_TEST: "Check"
         };
         var provider = SKSecretsEnvironmentProvider.initWithEnvironment(env);
         var secret = provider.secretForName("firstTest");
@@ -32,11 +33,32 @@ JSClass("SKSecretsEnvironmentProviderTests", TKTestSuite, {
         secret = provider.secretForName("FIRST_TEST");
         TKAssertEquals(secret, "There");
 
+        secret = provider.secretForName("firstTEST");
+        TKAssertEquals(secret, "There");
+
+        secret = provider.secretForName("FIRSTTest");
+        TKAssertEquals(secret, "There");
+
         secret = provider.secretForName("secondTest");
         TKAssertEquals(secret, "World!");
 
         secret = provider.secretForName("SECOND_TEST");
         TKAssertEquals(secret, "World!");
+
+        secret = provider.secretForName("secondTEST");
+        TKAssertEquals(secret, "World!");
+
+        secret = provider.secretForName("SECONDTest");
+        TKAssertEquals(secret, "World!");
+
+        secret = provider.secretForName("oneMoreTest");
+        TKAssertEquals(secret, "Check");
+
+        secret = provider.secretForName("oneMORETest");
+        TKAssertEquals(secret, "Check");
+
+        secret = provider.secretForName("oneMoreTEST");
+        TKAssertEquals(secret, "Check");
 
         secret = provider.secretForName("notThere");
         TKAssertNull(secret);

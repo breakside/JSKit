@@ -43,11 +43,20 @@ function envname(name){
     var transformed = '';
     var c;
     var C;
+    var consecutiveUpperCount = 0;
     for (var i = 0, l = name.length; i < l; ++i){
         c = name[i];
         C = c.toUpperCase();
         if (c === C){
-            transformed += '_';
+            if (consecutiveUpperCount === 0 && i > 0){
+                transformed += "_";
+            }
+            ++consecutiveUpperCount;
+        }else{
+            if (consecutiveUpperCount > 1){
+                transformed = transformed.substr(0, transformed.length - 1) + "_" + transformed.substr(transformed.length - 1);
+            }
+            consecutiveUpperCount = 0;
         }
         transformed += C;
     }
