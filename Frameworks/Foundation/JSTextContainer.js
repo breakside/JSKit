@@ -97,6 +97,10 @@ JSClass("JSTextContainer", JSObject, {
         }
     },
 
+    setOrigin: function(origin){
+        this._origin = JSPoint(origin);
+    },
+
     setMaximumNumberOfLines: function(maxLines){
         if (maxLines != this._maximumNumberOfLines){
             this._maximumNumberOfLines = maxLines;

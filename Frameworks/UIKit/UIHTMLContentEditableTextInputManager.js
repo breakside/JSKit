@@ -74,6 +74,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         }
         if (this._editableElement !== null){
             this.removeEventListeners();
+            this._editableElement.blur();
         }
         this._editableElement = editableElement;
         if (this._editableElement !== null){
@@ -143,7 +144,11 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 logger.warn("input layout manager has multiple containers");
             }
         }else{
-            logger.warn("input layout manager cannot find start and end containers");
+            if (this._editableElement){
+                domSelection.setBaseAndExtent(this._editableElement, 0, this._editableElement, 0);
+            }else{
+                logger.warn("input layout manager cannot find start and end containers");
+            }
         }
     },
 
@@ -171,6 +176,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this._editableElement.style.webkitUserSelect = "auto";
         this._editableElement.style.mozUserSelect = "auto";
         this._editableElement.style.caretColor = "transparent";
+        this._editableElement.style.outline = "none";
         this._editableElement.addEventListener("focus", this);
         this._editableElement.addEventListener("focusin", this);
         this._editableElement.addEventListener("focusout", this);
@@ -193,6 +199,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this._editableElement.style.webkitUserSelect = "";
         this._editableElement.style.mozUserSelect = "";
         this._editableElement.style.caretColor = "";
+        this._editableElement.style.outline = "";
         this._editableElement.removeEventListener("focus", this);
         this._editableElement.removeEventListener("focusin", this);
         this._editableElement.removeEventListener("focusout", this);
