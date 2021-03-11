@@ -83,16 +83,17 @@ JSClass("DBMemoryStore", DBObjectStore, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
+        var store = this;
         this.object(id, function(obj){
             obj = change(obj);
-            this.save(obj, function(success){
+            store.save(obj, function(success){
                 if (!success){
                     completion.call(target, null);
                     return;
                 }
                 completion.call(target, obj);
-            }, this);
-        }, this);
+            });
+        });
         return completion.promise;
     }
 
