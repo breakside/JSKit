@@ -34,6 +34,7 @@ JSClass("SKHTTPServer", JSObject, {
     rootRoute: null,
     delegate: null,
     healthCheckPath: "/.health-check",
+    strictTransportSecurityEnabled: true,
 
     initWithPort: function(port){
         this._port = port;
@@ -104,17 +105,20 @@ JSClass("SKHTTPServer", JSObject, {
             return completion.promise;
         }
 
-        logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
-
         try{
-            if (server.delegate && server.delegate.serverDidReceiveRequest){
-                server.delegate.serverDidReceiveRequest(server, request);
+            logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
+
+            if (this.strictTransportSecurityEnabled){
+                request.response.headerMap.add("Strict-Transport-Security", "max-age=%d".sprintf(JSTimeInterval.hours(24) * 365));
             }
-        }catch(e){
-            logger.error(e);
-        }
 
-        try{
+            try{
+                if (server.delegate && server.delegate.serverDidReceiveRequest){
+                    server.delegate.serverDidReceiveRequest(server, request);
+                }
+            }catch(e){
+                logger.error(e);
+            }
 
             // 1. Find a route for the request
             var routeMatch = this.rootRoute.routeMatchForRequest(request);
