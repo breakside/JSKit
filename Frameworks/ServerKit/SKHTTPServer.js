@@ -35,6 +35,8 @@ JSClass("SKHTTPServer", JSObject, {
     delegate: null,
     healthCheckPath: "/.health-check",
     strictTransportSecurityEnabled: true,
+    tlsCertificate: null,
+    tlsPrivateKey: null,
 
     initWithPort: function(port){
         this._port = port;

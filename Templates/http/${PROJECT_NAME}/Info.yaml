@@ -6,3 +6,5 @@ JSDevelopmentLangauge: en
 SKMainSpec: Main
 SKApplicationLaunchOptions:
     port: {kind: integer, default: 8081}
+    tls-cert: {default: null}
+    tls-key: {default: null}

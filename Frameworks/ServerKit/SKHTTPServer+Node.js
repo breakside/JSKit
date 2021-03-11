@@ -30,11 +30,11 @@ SKHTTPServer.definePropertiesFromExtensions({
 
     run: function(){
         var scheme = "http";
-        if (this._ssl){
+        if (this.tlsCertificate && this.tlsPrivateKey){
             scheme = "https";
             var options = {
-                cert: this._ssl.cert,
-                key: this._ssl.key
+                cert: this.tlsCertificate,
+                key: this.tlsPrivateKey
             };
             this._nodeHttpServer = https.createServer(options, this._handleNodeRequest.bind(this));
         }else{
@@ -59,11 +59,15 @@ SKHTTPServer.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
-        logger.info("HTTP server closing, waiting for outstanding requests to close");
-        this._nodeHttpServer.close(function(){
-            logger.info("HTTP server closed");
+        if (this._nodeHttpServer === null){
             completion.call(target);
-        });
+        }else{
+            logger.info("HTTP server closing, waiting for outstanding requests to close");
+            this._nodeHttpServer.close(function(){
+                logger.info("HTTP server closed");
+                completion.call(target);
+            });
+        }
         return completion.promise;
     },
 
