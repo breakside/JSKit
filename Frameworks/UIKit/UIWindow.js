@@ -281,7 +281,11 @@ JSClass('UIWindow', UIView, {
     layoutSubviews: function(){
         UIWindow.$super.layoutSubviews.call(this);
         this._styler.layoutWindow(this);
-        this._styler.updateFocusRingInWindow(this);
+        this._styler.updateFocusRingInWindow(this, true);
+    },
+
+    invalidateFocusRing: function(animated){
+        this._styler.updateFocusRingInWindow(this, animated);
     },
 
     // -------------------------------------------------------------------------
@@ -1105,7 +1109,7 @@ JSClass("UIWindowStyler", JSObject, {
         window.layer.addSublayer(window.stylerProperties.focusRingLayer);
     },
 
-    updateFocusRingInWindow: function(window){
+    updateFocusRingInWindow: function(window, animated){
         var responder = window.firstResponder;
         var focusRingLayer = window.stylerProperties.focusRingLayer;
         if (!window.isKeyWindow || responder === null || !responder.isKindOfClass(UIView)){
@@ -1129,22 +1133,26 @@ JSClass("UIWindowStyler", JSObject, {
             transform = transform.concatenatedWith(superlayerTransform);
             layer = layer.superlayer;
         }
-        focusRingLayer.transform = transform;
-        focusRingLayer.alpha = 0.1;
         if (window.stylerProperties.focusRingAnimator !== null){
             window.stylerProperties.focusRingAnimator.stop();
         }
-        var animator = UIViewPropertyAnimator.initWithDuration(0.15);
-        focusRingLayer.transform = transform.scaledBy((focusRingLayer.bounds.size.width + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.width, (focusRingLayer.bounds.size.height + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.height);
-        animator.addAnimations(function(){
-            focusRingLayer.transform = transform;
+        focusRingLayer.transform = transform;
+        if (animated){
+            focusRingLayer.alpha = 0.1;
+            var animator = UIViewPropertyAnimator.initWithDuration(0.15);
+            focusRingLayer.transform = transform.scaledBy((focusRingLayer.bounds.size.width + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.width, (focusRingLayer.bounds.size.height + 3 * focusRingLayer.width) / focusRingLayer.bounds.size.height);
+            animator.addAnimations(function(){
+                focusRingLayer.transform = transform;
+                focusRingLayer.alpha = 1.0;
+            });
+            animator.addCompletion(function(){
+                window.stylerProperties.focusRingAnimator = null;
+            });
+            animator.start();
+            window.stylerProperties.focusRingAnimator = animator;
+        }else{
             focusRingLayer.alpha = 1.0;
-        });
-        animator.addCompletion(function(){
-            window.stylerProperties.focusRingAnimator = null;
-        });
-        animator.start();
-        window.stylerProperties.focusRingAnimator = animator;
+        }
     }
 
 });

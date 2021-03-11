@@ -423,6 +423,14 @@ JSClass('UIView', UIResponder, {
         return this.layer.backgroundPath();
     },
 
+    invalidateFocusRingPath: function(animated){
+        if (this._window !== null){
+            if (this._window.firstResponder === this){
+                this._window.invalidateFocusRing(animated);
+            }
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - View Controller
 
@@ -515,6 +523,7 @@ JSClass('UIView', UIResponder, {
     },
 
     layerDidChangeSize: function(layer){
+        this.invalidateFocusRingPath();
     },
 
     // -------------------------------------------------------------------------

@@ -981,6 +981,17 @@ topics:
 
           Return `null` if you don't want your view to have a focus ring when it
           is the first responder.
+      -
+        name: invalidateFocusRingPath
+        introduced: 2021.10.1
+        kind: method
+        summary: Call whenever the result of `focusRingPath` has changed
+        arguments:
+          -
+            name: animated
+            type: booleanm
+            summary: Whether the change should be animated
+            default: "false"
   -
     name: Gestures
     members:

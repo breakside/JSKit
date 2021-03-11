@@ -290,6 +290,19 @@ topics:
                     name: window
                     type: UIWindow
                     summary: The window to layout
+          -
+            name: Focus Ring
+            members:
+              -
+                name: focusRingColor
+                introduced: 2020.39.0
+                type: JSColor
+                summary: The color of the ring drawn around the window's `firstResponder`
+              -
+                name: focusRingWidth
+                introduced: 2020.39.0
+                type: Number
+                summary: The thickness of the ring drawn around the window's `firstResponder`
       -
         name: UIWindowDefaultStyler
         kind: class
