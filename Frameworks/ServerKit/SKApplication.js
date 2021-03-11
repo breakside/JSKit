@@ -104,7 +104,14 @@ JSClass('SKApplication', JSObject, {
             throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
         }
         logger.info("Calling delegate.applicationDidFinishLaunching");
-        this.delegate.applicationDidFinishLaunching(this, this.launchOptions);
+        var promise = this.delegate.applicationDidFinishLaunching(this, this.launchOptions);
+        var app = this;
+        if (promise instanceof Promise){
+            promise.catch(function(error){
+                logger.error(error);
+                app.stop();
+            });
+        }
     },
 
     setupFonts: function(){
