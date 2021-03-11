@@ -1,6 +1,6 @@
-FROM ubuntu:18.04
+FROM alpine:3
 
-RUN apt-get update && apt-get install -y nginx
+RUN apk -U add nginx && mkdir /run/nginx
 
 COPY ${PROJECT_NAME} /${PROJECT_NAME}
 

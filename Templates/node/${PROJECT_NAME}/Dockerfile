@@ -1,4 +1,4 @@
-FROM node:latest
+FROM node:lts-alpine
 
 COPY ${PROJECT_NAME_FILE_SAFE} /jskitapp
 
