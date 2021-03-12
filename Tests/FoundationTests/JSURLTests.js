@@ -1016,6 +1016,32 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertNotExactEquals(url, url2);
         TKAssert(url.hasDirectoryPath);
         TKAssert(!url2.hasDirectoryPath);
+    },
+
+    testParseDataURL: function(){
+        var url = JSURL.initWithString("data:,hello%2C%20world!");
+        TKAssertNotNull(url);
+        TKAssertEquals(url.scheme, "data");
+        TKAssertNull(url.mediaType);
+        TKAssertNotNull(url.data);
+        TKAssertEquals(url.data.stringByDecodingUTF8(), "hello, world!");
+
+        url = JSURL.initWithString("data:text/plain;charset=utf-8;base64,aGVsbG8sIHdvcmxkIQ==");
+        TKAssertNotNull(url);
+        TKAssertEquals(url.scheme, "data");
+        TKAssertEquals(url.mediaType.mime, "text/plain");
+        TKAssertEquals(url.mediaType.parameters.charset, "utf-8");
+        TKAssertNotNull(url.data);
+        TKAssertEquals(url.data.stringByDecodingUTF8(), "hello, world!");
+    },
+
+    testDataURLEncodedString: function(){
+        var url = JSURL.init();
+        url.scheme = "data";
+        url.mediaType = JSMediaType("text/plain; charset=utf-8");
+        url.data = "hello, world!".utf8();
+        var str = url.encodedString;
+        TKAssertEquals(str, "data:text/plain;charset=utf-8;base64,aGVsbG8sIHdvcmxkIQ==");
     }
 
     // TODO: test modifying parts other than path

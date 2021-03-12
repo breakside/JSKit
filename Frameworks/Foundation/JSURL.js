@@ -18,6 +18,7 @@
 // #import "String+JS.js"
 // #import "JSFormFieldMap.js"
 // #import "JSLog.js"
+// #import "JSMediaType.js"
 
 // https://tools.ietf.org/html/rfc3986
 
@@ -46,6 +47,8 @@ JSClass("JSURL", JSObject, {
     encodedFragment: JSDynamicProperty('_encodedFragment', null),
     query: JSDynamicProperty("_query", null),
     fragment: JSDynamicProperty(),
+    mediaType: JSDynamicProperty("_mediaType", null),
+    data: JSDynamicProperty("_data", null),
 
     isAbsolute: JSReadOnlyProperty(),
     encodedString: JSReadOnlyProperty(),
@@ -77,6 +80,8 @@ JSClass("JSURL", JSObject, {
         this._encodedFragment = url._encodedFragment;
         this._hasAuthority = url._hasAuthority;
         this._hasDirectoryPath = url._hasDirectoryPath;
+        this._mediaType = url._mediaType;
+        this._data = url._data;
     },
 
     initWithData: function(data){
@@ -96,7 +101,7 @@ JSClass("JSURL", JSObject, {
     },
 
     resolveToBaseURL: function(baseURL){
-        if (this._hasAuthority){
+        if (this._hasAuthority || this._scheme === "data"){
             if (this._scheme === null){
                 this._scheme = baseURL._scheme;
             }
@@ -379,6 +384,22 @@ JSClass("JSURL", JSObject, {
             encodedString += this._scheme;
             encodedString += ":";
         }
+        if (this._scheme === "data"){
+            if (this._mediaType !== null){
+                encodedString += this._mediaType.mime;
+                var value;
+                for (var name in this._mediaType.parameters){
+                    encodedString += ";" + name + '=';
+                    value = this._mediaType.parameters[name];
+                    encodedString += value.utf8().dataByEncodingPercentEscapes().stringByDecodingUTF8();
+                }
+            }
+            encodedString += ";base64,";
+            if (this._data !== null){
+                encodedString += this._data.base64StringRepresentation();   
+            }
+            return encodedString;
+        }
         if (this._hasAuthority){
             encodedString += "//";
         }
@@ -623,6 +644,9 @@ JSURLParser.prototype = {
             var schemeData = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
             this.url._scheme = String.initWithData(schemeData, String.Encoding.utf8);
             this.offset = offset + 1;
+            if (this.url._scheme === "data"){
+                this.parseMediaType();
+            }
             this.parseAuthority();
         }else{
             this.parsePath();
@@ -769,6 +793,56 @@ JSURLParser.prototype = {
                 this.offset += 1;
                 offset = this.data.length;
                 this.url._encodedFragment = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
+            }
+        }
+    },
+
+    parseMediaType: function(){
+        var offset = this.offset;
+        var length = this.data.length;
+        if (offset < length){
+            var base64Encoded = false;
+            var b = this.data[offset];
+            if (b !== 0x2C){
+                ++offset;
+                while (offset < length){
+                    b = this.data[offset];
+                    if (b == 0x2C){
+                        break;
+                    }
+                    ++offset;
+                }
+                var mediaData = this.data.subdataInRange(JSRange(this.offset, offset - this.offset));
+                var mediaString = String.initWithData(mediaData, String.Encoding.utf8);
+                if (mediaString.endsWith(";base64")){
+                    base64Encoded = true;
+                    mediaString = mediaString.substr(0, mediaString.length - 7);
+                }
+                this.url._mediaType = JSMediaType(mediaString);
+                for (var name in this.url._mediaType.parameters){
+                    this.url._mediaType.parameters[name] = this.url._mediaType.parameters[name].utf8().dataByDecodingPercentEscapes().stringByDecodingUTF8();
+                }
+            }
+            this.offset = offset;
+            this.parseData(base64Encoded);
+        }
+    },
+
+    parseData: function(base64Encoded){
+        var offset = this.offset;
+        var length = this.data.length;
+        if (offset < length){
+            var b = this.data[offset];
+            b = this.data[offset];
+            if (b == 0x2C){
+                ++offset;
+                var encodedData = this.data.subdataInRange(JSRange(offset, this.data.length - offset));
+                if (base64Encoded){
+                    this.url._data = String.initWithData(encodedData, String.Encoding.utf8).dataByDecodingBase64();
+                }else{
+                    this.url._data = encodedData.dataByDecodingPercentEscapes();
+                }
+                this.offset = this.data.length;
             }
         }
     }
