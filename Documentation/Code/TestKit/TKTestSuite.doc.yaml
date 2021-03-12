@@ -124,6 +124,38 @@ description: |
 
   });
   ````
+
+  Data Driven Tests
+  =======
+  Data-driven tests are defined as a property rather than a method.  They
+  are still recognized by their `"test"`() name prefix.
+
+  A data driven test has two properties of its own: `inputs`() and `test`(),
+  where `inputs`() is a map of names to arguments, and `test()` is a
+  test function that takes the arguments.
+
+  This allows you to use the same test function body with varying inputs
+  without copying the test over and over again.
+
+  ````
+  JSClass("JSRectTests", TKTestSuite, {
+
+    testContructor: {
+      inputs: {
+        positive: [1, 2, 3, 4],
+        negative: [-1, -2, 3, 4],
+        zero: [0, 0, 0, 0]
+      },
+      test: function(x, y, w, h){
+        var rect = new JSRect(x, y, w, h);
+        TKAssertEquals(rect.origin.x, x);
+        TKAssertEquals(rect.origin.y, y);
+        TKAssertEquals(rect.size.width, w);
+        TKAssertEquals(rect.size.height, h);
+    },
+
+  });
+  ````
 topics:
   -
     name: Setup & Teardown

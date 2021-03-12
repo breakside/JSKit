@@ -2,6 +2,132 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Create and run automated tests of `JSKit` based code.
 codeURL: Frameworks/TestKit/
+description: |
+  `TestKit` is a comprehensive automated test framework for any `JSKit` code
+  including UI and Server-based code.
+
+  Special Naming Conventions
+  ==========
+  Runnable `TKTestSuite` subclasses end with `"Tests"`, as in `"JSRectTests"`.
+
+  Test cases, are any method or data-driven property on a suite that begins with
+  `"test"`.
+
+  For example, here's the start of the test suite for `JSRect`.
+  ````
+  #import Foundation
+  #import TestKit
+  'use strict';
+
+  JSCass("JSRectTests", TKTestSuite, {
+
+    testContructor: function(){
+        var rect = new JSRect(1, 2, 3, 4);
+        TKAssertEquals(rect.origin.x, 1);
+        TKAssertEquals(rect.origin.y, 2);
+        TKAssertEquals(rect.size.width, 3);
+        TKAssertEquals(rect.size.height, 4);
+    },
+
+  });
+  ````
+
+  Data Driven Tests
+  =======
+  Data-driven tests are defined on `TKTestSuite` a property rather than a method.
+  They are still recognized by their `"test"`() name prefix.
+
+  A data driven test has two properties of its own: `inputs`() and `test`(),
+  where `inputs`() is a map of names to arguments, and `test()` is a
+  test function that takes the arguments.
+
+  This allows you to use the same test function body with varying inputs
+  without copying the test over and over again.
+
+  ````
+  JSClass("JSRectTests", TKTestSuite, {
+
+    testContructor: {
+      inputs: {
+        positive: [1, 2, 3, 4],
+        negative: [-1, -2, 3, 4],
+        zero: [0, 0, 0, 0]
+      },
+      test: function(x, y, w, h){
+        var rect = new JSRect(x, y, w, h);
+        TKAssertEquals(rect.origin.x, x);
+        TKAssertEquals(rect.origin.y, y);
+        TKAssertEquals(rect.size.width, w);
+        TKAssertEquals(rect.size.height, h);
+    },
+
+  });
+  ````
+
+  When the test suite runs, it will output results for each of the three inputs.
+
+  Assertions
+  ========
+
+  Each test case should call one of the `TKAssert()` functions at least once.
+  Often you'll have many assertions in a single test case.
+
+  Asynchronous Tests
+  ========
+
+  Asynchronous tests are supported whenever a test case method returns a
+  `Promise`, including when it is declared as an `async function`.
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: async function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+          var data = await image.getData();
+          TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+      }
+
+  });
+  ````
+
+  Asynchronous Tests using TKExpectation
+  ========
+
+  Asynchronous tests are also supported by using `TKExpectation` and calling `wait()`
+  on the suite.
+
+  This is helpful when `async` methods are not allowed, perhaps because your
+  tests needs to run an browser that doesn't support `async`
+
+  Here's an example of testing the asynchronous `JSImage.getData()` method
+  ````
+  // #import Foundation
+  // #import TestKit
+  'use strict';
+
+  JSClass("JSImageTests", TKTestSuite, {
+
+      testResourceData: function(){
+          var image = JSImage.initWithResourceName('test');
+          TKAssertNotNull(image);
+
+          var expectation = TKExpectation.init();
+          expectation.call(image.getData, image, function(data){
+              TKAssertNotNull(data);
+              TKAssertObjectEquals(data, [0x89,0x50, ... ]);
+          });
+
+          this.wait(expectation, 2.0);
+      }
+
+  });
+  ````
 topics:
   -
     name: Test Suites

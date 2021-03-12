@@ -61,7 +61,16 @@ JSClass('TKTestRun', JSObject, {
         var suite = this.suiteForName(suiteName);
         if (this.canRunSuite(suite)){
             this.suite = suite;
-            this.caseQueue.push(caseName);
+            var name;
+            var prefix = caseName + ".";
+            for (var i = 0, l = suite.cases.length; i < l; ++i){
+                name = suite.cases[i];
+                if (name === caseName){
+                    this.caseQueue.push(name);
+                }else if (name.startsWith(prefix)){
+                    this.caseQueue.push(name);
+                }
+            }
         }
         this.resume();
     },
