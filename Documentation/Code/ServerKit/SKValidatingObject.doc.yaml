@@ -13,7 +13,7 @@ description: |
 topics:
   -
     name: Creating a Validating Object
-    summary:
+    members:
       -
         name: initWithObject
         kind: init
