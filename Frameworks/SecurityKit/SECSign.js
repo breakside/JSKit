@@ -80,10 +80,10 @@ SECSign.EllipticCurve = {
 };
 
 var jwkAlgorithm = {
-    "RS256": SECSign.rsaSHA256,
-    "RS384": SECSign.rsaSHA384,
-    "RS512": SECSign.rsaSHA512,
-    "ES256": SECSign.ellipticCurveSHA256,
-    "ES384": SECSign.ellipticCurveSHA384,
-    "ES512": SECSign.ellipticCurveSHA512
+    "RS256": SECSign.Algorithm.rsaSHA256,
+    "RS384": SECSign.Algorithm.rsaSHA384,
+    "RS512": SECSign.Algorithm.rsaSHA512,
+    "ES256": SECSign.Algorithm.ellipticCurveSHA256,
+    "ES384": SECSign.Algorithm.ellipticCurveSHA384,
+    "ES512": SECSign.Algorithm.ellipticCurveSHA512
 };
