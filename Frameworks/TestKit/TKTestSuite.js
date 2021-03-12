@@ -69,10 +69,18 @@ TKTestSuite._FindTests = function(subclass){
     var names = Object.getOwnPropertyNames(subclass.prototype);
     subclass.cases = [];
     var x;
+    var property;
     for (var i = 0, l = names.length; i < l; ++i){
         x = names[i];
         if (x.length > 4 && x.substr(0,4) == 'test' && x[4] >= 'A' && x[4] <= 'Z'){
-            subclass.cases.push(x);
+            property = subclass.prototype[x];
+            if (typeof(property) === "function"){
+                subclass.cases.push(x);
+            }else if (property.inputs && property.test){
+                for (var y in property.inputs){
+                    subclass.cases.push("%s.%s".sprintf(x, y));
+                }
+            }
         }
     }
 };

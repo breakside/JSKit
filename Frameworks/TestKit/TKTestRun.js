@@ -134,7 +134,16 @@ JSClass('TKTestRun', JSObject, {
 
         var runTestCase = function(){
             return new Promise(function(resolve, reject){
-                var promise = suiteInstance[testName]();
+                var parts = testName.split(".");
+                var fn, args;
+                if (parts.length === 1){
+                    fn = suiteInstance[testName];
+                    args = [];
+                }else{
+                    fn = suiteInstance[parts[0]].test;
+                    args = suiteInstance[parts[0]].inputs[parts[1]];
+                }
+                var promise = fn.apply(suiteInstance, args);
                 if (promise){
                     var timedOut = false;
                     var timer = JSTimer.scheduledTimerWithInterval(suiteInstance.implicitWaitInterval, function(){
@@ -233,100 +242,6 @@ JSClass('TKTestRun', JSObject, {
             writeTestCaseResults();
             run.resume();
         });
-    },
-
-    _runCaseOriginal: function(suite, testName){
-        TKAssertion.CurrentTestSuite = suite.className;
-        TKAssertion.CurrentTestCase = testName;
-        this.startCase(suite, testName);
-        var result = null;
-        var suiteInstance = null;
-        var run = this;
-
-        var handleTestCaseError = function(e){
-            if (result !== null){
-                return;
-            }
-            if (e instanceof TKAssertion){
-                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Failed);
-                result.message = e.message;
-            }else{
-                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Error);
-                var line = TKAssertion.LineForCurrentCaseInError(e);
-                result.error = e;
-                result.message = "Line " + line + ". " + e.toString();
-            }
-        };
-
-        var setupTestCase = function(){
-            try{
-                suiteInstance = suite.init();
-                suiteInstance.bundle = run.bundle;
-                suiteInstance.setup();
-            }catch (e){
-                handleTestCaseError(e);
-            }finally{
-                if (suiteInstance.expectation){
-                    if (result !== null){
-                        suiteInstance.expectation.cancel();
-                    }
-                    suiteInstance.expectation.catch(handleTestCaseError).finally(runTestCase);
-                }else{
-                    runTestCase();
-                }
-            }
-        };
-
-        var runTestCase = function(){
-            suiteInstance.expectation = null;
-            try{
-                // Only run the case if we have a valid instanace and don't already have an error result (due to setup error)
-                if (suiteInstance !== null && result === null){
-                    suiteInstance[testName]();
-                }
-            }catch (e){
-                handleTestCaseError(e);
-            }finally{
-                if (suiteInstance.expectation){
-                    if (result !== null){
-                        suiteInstance.expectation.cancel();
-                    }
-                    suiteInstance.expectation.catch(handleTestCaseError).finally(teardownTestCase);
-                }else{
-                    teardownTestCase();
-                }
-            }
-        };
-
-        var teardownTestCase = function(){
-            suiteInstance.expectation = null;
-            try{
-                suiteInstance.teardown();
-            }catch (e){
-                handleTestCaseError(e);
-            }finally{
-                if (suiteInstance.expectation){
-                    suiteInstance.expectation.catch(handleTestCaseError).finally(writeTestCaseResults);
-                }else{
-                    writeTestCaseResults();
-                }
-            }
-        };
-
-        var writeTestCaseResults = function(){
-            if (result === null){
-                result = TKTestResult.initWithNamesAndResult(suite.className, testName, TKTestResult.Passed);
-            }
-            if (result.result != TKTestResult.NotRun){
-                run.results[suite.className][TKTestResult.NotRun] -= 1;
-                run.results[suite.className][result.result] += 1;
-            }
-            run.endCase(suite, testName, result);
-            run.resume();
-        };
-
-        run.pause();
-        setupTestCase(); // -> runTestCase() -> teardownTestCase() -> writeTestCaseResults() -> run.resume()
     },
 
     startSuite: function(suite){
