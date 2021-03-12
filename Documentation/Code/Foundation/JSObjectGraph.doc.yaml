@@ -146,54 +146,55 @@ topics:
       - name: JSObjectGraphLoading
         kind: protocol
         summary: Optional protocol for objects that are loaded into graphs
-        members:
-          - name: awakeInGraph
-            summary: Optional method called after an object is loaded into a graph
-              to allow for loading of references
-            type: Promise
-            nullable: true
-            promise:
-              resolve:
-                summary: Resovled when the object is done loading references
-            arguments:
-              - name: graph
-                type: JSObjectGraph
-                summary: The graph to use for loading references
-            description: |
-              Objects loaded into a `DBObjectGraph`, for example, will intially
-              be populated with only IDs referencing other objects.
+        topics:
+          members:
+            - name: awakeInGraph
+              summary: Optional method called after an object is loaded into a graph
+                to allow for loading of references
+              type: Promise
+              nullable: true
+              promise:
+                resolve:
+                  summary: Resovled when the object is done loading references
+              arguments:
+                - name: graph
+                  type: JSObjectGraph
+                  summary: The graph to use for loading references
+              description: |
+                Objects loaded into a `DBObjectGraph`, for example, will intially
+                be populated with only IDs referencing other objects.
 
-              Implementing `awakeInGraph()` gives each object a chance to load
-              actual objects for those references.
+                Implementing `awakeInGraph()` gives each object a chance to load
+                actual objects for those references.
 
-              ````
-              #import DBKit
-              "use strict";
+                ````
+                #import DBKit
+                "use strict";
 
-              JSClass("User", JSObject, {
+                JSClass("User", JSObject, {
 
-                id: null,
-                name: null,
+                  id: null,
+                  name: null,
 
-              });
+                });
 
-              JSClass("Message", JSObject, {
-                id: null,
+                JSClass("Message", JSObject, {
+                  id: null,
 
-                // fields stored in the database
-                senderID: null,
-                text: null,
+                  // fields stored in the database
+                  senderID: null,
+                  text: null,
 
-                // populated by awakeInGraph()
-                sender: null,
+                  // populated by awakeInGraph()
+                  sender: null,
 
-                initFromStorableDictionary: function(dictionary){
-                  this.senderID = dictionary.senderID;
-                  this.text = dictionary.text;
-                },
+                  initFromStorableDictionary: function(dictionary){
+                    this.senderID = dictionary.senderID;
+                    this.text = dictionary.text;
+                  },
 
-                awakeInGraph: async function(graph){
-                  this.sender = await graph.object(this.senderID);
-                }
-              })
-              ````
+                  awakeInGraph: async function(graph){
+                    this.sender = await graph.object(this.senderID);
+                  }
+                })
+                ````
