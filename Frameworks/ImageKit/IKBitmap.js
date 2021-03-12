@@ -36,7 +36,7 @@ JSClass('IKBitmap', JSObject, {
     },
 
     initWithEncodedData: function(data){
-        var format = IKBitmap.FormatOfData(data);
+        var format = IKBitmap.formatOfData(data);
         var decoder = IKDecoder.initWithFormat(format, data);
         if (decoder === null){
             return null;
@@ -59,7 +59,7 @@ JSClass('IKBitmap', JSObject, {
 
 });
 
-IKBitmap.FormatOfData = function(data){
+IKBitmap.formatOfData = function(data){
     if (data === null){
         return IKBitmap.Format.unknown;
     }
