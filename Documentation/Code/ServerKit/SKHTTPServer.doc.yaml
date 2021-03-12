@@ -115,6 +115,36 @@ topics:
                   do not generate logging.
 
                   Defaults to `"/.heath-check"`.
+          -
+            name: Limits
+            members:
+              -
+                name: defaultMaximumRequestContentLength
+                introduced: 2021.10.1
+                type: Number
+                summary: The default maximum content length for all requests
+                description: |
+                  Defaults to 2MB.
+
+                  A request's `maximumContentLength` will default to this, but can
+                  be changed anytime before accessing
+                  the request body via `SKHTTPRequest.getData()` or related methods.
+          -
+            name: Security
+            members:
+              -
+                name: strictTransportSecurityEnabled
+                introduced: 2021.10.1
+                type: boolean
+                summary: Whether to send a `Strict-Transport-Security` header
+                description: |
+                  Defaults to `true`.
+
+                  When enabled, always adds a `Strict-Transport-Security` header to
+                  every response.  Uses a max-age of 1 year.
+
+                  The `Strict-Transport-Security` header is ignored by browsers
+                  if you don't serve over HTTPS.
   -
     name: Routes
     members:
@@ -273,6 +303,20 @@ topics:
         description: |
           Stops listening for new requets, and resolves the returned promise
           when all outstanding requests are closed.
+  -
+    name: Limits
+    members:
+      -
+        name: defaultMaximumRequestContentLength
+        introduced: 2021.10.1
+        type: Number
+        summary: The default maximum content length for all requests
+        description: |
+          Defaults to 2MB.
+
+          A request's `maximumContentLength` will default to this, but can
+          be changed anytime before accessing
+          the request body via `SKHTTPRequest.getData()` or related methods.
   -
     name: Security
     members:

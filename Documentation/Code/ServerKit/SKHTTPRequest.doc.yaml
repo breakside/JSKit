@@ -35,6 +35,10 @@ topics:
         nullable: true
         summary: The value of the `"Origin"` header in the request
       -
+        name: clientIPAddress
+        type: JSIPAddress
+        summary: The ip address of the client making the request
+      -
         introduced: 2020.28.0
         name: tag
         type: String
@@ -50,7 +54,22 @@ topics:
       -
         name: contentType
         type: JSMediaType
+        nullable: true
         summary: The content type of the request body
+      -
+        name: contentLength
+        introduced: 2021.10.1
+        type: Number
+        nullable: true
+        summary: The content length of the request body
+      -
+        name: maximumContentLength
+        introduced: 2021.10.1
+        type: Number
+        summary: The maximum allowed content length
+        description: |
+          If the request body is larger than this length, an automatic response
+          with `SKHTTPResponse.StatusCode.payloadTooLarge` will be sent;
       -
         name: getValidObject
         kind: method

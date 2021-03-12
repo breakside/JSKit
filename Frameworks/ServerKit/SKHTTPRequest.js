@@ -27,9 +27,12 @@ JSClass("SKHTTPRequest", JSObject, {
     headerMap: JSReadOnlyProperty('_headerMap', null),
     method: JSReadOnlyProperty('_method', null),
     contentType: JSLazyInitProperty('_getContentType'),
+    contentLength: JSLazyInitProperty('_getContentLength'),
     origin: JSLazyInitProperty('_getOrigin'),
+    clientIPAddress: null,
     tag: null,
     receivedAt: null,
+    maximumContentLength: Number.MAX_VALUE,
 
     initWithMethodAndURL: function(method, url, headerMap){
         this._method = method;
@@ -43,11 +46,24 @@ JSClass("SKHTTPRequest", JSObject, {
             this._url.host = host;
             this._url.scheme = scheme;
         }
+        var ip = this._headerMap.get("X-Forwarded-For", null);
+        this.clientIPAddress = JSIPAddress.initWithString(ip);
     },
 
     _getContentType: function(){
         var header = this.headerMap.get('Content-Type');
         return JSMediaType(header);
+    },
+
+    _getContentLength: function(){
+        var header = this.headerMap.get('Content-Length');
+        if (header !== null && header !== undefined){
+            var l = parseInt(header);
+            if (!isNaN(l)){
+                return l;
+            }
+        }
+        return null;
     },
 
     _getOrigin: function(){

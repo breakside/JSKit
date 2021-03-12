@@ -22,6 +22,7 @@ JSClass("JSURLResponse", JSObject, {
 
     headerMap: JSReadOnlyProperty('_headerMap', null),
     contentType: JSLazyInitProperty('_getContentType', null),
+    contentLength: JSLazyInitProperty('_getContentLength', null),
 
     statusCode: -1,
     statusClass: JSDynamicProperty(),
@@ -42,6 +43,18 @@ JSClass("JSURLResponse", JSObject, {
             return null;
         }
         return JSMediaType(header);
+    },
+
+    _getContentLength: function(){
+        var header = this._headerMap.get('Content-Length');
+        if (!header){
+            return null;
+        }
+        var l = parseInt(header);
+        if (isNaN(l)){
+            return null;
+        }
+        return l;
     },
 
     object: JSLazyInitProperty('_getObject'),

@@ -8,54 +8,86 @@ JSClass("JSIPAddress", JSObject, {
 
     initWithString: function(str){
         if (str === null || str === undefined){
-            return;
+            return null;
         }
         var matches = str.match(/^(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+        var a, b, c, d;
         if (matches !== null){
             this.family = JSIPAddress.Family.ip4;
-            this.data = JSData.initWithArray([parseInt(matches[1]), parseInt(matches[2]), parseInt(matches[3]), parseInt(matches[4])]);
+            a = parseInt(matches[1]);
+            b = parseInt(matches[2]);
+            c = parseInt(matches[3]);
+            d = parseInt(matches[4]);
+            if (a > 0xFF || b > 0xFF || c > 0xFF || d > 0xFF){
+                return null;
+            }
+            this.data = JSData.initWithArray([a, b, c, d]);
         }else{
             this.family = JSIPAddress.Family.ip6;
             this.data = JSData.initWithLength(16);
-            matches = str.match(/^::ffff:(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+            matches = str.match(/:(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
             if (matches !== null){
-                this.data[10] = 0xFF;
-                this.data[11] = 0xFF;
-                this.data[12] = parseInt(matches[1]);
-                this.data[13] = parseInt(matches[2]);
-                this.data[14] = parseInt(matches[3]);
-                this.data[15] = parseInt(matches[4]);
-            }else{
-                this.data = JSData.initWithLength(16);
-                var parts = str.split(":");
-                var part;
-                var n;
-                var di = 0;
-                var i, l;
-                for (i = 0, l = parts.length; i < l; ++i){
-                    part = parts[i];
-                    if (part == ""){
-                        break;
-                    }
-                    n = parseInt(n, 16);
-                    if (isNaN(n)){
-                        return null;
-                    }
-                    this.data[di++] = (n & 0xFF00) >> 8;
-                    this.data[di++] = n & 0xFF;
+                str = str.substr(0, str.length - matches[0].length);
+                a = parseInt(matches[1]);
+                b = parseInt(matches[2]);
+                c = parseInt(matches[3]);
+                d = parseInt(matches[4]);
+                if (a > 0xFF || b > 0xFF || c > 0xFF || d > 0xFF){
+                    return null;
                 }
-                di = this.data.length - 1;
-                for (var j = l - 1; j > i; --j){
-                    part = parts[j];
-                    if (part == ""){
-                        break;
+                str += ":%x:%x".sprintf((a << 8) | b, (c << 8) | d);
+            }
+            this.data = JSData.initWithLength(16);
+            var i, l, di;
+            var parts;
+            var part;
+            var n;
+            var start;
+            var end;
+            if (str !== "::"){
+                parts = str.split("::");
+                if (parts.length > 2){
+                    return;
+                }
+                if (parts.length === 1){
+                    start = parts[0];
+                }else{
+                    if (parts[0] !== ""){
+                        start = parts[0];
                     }
-                    n = parseInt(n, 16);
-                    if (isNaN(n)){
-                        return null;
+                    if (parts[1] !== ""){
+                        end = parts[1];
                     }
-                    this.data[di--] = n & 0xFF;
-                    this.data[di--] = (n & 0xFF00) >> 8;
+                }
+                if (start){
+                    parts = start.split(":");
+                    for (i = 0, l = parts.length, di = 0; i < l; ++i, ++di){
+                        part = parts[i];
+                        if (part.length === 0 || part.length > 4){
+                            return null;
+                        }
+                        n = parseInt(part, 16);
+                        if (isNaN(n)){
+                            return null;
+                        }
+                        this.data[di++] = (n >> 8);
+                        this.data[di] = n & 0xFF;
+                    }
+                }
+                if (end){
+                    parts = end.split(":");
+                    for (i = parts.length - 1, di = this.data.length - 1; i >= 0; --i, --di){
+                        part = parts[i];
+                        if (part.length === 0 || part.length > 4){
+                            return null;
+                        }
+                        n = parseInt(part, 16);
+                        if (isNaN(n)){
+                            return null;
+                        }
+                        this.data[di--] = n & 0xFF;
+                        this.data[di] = (n >> 8);
+                    }
                 }
             }
         }
@@ -84,19 +116,38 @@ JSClass("JSIPAddress", JSObject, {
     },
 
     stringRepresentation: function(){
+        var d = this.data;
         if (this.family == JSIPAddress.Family.ip4){
-            return "%d.%d.%d.%d".sprintf(this.data[0], this.data[1], this.data[2], this.data[3]);
+            return "%d.%d.%d.%d".sprintf(d[0], d[1], d[2], d[3]);
+        }
+        if (d[0] + d[1] + d[2] + d[3] + d[4] + d[5] + d[6] + d[7] + d[8] + d[9] === 0){
+            if (d[10] == 0x00 && d[11] == 0x00){
+                if (d[12] == 0x00 && d[13] == 0x00){
+                    if (d[14] == 0x00 && d[15] == 0x00){
+                        return "::";
+                    }
+                    return "::%x".sprintf((d[14] << 8) | d[15]);
+                }
+                return "::%d.%d.%d.%d".sprintf(d[12], d[13], d[14], d[15]);
+            }
+            if (d[10] == 0xFF && d[11] == 0xFF){
+                return "::ffff:%d.%d.%d.%d".sprintf(d[12], d[13], d[14], d[15]);
+            }
         }
         return "%x:%x:%x:%x:%x:%x:%x:%x".sprintf(
-            (this.data[0] << 8) | this.data[1],
-            (this.data[2] << 8) | this.data[3],
-            (this.data[4] << 8) | this.data[5],
-            (this.data[6] << 8) | this.data[7],
-            (this.data[8] << 8) | this.data[9],
-            (this.data[10] << 8) | this.data[11],
-            (this.data[12] << 8) | this.data[13],
-            (this.data[14] << 8) | this.data[15]
+            (d[0] << 8) | d[1],
+            (d[2] << 8) | d[3],
+            (d[4] << 8) | d[5],
+            (d[6] << 8) | d[7],
+            (d[8] << 8) | d[9],
+            (d[10] << 8) | d[11],
+            (d[12] << 8) | d[13],
+            (d[14] << 8) | d[15]
         );
+    },
+
+    toString: function(){
+        return "[JSIPAddress %s]".sprintf(this.stringRepresentation());
     }
 
 });

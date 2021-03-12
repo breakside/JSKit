@@ -1,0 +1,56 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.10.1
+kind: class
+inherits: JSObject
+summary: Represents an IPv4 or IPv6 address
+description: |
+  Allows for correct parsing, comparison, and encoding of IP addresses.
+topics:
+  - name: Creating an address
+    members:
+      - name: initWithString
+        kind: init
+        summary: Create an JSIPAddress from a string
+        arguments:
+          - name: string
+            type: String
+            summary: The string representation of the IP Address
+  - name: Address Info
+    members:
+      - name: family
+        type: Family
+        summary: The IP version family (4 or 6) that this address belongs to
+      - name: Family
+        kind: enum
+        suffix: enum
+        summary: The possible values for `family`
+        topics:
+          - name: Options
+            members:
+              - name: ip4
+                summary: IPv4 address family
+              - name: ip6
+                summary: IPv6 address family
+      - name: data
+        type: JSData
+        summary: The address data, as a byte array
+        description: |
+          IPv4 addresses have 4 bytes of data.
+
+          IPv6 addresses have 16 bytes of data.
+  - name: String Representation
+    members:
+      - name: stringRepresentation
+        kind: method
+        type: String
+        summary: Get the string representation of this IP address
+  - name: Comparisons
+    members:
+      - name: isEqual
+        kind: method
+        type: boolean
+        summary: Check if this address is equal to another
+        arguments:
+          - name: other
+            type: JSIPAddress
+            summary: The other address

@@ -16,6 +16,7 @@
 // #import "SKHTTPRequest.js"
 // #import "SKNodeHTTPWebSocket.js"
 // #import "SKNodeHTTPResponse.js"
+// #import "SKHTTPError.js"
 'use strict';
 
 JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
@@ -33,6 +34,11 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
         if (nodeResponse){
             this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse, this.tag);
         }
+        if (this.clientIPAddress === null){
+            if (nodeRequest.socket.localAddress){
+                this.clientIPAddress = JSIPAddress.initWithString(nodeRequest.socket.localAddress);
+            }
+        }
     },
 
     createWebsocket: function(){
@@ -47,14 +53,24 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
+        var length = 0;
         var chunks = [];
+        var maximumLength = this.maximumContentLength;
+        var contentLength = this.contentLength;
+        if (contentLength !== null && contentLength > maximumLength){
+            throw new SKHTTPError(SKHTTPResponse.StatusCode.payloadTooLarge);
+        }
         this._nodeRequest.on('data', function(chunk){
             chunks.push(chunk);
+            length += chunk.length;
+            if (length > maximumLength){
+                throw new SKHTTPError(SKHTTPResponse.StatusCode.payloadTooLarge);
+            }
         });
         this._nodeRequest.on('end', function(){
             completion.call(target, JSData.initWithChunks(chunks));
         });
         return completion.promise;
-    }
+    },
 
 });

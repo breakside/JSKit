@@ -253,14 +253,23 @@ topics:
       -
         name: contentType
         type: JSMediaType
+        nullable: true
         summary: The content type of the response data
+      -
+        name: contentLength
+        introduced: 2021.10.1
+        type: Number
+        nullable: true
+        summary: The content length of the response data
       -
         name: data
         type: JSData
+        nullable: true
         summary: The raw byte array response data
       -
         name: object
         type: object
+        nullable: true
         summary: An object created by parsing the `data` as JSON
         description: |
           In order for an object to be parsed, the response must:

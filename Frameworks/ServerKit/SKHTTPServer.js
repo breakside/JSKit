@@ -37,6 +37,7 @@ JSClass("SKHTTPServer", JSObject, {
     strictTransportSecurityEnabled: true,
     tlsCertificate: null,
     tlsPrivateKey: null,
+    defaultMaximumRequestContentLength: 1024 * 1024 * 2,
 
     initWithPort: function(port){
         this._port = port;
@@ -52,6 +53,12 @@ JSClass("SKHTTPServer", JSObject, {
         this.contextProperties = {};
         if (spec.containsKey("healthCheckPath")){
             this.healthCheckPath = spec.valueForKey("healthCheckPath");
+        }
+        if (spec.containsKey("strictTransportSecurityEnabled")){
+            this.strictTransportSecurityEnabled = spec.valueForKey("strictTransportSecurityEnabled");
+        }
+        if (spec.containsKey("defaultMaximumRequestContentLength")){
+            this.defaultMaximumRequestContentLength = spec.valueForKey("defaultMaximumRequestContentLength");
         }
     },
 
@@ -109,6 +116,8 @@ JSClass("SKHTTPServer", JSObject, {
 
         try{
             logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
+
+            request.maximumContentLength = this.defaultMaximumRequestContentLength;
 
             if (this.strictTransportSecurityEnabled){
                 request.response.headerMap.add("Strict-Transport-Security", "max-age=%d".sprintf(JSTimeInterval.hours(24) * 365));
