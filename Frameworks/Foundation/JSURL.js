@@ -54,6 +54,8 @@ JSClass("JSURL", JSObject, {
     encodedString: JSReadOnlyProperty(),
     encodedPathAndQuery: JSReadOnlyProperty(),
 
+    origin: JSReadOnlyProperty(),
+
     _hasAuthority: false,
 
     initWithString: function(str, baseURL){
@@ -417,6 +419,24 @@ JSClass("JSURL", JSObject, {
         if (this._encodedFragment !== null){
             encodedString += '#';
             encodedString += String.initWithData(this._encodedFragment, String.Encoding.utf8);
+        }
+        return encodedString;
+    },
+
+    getOrigin: function(){
+        var encodedString = "";
+        if (this._scheme !== null){
+            encodedString += this._scheme;
+            encodedString += ":";
+        }
+        if (this._hasAuthority){
+            encodedString += "//";
+        }
+        if (this._host !== null){
+            encodedString += JSURL.encodeDomainName(this._host);
+            if (this._port !== null){
+                encodedString += ":%d".sprintf(this._port);
+            }
         }
         return encodedString;
     },

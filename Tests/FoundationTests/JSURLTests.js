@@ -1042,7 +1042,21 @@ JSClass('JSURLTests', TKTestSuite, {
         url.data = "hello, world!".utf8();
         var str = url.encodedString;
         TKAssertEquals(str, "data:text/plain;charset=utf-8;base64,aGVsbG8sIHdvcmxkIQ==");
-    }
+    },
+
+    testOrigin: function(){
+        var url = JSURL.initWithString("http://test.breakside.io/test/");
+        TKAssertEquals(url.origin, "http://test.breakside.io");
+
+        url = JSURL.initWithString("https://test.breakside.io/test/?one=1#fragment");
+        TKAssertEquals(url.origin, "https://test.breakside.io");
+
+        url = JSURL.initWithString("https://user:pass@test.breakside.io/test/?one=1#fragment");
+        TKAssertEquals(url.origin, "https://test.breakside.io");
+
+        url = JSURL.initWithString("https://user:pass@test.breakside.io:123/test/?one=1#fragment");
+        TKAssertEquals(url.origin, "https://test.breakside.io:123");
+    },
 
     // TODO: test modifying parts other than path
 
