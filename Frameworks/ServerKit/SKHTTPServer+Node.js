@@ -74,7 +74,7 @@ SKHTTPServer.definePropertiesFromExtensions({
     _handleNodeRequest: function(nodeRequest, nodeResponse){
         try{
             var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
-            if (this._ssl){
+            if (this.tlsCertificate && this.tlsPrivateKey){
                 request.url.scheme = "https";
             }
             this.handleRequest(request);
