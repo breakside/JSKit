@@ -658,7 +658,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
 
             if (backBarItem !== null){
                 props.backBarItemView.titleLabel.text = backBarItem.title;
-                props.backBarItemView.hidden = false;
+                props.backBarItemView.hidden = item.hidesBackButton;
             }else{
                 props.backBarItemView.hidden = true;
             }

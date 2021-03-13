@@ -24,6 +24,7 @@ JSClass("UINavigationItem", JSObject, {
     backBarButtonItem: JSDynamicProperty('_backBarButtonItem', null),
     rightBarItems: JSDynamicProperty('_rightBarItems', null),
     leftBarItems: JSDynamicProperty('_leftBarItems', null),
+    hidesBackButton: false,
 
     init: function(args){
         this._rightBarItems = [];
