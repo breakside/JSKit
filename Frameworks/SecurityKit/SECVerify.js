@@ -61,12 +61,12 @@ SECVerify.EllipticCurve = {
 };
 
 var jwkAlgorithm = {
-    "RS256": SECVerify.rsaSHA256,
-    "RS384": SECVerify.rsaSHA384,
-    "RS512": SECVerify.rsaSHA512,
-    "ES256": SECVerify.ellipticCurveSHA256,
-    "ES384": SECVerify.ellipticCurveSHA384,
-    "ES512": SECVerify.ellipticCurveSHA512
+    "RS256": SECVerify.Algorithm.rsaSHA256,
+    "RS384": SECVerify.Algorithm.rsaSHA384,
+    "RS512": SECVerify.Algorithm.rsaSHA512,
+    "ES256": SECVerify.Algorithm.ellipticCurveSHA256,
+    "ES384": SECVerify.Algorithm.ellipticCurveSHA384,
+    "ES512": SECVerify.Algorithm.ellipticCurveSHA512
 };
 
 })();
