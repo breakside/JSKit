@@ -95,6 +95,7 @@ JSClass('TKTestRun', JSObject, {
                 var line = TKAssertion.LineForCurrentCaseInError(e);
                 result.error = e;
                 result.message = "Line " + line + ". " + e.toString();
+                result.stack = e.stack;
             }
         };
 

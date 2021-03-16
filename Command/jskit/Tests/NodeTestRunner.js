@@ -19,9 +19,13 @@
 
 global.performance = require('perf_hooks').performance;
 
+var path = require('path');
+var rootDirectory = path.join(path.dirname(__filename), "Frameworks") + path.sep;
+
 JSClass('NodeTestRun', TKTestRun, {
 
     name: null,
+    printStack: true,
 
     init: function(){
         NodeTestRun.$super.initInEnvironment.call(this, 'node');
@@ -76,6 +80,19 @@ JSClass('NodeTestRun', TKTestRun, {
         if (result.result != TKTestResult.Passed){
             process.stdout.write('     ' + result.message + '\n');
         }
+        if (this.printStack && result.result == TKTestResult.Error && result.stack){
+            var lines = result.stack.split("\n");
+            var line;
+            lines.shift();
+            for (var i = 0, l = lines.length; i < l; ++i){
+                line = lines[i];
+                line = line.replace(rootDirectory, "");
+                line = line.replace(path.join(".jsframework", "JS"), "");
+                line = line.replace(/^\s+/, "       ");
+                lines[i] = line;
+            }
+            process.stdout.write(lines.join("\n"));
+        }
     },
 
     endTests: function(results){
@@ -116,7 +133,7 @@ module.exports.run = function(){
     var args = JSArguments.initWithOptions({
         help: {kind: "flag", shortcut: "h", hidden: true},
         suite: {default: null, help: "The single test suite (class name) to run"},
-        case: {default: null, help: "The single test case (method name) to run (requires --suite)"},
+        case: {default: null, help: "The single test case (method name) to run (requires --suite)"}
     });
     var argv = process.argv.slice(1);
     try{
