@@ -53,6 +53,10 @@ JSClass("TKExpectation", JSObject, {
         return result;
     },
 
+    addCompletion: function(completion){
+        return this._wrapCallback(completion);
+    },
+
     cancel: function(){
         this.isDone = true;
         if (this.timeoutTimer !== null){

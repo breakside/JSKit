@@ -92,6 +92,7 @@ JSClass('NodeTestRun', TKTestRun, {
                 lines[i] = line;
             }
             process.stdout.write(lines.join("\n"));
+            process.stdout.write("\n");
         }
     },
 

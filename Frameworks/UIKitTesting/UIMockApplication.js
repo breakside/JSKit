@@ -64,6 +64,12 @@ JSClass("UIMockApplication", UIApplication, {
         }
         this.displayTime += dt;
         this.windowServer.displayServer.updateDisplay(this.displayTime);
+    },
+
+    openedURL: null,
+
+    openURL: function(url){
+        this.openedURL = url;
     }
 
 });
