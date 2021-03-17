@@ -42,6 +42,9 @@ JSClass("UINavigationItem", JSObject, {
         if (spec.containsKey("backBarButtonItem")){
             this._backBarButtonItem = spec.valueForKey("backBarButtonItem", UINavigationItem);
         }
+        if (spec.containsKey("hidesBackButton")){
+            this.hidesBackButton = spec.valueForKey("hidesBackButton");
+        }
         this._rightBarItems = [];
         this._leftBarItems = [];
         var i, l;
