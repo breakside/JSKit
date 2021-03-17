@@ -86,7 +86,8 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 // the client before authenticating
                 requireResidentKey: false,
                 residentKey: "discouraged",
-                userVerification: "discouraged"
+                userVerification: "discouraged",
+                authenticatorAttachment: "cross-platform"
             },
             attestation: "none",
             timeout: 10000
