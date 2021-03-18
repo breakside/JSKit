@@ -145,7 +145,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         // Request
         // challengeData
         // domain
-        // allowedKeyIds
+        // allowedKeyIDs
         if (!completion){
             completion = Promise.completion();
         }
@@ -162,12 +162,21 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         if (request.domain){
             info.rpId = request.domain;
         }
-        if (request.allowedKeyIds){
-            for (var i = 0, l = request.allowedKeyIds.length; i < l; ++i){
-                info.allowCredentials.push({
-                    type: "public-key",
-                    id: request.allowedKeyIds[i].dataByDecodingBase64URL()
-                });
+        // naming change after publishing docs
+        if (request.allowedKeyIds && !request.allowedKeyIDs){
+            request.allowedKeyIDs = request.allowedKeyIds;
+        }
+        if (request.allowedKeyIDs){
+            for (var i = 0, l = request.allowedKeyIDs.length; i < l; ++i){
+                try{
+                    info.allowCredentials.push({
+                        type: "public-key",
+                        id: request.allowedKeyIDs[i].dataByDecodingBase64URL()
+                    });
+                }catch (e){
+                    // if the key isn't base64-url encoded, then it isn't
+                    // a key made by the Credentials API
+                }
             }
         }
         this.credentialStore.get({publicKey: info}).then(function(credential){
@@ -181,8 +190,8 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             var result = {
                 kid: credential.id,
                 webauthn: {
-                    authData: authData,
-                    clientData: clientData
+                    authData: authData.base64URLStringRepresentation(),
+                    clientData: clientData.base64URLStringRepresentation()
                 },
                 challenge: request.challengeData,
                 signature: JSData.initWithBuffer(credential.response.signature)

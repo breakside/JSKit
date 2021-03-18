@@ -260,7 +260,7 @@ topics:
                   Defaults to the current page's domain.  Can only be the page's
                   domain or a higher level domain with the same suffix.
               -
-                name: allowedKeyIds
+                name: allowedKeyIDs
                 type: String[]
                 nullable: true
                 summary: The `kid`s of previously registered keys for the account
