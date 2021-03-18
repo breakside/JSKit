@@ -297,7 +297,11 @@ JSClass('UILabel', UIView, {
     // MARK: - Accessibility
 
     isAccessibilityElement: true,
-    accessibilityRole: UIAccessibility.Role.text
+    accessibilityRole: UIAccessibility.Role.text,
+
+    getFocusRingPath: function(){
+        return null;
+    },
 
 });
 
