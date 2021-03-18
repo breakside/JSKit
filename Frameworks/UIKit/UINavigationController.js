@@ -112,6 +112,7 @@ JSClass("UINavigationController", UIViewController, {
 
     setViewControllers: function(viewControllers){
         var newTopViewController = viewControllers[viewControllers.length - 1];
+        var newView = newTopViewController.view;
         if (newTopViewController !== this.topViewController){
             this.topViewController.viewWillDisappear();
             newTopViewController.viewWillAppear();
@@ -171,6 +172,7 @@ JSClass("UINavigationController", UIViewController, {
             this.pushAnimator = this.createPushAnimator();
         }
         var fromViewController = this.topViewController;
+        var view = viewController.view;
         if (this._isVisible){
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
@@ -181,7 +183,7 @@ JSClass("UINavigationController", UIViewController, {
         this.addChildViewController(viewController);
         this._viewControllers.push(viewController);
         this._navigationBar.pushItem(viewController.navigationItem, animated);
-        this.view.insertSubviewBelowSibling(viewController.view, this._navigationBar);
+        this.view.insertSubviewBelowSibling(view, this._navigationBar);
         if (!animated){
             if (this._isVisible){
                 fromViewController.enqueueDidDisappear();
@@ -248,6 +250,7 @@ JSClass("UINavigationController", UIViewController, {
             this.popAnimator = this.createPopAnimator();
         }
         var fromViewController = this.topViewController;
+        var view = viewController.view;
         if (this._isVisible){
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
@@ -257,7 +260,7 @@ JSClass("UINavigationController", UIViewController, {
         }
         this._viewControllers.splice(index + 1, this._viewControllers.length - index);
         this._navigationBar.popToItem(viewController.navigationItem, animated);
-        this.view.insertSubviewBelowSibling(viewController.view, fromViewController.view);
+        this.view.insertSubviewBelowSibling(view, fromViewController.view);
         if (!animated){
             if (this._isVisible){
                 fromViewController.enqueueDidDisappear();
