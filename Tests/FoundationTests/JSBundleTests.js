@@ -152,73 +152,61 @@ JSClass('JSBundleTests', TKTestSuite, {
 
         // Exact match in default table
         JSLocale.preferredLanguages = ['en-GB'];
-        bundle._updateSupportedUserLanguages();
         var str = bundle.localizedString("color");
         TKAssertEquals(str, "Colour");
 
         // Fallback match in default table
         JSLocale.preferredLanguages = ['en-US', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "Color");
 
         // Upgrade match in default table
         JSLocale.preferredLanguages = ['de', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "Farbe");
 
         // Sibling match in default table
         JSLocale.preferredLanguages = ['de-AT', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "Farbe");
 
         // Upgrade match in default table with script
         JSLocale.preferredLanguages = ['zn', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "颜色");
 
         // Upgrade match in default table with script
         JSLocale.preferredLanguages = ['zn-Hans', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "颜色");
 
         // Upgrade match in default table with script
         JSLocale.preferredLanguages = ['zn-Test', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "颜色");
 
         // Upgrade match in default table with script
         JSLocale.preferredLanguages = ['zn-Hans-XY', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "颜色");
 
         // Upgrade match in default table with script
         JSLocale.preferredLanguages = ['zn-Test-XY', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "颜色");
 
         // Missing language fallback
         JSLocale.preferredLanguages = ['fr-FR', 'en-GB'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "Colour");
 
         // Development language fallback
         JSLocale.preferredLanguages = ['fr-FR'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("color");
         TKAssertEquals(str, "Color");
 
         // Specific table
         JSLocale.preferredLanguages = ['en-US'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("testing", "Test.strings");
         TKAssertEquals(str, "Testing");
         str = bundle.localizedString("testing2", "Test.strings");
@@ -226,7 +214,6 @@ JSClass('JSBundleTests', TKTestSuite, {
 
         // Specific table fallback
         JSLocale.preferredLanguages = ['de'];
-        bundle._updateSupportedUserLanguages();
         str = bundle.localizedString("testing", "Test.strings");
         TKAssertEquals(str, "Testen");
         str = bundle.localizedString("testing2", "Test.strings");

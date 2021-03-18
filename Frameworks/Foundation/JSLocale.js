@@ -113,6 +113,7 @@ JSLocale.ClearCache = function(){
 };
 
 JSLocale._preferredLanguages = [];
+JSLocale.preferredLanguagesVersion = 1;
 
 Object.defineProperties(JSLocale, {
 
@@ -122,15 +123,14 @@ Object.defineProperties(JSLocale, {
         },
         set: function JSLocale_setPreferredLanguages(preferredLanguages){
             JSLocale._preferredLanguages = preferredLanguages;
+            ++JSLocale.preferredLanguagesVersion;
         }
     },
 
     current: {
         configurable: true,
         get: function JSLocale_getCurrent(){
-            var locale = JSLocale.initWithIdentifier(JSLocale._preferredLanguages[0]);
-            Object.defineProperty(JSLocale, 'current', locale);
-            return locale;
+            return JSLocale.initWithIdentifier(JSLocale._preferredLanguages[0]);
         }
     }
 

@@ -21,6 +21,7 @@
 JSClass('JSBundle', JSObject, {
 
     _dict: null,
+    _preferredLanguagesVersion: -1,
     _supportedPreferredLanguages: null,
     info: JSLazyInitProperty('_getInfo'),
 
@@ -35,15 +36,18 @@ JSClass('JSBundle', JSObject, {
 
     initWithDictionary: function(dict){
         this._dict = dict;
-        this._updateSupportedUserLanguages();
+        this._updateSupportedUserLanguagesIfNeeded();
     },
 
     _getInfo: function(){
         return this._dict.Info;
     },
 
-    _updateSupportedUserLanguages: function(){
-        this._supportedPreferredLanguages = this._getSupportedLanguagesForLocaleIdentifiers(JSLocale.preferredLanguages);
+    _updateSupportedUserLanguagesIfNeeded: function(){
+        if (this._preferredLanguagesVersion !== JSLocale.preferredLanguagesVersion){
+            this._preferredLanguagesVersion = JSLocale.preferredLanguagesVersion;
+            this._supportedPreferredLanguages = this._getSupportedLanguagesForLocaleIdentifiers(JSLocale.preferredLanguages);
+        }
     },
 
     _getSupportedLanguagesForLocaleIdentifiers: function(preferredLanguages){
@@ -190,6 +194,7 @@ JSClass('JSBundle', JSObject, {
         if (locale){
             langs = this._getSupportedLanguagesForLocaleIdentifiers([locale.identifier]);
         }else{
+            this._updateSupportedUserLanguagesIfNeeded();
             langs = this._supportedPreferredLanguages;
         }
         var metadata;
