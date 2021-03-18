@@ -163,26 +163,40 @@ JSClass("SKHTTPServer", JSObject, {
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.methodNotAllowed);
             }
 
-            // 3. Authenticate the request
-            responder.authenticate().then(function(authorization){
-                if (!authorization.authorized){
-                    throw new SKHTTPError(authorization.statusCode);
+            if (request.method == "OPTIONS"){
+                // 3. Call the method without authenticating or opening the
+                //    context, allowing the preflight to succeed so the browser
+                //    can make the actual request and get an appropriate error.
+                //    (if the OPTIONS fails with a 401 or 404, for example, it
+                //    will appear in the browser as a network error, which is
+                //    not what the calling application is expecting)
+                var promise = method.call(responder);
+                if (!(promise instanceof Promise)){
+                    promise = Promise.resolve();
                 }
-                return authorization.authenticated;
+                promise.catch(catcher).then(finish);
+            }else{
+                // 3. Authenticate the request
+                responder.authenticate().then(function(authorization){
+                    if (!authorization.authorized){
+                        throw new SKHTTPError(authorization.statusCode);
+                    }
+                    return authorization.authenticated;
 
-            // 4. Open the context
-            }).then(function(authenticated){
-                if (responder.context !== null){
-                    responder.context.authenticated = authenticated;
-                    return responder.context.open();
-                }
+                // 4. Open the context
+                }).then(function(authenticated){
+                    if (responder.context !== null){
+                        responder.context.authenticated = authenticated;
+                        return responder.context.open();
+                    }
 
-            // 5. Call the method
-            }).then(function(){
-                return method.call(responder);
+                // 5. Call the method
+                }).then(function(){
+                    return method.call(responder);
 
-            // 6. Error Handling & Metrics
-            }).catch(catcher).then(finish);
+                // 6. Error Handling & Metrics
+                }).catch(catcher).then(finish);
+            }
         }catch (e){
             catcher(e).then(finish);
         }
