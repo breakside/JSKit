@@ -190,7 +190,9 @@ JSClass("UIControl", UIView, {
         if (typeof(action) === 'function'){
             action.call(target, this, uiEvent);
         }else{
-            this.window.application.sendAction(action, target, this, uiEvent);
+            if (this.window !== null){
+                this.window.application.sendAction(action, target, this, uiEvent);
+            }
         }
     },
 
