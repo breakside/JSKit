@@ -59,7 +59,11 @@ JSProtocol('UITextInput', JSProtocol, {
 
     textInputLayer: function(){},
     textInputLayoutManager: function(){},
-    textInputSelections: function(){}
+    textInputSelections: function(){},
+
+    keyboardType: null,
+    autocapitalizationType: null,
+    isSecureTextEntry: false
     
 });
 
@@ -71,6 +75,23 @@ UITextInput.SelectionInsertionPoint = {
 UITextInput.SelectionAffinity = {
     beforeCurrentCharacter: 0,
     afterPreviousCharacter: 1
+};
+
+UITextInput.KeyboardType = {
+    default: 0,
+    url: 1,
+    email: 2,
+    phone: 3,
+    number: 4,
+    decimal: 5,
+    search: 6
+};
+
+UITextInput.AutocapitalizationType = {
+    none: 0,
+    words: 1,
+    sentences: 2,
+    characters: 3
 };
 
 JSGlobalObject.UITextInputSelection = function(range, insertionPoint, affinity){

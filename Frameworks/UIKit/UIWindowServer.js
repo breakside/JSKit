@@ -316,6 +316,9 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
+    windowDidReaffirmFirstResponder: function(window){
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Cursor Managment
 

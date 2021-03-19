@@ -652,6 +652,10 @@ JSClass('UIWindow', UIView, {
                 this.setNeedsLayout();
                 this.windowServer.windowDidChangeResponder(this);
             }
+        }else{
+            if (responder !== null){
+                this.windowServer.windowDidReaffirmFirstResponder(this);
+            }
         }
     },
 

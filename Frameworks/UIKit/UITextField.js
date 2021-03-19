@@ -99,6 +99,12 @@ JSClass("UITextField", UIControl, {
         if (spec.containsKey('secureEntry')){
             this.secureEntry = spec.valueForKey("secureEntry");
         }
+        if (spec.containsKey('keyboardType')){
+            this.keyboardType = spec.valueForKey("keyboardType", UITextInput.KeyboardType);
+        }
+        if (spec.containsKey('autocapitalizationType')){
+            this.autocapitalizationType = spec.valueForKey("autocapitalizationType", UITextInput.AutocapitalizationType);
+        }
         this._minimumHeight = this.bounds.size.height;
     },
 
@@ -932,9 +938,11 @@ JSClass("UITextField", UIControl, {
 
     touchesBegan: function(touches, event){
         if (this.enabled){
-            if (!this.isFirstResponder()){
-                this.window.firstResponder = this;
-            }
+            // Always try to set window.firstResponder to force the keyboard
+            // open if it didn't open when we became first responder.  Happens
+            // when mobile safari ignores focus() calls that aren't tied to
+            // user interaction
+            this.window.firstResponder = this;
             var location = touches[0].locationInView(this);
             this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
             return;
@@ -1008,6 +1016,14 @@ JSClass("UITextField", UIControl, {
 
     // --------------------------------------------------------------------
     // MARK: - UITextInput Protocol
+
+    keyboardType: JSDynamicProperty("_keyboardType", UITextInput.KeyboardType.default),
+    autocapitalizationType: JSDynamicProperty("_autocapitalizationType", UITextInput.AutocapitalizationType.none),
+    secureTextEntry: JSReadOnlyProperty(),
+
+    getSecureTextEntry: function(){
+        return this.secureEntry;
+    },
 
     insertText: function(text){
         text = this._sanitizedText(text);

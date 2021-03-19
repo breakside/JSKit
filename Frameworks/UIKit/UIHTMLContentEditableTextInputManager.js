@@ -70,15 +70,19 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
 
     setEditableElement: function(editableElement){
         if (editableElement === this._editableElement){
+            if (this._editableElement !== null){
+                this._editableElement.focus();
+                this.windowServer.displayServer.schedule(this.updateDocumentSelection, this);
+            }
             return;
         }
         if (this._editableElement !== null){
-            this.removeEventListeners();
+            this.revertEditableElement();
             this._editableElement.blur();
         }
         this._editableElement = editableElement;
         if (this._editableElement !== null){
-            this.addEventListeners();
+            this.setupEditableElement();
             this._editableElement.focus();
         }
         this.windowServer.displayServer.schedule(this.updateDocumentSelection, this);
@@ -168,10 +172,11 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this.windowServer.displayServer.schedule(this.updateDocumentSelection, this);
     },
 
-    addEventListeners: function(){
+    setupEditableElement: function(){
         this._editableElement.classList.add("uitextinputfocus");
         this._editableElement.contentEditable = "true";
         this._editableElement.setAttribute("spellcheck", "false");
+        this._editableElement.setAttribute("autocorrect", "off");
         this._editableElement.style.userSelect = "auto";
         this._editableElement.style.webkitUserSelect = "auto";
         this._editableElement.style.mozUserSelect = "auto";
@@ -189,9 +194,22 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this._editableElement.addEventListener("compositionstart", this);
         this._editableElement.addEventListener("compositionend", this);
         this.domDocument.addEventListener("selectionchange", this);
+        if (this.textInputClient !== null){
+            var keyboardType = this.textInputClient.keyboardType;
+            if (keyboardType === null){
+                keyboardType = UITextInput.KeyboardType.default;
+            }
+            this._editableElement.inputMode = htmlInputModeByKeyboardType[keyboardType];
+
+            var autocapitalizationType = this.textInputClient.autocapitalizationType;
+            if (autocapitalizationType === null){
+                autocapitalizationType = UITextInput.AutocapitalizationType.none;
+            }
+            this._editableElement.autocapitalize = htmlAutocapitalizeByType[autocapitalizationType];
+        }
     },
 
-    removeEventListeners: function(){
+    revertEditableElement: function(){
         this._editableElement.classList.remove("uitextinputfocus");
         this._editableElement.contentEditable = "false";
         this._editableElement.removeAttribute("spellcheck");
@@ -302,5 +320,20 @@ var userAgentKnownToSupportBeforeInput = function(){
     }
     return false;
 };
+
+var htmlInputModeByKeyboardType = {};
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.default] = "";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.url] = "url";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.email] = "email";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.phone] = "tel";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.number] = "numeric";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.decimal] = "decimal";
+htmlInputModeByKeyboardType[UITextInput.KeyboardType.search] = "search";
+
+var htmlAutocapitalizeByType = {};
+htmlAutocapitalizeByType[UITextInput.AutocapitalizationType.none] = "none";
+htmlAutocapitalizeByType[UITextInput.AutocapitalizationType.words] = "words";
+htmlAutocapitalizeByType[UITextInput.AutocapitalizationType.sentences] = "sentences";
+htmlAutocapitalizeByType[UITextInput.AutocapitalizationType.characters] = "characters";
 
 })();

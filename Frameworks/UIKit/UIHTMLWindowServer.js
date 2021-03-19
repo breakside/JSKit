@@ -863,6 +863,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    windowDidReaffirmFirstResponder: function(window){
+        // Mobile safari doesn't accept first responder changes if they
+        // aren't traceable to a user interaction
+        if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            this.textInputManager.windowDidChangeResponder(window);
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Screen Updates
 
