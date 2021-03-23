@@ -311,10 +311,14 @@ JSClass("SECKeychain", JSObject, {
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
         }
-        var id = UUID();
+        var id = this.generateID();
         var methodIndex = this._preferredMethodForItem(item, null);
         this._saveItem(id, item, methodIndex, completion, target);
         return completion.promise;
+    },
+
+    generateID: function(){
+        return UUID();
     },
 
     update: function(item, completion, target){
@@ -449,6 +453,8 @@ JSClass("SECKeychain", JSObject, {
                 }catch (e){
                     completion.call(target, false);
                 }
+            }else{
+                completion.call(target, false);
             }
         }, this);
     }

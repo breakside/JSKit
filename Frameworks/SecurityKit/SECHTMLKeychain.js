@@ -14,15 +14,17 @@
 // limitations under the License.
 
 // #import "SECKeychain.js"
+// #import "SECSign.js"
+// #import "SECCBOR.js"
 // jshint browser: true
 'use strict';
 
 (function(){
 
-JSClass("SECHTMLKeychain", JSObject, {
+JSClass("SECHTMLPasswordCredentialKeychain", SECKeychain, {
 
     initWithCredentialStore: function(credentialStore, origin){
-        SECHTMLKeychain.$super.init.call(this);
+        SECHTMLPasswordCredentialKeychain.$super.init.call(this);
         if (credentialStore !== undefined){
             this.credentialStore = credentialStore;
         }
@@ -140,8 +142,8 @@ JSClass("SECHTMLKeychain", JSObject, {
 Object.defineProperties(SECKeychain, {
     device: {
         configurable: true,
-        get: function SECHTMLKeychain_getShared(){
-            var device = SECHTMLKeychain.initWithCredentialStore(navigator.credentials, location.origin);
+        get: function SECKeychain_getDevice(){
+            var device = SECHTMLPasswordCredentialKeychain.initWithCredentialStore(navigator.credentials, location.origin);
             Object.defineProperty(SECKeychain, "device", {value: device});
             return device;
         }
