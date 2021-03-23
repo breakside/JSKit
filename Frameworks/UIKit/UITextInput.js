@@ -63,7 +63,7 @@ JSProtocol('UITextInput', JSProtocol, {
 
     keyboardType: null,
     autocapitalizationType: null,
-    isSecureTextEntry: false
+    secureTextEntry: false
     
 });
 
