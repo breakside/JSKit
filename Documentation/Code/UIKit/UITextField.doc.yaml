@@ -236,6 +236,14 @@ topics:
                 name: rightAccessoryVisibility
                 type: AccessoryVisibility
                 summary: Controls when the right accessory is visible
+          -
+            name: Input Behavior
+            members:
+              -
+                name: keyboardType
+                introduced: 2021.12.0
+                type: UITextInput.KeyboardType
+                summary: The type of virtual keyboard to show
   -
     name: Delegate
     members:
@@ -630,6 +638,14 @@ topics:
               -
                 name: onlyWhenNotEmpty
                 summary: Only show the accessory when the field has text
+  -
+    name: Input Behavior
+    members:
+      -
+        name: keyboardType
+        introduced: 2021.12.0
+        type: UITextInput.KeyboardType
+        summary: The type of virtual keyboard to show
   -
     name: Selection
     members:

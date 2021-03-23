@@ -176,6 +176,45 @@ topics:
         type: UITextInputSelection[]
         summary: The text selections
   -
+    name: Input Behavior
+    members:
+      -
+        name: keyboardType
+        introduced: 2021.12.0
+        type: KeyboardType
+        summary: The type of virtual keyboard to show
+      -
+        name: KeyboardType
+        introduced: 2021.12.0
+        suffix: enum
+        kind: enum
+        summary: The possible keybaord types
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: default
+                summary: The default keybaord
+              -
+                name: url
+                summary: A keyboard for typing URLs
+              -
+                name: email
+                summary: A keyboard for typing email addresses
+              -
+                name: phone
+                summary: A keybaord for typing phone numbers
+              -
+                name: number
+                summary: A keyboard for typing digits
+              -
+                name: decimal
+                summary: A keyboard for typing decimal numbers
+              -
+                name: search
+                summary: A keyboard for typing search queries
+  -
     name: Types
     members:
       -
