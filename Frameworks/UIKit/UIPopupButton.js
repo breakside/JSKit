@@ -820,11 +820,14 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     },
 
     layoutControl: function(button){
-        button._imageView.frame = button.bounds;
+        button._imageView.frame = button.bounds.rectWithInsets(button.titleInsets);
     },
 
     intrinsicSizeOfControl: function(button){
-        return button._imageView.intrinsicSize;
+        var size = JSSize(button._imageView.intrinsicSize);
+        size.width += button.titleInsets.width;
+        size.height += button.titleInsets.height;
+        return size;
     },
 
 });
