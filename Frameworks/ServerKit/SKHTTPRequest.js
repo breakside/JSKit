@@ -261,7 +261,7 @@ JSClass("SKHTTPRequest", JSObject, {
         if (authorization !== null){
             if (authorization.startsWith("Basic ")){
                 try{
-                    var basic = authorization.substr(7).stringByDecodingBase64();
+                    var basic = authorization.substr(6).dataByDecodingBase64().stringByDecodingUTF8();
                     return basic;
                 }catch (e){
                     return null;
