@@ -25,6 +25,8 @@
 
 (function(){
 
+var logger = JSLog("securitykit", "htmldevice");
+
 JSClass("SECHTMLDeviceAuthentication", JSObject, {
 
     initWithCredentialStore: function(credentialStore){
@@ -36,6 +38,25 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
 
     credentialStore: null,
 
+    hasPlatformAuthenticator: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        var promise;
+        if (!window.PublicKeyCredential){
+            promise = Promise.resolve(false);
+        }else{
+            promise = window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        }
+        promise.then(function(available){
+            completion.call(target, available);
+        }, function(error){
+            logger.warn("check for platform authenticator failed: %{error}", error);
+            completion.call(target, false);
+        });
+        return completion.promise;
+    },
+
     createPublicKey: function(registration, completion, target){
         // Registration
         // domain
@@ -44,6 +65,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         // accountName
         // challengeData
         // supportedAlgorithms
+        // platform
         if (!completion){
             completion = Promise.completion();
         }
@@ -86,8 +108,8 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 // the client before authenticating
                 requireResidentKey: false,
                 residentKey: "discouraged",
-                userVerification: "discouraged",
-                authenticatorAttachment: "cross-platform"
+                userVerification: registration.platform ? "required" : "discouraged",
+                authenticatorAttachment: registration.platform ? "platform" : "cross-platform"
             },
             attestation: "none",
             timeout: 10000
@@ -146,6 +168,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         // challengeData
         // domain
         // allowedKeyIDs
+        // platform
         if (!completion){
             completion = Promise.completion();
         }
@@ -167,12 +190,17 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             request.allowedKeyIDs = request.allowedKeyIds;
         }
         if (request.allowedKeyIDs){
+            var allowedCredential;
             for (var i = 0, l = request.allowedKeyIDs.length; i < l; ++i){
                 try{
-                    info.allowCredentials.push({
+                    allowedCredential = {
                         type: "public-key",
                         id: request.allowedKeyIDs[i].dataByDecodingBase64URL()
-                    });
+                    };
+                    if (request.platform){
+                        allowedCredential.transports = ["internal"];
+                    }
+                    info.allowCredentials.push(allowedCredential);
                 }catch (e){
                     // if the key isn't base64-url encoded, then it isn't
                     // a key made by the Credentials API

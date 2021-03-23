@@ -94,6 +94,38 @@ topics:
             type: PublicKeyAuthentication
             summary: The authentication request
       -
+        name: hasPlatformAuthenticator
+        introduced: 2021.12.0
+        kind: method
+        summary: Check if the device has a platform authenticator like a fingerprint
+          reader or a face scanner, using a callback
+        arguments:
+          -
+            name: completion
+            type:
+              arguments:
+                -
+                  name: hasAuthenticator
+                  type: boolean
+                  summary: The result, whether the device has a platform authenticator
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      -
+        name: hasPlatformAuthenticator
+        suffix: promise
+        introduced: 2021.12.0
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: boolean
+            summary: The result, whether the device has a platform authenticator
+        summary: Check if the device has a platform authenticator like a fingerprint
+          reader or a face scanner, using a promise
+      -
         name: PublicKeyRegistration
         kind: class
         anonymous: true
@@ -160,6 +192,13 @@ topics:
                 description: |
                   Defaults to the current page's domain.  Can only be the page's
                   domain or a higher level domain with the same suffix.
+              -
+                name: platform
+                introduced: 2021.12.0
+                type: boolean
+                nullable: true
+                summary: Only allow a platform authenticator like a fingerprint
+                  reader or a face scanner
       -
         name: RegistrationResult
         kind: class
@@ -267,6 +306,13 @@ topics:
                 description: |
                   Useful when doing two factor authentication to limit the acceptable
                   keys to only those that have been assigned to the account.
+              -
+                name: platform
+                introduced: 2021.12.0
+                type: boolean
+                nullable: true
+                summary: Only authenticate with a platform authenticator like
+                  a fingerprint reader or a face scanner
       -
         name: AuthenticationResult
         kind: class

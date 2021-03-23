@@ -18,6 +18,9 @@
 
 JSClass("SECDeviceAuthentication", JSObject, {
 
+    hasPlatformAuthenticator: function(completion, target){
+    },
+
     createPublicKey: function(registration, completion, target){
         if (!completion){
             completion = Promise.completion();
@@ -32,7 +35,7 @@ JSClass("SECDeviceAuthentication", JSObject, {
         }
         JSRunLoop.main.schedule(completion, target, null);
         return completion.promise;  
-    }
+    },
 
 });
 
