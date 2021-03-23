@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "DBID.js"
 'use strict';
 
 (function(){
@@ -38,12 +39,16 @@ JSClass("DBObjectGraph", JSObjectGraph, {
         if (!completion){
             completion = Promise.completion();
         }
-        var database = this.databaseForID(id);
-        var idClass = database.storableClassResolver.classForID(id);
-        if (idClass !== null && idClass.isSubclassOfClass(cls)){
-            this.object(id, completion, target);
-        }else{
+        if (!DBID.isValid(id)){
             completion.call(target, null);
+        }else{
+            var database = this.databaseForID(id);
+            var idClass = database.storableClassResolver.classForID(id);
+            if (idClass !== null && idClass.isSubclassOfClass(cls)){
+                this.object(id, completion, target);
+            }else{
+                completion.call(target, null);
+            }
         }
         return completion.promise;
     },

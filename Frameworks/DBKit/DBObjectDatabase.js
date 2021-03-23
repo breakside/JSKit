@@ -109,11 +109,15 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        var idClass = this.storableClassResolver.classForID(id);
-        if (idClass !== null && idClass.isSubclassOfClass(cls)){
-            this.object(id, completion, target);
-        }else{
+        if (!DBID.isValid(id)){
             completion.call(target, null);
+        }else{
+            var idClass = this.storableClassResolver.classForID(id);
+            if (idClass !== null && idClass.isSubclassOfClass(cls)){
+                this.object(id, completion, target);
+            }else{
+                completion.call(target, null);
+            }
         }
         return completion.promise;
     },
