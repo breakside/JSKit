@@ -79,7 +79,7 @@ JSClass("SECHTMLPasswordCredentialKeychain", SECKeychain, {
             JSRunLoop.main.schedule(completion, target, null);
             return;
         }
-        this.credentialStore.get({password: true}).then(function(credential){
+        this.credentialStore.get({password: true, mediation: "required"}).then(function(credential){
             if (!credential || credential.type != "password"){
                 completion.call(target, null);
                 return;
