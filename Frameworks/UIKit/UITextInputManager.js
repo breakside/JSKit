@@ -51,18 +51,20 @@ JSClass('UITextInputManager', JSObject, {
 
     sendActionsForEvent: function(event){
         if (this.textInputClient === null){
-            return;
+            return false;
         }
         if (event.type === UIEvent.Type.keyDown){
             var action = this.keyBindings.actionForEvent(event);
             if (action !== null){
                 if (this.textInputClient[action]){
                     this.textInputClient[action]();
+                    return true;
                 }
-                return;
+                return false;
             }
-            return;
+            return false;
         }
+        return false;
     },
 
 });
