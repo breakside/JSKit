@@ -302,6 +302,7 @@ HTMLAppBootstrapper.prototype = {
                 bootstrapper.log_debug("serviceWorker", "Found registration");
                 bootstrapper.log_debug("serviceWorker", "Checking for update");
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
+                registration.addEventListener('updatefound', bootstrapper);
                 return registration.update();
             }
             bootstrapper.log_debug("serviceWorker", "No registration found");
@@ -309,7 +310,6 @@ HTMLAppBootstrapper.prototype = {
             bootstrapper.log_debug("serviceWorker", "Registering");
             return container.register(bootstrapper.serviceWorkerSrc);
         }).then(function(registration){
-            registration.addEventListener('updatefound', bootstrapper);
             if (registration.installing){
                 if (bootstrapper.status === HTMLAppBootstrapper.STATUS.checkingForUpdate){
                     bootstrapper.log_debug("serviceWorker", "Installing Update");
@@ -404,6 +404,15 @@ HTMLAppBootstrapper.prototype = {
     event_updatefound: function(e){
         var registration = e.target;
         var worker = registration.installing;
+        // In most browsers, the registration.update() promise resolves immediately
+        // and we set this.serviceWorker before any "updatefound" event fires.
+        // But in Firefox, the update() promise doesn't resolve until after
+        // the install is complete, so this is where we have to detect an update starting.
+        if (this.serviceWorker === null){
+            this.log_debug("servicewWorker", "Update found before service worker set");
+            this.setStatus(HTMLAppBootstrapper.STATUS.updating);
+            this.serviceWorker = worker;
+        }
         if (worker === this.serviceWorker){
             return;
         }
