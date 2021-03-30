@@ -26,6 +26,7 @@ JSClass("UITextEditor", JSObject, {
     textLayoutManager: null,
     undoManager: null,
     selections: null,
+    markedTextRanges: null,
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 2.0,
@@ -52,6 +53,7 @@ JSClass("UITextEditor", JSObject, {
         this.selections = [
             this._createSelection(JSRange(0, 0), UITextInput.SelectionInsertionPoint.end)
         ];
+        this.markedTextRanges = [];
     },
 
     setCursorColor: function(cursorColor){
@@ -95,7 +97,7 @@ JSClass("UITextEditor", JSObject, {
             range = selectionRanges[i];
             selections.push(this._createSelection(range, insertionPoint, affinity));
         }
-        this._setSelections(selections);
+        this.setSelections(selections);
     },
 
     _sanitizedRange: function(range){
@@ -446,12 +448,12 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _setSingleSelection: function(selection){
-        this._setSelections([selection]);
+        this.setSelections([selection]);
     },
 
-    _setSelections: function(selections){
+    setSelections: function(selections){
         var i, l;
-        this.selections = selections;
+        this.selections = JSCopy(selections);
         this._collapseOverlappingSelections();
         this.layout();
     },
@@ -598,6 +600,26 @@ JSClass("UITextEditor", JSObject, {
         this.undoManager.setActionName("Typing");
         this._isHandlingSelectionAdjustments = false;
         this._resetSelectionAffinity();
+    },
+
+    setMarkedText: function(text){
+        var i, l;
+        if (this.markedTextRanges.length > 0){
+            var selections = [];
+            for (i = 0, l = this.markedTextRanges.length; i < l; ++i){
+                selections.push(UITextInputSelection(this.markedTextRanges[i]));
+            }
+            this.setSelections(selections);
+        }
+        this.insertText(text);
+        for (i = 0, l = this.selections.length; i < l; ++i){
+            this.markedTextRanges.push(JSRange(this.selections[i].range.location - text.length, text.length));
+        }
+    },
+
+    clearMarkedText: function(){
+        this._deleteRanges(this.markedTextRanges);
+        this.markedTextRanges = [];
     },
 
     insertNewline: function(){

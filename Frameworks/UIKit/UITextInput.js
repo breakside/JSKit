@@ -19,10 +19,15 @@
 JSProtocol('UITextInput', JSProtocol, {
 
     insertText: function(text){},
+    replaceText: function(selections, text){},
     insertNewline: function(){},
     insertLineBreak: function(){},
     insertTab: function(){},
     insertBacktab: function(){},
+
+    setMarkedText: function(text){},
+    clearMarkedText: function(){},
+    markedTextRange: function(){},
 
     deleteBackward: function(){},
     deleteWordBackward: function(){},
@@ -63,6 +68,7 @@ JSProtocol('UITextInput', JSProtocol, {
 
     keyboardType: null,
     autocapitalizationType: null,
+    textContentType: null,
     secureTextEntry: false
     
 });
@@ -75,6 +81,33 @@ UITextInput.SelectionInsertionPoint = {
 UITextInput.SelectionAffinity = {
     beforeCurrentCharacter: 0,
     afterPreviousCharacter: 1
+};
+
+UITextInput.TextContentType = {
+    none: 0,
+    url: 1,
+    email: 0,
+    phone: 3,
+    username: 4,
+    password: 5,
+    newPassword: 6,
+    oneTimeCode: 7,
+    name: 8,
+    namePrefix: 9,
+    givenName: 10,
+    middleName: 11,
+    familyName: 12,
+    nameSuffix: 13,
+    nickname: 14,
+    organizationName: 15,
+    streetAddress: 16,
+    streetAddressLine1: 17,
+    streetAddressLine2: 18,
+    city: 19,
+    state: 20,
+    locality: 21,
+    country: 22,
+    postalCode: 23
 };
 
 UITextInput.KeyboardType = {
@@ -129,6 +162,16 @@ UITextInputSelection.prototype = {
         return this.range.length > 0 && this.range.contains(index);
     },
 
+    toString: function(){
+        if (this.range.length === 0){
+            return "@%d".sprintf(this.range.location);
+        }
+        if (this.insertionPoint === UITextInput.SelectionInsertionPoint.end){
+            return "@%d->%d".sprintf(this.range.location, this.range.end);
+        }
+        return "@%d<-%d".sprintf(this.range.location, this.range.end);
+    }
+
 };
 
 Object.defineProperties(UITextInputSelection.prototype, {
@@ -137,6 +180,16 @@ Object.defineProperties(UITextInputSelection.prototype, {
         get: function UITextInputSelection_getInsertionIndex(){
             var location = this.range.location;
             if (this.insertionPoint === UITextInput.SelectionInsertionPoint.end){
+                location += this.range.length;
+            }
+            return location;
+        }
+    },
+
+    startLocation: {
+        get: function UITextInputSelection_getStartLocation(){
+            var location = this.range.location;
+            if (this.insertionPoint === UITextInput.SelectionInsertionPoint.start){
                 location += this.range.length;
             }
             return location;
