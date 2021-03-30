@@ -88,7 +88,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this._clipView.userInteractionEnabled = false;
         this._clipView.backgroundColor = null;
         this._clipView.clipsToBounds = true;
-        this.cursor = UICursor.iBeam;
+        this.cursor = UICursor.arrow;
         if (this._styler === null){
             this._styler = UITextField.Styler.default;
         }
@@ -259,7 +259,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this.inputElement.style.margin = "0";
         this.inputElement.style.webkitAppearance = "none";
         this.inputElement.style.backgroundColor = "transparent";
-        this.inputElement.style.cursor = "inherit";
+        // this.inputElement.style.cursor = "text";
         this.inputElement.style.outline = "none";
         this.inputElement.setAttribute("role", "textbox");
         this.inputElement.setAttribute("tabindex", "0");
@@ -374,6 +374,9 @@ JSClass("UIHTMLTextField", UIControl, {
     _event_mousedown: function(e){
         // stop propagation so default behavior is NOT prevented by the window sever
         e.stopPropagation();
+        if (!this.isFirstResponder()){
+            this.window.firstResponder = this;
+        }
     },
 
     _event_mouseup: function(e){
@@ -410,6 +413,7 @@ JSClass("UIHTMLTextField", UIControl, {
 
     _event_blur: function(e){
         this._inputElementFocused = false;
+        this.updateInputElementFocus();
     },
 
     drawLayerInContext: function(layer, context){
@@ -449,6 +453,7 @@ JSClass("UIHTMLTextField", UIControl, {
             this._needsPlaceholderColor = false;
             this.placeholderStyleRule.style.color = this.placeholderColor.cssString();
         }
+        this._inputElementFocused = false;
         this.updateInputElementFocus();
     },
 
@@ -483,6 +488,7 @@ JSClass("UIHTMLTextField", UIControl, {
             insets.right += this._rightAccessoryInsets.width + this._rightAccessorySize.width;
         }
         this.layer.elementInsets = insets;
+        this.setNeedsLayout();
     },
 
     getIntrinsicSize: function(){
