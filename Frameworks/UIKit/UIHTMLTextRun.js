@@ -58,6 +58,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             this._maskFactor = mask.length;
         }
         this.baseline = -font.displayDescender;
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        this.element.dataset.jstext = "run";
     },
 
     updateOrigin: function(){
@@ -228,6 +231,15 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         }
         return {node: this.textNode, offset: index - this.range.location};
     },
+
+    debugDescription: JSReadOnlyProperty(),
+
+    getDebugDescription: function(){
+        if (this.textNode){
+            return "    %fx%f @%d->%d: %s".sprintf(this._size.width, this._size.height, this._range.location, this._range.end, this.element.innerHTML);
+        }
+        return "    %fx%f @%d->%d: [attachment]".sprintf(this._size.width, this._size.height, this._range.location, this._range.end);
+    }
 
 });
 

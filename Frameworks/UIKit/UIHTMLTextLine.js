@@ -35,6 +35,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
         this.fontLineHeight = font.displayLineHeight;
         this.attachments = [];
+        this.element.dataset.rangeLocation = location;
+        this.element.dataset.rangeLength = 0;
+        this.element.dataset.jstext = "line";
     },
 
     initWithElement: function(element, runs, trailingWhitespaceWidth, attachments){
@@ -50,6 +53,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
                 this.element.appendChild(run.element);
             }
         }
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        this.element.dataset.jstext = "line";
     },
 
     // verticallyAlignRuns: function(){
@@ -106,6 +112,20 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         }
         return {node: this.element, offset: 0};
     },
+
+    debugDescription: JSReadOnlyProperty(),
+
+    getDebugDescription: function(){
+        if (this.emptyTextNode !== null){
+            "  %dx%d @%d->%d [empty]".sprintf(this._size.width, this._size.height, this._range.location, this._range.end);
+        }
+        var lines = [];
+        lines.push(["  %dx%d @%d->%d".sprintf(this._size.width, this._size.height, this._range.location, this._range.end)]);
+        for (var i = 0, l = this.runs.length; i < l; ++i){
+            lines.push(this.runs[i].debugDescription);
+        }
+        return lines.join("\n");
+    }
 
 });
 

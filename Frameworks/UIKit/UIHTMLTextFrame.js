@@ -137,6 +137,9 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // we must have properly set the line size and trailingWhitespaceWidth first
         UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, attributes);
         this._updateSizesAndPositions();
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        this.element.dataset.jstext = "frame";
     },
 
     adjustSize: function(newSize){
@@ -187,6 +190,17 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         }
         return {node: this.element, offset: 0};
     },
+
+    debugDescription: JSReadOnlyProperty(),
+
+    getDebugDescription: function(){
+        var lines =  ["[UIHTMLTextFrame]"];
+        lines.push(["%dx%d (%dx%d used) @%d->%d".sprintf(this._size.width, this._size.height, this._usedSize.width, this._usedSize.height, this._range.location, this._range.end)]);
+        for (var i = 0, l = this.lines.length; i < l; ++i){
+            lines.push(this.lines[i].debugDescription);
+        }
+        return lines.join("\n");
+    }
 
 });
 
