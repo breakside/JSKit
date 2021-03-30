@@ -42,6 +42,33 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         if (sharedDomRange === null){
             sharedDomRange = this._domDocument.createRange();
         }
+        this._lineElementQueue = [];
+        this._runElementQueue = [];
+    },
+
+    _lineElementQueue: null,
+    _runElementQueue: null,
+
+    enqueueLineElement: function(element){
+        this._lineElementQueue.push(element);
+    },
+
+    enqueueRunElement: function(element){
+        this._runElementQueue.push(element);
+    },
+
+    dequeueLineElement: function(){
+        if (this._lineElementQueue.length > 0){
+            return this._lineElementQueue.pop();
+        }
+        return null;
+    },
+
+    dequeueRunElement: function(){
+        if (this._runElementQueue.length > 0){
+            return this._runElementQueue.pop();
+        }
+        return null;
     },
 
     layoutRange: function(range, size, lineBreakMode){
@@ -205,13 +232,23 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var overflowed = false;
         for (i = 0, l = fragments.length; i < l; ++i){
             fragment = fragments[i];
-            var span = fragment.runDescriptor.span.cloneNode(false);
+            var span = this._createRunElement();
+            span.setAttribute("style", fragment.runDescriptor.span.getAttribute("style"));
+            // var span = fragment.runDescriptor.span.cloneNode(false);
             if (!fragment.runDescriptor.attachment){
                 var utf16 = this.attributedString.string.substringInRange(fragment.range);
                 if (fragment.runDescriptor.attributes[JSAttributedString.Attribute.maskCharacter]){
                     utf16 = utf16.stringByMaskingWithCharacter(fragment.runDescriptor.attributes[JSAttributedString.Attribute.maskCharacter]);
                 }
-                span.appendChild(span.ownerDocument.createTextNode(utf16));
+                if (span.childNodes.length > 0){
+                    span.childNodes[0].nodeValue = utf16;
+                }else{
+                    span.appendChild(span.ownerDocument.createTextNode(utf16));
+                }
+            }else{
+                if (span.childNodes.length > 0){
+                    span.removeChild(span.childNodes[0]);
+                }
             }
             run = UIHTMLTextRun.initWithElement(span, fragment.runDescriptor.font, fragment.runDescriptor.attributes, fragment.range);
             runs.push(run);
@@ -236,8 +273,27 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         return line;
     },
 
+    _runID: 0,
+
+    _createRunElement: function(){
+        if (this._runElementQueue.length > 0){
+            return this._runElementQueue.pop();
+        }
+        var span = this.domDocument.createElement("span");
+        span.dataset.typesetterId = ++this._runID;
+        return span;
+    },
+
+    _lineID: 0,
+
     _createLineElement: function(){
-        var element = this.domDocument.createElement('div');
+        var element;
+        if (this._lineElementQueue.length > 0){
+            element = this._lineElementQueue.pop();
+        }else{
+            element = this.domDocument.createElement('div');
+            element.dataset.typesetterId = ++this._lineID;
+        }
         element.setAttribute("role", "none presentation");
         element.style.lineHeight = '0';
         element.style.whiteSpace = 'pre';
