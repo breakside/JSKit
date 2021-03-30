@@ -82,6 +82,7 @@ JSClass("UIHTMLTextField", UIControl, {
 
     commonUIControlInit: function(){
         UIHTMLTextField.$super.commonUIControlInit.call(this);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this._textInsets = JSInsets.Zero;
         this._clipView = UIView.init(this.bounds);
         this._clipView.userInteractionEnabled = false;
@@ -96,7 +97,7 @@ JSClass("UIHTMLTextField", UIControl, {
 
     delegate: null,
 
-    text: JSDynamicProperty("_text", null),
+    text: JSDynamicProperty("_text", ""),
 
     setText: function(text){
         if (text === null || text === undefined){
@@ -151,6 +152,15 @@ JSClass("UIHTMLTextField", UIControl, {
         this.setNeedsDisplay();
     },
 
+    _createPlaceholderColor: function(){
+        var backgroundColor = this.backgroundColor;
+        if (backgroundColor === null){
+            backgroundColor = JSColor.white;
+        }
+        this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
+        this._needsPlaceholderColor = true;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Secure Entry
 
@@ -158,7 +168,14 @@ JSClass("UIHTMLTextField", UIControl, {
 
     setSecureEntry: function(secureEntry){
         this._secureEntry = secureEntry;
-        if (this.inputElement.tagName == "input"){
+        this.updateElementType();
+    },
+
+    updateElementType: function(){
+        if (this.inputElement === null){
+            return;
+        }
+        if (this.inputElement.tagName.toLowerCase() == "input"){
             if (this._secureEntry){
                 this.inputElement.type = "password";
             }else{
@@ -209,7 +226,8 @@ JSClass("UIHTMLTextField", UIControl, {
         return this.undoManager;
     },
 
-    _didChange: function(){
+    _sendChangeNotificaions: function(){
+        this._didChange = true;
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('integerValue');
         this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
@@ -222,21 +240,27 @@ JSClass("UIHTMLTextField", UIControl, {
     // --------------------------------------------------------------------
     // MARK: - Drawing
 
+    inputElement: null,
+
     layerDidCreateElement: function(layer){
-        if (this.multiline && !this.secureEntry){
-            this.inputElement = this.element.ownerDocument.createElement("textarea");
+        if (this._multiline && !this._secureEntry){
+            this.inputElement = layer.element.ownerDocument.createElement("textarea");
         }else{
-            this.inputElement = this.element.ownerDocument.createElement("input");
-            if (this.secureEntry){
-                this.inputElement.type = "password";
-            }else{
-                this.inputElement.type = "text";
-            }
+            this.inputElement = layer.element.ownerDocument.createElement("input");
         }
+        this.updateElementType();
         this.inputElement.style.appearance = "none";
+        this.inputElement.style.position = "absolute";
+        this.inputElement.style.top = "0";
+        this.inputElement.style.left = "0";
+        this.inputElement.style.display = "block";
+        this.inputElement.style.border = "none";
+        this.inputElement.style.padding = "0";
+        this.inputElement.style.margin = "0";
         this.inputElement.style.webkitAppearance = "none";
         this.inputElement.style.backgroundColor = "transparent";
         this.inputElement.style.cursor = "inherit";
+        this.inputElement.style.outline = "none";
         this.inputElement.setAttribute("role", "textbox");
         this.inputElement.setAttribute("tabindex", "0");
         this.inputElement.setAttribute("tabindex", "0");
@@ -246,30 +270,68 @@ JSClass("UIHTMLTextField", UIControl, {
         this.updateAriaLabel();
         this.inputElement.id = "htmltextfield-" + this.objectID;
         if (UIHTMLTextField.sharedStyleElement === null){
-            UIHTMLTextField.sharedStyleElement = this.domDocument.createElement("style");
+            UIHTMLTextField.sharedStyleElement = layer.element.ownerDocument.createElement("style");
             UIHTMLTextField.sharedStyleElement.type = "text/css";
-            this.domDocument.head.appendChild(UIHTMLTextField.sharedStyleElement);
+            layer.element.ownerDocument.head.appendChild(UIHTMLTextField.sharedStyleElement);
+        }
+        if (this._placeholderColor === null){
+            this._createPlaceholderColor();
         }
         var stylesheet = UIHTMLTextField.sharedStyleElement.sheet;
-        this.selectionStyleRule = stylesheet.insertRule("#%s::selection { background-color: %s; }".sprintf(this.inputElement.id, this._selectionColor.cssString()), 0);
-        this.placeholderStyleRule = stylesheet.insertRule("#%s::placeholder { color: %s; }".sprintf(this.inputElement.id, this._placeholderColor.cssString()), 1);
+        var index = stylesheet.insertRule("#%s::selection { }".sprintf(this.inputElement.id));
+        this.selectionStyleRule = stylesheet.cssRules.item(index);
+        index = stylesheet.insertRule("#%s::placeholder { }".sprintf(this.inputElement.id));
+        this.placeholderStyleRule = stylesheet.cssRules.item(index);
+        layer.element.appendChild(this.inputElement);
         this.addEventListeners();
     },
 
     layerWillDestroyElement: function(layer){
         this.removeEventListeners();
+        var stylesheet = UIHTMLTextField.sharedStyleElement.sheet;
+        var i, l;
+        for (i = 0, l = stylesheet.cssRules.length; i < l; ++i){
+            if (stylesheet.cssRules.item(i) === this.selectionStyleRule){
+                this.selectionStyleRule = null;
+                stylesheet.deleteRule(i);
+                break;
+            }
+        }
+        for (i = 0, l = stylesheet.cssRules.length; i < l; ++i){
+            if (stylesheet.cssRules.item(i) === this.placeholderStyleRule){
+                this.placeholderStyleRule = null;
+                stylesheet.deleteRule(i);
+                break;
+            }
+        }
     },
 
     addEventListeners: function(){
         this.inputElement.addEventListener("input", this);
         this.inputElement.addEventListener("keydown", this);
+        this.inputElement.addEventListener("keup", this);
+        this.inputElement.addEventListener("mousedown", this);
+        this.inputElement.addEventListener("mouseup", this);
+        this.inputElement.addEventListener("touchstart", this);
+        this.inputElement.addEventListener("touchend", this);
+        this.inputElement.addEventListener("touchcancel", this);
+        this.inputElement.addEventListener("touchmove", this);
         this.inputElement.addEventListener("focus", this);
+        this.inputElement.addEventListener("blur", this);
     },
 
     removeEventListeners: function(){
         this.inputElement.removeEventListener("input", this);
         this.inputElement.removeEventListener("keydown", this);
+        this.inputElement.removeEventListener("keyup", this);
+        this.inputElement.removeEventListener("mousedown", this);
+        this.inputElement.removeEventListener("mouseup", this);
+        this.inputElement.removeEventListener("touchstart", this);
+        this.inputElement.removeEventListener("touchend", this);
+        this.inputElement.removeEventListener("touchcancel", this);
+        this.inputElement.removeEventListener("touchmove", this);
         this.inputElement.removeEventListener("focus", this);
+        this.inputElement.removeEventListener("blur", this);
     },
 
     handleEvent: function(e){
@@ -278,29 +340,88 @@ JSClass("UIHTMLTextField", UIControl, {
 
     _event_input: function(e){
         this._text = this.inputElement.value;
-        this._didChange();
+        this._sendChangeNotificaions();
     },
 
     _event_keydown: function(e){
-        if (!this._multiline && e.key === "Enter"){
-            if (this.delegate && this.delegate.textFieldDidReceiveEnter){
-                this.delegate.textFieldDidReceiveEnter(this);
-            }
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+        switch (e.key){
+            case "Enter":
+                if (!this._multiline){
+                    e.preventDefault();
+                    if (this.delegate && this.delegate.textFieldDidReceiveEnter){
+                        this.delegate.textFieldDidReceiveEnter(this);
+                    }
+                }
+                break;
+            case "Tab":
+                e.preventDefault();
+                if (e.shift){
+                    this.window.setFirstResponderToKeyViewBeforeView(this);
+                }else{
+                    this.window.setFirstResponderToKeyViewAfterView(this);
+                }
+                break;
         }
     },
 
+    _event_keyup: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_mousedown: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_mouseup: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_touchstart: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_touchend: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_touchcancel: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
+    _event_touchmove: function(e){
+        // stop propagation so default behavior is NOT prevented by the window sever
+        e.stopPropagation();
+    },
+
     _event_focus: function(e){
+        this._inputElementFocused = true;
         if (!this.isFirstResponder()){
             this.window.firstResponder = this;   
         }
     },
 
+    _event_blur: function(e){
+        this._inputElementFocused = false;
+    },
+
     drawLayerInContext: function(layer, context){
+        UIHTMLTextField.$super.drawLayerInContext.call(this, layer, context);
+        layer.drawInContext(context);
+        this.inputElement.style.width = layer.element.style.width;
+        this.inputElement.style.height = layer.element.style.height;
         this.inputElement.text = this._text;
         this.inputElement.placeholder = this._placeholder;
         var autocomplete = htmlAutocompleteByTextContentType[this._textContentType];
         if (autocomplete === ""){
-            if (this.secureEntry){
+            if (this._secureEntry){
                 autocomplete = "off";
             }else{
                 autocomplete = "on";
@@ -313,7 +434,7 @@ JSClass("UIHTMLTextField", UIControl, {
             this.inputElement.inputMode = htmlInputModeByKeyboardType[this._keyboardType];
         }
         if (this.inputElement.autocapitalize !== htmlInputModeByKeyboardType[this._autocapitalizationType]){
-            this._editableElement.autocapitalize = htmlAutocapitalizeByType[this._autocapitalizationType];
+            this.inputElement.autocapitalize = htmlAutocapitalizeByType[this._autocapitalizationType];
         }
         var style = this.inputElement.style;
         style.color = this._textColor.cssString();
@@ -322,12 +443,13 @@ JSClass("UIHTMLTextField", UIControl, {
         style.caretColor = this._localCursorColor.cssString();
         if (this._needsSelectionColor){
             this._needsSelectionColor = false;
-            this.selectionStyleRule.style.setProperty("background-color", this._selectionColor.cssString());
+            this.selectionStyleRule.style.backgroundColor = this._selectionColor.cssString();
         }
         if (this._needsPlaceholderColor){
             this._needsPlaceholderColor = false;
-            this.placeholderStyleRule.style.setProperty("color", this._placeholderColor.cssString());
+            this.placeholderStyleRule.style.color = this.placeholderColor.cssString();
         }
+        this.updateInputElementFocus();
     },
 
     // --------------------------------------------------------------------
@@ -360,7 +482,7 @@ JSClass("UIHTMLTextField", UIControl, {
         if (this._rightAccessoryView !== null){
             insets.right += this._rightAccessoryInsets.width + this._rightAccessorySize.width;
         }
-        this.elementInsets = insets;
+        this.layer.elementInsets = insets;
     },
 
     getIntrinsicSize: function(){
@@ -501,11 +623,13 @@ JSClass("UIHTMLTextField", UIControl, {
     setLeftAcessorySize: function(size){
         this._leftAccessorySize = JSSize(size);
         this.setNeedsLayout();
+        this.updateElementInsets();
     },
 
     setRightAccessorySize: function(size){
         this._rightAccessorySize = JSSize(size);
         this.setNeedsLayout();
+        this.updateElementInsets();
     },
 
     setLeftAccessoryInsets: function(insets){
@@ -551,7 +675,7 @@ JSClass("UIHTMLTextField", UIControl, {
 
     canPerformAction: function(action, sender){
         if (action == 'copy' || action == 'cut'){
-            if (this.secureEntry){
+            if (this._secureEntry){
                 return false;
             }
             var selections = this.getSelections();
@@ -604,7 +728,7 @@ JSClass("UIHTMLTextField", UIControl, {
             selection = selections[i];
             this.inputElement.setRangeText("", selection.location, selection.end);
         }
-        this._didChange();
+        this._sendChangeNotificaions();
     },
 
     // --------------------------------------------------------------------
@@ -624,7 +748,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
         this._didChange = false;
         this.sendActionsForEvents(UIControl.Event.editingDidBegin);
-        this.inputElement.focus();
+        this.updateInputElementFocus();
     },
 
     resignFirstResponder: function(){
@@ -636,7 +760,28 @@ JSClass("UIHTMLTextField", UIControl, {
             events |= UIControl.Event.primaryAction | UIControl.Event.valueChanged;
         }
         this.sendActionsForEvents(events);
-        this.inputElement.blur();
+        this.updateInputElementFocus();
+    },
+
+    windowDidChangeKeyStatus: function(){
+        this.updateInputElementFocus();
+    },
+
+    _inputElementFocused: false,
+
+    updateInputElementFocus: function(){
+        if (this.inputElement === null){
+            return;
+        }
+        if (this.isFirstResponder() && this.window !== null && this.window.isKeyWindow){
+            if (!this._inputElementFocused){
+                this.inputElement.focus();
+            }
+        }else{
+            if (this._inputElementFocused){
+                this.inputElement.blur();
+            }
+        }
     },
 
     // --------------------------------------------------------------------
@@ -726,18 +871,25 @@ JSClass("UIHTMLTextField", UIControl, {
     },
 
     updateAriaLabel: function(){
+        if (this.inputElement === null){
+            return;
+        }
         var label = this._accessibilityLabel;
         if (label === null){
             label = this._placeholder;
         }
         if (label !== null && label !== undefined){
-            this.element.setAttribute("aria-label", label);
+            this.inputElement.setAttribute("aria-label", label);
         }else{
-            this.element.removeAttribute("aria-label");
+            this.inputElement.removeAttribute("aria-label");
         }
     },
 
 });
+
+UIHTMLTextField.layerClass = UIHTMLElementLayer;
+
+UIHTMLTextField.sharedStyleElement = null;
 
 var htmlInputModeByKeyboardType = {};
 htmlInputModeByKeyboardType[UITextInput.KeyboardType.default] = "";
