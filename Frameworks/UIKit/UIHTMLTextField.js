@@ -437,7 +437,7 @@ JSClass("UIHTMLTextField", UIControl, {
         if (this.inputElement.inputMode !== htmlInputModeByKeyboardType[this._keyboardType]){
             this.inputElement.inputMode = htmlInputModeByKeyboardType[this._keyboardType];
         }
-        if (this.inputElement.autocapitalize !== htmlInputModeByKeyboardType[this._autocapitalizationType]){
+        if (this.inputElement.autocapitalize !== htmlAutocapitalizeByType[this._autocapitalizationType]){
             this.inputElement.autocapitalize = htmlAutocapitalizeByType[this._autocapitalizationType];
         }
         var style = this.inputElement.style;
