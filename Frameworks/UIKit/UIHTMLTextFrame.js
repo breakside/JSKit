@@ -73,45 +73,13 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         // NOTE: this could be a job for the typesetter, but doing so incrementally
         // as runs/lines are created would force a extra layouts that aren't necessary.
         // So we try to force only one layout here and then grab all the metrics
-        var lineClientRect;
-        var runClientRect;
-        var run;
-        var iterator;
-        var y = 0;
+        var origin = JSPoint(0, 0);
         for (i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            lineClientRect = line.element.getBoundingClientRect();
-            line._origin = JSPoint(0, y);
-            // The line height should already be an integer, because it is derived from its
-            // runs, which use integer font.displayLineHeight values for their heights.
-            // However, the width may be a non-integer.  We round up because if we don't,
-            // the browser may round down when we ask for a line to be X.y pixels wide, and
-            // that wouldn't leave enough space for the final character.
-            line._size = JSSize(Math.ceil(lineClientRect.width), line.size.height);
-            y += line._size.height;
-            for (j = 0, k = line.runs.length; j < k; ++j){
-                run = line.runs[j];
-                runClientRect = run.element.getBoundingClientRect();
-                run._origin = JSPoint(runClientRect.left - lineClientRect.left, runClientRect.top - lineClientRect.top);
-                run._size = JSSize(runClientRect.width, runClientRect.height);
-            }
-            // measure any trailing whitespace
-            for (j = line.runs.length - 1; j >= 0; --j){
-                run = line.runs[j];
-                if (!run.textNode || run.textNode.nodeValue.length === 0){
-                    break;
-                }
-                iterator = run.textNode.nodeValue.unicodeIterator(run.textNode.nodeValue.length);
-                iterator.decrement();
-                while (iterator.index > 0 && iterator.isWhiteSpace){
-                    iterator.decrement();
-                }
-                if (!iterator.isWhiteSpace){
-                    iterator.increment();
-                    line._trailingWhitespaceWidth += run._textFrameConstructionWidthOfRange(JSRange(iterator.index, run.textNode.nodeValue.length - iterator.index));
-                    break;
-                }
-            }
+            line.recalculateSize();
+            line.recalculateTrailingWhitespace();
+            line._origin = JSPoint(origin);
+            origin.y += line._size.height;
         }
 
         var attachmentInfo;
@@ -131,6 +99,13 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
 
         if (originalParent !== null){
             originalParent.insertBefore(this.element, originalSibling);
+        }
+
+        if (size.width === 0 || size.width === Number.MAX_VALUE){
+            this._widthMatchesUsedWidth = true;
+        }
+        if (size.height === 0 || size.height === Number.MAX_VALUE){
+            this._heightMatchesUsedHeight = true;
         }
 
         // Superclass init will adjust origins according to text alignment, but
@@ -200,6 +175,48 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             lines.push(this.lines[i].debugDescription);
         }
         return lines.join("\n");
+    },
+
+    recalculateRange: function(offset){
+        var diff = 0;
+        this._range = JSRange(this._range.location + offset, 0);
+        var line;
+        for (var i = 0, l = this._lines.length; i < l; ++i){
+            line = this._lines[i];
+            diff += line.recalculateRange(offset + diff);
+            this._range.length += line._range.length;
+        }
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        return diff;
+    },
+
+    _widthMatchesUsedWidth: false,
+    _heightMatchesUsedHeight: false,
+
+    recalculateSize: function(){
+        var i, l;
+        var line;
+        var origin = JSPoint(0, 0);
+        var width = 0;
+        for (i = 0, l = this._lines.length; i < l; ++i){
+            line = this._lines[i];
+            line.recalculateSize();
+            line.recalculateTrailingWhitespace();
+            line._origin = JSPoint(origin);
+            origin.y += line._size.height;
+            if (line.size.width > width){
+                width = line.size.width;
+            }
+        }
+        this._usedSize = JSSize(width, origin.y);
+        if (this._widthMatchesUsedWidth){
+            this._size = JSSize(this._usedSize.width, this._size.height);
+        }
+        if (this._heightMatchesUsedHeight){
+            this._size = JSSize(this._size.width, this._usedSize.height);
+        }
+        this._updateSizesAndPositions();
     }
 
 });

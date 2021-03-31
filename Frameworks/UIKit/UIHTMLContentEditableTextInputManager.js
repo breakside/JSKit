@@ -453,8 +453,22 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 // not cancelable
                 // browser will insert the new composing text 1
                 if (this.compositionstartHasData){
+                    // When compositionstart has data, it means some text will
+                    // be replaced.  The range of that text is not available
+                    // until the subsequent beforeinput event.
+                    // In such a scenario, Firefox will fire compositionupdate
+                    // before the beforeinput event, which gets things out of
+                    // order, so we check for that and queue the update data
+                    // to be handled here.
+                    logger.debug("replacing compositionstart range");
                     this.textInputClient.replaceText(selections, "");
                     this.compositionstartHasData = false;
+                    logger.debug("%{public}", this.textInputClient.text);
+                    if (this.compositionupdateData){
+                        this.textInputClient.setMarkedText(this.compositionupdateData);
+                        logger.debug("%{public}", this.textInputClient.text);
+                        this.compositionupdateData = null;
+                    }
                 }
                 break;
             case "deleteCompositionText":
@@ -508,6 +522,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
 
     input: function(e){
         logger.debug("input: type=%{public}, data=%{public} dataTransfer=%{public}", e.inputType, e.data, e.dataTransfer !== null ? e.dataTransfer.getData("text/plain") : null);
+        // logger.debug("%{public}", this._editableElement.innerHTML);
         var layoutManager = this.textInputClient.textInputLayoutManager();
         switch (e.inputType){
             case "insertCompositionText":
@@ -523,7 +538,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 //   and range, updating its parent line an frame as needed
                 // we do this in the update event 
                 if (!this.canLayoutDuringComposition){
-                    layoutManager._needsLayout = false;
+                    layoutManager.updateHTMLFrameRangesAfterEdit();
                 //     var textFrame = layoutManager._textContainers[0]._textFrame;
                 //     logger.debug("%{public}", textFrame.element.outerHTML);
                 //     if (textFrame !== null){
@@ -553,6 +568,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     },
 
     compositionstartHasData: false,
+    compositionupdateData: null,
 
     compositionstart: function(e){
         logger.debug("compositionstart: %{public}", e.data);
@@ -564,13 +580,20 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
 
     compositionupdate: function(e){
         logger.debug("compositionupdate: %{public}", e.data);
-        this.textInputClient.setMarkedText(e.data);
+        if (this.compositionstartHasData){
+            this.compositionupdateData = e.data;
+        }else{
+            this.textInputClient.setMarkedText(e.data);
+            logger.debug("%{public}", this.textInputClient.text);
+        }
     },
 
     compositionend: function(e){
         logger.debug("compositionend: %{public}", e.data);
         this.textInputClient.clearMarkedText();
+        logger.debug("%{public}", this.textInputClient.text);
         this.textInputClient.insertText(e.data);
+        logger.debug("%{public}", this.textInputClient.text);
         this.scheduleDocumentSelectionUpdate();
     },
 
@@ -604,6 +627,10 @@ var userAgentIsKnownToFailCompositionIfDOMChanges = function(){
     // changes during input composition.  Chrome is known have problems.
     try{
         var matches = navigator.userAgent.match(/Android\/(\d+)/);
+        if (matches !== null){
+            return true;
+        }
+        matches = navigator.userAgent.match(/Chrome\/(\d+)/);
         if (matches !== null){
             return true;
         }
@@ -653,5 +680,20 @@ htmlAutocompleteByTextContentType[UITextInput.TextContentType.state] = "address-
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.locality] = "address-level3";
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.country] = "country-name";
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.postalCode] = "postal-code";
+
+JSTextLayoutManager.definePropertiesFromExtensions({
+
+    updateHTMLFrameRangesAfterEdit: function(){
+        this._needsLayout = false;
+        var container;
+        var offset = 0;
+        for (var i = 0, l = this._textContainers.length; i < l; ++i){
+            container = this._textContainers[i];
+            offset += container._textFrame.recalculateRange(offset);
+            container._textFrame.recalculateSize();
+        }
+    }
+
+});
 
 })();

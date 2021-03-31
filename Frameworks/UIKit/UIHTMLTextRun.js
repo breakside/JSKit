@@ -239,7 +239,20 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             return "    %fx%f @%d->%d: %s".sprintf(this._size.width, this._size.height, this._range.location, this._range.end, this.element.innerHTML);
         }
         return "    %fx%f @%d->%d: [attachment]".sprintf(this._size.width, this._size.height, this._range.location, this._range.end);
-    }
+    },
+
+    recalculateRange: function(offset){
+        var diff = 0;
+        if (this.textNode){
+            diff = this.textNode.nodeValue.length - this._range.length;
+            this._range = JSRange(this._range.location + offset, this.textNode.nodeValue.length);
+        }else{
+            this._range = JSRange(this._range.location + offset, this._range.length);
+        }
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        return diff;
+    },
 
 });
 
