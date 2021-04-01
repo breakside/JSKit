@@ -1102,7 +1102,7 @@ JSClass("UITextField", UIControl, {
     },
 
     deleteWordForward: function(){
-        this._localEditor.deleteForward();
+        this._localEditor.deleteWordForward();
     },
 
     deleteToEndOfLine: function(){

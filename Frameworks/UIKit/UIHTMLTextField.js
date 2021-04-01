@@ -6,6 +6,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "htmltextfield");
+
 JSClass("UIHTMLTextField", UIControl, {
 
     initWithSpec: function(spec){
@@ -357,7 +359,7 @@ JSClass("UIHTMLTextField", UIControl, {
                 break;
             case "Tab":
                 e.preventDefault();
-                if (e.shift){
+                if (e.shiftKey){
                     this.window.setFirstResponderToKeyViewBeforeView(this);
                 }else{
                     this.window.setFirstResponderToKeyViewAfterView(this);
