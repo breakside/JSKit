@@ -21,7 +21,23 @@ topics:
             summary: The text to insert
         description: |
           Typical implementations will insert the text at their current
-          insertion point, replacing any selections with the text. 
+          insertion point, replacing any selections with the text.
+      -
+        name: replaceText
+        introduced: 2021.13.0
+        summary: Replace the given selections with the given text
+        arguments:
+          -
+            name: selections
+            type: UITextInputSelection[]
+            summary: The selections to replace
+          -
+            name: text
+            type: String
+            summary: The text to insert as a replacement
+        description: |
+          Typical implementations might update their selections to the given
+          selections and then insert the given text
       -
         name: insertNewline
         summary: Insert a newline, or otherwise handle an `Enter`() keypress
@@ -56,6 +72,72 @@ topics:
           have the window make its `previousKeyView` the `firstResponder`.
 
           Other implementations may treat a backtab as an outdentation request
+  -
+    name: Marked Text
+    members:
+      -
+        name: setMarkedText
+        introduced: 2021.13.0
+        summary: Insert the given text as marked text
+        description: |
+          Marked text is used when an input method composes the text to be
+          inserted in multiple steps.
+
+          For example, on macOS you can type `Option`()+`e`(), which inserts
+          a marked accent, and then type a vowel like `a`(), resulting in
+          an single `á`() character.
+
+          This sequence is typically sent to a `UITextInput`() client as:
+
+          - `setMarkedText("´")`
+          - `clearMarkedText()`
+          - `insertText("á")`
+
+          `setMarkedText()` maybe called multiple times as the input composition
+          progresses.  Each invocation should replace the current marked text with the
+          new marked text and update the `markedTextRange()`.
+      -
+        name: clearMarkedText
+        introduced: 2021.13.0
+        summary: Clear the marked text to prepare for inserted text
+        description: |
+          Marked text is used when an input method composes the text to be
+          inserted in multiple steps.
+
+          For example, on macOS you can type `Option`()+`e`(), which inserts
+          a marked accent, and then type a vowel like `a`(), resulting in
+          an single `á`() character.
+
+          This sequence is typically sent to a `UITextInput`() client as:
+
+          - `setMarkedText("´")`
+          - `clearMarkedText()`
+          - `insertText("á")`
+
+          `clearMarkedText()` is called to indicate that the input composition
+          is complete.  The current marked text should be removed and the
+          `markedTextRange()` cleared.
+      -
+        name: markedTextRange
+        introduced: 2021.13.0
+        summary: Return the range of marked text, if any
+        nullable: true
+        description: |
+          Marked text is used when an input method composes the text to be
+          inserted in multiple steps.
+
+          For example, on macOS you can type `Option`()+`e`(), which inserts
+          a marked accent, and then type a vowel like `a`(), resulting in
+          an single `á`() character.
+
+          This sequence is typically sent to a `UITextInput`() client as:
+
+          - `setMarkedText("´")`
+          - `clearMarkedText()`
+          - `insertText("á")`
+
+          `markedTextRange()` should always return the range of marked text,
+          which should be the range of the text added in `setMarkedText()`.
   -
     name: Deletion
     members:
@@ -179,6 +261,16 @@ topics:
     name: Input Behavior
     members:
       -
+        name: secureTextEntry
+        kind: property
+        introduced: 2021.13.0
+        type: boolean
+        summary: Indicates the input is secure, like for a password
+        note: |
+          Gives the text input system a hint that what the user types
+          shouldn't be auto-completed or remembered.  For password manager
+          integration, set `textContentType` to `TextContentType.password`.
+      -
         name: keyboardType
         kind: property
         introduced: 2021.12.0
@@ -215,6 +307,97 @@ topics:
               -
                 name: search
                 summary: A keyboard for typing search queries
+      -
+        name: textContentType
+        kind: property
+        introduced: 2021.13.0
+        type: TextContentType
+        summary: The type of expected content, as a hit for autocompletion
+        note: |
+          The text content type does not affect they keyboard configuration,
+          for that see `keyboardType`.
+      -
+        name: TextContentType
+        introduced: 2021.13.0
+        suffix: enum
+        kind: enum
+        summary: The possible text content types
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: none
+                summary: No specific content type is expected
+              -
+                name: url
+                summary: A URL entry is expected
+              -
+                name: email
+                summary: An email addresses is expected
+              -
+                name: phone
+                summary: A phone number is expected
+              -
+                name: username
+                summary: A username is expected
+              -
+                name: password
+                summary: An existing password is expected
+              -
+                name: newPassword
+                summary: A new password is expected
+              -
+                name: oneTimeCode
+                summary: A one-time code is expected
+              -
+                name: name
+                summary: A full name is expected
+              -
+                name: namePrefix
+                summary: A name prefix is expected
+              -
+                name: givenName
+                summary: A given name is expected
+              -
+                name: middleName
+                summary: A middle name is expected
+              -
+                name: familyName
+                summary: A family/last name is expected
+              -
+                name: nameSuffix
+                summary: A name suffix is expected
+              -
+                name: nickname
+                summary: A nickname is expected
+              -
+                name: organizationName
+                summary: An organization name is expected
+              -
+                name: streetAddress
+                summary: A street address is expected (all lines)
+              -
+                name: streetAddressLine1
+                summary: A street address line 1 is expected
+              -
+                name: streetAddressLine2
+                summary: A street address line 2 is expected
+              -
+                name: city
+                summary: A city name is expected
+              -
+                name: state
+                summary: A state or region name/identifier is expected
+              -
+                name: locality
+                summary: A locality or county name is expected
+              -
+                name: country
+                summary: A country name is expected
+              -
+                name: postalCode
+                summary: A postal code is expected
   -
     name: Types
     members:
