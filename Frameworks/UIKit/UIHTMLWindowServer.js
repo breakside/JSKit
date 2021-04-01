@@ -400,12 +400,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // --------------------------------------------------------------------
     // MARK: - Key Events
 
-    keydown: function(e, preventDefault){
+    keydown: function(e){
         // prevent the default key behavior so we can do our own key processing without
         // invoking default browser behaviors like tabbing or keyboard shortcuts.
         // FIXME: However, we want to keep browser shortcuts for cut/copy/paste
         if (this.keyWindow){
-            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown, preventDefault);
+            this._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown, true);
         }
     },
 

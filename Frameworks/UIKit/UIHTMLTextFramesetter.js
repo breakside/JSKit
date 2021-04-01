@@ -27,7 +27,8 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     _domDocument: null,
     _htmlTypesetter: null,
-    _reusableFrameElement: null,
+    _frameElement: null,
+    _frame: null,
 
     initWithDocument: function(domDocument, htmlDisplayServer){
         this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument, htmlDisplayServer);
@@ -37,24 +38,27 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     createFrame: function(size, range, maximumLines){
         this._creatingFrame = true;
-        this._resetReusableFrameElement();
+        this._createFrameElementIfNeeded();
         var lineBreakMode = this.effectiveLineBreakMode(this.attributes.lineBreakMode, 1, maximumLines);
+        this._enqueueElements();
         this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
-        return UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
+        var frame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
+        this._removeQueuedElements();
+        return frame;
     },
 
     constructFrame: function(lines, size, attributes){
-        return UIHTMLTextFrame.initWithElement(this._reusableFrameElement, lines, size, attributes);
+        return UIHTMLTextFrame.initWithElement(this._frameElement, lines, size, attributes);
     },
 
-    _resetReusableFrameElement: function(){
-        if (this._reusableFrameElement === null){
-            this._reusableFrameElement = this._domDocument.createElement('div');
-            this._reusableFrameElement.setAttribute("role", "none presentation");
-            // this._reusableFrameElement.setAttribute("aria-hidden", "true");
-            this._reusableFrameElement.style.position = 'absolute';
-            this._reusableFrameElement.style.visibility = 'hidden';
-            this._reusableFrameElement.style.overflow = 'hidden';
+    _createFrameElementIfNeeded: function(){
+        if (this._frameElement === null){
+            this._frameElement = this._domDocument.createElement('div');
+            this._frameElement.setAttribute("role", "none presentation");
+            // this._frameElement.setAttribute("aria-hidden", "true");
+            this._frameElement.style.position = 'absolute';
+            this._frameElement.style.visibility = 'hidden';
+            this._frameElement.style.overflow = 'hidden';
             // Disabling pointer events for text frame elements because of issue
             // with touch events not being fired when a text element changes out
             // from underneath a touch.  For example, when a button's title changes
@@ -62,18 +66,53 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
             // is never fired because the element that was the target
             // of the original touchbegin is gone.  We don't need any events
             // firing from text elements anyway, so the simple fix is to disable them.
-            //
-            // * It would be nice to not replace the text line divs in the first place, but
-            //   that is an optimzation we don't absolutely need right now.  Even when
-            //   it gets done, we should probably leave events disabled on text elements
-            //   since they're never needed.
-            this._reusableFrameElement.style.pointerEvents = 'none';
-            this._domDocument.body.appendChild(this._reusableFrameElement);
-        }else{
-            var nodes = this._reusableFrameElement.childNodes;
-            for (var i = nodes.length - 1; i >= 0; --i){
-                this._reusableFrameElement.removeChild(nodes[i]);
+            this._frameElement.style.pointerEvents = 'none';
+            this._domDocument.body.appendChild(this._frameElement);
+        }
+    },
+
+    _enqueueElements: function(){
+        var possibleLineElement;
+        var possibleRunElement;
+        var i, j;
+        for (i = this._frameElement.childNodes.length - 1; i >= 0; --i){
+            possibleLineElement = this._frameElement.childNodes[i];
+            // enqueue disabled until futher testing/debugging
+            // - tried it out in an effort to make Chrome happier when doing
+            //   input composition, so we weren't removing and replacing
+            //   the elements/nodes on each input
+            // - Didn't really help the Chrome situation, but made Safari
+            //   worse.  Safari can seemingly handle the elements being ripped
+            //   out, but doesn't like the text node changing
+            if (false && possibleLineElement.nodeType === Node.ELEMENT_NODE && possibleLineElement.dataset.jstext == "line"){
+                this._htmlTypesetter.enqueueLineElement(possibleLineElement);
+                for (j = possibleLineElement.childNodes.length - 1; j >= 0; --j){
+                    possibleRunElement = possibleLineElement.childNodes[j];
+                    if (possibleRunElement.nodeType === Node.ELEMENT_NODE && possibleRunElement.dataset.jstext == "run"){
+                        this._htmlTypesetter.enqueueRunElement(possibleRunElement);
+                    }else{
+                        possibleLineElement.removeChild(possibleRunElement);
+                    }
+                }
+            }else{
+                this._frameElement.removeChild(possibleLineElement);
             }
+        }
+    },
+
+    _removeQueuedElements: function(){
+        var element = this._htmlTypesetter.dequeueLineElement();
+        while (element !== null){
+            element.parentNode.removeChild(element);
+            element = this._htmlTypesetter.dequeueRunElement();
+        }
+        element = this._htmlTypesetter.dequeueRunElement();
+        while (element !== null){
+            // only bother removing the run if we haven't already removed its parent line
+            if (element.parentNode.parentNode !== null){
+                element.parentNode.removeChild(element);
+            }
+            element = this._htmlTypesetter.dequeueRunElement();
         }
     }
 

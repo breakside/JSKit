@@ -32,3 +32,4 @@
 // #import "UIHTMLOpenPanel.js"
 // #import "UIHTMLSavePanel.js"
 // #import "UIHTMLElementLayer.js"
+// #import "UIHTMLTextField.js"

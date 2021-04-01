@@ -87,6 +87,12 @@ DOM.Node.prototype = Object.create({}, {
         value: function DOMNode_appendChild(child){
             return this.insertBefore(child, null);
         }
+    },
+
+    clone: {
+        value: function DOMNode_clone(){
+            
+        }
     }
 
 });

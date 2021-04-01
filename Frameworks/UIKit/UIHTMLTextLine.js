@@ -35,6 +35,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
         this.fontLineHeight = font.displayLineHeight;
         this.attachments = [];
+        this.element.dataset.rangeLocation = location;
+        this.element.dataset.rangeLength = 0;
+        this.element.dataset.jstext = "line";
     },
 
     initWithElement: function(element, runs, trailingWhitespaceWidth, attachments){
@@ -50,6 +53,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
                 this.element.appendChild(run.element);
             }
         }
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        this.element.dataset.jstext = "line";
     },
 
     // verticallyAlignRuns: function(){
@@ -106,6 +112,74 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         }
         return {node: this.element, offset: 0};
     },
+
+    debugDescription: JSReadOnlyProperty(),
+
+    getDebugDescription: function(){
+        if (this.emptyTextNode !== null){
+            "  %dx%d @%d->%d [empty]".sprintf(this._size.width, this._size.height, this._range.location, this._range.end);
+        }
+        var lines = [];
+        lines.push(["  %dx%d @%d->%d".sprintf(this._size.width, this._size.height, this._range.location, this._range.end)]);
+        for (var i = 0, l = this.runs.length; i < l; ++i){
+            lines.push(this.runs[i].debugDescription);
+        }
+        return lines.join("\n");
+    },
+
+    recalculateSize: function(){
+        var lineClientRect = this.element.getBoundingClientRect();
+        var runClientRect;
+        // The line height should already be an integer, because it is derived from its
+        // runs, which use integer font.displayLineHeight values for their heights.
+        // However, the width may be a non-integer.  We round up because if we don't,
+        // the browser may round down when we ask for a line to be X.y pixels wide, and
+        // that wouldn't leave enough space for the final character.
+        this._size = JSSize(Math.ceil(lineClientRect.width), this.size.height);
+        var run;
+        for (var i = 0, l = this.runs.length; i < l; ++i){
+            run = this.runs[i];
+            runClientRect = run.element.getBoundingClientRect();
+            run._origin = JSPoint(runClientRect.left - lineClientRect.left, runClientRect.top - lineClientRect.top);
+            run._size = JSSize(runClientRect.width, runClientRect.height);
+        }
+    },
+
+    recalculateTrailingWhitespace: function(){
+        var run;
+        var iterator;
+        this._trailingWhitespaceWidth = 0;
+        for (var i = this.runs.length - 1; i >= 0; --i){
+            run = this.runs[i];
+            if (!run.textNode || run.textNode.nodeValue.length === 0){
+                break;
+            }
+            iterator = run.textNode.nodeValue.unicodeIterator(run.textNode.nodeValue.length);
+            iterator.decrement();
+            while (iterator.index > 0 && iterator.isWhiteSpace){
+                iterator.decrement();
+            }
+            if (!iterator.isWhiteSpace){
+                iterator.increment();
+                this._trailingWhitespaceWidth += run._textFrameConstructionWidthOfRange(JSRange(iterator.index, run.textNode.nodeValue.length - iterator.index));
+                break;
+            }
+        }
+    },
+
+    recalculateRange: function(offset){
+        var diff = 0;
+        this._range = JSRange(this._range.location + offset, 0);
+        var run;
+        for (var i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
+            diff += run.recalculateRange(offset + diff);
+            this._range.length += run._range.length;
+        }
+        this.element.dataset.rangeLocation = this._range.location;
+        this.element.dataset.rangeLength = this._range.length;
+        return diff;
+    }
 
 });
 

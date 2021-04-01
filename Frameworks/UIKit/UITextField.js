@@ -105,6 +105,9 @@ JSClass("UITextField", UIControl, {
         if (spec.containsKey('autocapitalizationType')){
             this.autocapitalizationType = spec.valueForKey("autocapitalizationType", UITextInput.AutocapitalizationType);
         }
+        if (spec.containsKey('textContentType')){
+            this.textContentType = spec.valueForKey("textContentType", UITextInput.TextContentType);
+        }
         this._minimumHeight = this.bounds.size.height;
     },
 
@@ -1020,6 +1023,7 @@ JSClass("UITextField", UIControl, {
     keyboardType: JSDynamicProperty("_keyboardType", UITextInput.KeyboardType.default),
     autocapitalizationType: JSDynamicProperty("_autocapitalizationType", UITextInput.AutocapitalizationType.none),
     secureTextEntry: JSReadOnlyProperty(),
+    textContentType: JSDynamicProperty("_textContentType", UITextInput.TextContentType.none),
 
     getSecureTextEntry: function(){
         return this.secureEntry;
@@ -1028,6 +1032,25 @@ JSClass("UITextField", UIControl, {
     insertText: function(text){
         text = this._sanitizedText(text);
         this._localEditor.insertText(text);
+    },
+
+    replaceText: function(selections, text){
+        this._localEditor.setSelections(selections);
+        this.insertText(text);
+    },
+
+    setMarkedText: function(text){
+        this._localEditor.setMarkedText(text);
+    },
+
+    clearMarkedText: function(){
+        this._localEditor.clearMarkedText();
+    },
+
+    markedTextRanges: JSReadOnlyProperty(),
+
+    getMarkedTextRanges: function(){
+        return this._localEditor.markedTextRanges;
     },
 
     insertNewline: function(){
@@ -1079,7 +1102,7 @@ JSClass("UITextField", UIControl, {
     },
 
     deleteWordForward: function(){
-        this._localEditor.deleteForward();
+        this._localEditor.deleteWordForward();
     },
 
     deleteToEndOfLine: function(){
@@ -1175,7 +1198,7 @@ JSClass("UITextField", UIControl, {
     },
 
     textInputLayer: function(){
-        return this.layer;
+        return this._textLayer;
     },
 
     textInputLayoutManager: function(){

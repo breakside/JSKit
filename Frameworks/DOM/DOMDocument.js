@@ -105,7 +105,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var node = Object.create(DOM.Text.prototype, {
                 nodeType: {value: DOM.Node.TEXT_NODE},
                 nodeName: {value: '#text'},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 nodeValue: {value: value, writable: true}
             });
@@ -118,7 +118,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var node = Object.create(DOM.Comment.prototype, {
                 nodeType: {value: DOM.Node.COMMENT_NODE},
                 nodeName: {value: '#comment'},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 nodeValue: {value: value, writable: true}
             });
@@ -131,7 +131,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var node = Object.create(DOM.CDATASection.prototype, {
                 nodeType: {value: DOM.Node.CDATA_SECTION_NODE},
                 nodeName: {value: '#cdata'},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 nodeValue: {value: value, writable: true}
             });
@@ -144,7 +144,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var node = Object.create(DOM.CDATASection.prototype, {
                 nodeType: {value: DOM.Node.PROCESSING_INSTRUCTION_NODE},
                 nodeName: {value: '#cdata'},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 target: {value: target},
                 nodeValue: {value: data, writable: true}
@@ -172,7 +172,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var element = Object.create(DOM.Element.prototype, {
                 nodeType: {value: DOM.Node.ELEMENT_NODE},
                 nodeName: {value: qualifiedName},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 namespaceURI: {value: namespace},
                 prefix: {value: prefix},
@@ -203,7 +203,7 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             var attr = Object.create(DOM.Attr.prototype, {
                 nodeType: {value: DOM.Node.ATTRIBUTE_NODE},
                 nodeName: {value: qualifiedName},
-                ownerDocument: {value: this},
+                ownerDocument: {configurable: true, value: this},
                 childNodes: {value: []},
                 namespaceURI: {value: namespace},
                 prefix: {value: prefix},
@@ -212,5 +212,29 @@ DOM.Document.prototype = Object.create(DOM.Node.prototype, {
             return attr;
         }
     },
+
+    adoptNode: {
+        value: function DOMDocument_adoptNode(node){
+            if (node.parentNode !== null){
+                node.parentNode.removeChild(node);
+            }
+            var stack = [node];
+            var i, l;
+            var _node;
+            while (stack.length > 0){
+                _node = stack.shift();
+                Object.defineProperty(_node, "ownerDocument", {configurable: true, value: this});
+                if (_node.nodeType === DOM.Node.ELEMENT_NODE){
+                    for (i = 0, l = _node.attributes.length; i < l; ++i){
+                        stack.push(_node.attributes[i]);       
+                    }
+                }
+                for (i = 0, l = _node.childNodes.length; i < l; ++i){
+                    stack.push(_node.childNodes[i]);
+                }
+            }
+            return node;
+        }
+    }
 
 });
