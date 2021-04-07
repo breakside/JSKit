@@ -436,6 +436,9 @@ JSClass("APIRequestTests", TKTestSuite, {
                 ],
                 two: [
                     "2"
+                ],
+                test: [
+                    ""
                 ]
             }
         };
@@ -446,6 +449,7 @@ JSClass("APIRequestTests", TKTestSuite, {
         TKAssertEquals(request.url.path, "/test/request");
         TKAssertEquals(request.url.query.get("one"), "1");
         TKAssertEquals(request.url.query.get("two"), "2");
+        TKAssertNull(request.url.query.get("test"));
 
         event = {
             httpMethod: "GET",

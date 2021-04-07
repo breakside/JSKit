@@ -112,6 +112,56 @@ JSClass('JSFormFieldMapTests', TKTestSuite, {
         TKAssertExactEquals(map.get("test"), "one two");
         TKAssertExactEquals(map.get("another"), "Hèllo");
         TKAssertExactEquals(map.get("th=ird"), "Owen & 100%");
+
+        encoded = "test".utf8();
+        map = JSFormFieldMap();
+        map.decode(encoded, true);
+        TKAssertEquals(map.fields.length, 1);
+        TKAssertExactEquals(map.get("test"), null);
+
+        encoded = "test=".utf8();
+        map = JSFormFieldMap();
+        map.decode(encoded, true);
+        TKAssertEquals(map.fields.length, 1);
+        TKAssertExactEquals(map.get("test"), "");
+
+        encoded = "test&two=2".utf8();
+        map = JSFormFieldMap();
+        map.decode(encoded, true);
+        TKAssertEquals(map.fields.length, 2);
+        TKAssertExactEquals(map.get("test"), null);
+        TKAssertExactEquals(map.get("two"), "2");
+
+        encoded = "test=&two=2".utf8();
+        map = JSFormFieldMap();
+        map.decode(encoded, true);
+        TKAssertEquals(map.fields.length, 2);
+        TKAssertExactEquals(map.get("test"), "");
+        TKAssertExactEquals(map.get("two"), "2");
+    },
+
+    testEncode: function(){
+        var map = JSFormFieldMap();
+        map.add("test", null);
+        var encoded = map.encode(JSFormFieldMap.queryStringReserved).stringByDecodingUTF8();
+        TKAssertEquals(encoded, "test");
+
+        map = JSFormFieldMap();
+        map.add("test", "");
+        encoded = map.encode(JSFormFieldMap.queryStringReserved).stringByDecodingUTF8();
+        TKAssertEquals(encoded, "test");
+        
+        map = JSFormFieldMap();
+        map.add("test", null);
+        map.add("two", "2");
+        encoded = map.encode(JSFormFieldMap.queryStringReserved).stringByDecodingUTF8();
+        TKAssertEquals(encoded, "test&two=2");
+        
+        map = JSFormFieldMap();
+        map.add("test", "");
+        map.add("two", "2");
+        encoded = map.encode(JSFormFieldMap.queryStringReserved).stringByDecodingUTF8();
+        TKAssertEquals(encoded, "test&two=2");
     }
 
 });

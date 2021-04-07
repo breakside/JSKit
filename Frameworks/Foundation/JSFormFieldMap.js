@@ -66,14 +66,14 @@ JSFormFieldMap.prototype = {
             }
             ++i;
         }
-        if (i > start){
-            if (name === null){
+        if (name === null){
+            if (i > start){
                 name = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
                 this.add(name, null);
-            }else{
-                value = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
-                this.add(name, value);
             }
+        }else{
+            value = String.initWithData(urlEncodedData.subdataInRange(JSRange(start, i - start)).dataByDecodingPercentEscapes(decodePlusAsSpace), String.Encoding.utf8);
+            this.add(name, value);
         }
     },
 
@@ -98,7 +98,7 @@ JSFormFieldMap.prototype = {
             data = field.name.utf8().dataByEncodingPercentEscapes(reserved, encodeSpaceAsPlus);
             dataList.push(data);
             totalLength += data.length;
-            if (field.value !== null){
+            if (field.value !== null && field.value !== ""){
                 dataList.push(equals);
                 totalLength += 1;
                 data = field.value.utf8().dataByEncodingPercentEscapes(reserved, encodeSpaceAsPlus);

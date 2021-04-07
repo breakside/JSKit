@@ -42,7 +42,7 @@ APIRequest.definePropertiesFromExtensions({
                 for (let name in event.multiValueQueryStringParameters){
                     let values = event.multiValueQueryStringParameters[name];
                     for (let value of values){
-                        query.add(name, value);
+                        query.add(name, value !== "" ? value : null);
                     }
                 }
             }
