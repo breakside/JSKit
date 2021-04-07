@@ -378,7 +378,7 @@ JSClass("APIBuilder", Builder, {
                     if (request.headers['access-control-request-method']){
                         response.setHeader("Access-Control-Allow-Methods", "*");
                     }
-                    if (request.headers['access-control-request-header']){
+                    if (request.headers['access-control-request-headers']){
                         response.setHeader("Access-Control-Allow-Headers", "*");
                     }
                     if (request.method == "OPTIONS"){
@@ -392,7 +392,7 @@ JSClass("APIBuilder", Builder, {
             });
             request.on("end", function(){
                 if (chunks.length > 0){
-                    var data  = JSData.initWithChuncks(chunks);
+                    var data  = JSData.initWithChunks(chunks);
                     lambdaEvent.body = data.base64StringRepresentation();
                 }
                 if (request.method == "OPTIONS"){
@@ -436,7 +436,7 @@ JSClass("APIBuilder", Builder, {
         var server = http.createServer(handleRequest);
 
         port = await new Promise(function(resolve, reject){
-            server.listen(port, '127.0.0.1', function(){
+            server.listen(port, function(){
                 resolve(server.address().port);
             });
         });
