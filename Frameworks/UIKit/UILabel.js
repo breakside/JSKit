@@ -225,15 +225,7 @@ JSClass('UILabel', UIView, {
 
     mouseUp: function(event){
         if (this._mouseDownAction !== null){
-            var attr;
-            var i, l;
-            for (i = 0, l = this._mouseDownAction.temporaryAttributes.length; i < l; ++i){
-                attr = this._mouseDownAction.temporaryAttributes[i];
-                this.layer.textLayoutManager.removeTemporaryAttributeInRange(attr, this._mouseDownAction.range);
-            }
-            for (i = 0, l = this._mouseDownAction.layers.length; i < l; ++i){
-                this._mouseDownAction.layers[i].removeFromSuperlayer();
-            }
+            this._clearAction(this._mouseDownAction);
             if (!this._didDrag){
                 if (this._mouseDownAction.link){
                     this.window.application.openURL(this._mouseDownAction.link);
@@ -245,6 +237,76 @@ JSClass('UILabel', UIView, {
                 UILabel.$super.mouseUp.call(this, event);
                 return;
             }
+        }
+    },
+
+    _clearAction: function(action){
+        var attr;
+        var i, l;
+        for (i = 0, l = action.temporaryAttributes.length; i < l; ++i){
+            attr = action.temporaryAttributes[i];
+            this.layer.textLayoutManager.removeTemporaryAttributeInRange(attr, action.range);
+        }
+        for (i = 0, l = action.layers.length; i < l; ++i){
+            action.layers[i].removeFromSuperlayer();
+        }
+    },
+
+    _touchAction: null,
+
+    touchesBegan: function(touches, event){
+        var location = touches[0].locationInView(this);
+        var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+        var attributes = this.attributedText.attributesAtIndex(index);
+        if (attributes.link){
+            var range = this.attributedText.rangeOfRunAtIndex(index);
+            var layer = UILayer.init();
+            layer.frame = this.layer.textLayoutManager.rectsForCharacterRange(range)[0].rectWithInsets(JSInsets(-1, -2));
+            layer.cornerRadius = 2;
+            layer.backgroundColor = JSColor.black.colorWithAlpha(0.2);
+            this.layer.addSublayer(layer);
+            this._touchAction = {
+                link: attributes.link,
+                range: range,
+                temporaryAttributes: [],
+                layers: [layer]
+            };
+        }else{
+            UILabel.$super.touchesBegan.call(this, touches, event);
+        }
+    },
+
+    touchesMoved: function(touches, event){
+        if (this._touchAction !== null){
+            var location = touches[0].locationInView(this);
+            var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
+            if (!this._touchAction.range.contains(index)){
+                this._clearAction(this._touchAction);
+                this._touchAction = null;
+            }
+        }else{
+            UILabel.$super.touchesMoved.call(this, touches, event);
+        }
+    },
+
+    touchesEnded: function(touches, event){
+        if (this._touchAction !== null){
+            this._clearAction(this._touchAction);
+            if (this._touchAction.link){
+                this.window.application.openURL(this._touchAction.link);
+            }
+            this._touchAction = null;
+        }else{
+            UILabel.$super.touchesEnded.call(this, touches, event);
+        }
+    },
+
+    touchesCanceled: function(touches, event){
+        if (this._touchAction !== null){
+            this._clearAction(this._touchAction);
+            this._touchAction = null;
+        }else{
+            UILabel.$super.touchesCanceled.call(this, touches, event);
         }
     },
 
