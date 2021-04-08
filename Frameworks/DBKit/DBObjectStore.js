@@ -18,6 +18,14 @@
 
 JSClass("DBObjectStore", JSObject, {
 
+    open: function(completion){
+        completion(true);
+    },
+
+    close: function(completion){
+        completion();
+    },
+
     object: function(id, completion){
     },
 

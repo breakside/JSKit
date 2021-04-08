@@ -22,6 +22,10 @@ var logger = JSLog("service", "mongodb");
 
 JSClass("DBMongoStore", DBObjectStore, {
 
+    connectionURL: null,
+    databaseName: null,
+    mongodb: null,
+
     initWithURL: function(url, mongodb){
         if (mongodb === undefined){
             try{
@@ -30,29 +34,52 @@ JSClass("DBMongoStore", DBObjectStore, {
                 throw new Error("Cannot create a mongodb object store because mongodb is not installed.  Add 'mongodb' as a package dependency.");
             }
         }
-        var store = this;
-        var databaseName = url.pathComponents[1];
+        this.mongodb = mongodb;
+        this.databaseName = url.pathComponents[1];
         url = url.copy();
         url.path = null;
-        this.connectedPromise = new Promise(function(resolve, reject){
-            mongodb.MongoClient.connect(url, function(error, client){
-                if (error){
-                    logger.error(error);
-                    reject(error);
-                }else{
-                    store.client = client;
-                    store.database = client.db(databaseName);
-                    resolve();
-                }
-            });
+        this.connectionURL = url;
+    },
+
+    open: function(completion){
+        var options = {
+            useUnifiedTopology: true
+        };
+        var mongodb = this.mongodb;
+        var store = this;
+        this.client = new mongodb.MongoClient(this.connectionURL.encodedString, options);
+        logger.info("MongoDB client connecting to %{public}...", this.connectionURL.host);
+        this.client.connect(function(error, client){
+            if (error){
+                store.client = null;
+                logger.error("Failed to open MongoDB connection: %{error}", error);
+                completion(false);
+            }else{
+                store.database = client.db(store.databaseName);
+                logger.info("MongoDB client connected to database: %{public}", store.databaseName);
+                completion(true);
+            }
+            if (store.closeOnOpen){
+                store.close(store.closeOnOpen);
+            }
         });
     },
 
-    ready: function(){
-        return this.connectedPromise;
+    close: function(completion){
+        if (this.client !== null){
+            if (this.database !== null){
+                logger.info("MongoDB client closing");
+                this.client.close();
+                logger.info("MongoDB client closed");
+                completion();
+            }else{
+                this.closeOnOpen = completion;
+            }
+        }else{
+            completion();
+        }
     },
 
-    connectedPromise: null,
     client: null,
     database: null,
 
@@ -69,7 +96,7 @@ JSClass("DBMongoStore", DBObjectStore, {
                         completion(null);
                     }else{
                         var object = JSCopy(mongoObject);
-                        object.id = object._id;
+                        object.id = mongoObject._id;
                         delete object._id;
                         completion(object);
                     }
@@ -86,7 +113,7 @@ JSClass("DBMongoStore", DBObjectStore, {
             var collection = this.database.collection(object.id.dbidPrefix);
             var mongoObject = JSCopy(object);
             mongoObject._id = object.id;
-            delete object.id;
+            delete mongoObject.id;
             collection.replaceOne({_id: mongoObject._id}, mongoObject, {upsert: true}, function(error){
                 if (error){
                     logger.error("Error saving mongo object: %{error}", error);

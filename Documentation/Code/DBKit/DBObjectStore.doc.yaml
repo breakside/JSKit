@@ -29,6 +29,33 @@ description: |
   use a callback, don't return anything.  If you want to return a `Promise`
   (or make your function `async`()), don't take a callback argument.
 topics:
+  - name: Opening & Closing an Object Store
+    members:
+      - name: open
+        introduced: 2021.14.1
+        kind: method
+        summary: Open a connection to the store
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the connection succeeded
+            summary: Call when the connection is open
+        description: |
+          The default implementation calls back with `true` immediately.
+      - name: close
+        introduced: 2021.14.1
+        kind: method
+        summary: Close the connection to the store
+        arguments:
+          - name: completion
+            type:
+              arguments: []
+            summary: Call when the connection has closed
+        description: |
+          The default implementation calls back immediately
   - name: Retrieving Objects
     members:
       - name: object

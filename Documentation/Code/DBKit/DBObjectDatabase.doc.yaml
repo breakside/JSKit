@@ -130,6 +130,52 @@ topics:
         description: |
           Useful when you need to create your own object store for an otherwise
           unsupported database
+  - name: Opening & Closing a Database
+    members:
+      - name: open
+        introduced: 2021.14.1
+        kind: method
+        summary: Open a connection to the database using a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: success
+                  type: boolean
+                  summary: Whether the connection succeeded
+            summary: Called when the connection is open
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: close
+        introduced: 2021.14.1
+        kind: method
+        summary: Close the connection to the database
+        arguments:
+          - name: completion
+            type:
+              arguments: []
+            summary: Called when the connection has closed
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: open
+        suffix: promise
+        introduced: 2021.14.1
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            summary: Resovles when the connection succeeds
+      - name: close
+        introduced: 2021.14.1
+        suffix: promise
+        type: Promise
+        promise:
+          resolve:
+            summary: Resolves when the connection is closed
   - name: Retrieving Objects
     members:
       - name: object
@@ -481,7 +527,7 @@ topics:
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
       - name: delete
-        suffix: proimse
+        suffix: promise
         kind: method
         type: Proimse
         promise:

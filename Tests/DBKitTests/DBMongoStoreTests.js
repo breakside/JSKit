@@ -5,38 +5,144 @@
 
 (function(){
 
-var MockMongoClient = function(url){
+var MockMongoClient = function(url, options){
     this.url = url;
+    this.options = options;
+    this.databasesByName = {};
 };
 
 MockMongoClient.prototype = {
-};
+    databasesByName: null,
 
-MockMongoClient.connect = function(url, callback){
-    var client = new MockMongoClient(url);
+    connect: function(callback){
+        JSRunLoop.main.schedule(callback, undefined, null, this);
+    },
+
+    db: function(name){
+        var db = this.databasesByName[name];
+        if (!db){
+            db = new MockMongoDatabase(name);
+            this.databasesByName[name] = db;
+        }
+        return db;
+    }
 };
 
 var MockMongoDatabase = function(name){
     this.name = name;
+    this.collectionsByName = {};
 };
 
 MockMongoDatabase.prototype = {
+    collectionsByName: null,
+
     collection: function(name){
-        return new MockMongoCollection(name);
+        var collection = this.collectionsByName[name];
+        if (!collection){
+            collection = new MockMongoCollection(name, []);
+            this.collectionsByName[name] = collection;
+        }
+        return collection;
     }
 };
 
-var MockMongoCollection = function(name){
+var MockMongoCollection = function(name, objects){
     this.name = name;
+    this.objects = objects;
+    this.queries = [];
 };
 
 MockMongoCollection.prototype = {
+
+    objects: null,
+    queries: null,
+
+    find: function(query){
+        this.queries.push({query: query, cursor: null});
+        var objects = [];
+        var obj;
+        for (var i = 0, l = this.objects.length; i < l; ++i){
+            obj = this.objects[i];
+            if (obj.collectionThrow){
+                throw new Error("collectionThrow");
+            }
+            if (obj._id == query._id){
+                objects.push(obj);
+            }
+        }
+        var cursor = new MockMongoCursor(objects);
+        this.queries[this.queries.length - 1].cursor = cursor;
+        return cursor;
+
+    },
+
+    replaceOne: function(query, object, options, callback){
+        this.queries.push({query: query, options: options});
+        if (object.replaceOneError){
+            JSRunLoop.main.schedule(callback, undefined, new Error("replaceOneError"));
+            return;
+        }
+        if (object.replaceOneThrow){
+            throw new Error("replaceOneThrow");
+        }
+        var obj;
+        for (var i = 0, l = this.objects.length; i < l; ++i){
+            obj = this.objects[i];
+            if (obj.collectionThrow){
+                throw new Error("collectionThrow");
+            }
+            if (obj._id == query._id){
+                this.objects[i] = object;
+                JSRunLoop.main.schedule(callback, undefined, null);
+                return;
+            }
+        }
+        this.objects.push(object);
+        JSRunLoop.main.schedule(callback, undefined, null);
+    },
+
+    deleteOne: function(query, options, callback){
+        this.queries.push({query: query, options: options});
+        if (query._id == "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx3"){
+            JSRunLoop.main.schedule(callback, undefined, new Error("deleteOneError"));
+            return;
+        }
+        if (query._id == "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4"){
+            throw new Error("deleteOneThrow");
+        }
+        var obj;
+        for (var i = 0, l = this.objects.length; i < l; ++i){
+            obj = this.objects[i];
+            if (obj.collectionThrow){
+                throw new Error("collectionThrow");
+            }
+            if (obj._id == query._id){
+                this.objects.splice(i, 1);
+                JSRunLoop.main.schedule(callback, undefined, null);
+                return;
+            }
+        }
+        JSRunLoop.main.schedule(callback, undefined, null);
+    }
 };
 
-var MockMongoCursor = function(){
+var MockMongoCursor = function(objects){
+    this.objects = objects;
+    this.index = 0;
 };
 
 MockMongoCursor.prototype = {
+    next: function(callback){
+        if (this.index >= this.objects.length){
+            JSRunLoop.main.schedule(callback, undefined, new Error("end of cursor"), null);
+        }else{
+            var obj = this.objects[this.index++];
+            if (obj.cursorThrow){
+                throw new Error("cursorThrow");
+            }
+            JSRunLoop.main.schedule(callback, undefined, null, obj);
+        }
+    }
 };
 
 JSClass("DBMongoStoreTests", TKTestSuite, {
@@ -47,84 +153,39 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
         var client = null;
         var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
-        var expectation = TKExpectation.init();
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            TKAssertNotNull(client);
-            TKAssertNotNull(database);
-            TKAssertEquals(client.url, "mongodb://localhost:1234");
-            TKAssertEquals(database.name, "testdb");
-        }, function(){
-            TKAssert(false, "Expecting promise success");
-        });
-        this.wait(expectation, 1.0);
+        TKAssertExactEquals(store.mongodb, mongodb);
+        TKAssertEquals(url.encodedString, "mongodb://localhost:1234/testdb");
+        TKAssertEquals(store.connectionURL.encodedString, "mongodb://localhost:1234");
+        TKAssertEquals(store.databaseName, "testdb");
+        TKAssertNull(store.client);
+        TKAssertNull(store.database);
     },
 
     testObject: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            find: 0,
-            next: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.find = function(query){
-                    ++calls.find;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    cursor = new MockMongoCursor();
-                    cursor.next = function(callback){
-                        ++calls.next;
-                        JSRunLoop.main.schedule(callback, undefined, null, {
-                            _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-                            a: 1,
-                            b: "two"
-                        });
-                    };
-                    return cursor;
-                };
-                return collection;
-            };
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            });
             expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
                 TKAssertNotNull(object);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.find, 1);
-                TKAssertEquals(calls.next, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(collection.queries[0].cursor.index, 1);
                 TKAssertEquals(object.id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
                 TKAssertExactEquals(object.a, 1);
                 TKAssertEquals(object.b, "two");
@@ -136,108 +197,27 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testObjectNotFound: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            find: 0,
-            next: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.find = function(query){
-                    ++calls.find;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    cursor = new MockMongoCursor();
-                    cursor.next = function(callback){
-                        ++calls.next;
-                        JSRunLoop.main.schedule(callback, undefined, null, null);
-                    };
-                    return cursor;
-                };
-                return collection;
-            };
-            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-                TKAssertNull(object);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.find, 1);
-                TKAssertEquals(calls.next, 1);
-                TKAssertEquals(collection.name, "obj");
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2",
+                a: 1,
+                b: "two",
+                cursorError: true
             });
-        }, function(){
-            TKAssert(false, "Expecting promise success");
-        });
-        this.wait(expectation, 1.0);
-    },
-
-    testObjectError: function(){
-        var client = null;
-        var database = null;
-        var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
-        };
-        var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
-        var store = DBMongoStore.initWithURL(url, mongodb);
-        var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            find: 0,
-            next: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.find = function(query){
-                    ++calls.find;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    cursor = new MockMongoCursor();
-                    cursor.next = function(callback){
-                        ++calls.next;
-                        JSRunLoop.main.schedule(callback, undefined, new Error("next error"), null);
-                    };
-                    return cursor;
-                };
-                return collection;
-            };
             expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
                 TKAssertNull(object);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.find, 1);
-                TKAssertEquals(calls.next, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(collection.queries[0].cursor.index, 0);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -246,53 +226,25 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testObjectNextThrows: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            find: 0,
-            next: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.find = function(query){
-                    ++calls.find;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    cursor = new MockMongoCursor();
-                    cursor.next = function(callback){
-                        ++calls.next;
-                        throw new Error("failed");
-                    };
-                    return cursor;
-                };
-                return collection;
-            };
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                cursorThrow: true
+            });
             expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
                 TKAssertNull(object);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.find, 1);
-                TKAssertEquals(calls.next, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(collection.queries[0].cursor.index, 1);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -301,47 +253,25 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testObjectFindThrows: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            find: 0,
-            next: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.find = function(query){
-                    ++calls.find;
-                    throw new Error("failed");
-                };
-                return collection;
-            };
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                collectionThrow: true
+            });
             expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
                 TKAssertNull(object);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.find, 1);
-                TKAssertEquals(calls.next, 0);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertNull(collection.queries[0].cursor);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -349,57 +279,76 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
-    testSave: function(){
-        var client = null;
-        var database = null;
+    testSaveInsert: function(){
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            replaceOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.replaceOne = function(query, document, options, callback){
-                    ++calls.replaceOne;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    TKAssertNotExactEquals(document, object);
-                    TKAssertEquals(document._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    TKAssertExactEquals(document.a, 1);
-                    TKAssertEquals(document.b, "two");
-                    TKAssert(options.upsert);
-                    JSRunLoop.main.schedule(callback, undefined, null);
-                };
-                return collection;
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2",
+                a: 1,
+                b: "two"
+            });
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
             };
             expectation.call(store.save, store, object, function(success){
                 TKAssert(success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.replaceOne, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertExactEquals(collection.queries[0].options.upsert, true);
+                TKAssertEquals(collection.objects.length, 2);
+                TKAssertEquals(collection.objects[0]._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx2");
+                TKAssertEquals(collection.objects[1]._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertUndefined(collection.objects[1].id);
+                TKAssertExactEquals(collection.objects[1].a, 1);
+                TKAssertEquals(collection.objects[1].b, "two");
+            });
+        }, function(){
+            TKAssert(false, "Expecting promise success");
+        });
+        this.wait(expectation, 1.0);
+    },
+
+    testSaveUpdate: function(){
+        var mongodb = {
+            MongoClient: MockMongoClient
+        };
+        var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
+        var store = DBMongoStore.initWithURL(url, mongodb);
+        var expectation = TKExpectation.init();
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            });
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 12,
+                b: "twothree"
+            };
+            expectation.call(store.save, store, object, function(success){
+                TKAssert(success);
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertExactEquals(collection.queries[0].options.upsert, true);
+                TKAssertEquals(collection.objects.length, 1);
+                TKAssertEquals(collection.objects[0]._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertUndefined(collection.objects[0].id);
+                TKAssertExactEquals(collection.objects[0].a, 12);
+                TKAssertEquals(collection.objects[0].b, "twothree");
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -408,50 +357,37 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testSaveError: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            replaceOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.replaceOne = function(query, document, options, callback){
-                    ++calls.replaceOne;
-                    JSRunLoop.main.schedule(callback, undefined, new Error("cannot save"));
-                };
-                return collection;
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            });
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 12,
+                b: "twothree",
+                replaceOneError: true
             };
             expectation.call(store.save, store, object, function(success){
-                TKAssert(!success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.replaceOne, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertExactEquals(success, false);
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertExactEquals(collection.queries[0].options.upsert, true);
+                TKAssertEquals(collection.objects.length, 1);
+                TKAssertEquals(collection.objects[0]._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertUndefined(collection.objects[0].id);
+                TKAssertExactEquals(collection.objects[0].a, 1);
+                TKAssertEquals(collection.objects[0].b, "two");
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -460,50 +396,37 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testSaveThrows: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            replaceOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.replaceOne = function(query, document, options, callback){
-                    ++calls.replaceOne;
-                    throw new Error("failed");
-                };
-                return collection;
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            });
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 12,
+                b: "twothree",
+                replaceOneThrow: true
             };
             expectation.call(store.save, store, object, function(success){
-                TKAssert(!success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.replaceOne, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertExactEquals(success, false);
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertExactEquals(collection.queries[0].options.upsert, true);
+                TKAssertEquals(collection.objects.length, 1);
+                TKAssertEquals(collection.objects[0]._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertUndefined(collection.objects[0].id);
+                TKAssertExactEquals(collection.objects[0].a, 1);
+                TKAssertEquals(collection.objects[0].b, "two");
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -512,46 +435,26 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testDelete: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            deleteOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.deleteOne = function(query, options, callback){
-                    ++calls.deleteOne;
-                    TKAssertEquals(query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-                    JSRunLoop.main.schedule(callback, undefined, null);
-                };
-                return collection;
-            };
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            });
             expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
                 TKAssert(success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.deleteOne, 1);
-                TKAssertEquals(collection.name, "obj");
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(collection.objects.length, 0);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -560,45 +463,26 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testDeleteError: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            deleteOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.deleteOne = function(query, options, callback){
-                    ++calls.deleteOne;
-                    JSRunLoop.main.schedule(callback, undefined, new Error("cannot delete"));
-                };
-                return collection;
-            };
-            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
-                TKAssert(!success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.deleteOne, 1);
-                TKAssertEquals(collection.name, "obj");
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx3",
+                a: 1,
+                b: "two"
+            });
+            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx3", function(success){
+                TKAssertExactEquals(success, false);
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx3");
+                TKAssertEquals(collection.objects.length, 1);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");
@@ -607,45 +491,26 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
     },
 
     testDeleteThrows: function(){
-        var client = null;
-        var database = null;
         var mongodb = {
-            MongoClient: {
-                connect: function(options, callback){
-                    client = new MockMongoClient(options);
-                    client.db = function(name){
-                        database = new MockMongoDatabase(name);
-                        return database;
-                    };
-                    JSRunLoop.main.schedule(callback, undefined, null, client);
-                }
-            }
+            MongoClient: MockMongoClient
         };
         var url = JSURL.initWithString("mongodb://localhost:1234/testdb");
         var store = DBMongoStore.initWithURL(url, mongodb);
         var expectation = TKExpectation.init();
-        var calls = {
-            collection: 0,
-            deleteOne: 0
-        };
-        var collection;
-        var cursor;
-        var promise = store.ready();
-        expectation.call(promise.then, promise, function(){
-            database.collection = function(name){
-                ++calls.collection;
-                collection = new MockMongoCollection(name);
-                collection.deleteOne = function(query, options, callback){
-                    ++calls.deleteOne;
-                    throw new Error("failed");
-                };
-                return collection;
-            };
-            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
-                TKAssert(!success);
-                TKAssertEquals(calls.collection, 1);
-                TKAssertEquals(calls.deleteOne, 1);
-                TKAssertEquals(collection.name, "obj");
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            var database = store.database;
+            var collection = database.collection("obj");
+            collection.objects.push({
+                _id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4",
+                a: 1,
+                b: "two"
+            });
+            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4", function(success){
+                TKAssertExactEquals(success, false);
+                TKAssertEquals(collection.queries.length, 1);
+                TKAssertEquals(collection.queries[0].query._id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx4");
+                TKAssertEquals(collection.objects.length, 1);
             });
         }, function(){
             TKAssert(false, "Expecting promise success");

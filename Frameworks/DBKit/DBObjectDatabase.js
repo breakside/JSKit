@@ -69,6 +69,22 @@ JSClass("DBObjectDatabase", JSObject, {
         this.storableClassResolver = DBStorableClassResolver.init();
     },
 
+    open: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        this.store.open(completion);
+        return completion.promise;
+    },
+
+    close: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        this.store.close(completion);
+        return completion.promise;
+    },
+
     id: DBID,
 
     object: function(id, completion, target){
