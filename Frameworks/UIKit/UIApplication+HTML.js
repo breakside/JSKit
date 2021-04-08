@@ -63,11 +63,16 @@ UIApplication.definePropertiesFromExtensions({
         }
         if (options.replacingApplication){
             var open = function(){
-                window.location.href = url;
+                window.location.href = url.encodedString;
             };
             this.stop(open);
         }else{
-            window.open(url.encodedString);
+            var child = window.open(url.encodedString);
+            if ((url.scheme == "http" || url.scheme == "https") && !child){
+                if (this.delegate && this.delegate.applicationBrowserBlockedWindowForURL){
+                    this.delegate.applicationBrowserBlockedWindowForURL(this, url);
+                }
+            }
         }
     },
 
