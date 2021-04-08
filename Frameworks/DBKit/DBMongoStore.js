@@ -48,7 +48,7 @@ JSClass("DBMongoStore", DBObjectStore, {
         var mongodb = this.mongodb;
         var store = this;
         this.client = new mongodb.MongoClient(this.connectionURL.encodedString, options);
-        logger.info("MongoDB client connecting to %{public}...", this.connectionURL.host);
+        logger.info("MongoDB client connecting to %{public}:%d...", this.connectionURL.host, this.connectionURL.port);
         this.client.connect(function(error, client){
             if (error){
                 store.client = null;
@@ -59,11 +59,15 @@ JSClass("DBMongoStore", DBObjectStore, {
                 logger.info("MongoDB client connected to database: %{public}", store.databaseName);
                 completion(true);
             }
-            if (store.closeOnOpen){
-                store.close(store.closeOnOpen);
+            if (store.closeCallback){
+                var fn = store.closeCallback;
+                store.closeCallback = null;
+                store.close(fn);
             }
         });
     },
+
+    closeCallback: null,
 
     close: function(completion){
         if (this.client !== null){
@@ -73,7 +77,7 @@ JSClass("DBMongoStore", DBObjectStore, {
                 logger.info("MongoDB client closed");
                 completion();
             }else{
-                this.closeOnOpen = completion;
+                this.closeCallback = completion;
             }
         }else{
             completion();

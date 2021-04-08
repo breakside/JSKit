@@ -21,6 +21,9 @@ var logger = JSLog("service", "redis");
 
 JSClass("DBRedisStore", DBObjectStore, {
 
+    url: null,
+    redis: null,
+
     initWithURL: function(url, redis){
         if (redis === undefined){
             try{
@@ -29,8 +32,58 @@ JSClass("DBRedisStore", DBObjectStore, {
                 throw new Error("Cannot create a redis object store because redis is not installed.  Add 'redis' as a package dependency.");
             }
         }
-        this.client = redis.createClient({url: url});
-        this.client.on('error', this.handleError.bind(this));
+        this.url = url;
+        this.redis = redis;
+    },
+
+    connected: false,
+
+    open: function(completion){
+        logger.info("Redis client connecting to %{public}:%d...", this.url.host, this.url.port);
+        this.client = this.redis.createClient({url: this.url.encodedString});
+        var store = this;
+        var errorHandler = function(error){
+            logger.info("Failed to open Redis connection: %{error}", error);
+            store.client = null;
+            completion(false);
+            if (store.closeCallback){
+                var fn = store.closeCallback;
+                store.closeCallback = null;
+                store.close(fn);
+            }
+        };
+        var readyHandler = function(){
+            logger.info("Redis client connected");
+            store.connected = true;
+            store.client.off("error", errorHandler);
+            store.client.on("error", store.handleError.bind(store));
+            completion(true);
+            if (store.closeCallback){
+                var fn = store.closeCallback;
+                store.closeCallback = null;
+                store.close(fn);
+            }
+        };
+        this.client.on("error", errorHandler);
+        this.client.on("ready", readyHandler);
+    },
+
+    closeCallback: null,
+
+    close: function(completion){
+        if (this.client !== null){
+            if (this.connected){
+                logger.info("Redis client closing");
+                this.client.quit(function(){
+                    logger.info("Redis client closed");
+                    completion();
+                });
+            }else{
+                this.closeCallback = completion;
+            }
+        }else{
+            completion();
+        }
     },
 
     initWithClient: function(client){
@@ -170,9 +223,9 @@ JSClass("DBRedisStore", DBObjectStore, {
         var waitInterval = JSTimeInterval.milliseconds(20);
         var retires = 0;
         var store = this;
-        var redis = this.redis;
+        var client = this.client;
         var trySave = function(){
-            redis.watch(id, function(error){
+            client.watch(id, function(error){
                 if (error !== null){
                     logger.error("Failure calling redis watch: %{error}", error);
                     completion.call(target, null);
@@ -180,7 +233,7 @@ JSClass("DBRedisStore", DBObjectStore, {
                 }
                 store.object(id, function(obj){
                     obj = change(obj);
-                    var multi = store.multi();
+                    var multi = client.multi();
                     var transactionStore = DBRedisStore.initWithClient(multi);
                     transactionStore.save(obj, function(success){});
                     multi.exec(function(error, results){

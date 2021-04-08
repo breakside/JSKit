@@ -7,12 +7,40 @@
 
 var MockRedisClient = function(options){
     this.options = options;
+    this.listenersByEvent = {};
+    JSRunLoop.main.schedule(this.emit, this, "ready");
 };
 
 MockRedisClient.prototype = {
 
+    listenersByEvent: null,
+
     on: function(event, callback){
+        var listeners = this.listenersByEvent[event];
+        if (!listeners){
+            listeners = this.listenersByEvent[event] = [];
+        }
+        listeners.push(callback);
     },
+
+    off: function(event, callback){
+        var listeners = this.listenersByEvent[event];
+        if (listeners){
+            for (var i = 0, l = listeners.length; i < l; ++i){
+                if (listeners[i] === callback){
+                    listeners.splice(i, 1);
+                    return;
+                }
+            }
+        }
+    },
+
+    emit: function(event){
+        var listeners = this.listenersByEvent[event];
+        for (var i = 0, l = listeners.length; i < l; ++i){
+            listeners[i].call(undefined);
+        }
+    }
 
 };
 
@@ -30,8 +58,13 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         };
         var url = JSURL.initWithString("redis://localhost:1234");
         var store = DBRedisStore.initWithURL(url, redis);
-        TKAssertNotNull(client);
-        TKAssertEquals(client.options.url, "redis://localhost:1234");
+        var expectation = TKExpectation.init();
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            TKAssertNotNull(client);
+            TKAssertEquals(client.options.url, "redis://localhost:1234");
+        });
+        this.wait(expectation, 1.0);
     },
 
     testObject: function(){
@@ -48,22 +81,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             get: 0
         };
-        client.get = function(key, callback){
-            ++calls.get;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            var json = JSON.stringify({
-                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-                a: 1,
-                b: "two"
+        expectation.call(store.open, store, function(success){
+            TKAssert(success);
+            client.get = function(key, callback){
+                ++calls.get;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                var json = JSON.stringify({
+                    id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                    a: 1,
+                    b: "two"
+                });
+                JSRunLoop.main.schedule(callback, undefined, null, json);
+            };
+            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
+                TKAssertEquals(calls.get, 1);
+                TKAssertNotNull(object);
+                TKAssertEquals(object.id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertExactEquals(object.a, 1);
+                TKAssertEquals(object.b, "two");
             });
-            JSRunLoop.main.schedule(callback, undefined, null, json);
-        };
-        expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-            TKAssertEquals(calls.get, 1);
-            TKAssertNotNull(object);
-            TKAssertEquals(object.id, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            TKAssertExactEquals(object.a, 1);
-            TKAssertEquals(object.b, "two");
         });
         this.wait(expectation, 1.0);
     },
@@ -82,14 +118,16 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             get: 0
         };
-        client.get = function(key, callback){
-            ++calls.get;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            JSRunLoop.main.schedule(callback, undefined, null, null);
-        };
-        expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-            TKAssertEquals(calls.get, 1);
-            TKAssertNull(object);
+        expectation.call(store.open, store, function(success){
+            client.get = function(key, callback){
+                ++calls.get;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                JSRunLoop.main.schedule(callback, undefined, null, null);
+            };
+            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
+                TKAssertEquals(calls.get, 1);
+                TKAssertNull(object);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -108,14 +146,16 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             get: 0
         };
-        client.get = function(key, callback){
-            ++calls.get;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            JSRunLoop.main.schedule(callback, undefined, new Error("hello"), null);
-        };
-        expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-            TKAssertEquals(calls.get, 1);
-            TKAssertNull(object);
+        expectation.call(store.open, store, function(success){
+            client.get = function(key, callback){
+                ++calls.get;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                JSRunLoop.main.schedule(callback, undefined, new Error("hello"), null);
+            };
+            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
+                TKAssertEquals(calls.get, 1);
+                TKAssertNull(object);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -134,14 +174,16 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             get: 0
         };
-        client.get = function(key, callback){
-            ++calls.get;
-            var json = "not real json";
-            JSRunLoop.main.schedule(callback, undefined, null, json);
-        };
-        expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-            TKAssertEquals(calls.get, 1);
-            TKAssertNull(object);
+        expectation.call(store.open, store, function(success){
+            client.get = function(key, callback){
+                ++calls.get;
+                var json = "not real json";
+                JSRunLoop.main.schedule(callback, undefined, null, json);
+            };
+            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
+                TKAssertEquals(calls.get, 1);
+                TKAssertNull(object);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -160,13 +202,15 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             get: 0
         };
-        client.get = function(key, callback){
-            ++calls.get;
-            throw new Error("failed");
-        };
-        expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
-            TKAssertEquals(calls.get, 1);
-            TKAssertNull(object);
+        expectation.call(store.open, store, function(success){
+            client.get = function(key, callback){
+                ++calls.get;
+                throw new Error("failed");
+            };
+            expectation.call(store.object, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(object){
+                TKAssertEquals(calls.get, 1);
+                TKAssertNull(object);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -185,21 +229,23 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            TKAssertEquals(args.length, 2);
-            TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":"two"}');
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.save, store, object, function(success){
-            TKAssert(success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                TKAssertEquals(args.length, 2);
+                TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":"two"}');
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.save, store, object, function(success){
+                TKAssert(success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -218,18 +264,20 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            JSRunLoop.main.schedule(callback, undefined, new Error("cannot save"), null);
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.save, store, object, function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                JSRunLoop.main.schedule(callback, undefined, new Error("cannot save"), null);
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.save, store, object, function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -248,18 +296,20 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            throw new Error("failed");
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.save, store, object, function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                throw new Error("failed");
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.save, store, object, function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -278,23 +328,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            TKAssertEquals(args.length, 4);
-            TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":"two"}');
-            TKAssertEquals(args[2], "EX");
-            TKAssertEquals(args[3], 15);
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.saveExpiring, store, object, 15, function(success){
-            TKAssert(success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                TKAssertEquals(args.length, 4);
+                TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":"two"}');
+                TKAssertEquals(args[2], "EX");
+                TKAssertEquals(args[3], 15);
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.saveExpiring, store, object, 15, function(success){
+                TKAssert(success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -313,18 +365,20 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            JSRunLoop.main.schedule(callback, undefined, new Error("cannot save"), null);
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.saveExpiring, store, object, 15, function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                JSRunLoop.main.schedule(callback, undefined, new Error("cannot save"), null);
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.saveExpiring, store, object, 15, function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -343,18 +397,20 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             set: 0
         };
-        client.set = function(args, callback){
-            ++calls.set;
-            throw new Error("failed");
-        };
-        var object = {
-            id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
-            a: 1,
-            b: "two"
-        };
-        expectation.call(store.saveExpiring, store, object, 15, function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.set, 1);
+        expectation.call(store.open, store, function(success){
+            client.set = function(args, callback){
+                ++calls.set;
+                throw new Error("failed");
+            };
+            var object = {
+                id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                a: 1,
+                b: "two"
+            };
+            expectation.call(store.saveExpiring, store, object, 15, function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.set, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -373,14 +429,16 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             del: 0
         };
-        client.del = function(key, callback){
-            ++calls.del;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
-            TKAssert(success);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.del = function(key, callback){
+                ++calls.del;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
+                TKAssert(success);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -399,13 +457,15 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             del: 0
         };
-        client.del = function(args, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, new Error("cannot delete"), null);
-        };
-        expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.del = function(args, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, new Error("cannot delete"), null);
+            };
+            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -424,13 +484,15 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         var calls = {
             del: 0
         };
-        client.del = function(args, callback){
-            ++calls.del;
-            throw new Error("failed");
-        };
-        expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
-            TKAssert(!success);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.del = function(args, callback){
+                ++calls.del;
+                throw new Error("failed");
+            };
+            expectation.call(store.delete, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(success){
+                TKAssert(!success);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -451,26 +513,28 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
-            TKAssertEquals(lifetime, 15);
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertExactEquals(result, 2);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 0);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                TKAssertEquals(lifetime, 15);
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertExactEquals(result, 2);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 0);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -491,23 +555,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -528,23 +594,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -565,23 +633,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot increment"), 0);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 0);
-            TKAssertEquals(calls.del, 0);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot increment"), 0);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 0);
+                TKAssertEquals(calls.del, 0);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -602,23 +672,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            throw new Error("failed");
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, null, 1);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                throw new Error("failed");
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, null, 1);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -639,23 +711,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            throw new Error("failed");
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                throw new Error("failed");
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -676,23 +750,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            JSRunLoop.main.schedule(callback, undefined, null, 2);
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            throw new Error("expire failed");
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            throw new Error("del failed");
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 1);
-            TKAssertEquals(calls.del, 1);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                JSRunLoop.main.schedule(callback, undefined, null, 2);
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                throw new Error("expire failed");
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                throw new Error("del failed");
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 1);
+                TKAssertEquals(calls.del, 1);
+            });
         });
         this.wait(expectation, 1.0);
     },
@@ -713,23 +789,25 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
             expire: 0,
             del: 0,
         };
-        client.incr = function(key, callback){
-            ++calls.incr;
-            throw new Error("failed");
-        };
-        client.expire = function(key, lifetime, callback){
-            ++calls.expire;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
-        };
-        client.del = function(key, callback){
-            ++calls.del;
-            JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
-        };
-        expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
-            TKAssertNull(result);
-            TKAssertEquals(calls.incr, 1);
-            TKAssertEquals(calls.expire, 0);
-            TKAssertEquals(calls.del, 0);
+        expectation.call(store.open, store, function(success){
+            client.incr = function(key, callback){
+                ++calls.incr;
+                throw new Error("failed");
+            };
+            client.expire = function(key, lifetime, callback){
+                ++calls.expire;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot expire"), 0);
+            };
+            client.del = function(key, callback){
+                ++calls.del;
+                JSRunLoop.main.schedule(callback, undefined, new Error("Cannot delete"), 0);
+            };
+            expectation.call(store.incrementExpiring, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", 15, function(result){
+                TKAssertNull(result);
+                TKAssertEquals(calls.incr, 1);
+                TKAssertEquals(calls.expire, 0);
+                TKAssertEquals(calls.del, 0);
+            });
         });
         this.wait(expectation, 1.0);
     },
