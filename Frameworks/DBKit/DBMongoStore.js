@@ -25,6 +25,7 @@ JSClass("DBMongoStore", DBObjectStore, {
     connectionURL: null,
     databaseName: null,
     mongodb: null,
+    tlsCertificateName: null,
 
     initWithURL: function(url, mongodb){
         if (mongodb === undefined){
@@ -38,6 +39,13 @@ JSClass("DBMongoStore", DBObjectStore, {
         this.databaseName = url.pathComponents[1];
         url = url.copy();
         url.path = null;
+        this.tlsCertificateName = url.query.get("ssl_ca_certs", null);
+        if (this.tlsCertificateName !== null){
+            url.query.unset("ssl_ca_certs");
+        }else{
+            this.tlsCertificateName = url.query.get("tlsCertificateKeyFile", null);
+            url.query.unset("tlsCertificateKeyFile");
+        }
         this.connectionURL = url;
     },
 
@@ -45,6 +53,18 @@ JSClass("DBMongoStore", DBObjectStore, {
         var options = {
             useUnifiedTopology: true
         };
+        if (this.tlsCertificateName !== null){
+            var bundle = JSBundle.initWithIdentifier("io.breakside.JSKit.DBKit");
+            switch (this.tlsCertificateName){
+                case "rds-combined-ca-bundle.pem":
+                    options.tlsCAFile = bundle.metadataForResourceName(this.tlsCertificateName).nodeBundlePath;
+                    break;
+                default:
+                    logger.error("Unknown CA: %{public}", this.tlsCertificateName);
+                    completion(false);
+                    return;
+            }
+        }
         var mongodb = this.mongodb;
         var store = this;
         this.client = new mongodb.MongoClient(this.connectionURL.encodedString, options);
