@@ -151,7 +151,7 @@ topics:
       - name: close
         introduced: 2021.14.1
         kind: method
-        summary: Close the connection to the database
+        summary: Close the connection to the database using a callback
         arguments:
           - name: completion
             type:
@@ -169,6 +169,7 @@ topics:
         promise:
           resolve:
             summary: Resovles when the connection succeeds
+        summary: Open a connection to the database using a promise
       - name: close
         introduced: 2021.14.1
         suffix: promise
@@ -176,6 +177,7 @@ topics:
         promise:
           resolve:
             summary: Resolves when the connection is closed
+        summary: Close the connection to the database using a promise
   - name: Retrieving Objects
     members:
       - name: object

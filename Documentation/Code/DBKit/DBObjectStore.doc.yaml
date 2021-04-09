@@ -16,6 +16,8 @@ description: |
   - `delete()`
 
   And optionally may support:
+  - `open()`
+  - `close()`
   - `saveExpiring()`
   - `incrementExpiring()`
 
