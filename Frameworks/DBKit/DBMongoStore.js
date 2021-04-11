@@ -50,40 +50,50 @@ JSClass("DBMongoStore", DBObjectStore, {
     },
 
     open: function(completion){
+        var mongodb = this.mongodb;
+        var store = this;
         var options = {
             useUnifiedTopology: true
         };
+        var promise = Promise.resolve();
         if (this.tlsCertificateName !== null){
             var bundle = JSBundle.initWithIdentifier("io.breakside.JSKit.DBKit");
             switch (this.tlsCertificateName){
                 case "rds-combined-ca-bundle.pem":
-                    options.tlsCAFile = bundle.metadataForResourceName(this.tlsCertificateName).nodeBundlePath;
+                    promise = promise.then(function(){
+                        return bundle.fileForResourceName(store.tlsCertificateName).readData();
+                    }).then(function(data){
+                        options.sslValidate = true;
+                        options.sslCA = [data.stringByDecodingUTF8()];
+                    });
                     break;
                 default:
-                    logger.error("Unknown CA: %{public}", this.tlsCertificateName);
-                    completion(false);
-                    return;
+                    throw new Error("Unknown CA %s".sprintf(store.tlsCertificateName));
             }
         }
-        var mongodb = this.mongodb;
-        var store = this;
-        this.client = new mongodb.MongoClient(this.connectionURL.encodedString, options);
-        logger.info("MongoDB client connecting to %{public}:%d...", this.connectionURL.host, this.connectionURL.port);
-        this.client.connect(function(error, client){
-            if (error){
-                store.client = null;
-                logger.error("Failed to open MongoDB connection: %{error}", error);
-                completion(false);
-            }else{
-                store.database = client.db(store.databaseName);
-                logger.info("MongoDB client connected to database: %{public}", store.databaseName);
-                completion(true);
-            }
-            if (store.closeCallback){
-                var fn = store.closeCallback;
-                store.closeCallback = null;
-                store.close(fn);
-            }
+
+        promise.then(function(){
+            store.client = new mongodb.MongoClient(store.connectionURL.encodedString, options);
+            logger.info("MongoDB client connecting to %{public}:%d...", store.connectionURL.host, store.connectionURL.port);
+            store.client.connect(function(error, client){
+                if (error){
+                    store.client = null;
+                    logger.error("Failed to open MongoDB connection: %{error}", error);
+                    completion(false);
+                }else{
+                    store.database = client.db(store.databaseName);
+                    logger.info("MongoDB client connected to database: %{public}", store.databaseName);
+                    completion(true);
+                }
+                if (store.closeCallback){
+                    var fn = store.closeCallback;
+                    store.closeCallback = null;
+                    store.close(fn);
+                }
+            });
+        }, function(error){
+            logger.error(error);
+            completion(false);
         });
     },
 
