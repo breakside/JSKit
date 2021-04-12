@@ -17,15 +17,14 @@
 // jshint node: true
 'use strict';
 
-var logger = JSLog("serverkit", "websocket");
-
 JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
 
     _nodeSocket: null,
 
-    initWithNodeSocket: function(nodeSocket, tag){
+    initWithNodeSocket: function(nodeSocket, tag, logger){
         this.init();
         this.tag = tag;
+        this.logger = logger;
         this._nodeSocket = nodeSocket;
         this._setupEventListeners();
     },
@@ -44,7 +43,7 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
     },
 
     _setupEventListeners: function(){
-        logger.info("%{public} websocket listening for data", this.tag);
+        this.logger.info("websocket listening for data");
         this._dataListener = this._handleDataEvent.bind(this);
         this._closeListener = this._handleCloseEvent.bind(this);
         this._nodeSocket.addListener('data', this._dataListener);
@@ -53,7 +52,7 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
 
     _cleanupEventListeners: function(){
         if (this._dataListener !== null){
-            logger.info("%{public} websocket un-listening for data", this.tag);
+            this.logger.info("websocket un-listening for data");
             this._nodeSocket.removeListener('data', this._dataListener);
         }
         if (this._closeListener !== null){
@@ -65,7 +64,7 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
         try{
             this._receive(JSData.initWithNodeBuffer(buffer));
         }catch (e){
-            logger.error(e);
+            this.logger.error(e);
         }
     },
 

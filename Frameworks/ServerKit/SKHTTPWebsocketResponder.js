@@ -18,8 +18,6 @@
 
 (function(){
 
-var logger = JSLog("serverkit", "websocket");
-
 JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
 
     _socket: null,
@@ -38,11 +36,11 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     websocket: function(){
-        logger.info("%{public} upgrading to websocket", this.request.tag);
+        this.request.logger.info("upgrading to websocket");
         var requestHeaders = this._request.headerMap;
         var version = requestHeaders.get('Sec-WebSocket-Version');
         if (version !== "13"){
-            logger.warn("%{public} Unexpected websocket version: %{public}", this._request.tag, version);
+            this.request.logger.warn("Unexpected websocket version: %{public}", version);
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
         var requestedProtocols = requestHeaders.get('Sec-WebSocket-Protocol', '').trimmedSplit(',');
@@ -52,7 +50,7 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         }
         this.protocol = findFirstMatch(supportedProtocols, requestedProtocols);
         if (this.protocol === null){
-            logger.warn("%{public} No match for protocols: %{public}", this._request.tag, requestedProtocols.join(", "));
+            this.request.logger.warn("No match for protocols: %{public}", requestedProtocols.join(", "));
             throw new SKHTTPError(SKHTTPResponse.StatusCode.badRequest);
         }
 
@@ -67,7 +65,7 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
 
         this._socket = this._request.createWebsocket();
         if (this._socket === null){
-            logger.error("%{public} failed to create websocket", this.request.tag);
+            this.request.logger.error("failed to create websocket");
             this._request.close();
             return;
         }

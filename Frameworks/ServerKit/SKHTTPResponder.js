@@ -23,8 +23,6 @@
 
 (function(){
 
-var logger = JSLog("serverkit", "http");
-
 JSClass("SKHTTPResponder", JSObject, {
 
     contextClass: null,

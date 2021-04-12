@@ -20,9 +20,10 @@ JSClass("SKMockHTTPWebSocket", SKHTTPWebSocket, {
 
     mockClientParser: null,
 
-    initWithClientParser: function(mockClientParser){
+    initWithClientParser: function(mockClientParser, logger){
         SKMockHTTPWebSocket.$super.init.call(this);
         this.mockClientParser = mockClientParser;
+        this.logger = logger;
     },
 
     _write: function(data){

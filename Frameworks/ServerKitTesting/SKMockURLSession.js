@@ -66,8 +66,6 @@ JSClass("SKMockURLSessionStreamTask", JSURLSessionStreamTask, {
         if (this.mockWebSocket !== null){
             return;
         }
-        this.webSocketParser = JSHTTPWebSocketParser.init();
-        this.mockWebSocket = SKMockHTTPWebSocket.initWithClientParser(this.webSocketParser);
 
         this.key = UUID.init().bytes.base64StringRepresentation();
         var request = JSURLRequest.initWithURL(this.currentURL);
@@ -77,6 +75,8 @@ JSClass("SKMockURLSessionStreamTask", JSURLSessionStreamTask, {
         request.headerMap.set("Sec-WebSocket-Protocol", this.requestedProtocols.join(", "));
         request.headerMap.set("Sec-WebSocket-Key", this.key);
         var serverRequest = SKMockHTTPRequest.initWithURLRequest(request);
+        this.webSocketParser = JSHTTPWebSocketParser.init();
+        this.mockWebSocket = SKMockHTTPWebSocket.initWithClientParser(this.webSocketParser, serverRequest.logger);
         serverRequest.mockWebSocket = this.mockWebSocket;
         this.session.server.handleRequest(serverRequest, function(){
             var response = serverRequest.response.urlResponse;

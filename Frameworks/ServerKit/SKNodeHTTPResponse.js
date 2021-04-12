@@ -18,24 +18,22 @@
 'use strict';
 
 var fs = require('fs');
-var logger = JSLog("serverkit", "http");
 
 JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
 
     _nodeResponse: null,
 
-    initWithNodeResponse: function(nodeResponse, tag){
+    initWithNodeResponse: function(nodeResponse, tag, logger){
         SKNodeHTTPResponse.$super.init.call(this);
         this._nodeResponse = nodeResponse;
         this.tag = tag;
+        this.logger = logger;
     },
 
     complete: function(){
         this.writeHeaderIfNeeded();
         this._nodeResponse.end();
-        if (this.loggingEnabled){
-            logger.info("%{public} %d response complete", this.tag, this.statusCode);
-        }
+        this.logger.info("%d response complete", this.statusCode);
     },
 
     writeHeader: function(){
@@ -60,7 +58,7 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
         try{
             this._nodeResponse.writeHead(this._statusCode, nodeHeaders);
         }catch (e){
-            logger.error(e);
+            this.logger.error(e);
             this.statusCode = SKHTTPResponse.StatusCode.internalServerError;
             this._nodeResponse.writeHead(this._statusCode);
         }
@@ -76,7 +74,7 @@ JSClass("SKNodeHTTPResponse", SKHTTPResponse, {
         this.writeHeaderIfNeeded();
         var fp = fs.createReadStream(filePath);
         fp.pipe(this._nodeResponse); // pipe will call this._nodeResponse.end(), which is the same as calling complete()
-        logger.info("%{public} %d write file complete", this.tag, this.statusCode);
+        this.logger.info("%d respone complete (piped file)", this.statusCode);
     }
 
 });

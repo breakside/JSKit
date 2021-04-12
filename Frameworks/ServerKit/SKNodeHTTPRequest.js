@@ -32,7 +32,7 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
         SKNodeHTTPRequest.$super.initWithMethodAndURL.call(this, nodeRequest.method, url, headerMap);
         this._nodeRequest = nodeRequest;
         if (nodeResponse){
-            this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse, this.tag);
+            this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse, this.tag, this.logger);
         }
         if (this.clientIPAddress === null){
             if (nodeRequest.socket.localAddress){
@@ -42,7 +42,7 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
     },
 
     createWebsocket: function(){
-        return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket, this.tag);
+        return SKNodeHTTPWebSocket.initWithNodeSocket(this._nodeRequest.socket, this.tag, this.logger);
     },
 
     close: function(){

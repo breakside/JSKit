@@ -18,8 +18,6 @@
 // #import "SKValidatingObject.js"
 'use strict';
 
-var logger = JSLog("serverkit", "http");
-
 JSClass("SKHTTPRequest", JSObject, {
 
     url: JSReadOnlyProperty('_url', null),
@@ -31,6 +29,7 @@ JSClass("SKHTTPRequest", JSObject, {
     origin: JSLazyInitProperty('_getOrigin'),
     clientIPAddress: null,
     tag: null,
+    logger: null,
     receivedAt: null,
     maximumContentLength: Number.MAX_VALUE,
 
@@ -39,6 +38,7 @@ JSClass("SKHTTPRequest", JSObject, {
         this._url = url;
         this._headerMap = headerMap || JSMIMEHeaderMap();
         this.tag = JSMD5Hash(this.objectID.toString().utf8()).subdataInRange(JSRange(0, 3)).hexStringRepresentation();
+        this.logger = JSLog("serverkit", "http", ":" + this.tag);
         this.receivedAt = JSDate.now;
         var host = this._headerMap.get('Host', null);
         var scheme = this._headerMap.get('X-Forwarded-Proto', 'http');

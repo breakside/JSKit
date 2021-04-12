@@ -21,11 +21,12 @@ JSClass("SKMockHTTPResponse", SKHTTPResponse, {
     chunks: null,
     urlResponse: null,
 
-    initWithTag: function(tag){
+    initWithTag: function(tag, logger){
         SKMockHTTPResponse.$super.init.call(this);
         this.urlResponse = JSURLResponse.init();
         this.chunks = [];
         this.tag = tag;
+        this.logger = logger;
     },
 
     getData: function(completion, target){

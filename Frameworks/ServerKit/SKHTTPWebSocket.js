@@ -18,8 +18,6 @@
 
 (function(){
 
-var logger = JSLog("serverkit", "websocket");
-
 JSClass("SKHTTPWebSocket", JSObject, {
 
     delegate: null,
@@ -29,6 +27,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _messageChunks: null,
     _pingTimer: null,
     pingInterval: JSDynamicProperty('_pingInterval', 45),
+    logger: null,
     tag: null,
 
     init: function(){
@@ -103,7 +102,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
         if (this._sentClose){
             this.cleanup();
         }else{
-            logger.info("received close from client");
+            this.logger.info("received close from client");
             this._sentClose = true;
             this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData(chunks), JSHTTPWebSocketParser.FrameCode.close);
             for (var i = 0, l = chunks.length; i < l; ++i){

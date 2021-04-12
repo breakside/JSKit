@@ -25,7 +25,7 @@ JSClass("SKMockHTTPRequest", SKHTTPRequest, {
         SKMockHTTPRequest.$super.initWithMethodAndURL.call(this, urlRequest.method, urlRequest.url);
         this.data = urlRequest.data;
         this._headerMap = JSMIMEHeaderMap(urlRequest.headerMap);
-        this._response = SKMockHTTPResponse.initWithTag(this.tag);
+        this._response = SKMockHTTPResponse.initWithTag(this.tag, this.logger);
     },
 
     getData: function(completion, target){

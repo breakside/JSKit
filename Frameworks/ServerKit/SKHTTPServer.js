@@ -81,7 +81,7 @@ JSClass("SKHTTPServer", JSObject, {
 
         var catcher = function(error){
             if (error && !(error instanceof SKHTTPError) && !(error instanceof SKValidatingObject.Error)){
-                logger.error("%{public} %{error}", request.tag, error);
+                request.logger.error(error);
             }
             var errorResonder = responder || SKHTTPResponder.initWithRequest(request);
             return errorResonder.fail(error) || Promise.resolve();
@@ -93,21 +93,27 @@ JSClass("SKHTTPServer", JSObject, {
                     server.delegate.serverDidRespondToRequest(server, request);
                 }
             }catch(e){
-                logger.error(e);
+                request.logger.error(e);
             }
             completion.call(target);
         };
 
         // Health check requests get processed before any logging, otherwise logs get
         // spammed with frequent health checks
-        if (this.healthCheckPath !== null && request.method.lowercaseString() == "get" && request.url.path == this.healthCheckPath){
+        if (this.healthCheckPath !== null && request.url.path == this.healthCheckPath){
             try{
-                request.response.loggingEnabled = false;
+                request.logger.config.debug.enabled = false;
+                request.logger.config.info.enabled = false;
+                request.logger.config.log.enabled = false;
                 request.response.contentLength = 0;
-                request.response.statusCode = SKHTTPResponse.StatusCode.ok;
+                if (request.method.lowercaseString() == "get"){
+                    request.response.statusCode = SKHTTPResponse.StatusCode.ok;
+                }else{
+                    request.response.statusCode = SKHTTPResponse.StatusCode.methodNotAllowed;
+                }
                 request.response.complete();
             }catch (e){
-                logger.error(e);
+                request.logger.error(e);
                 catcher(e);
             }
             completion.call(target);
@@ -115,7 +121,7 @@ JSClass("SKHTTPServer", JSObject, {
         }
 
         try{
-            logger.info("%{public} %{public} %{public}%{public}", request.tag, request.method, request.url.path, request.url.encodedQuery ? "?..." : "");
+            request.logger.info("%{public} %{public}%{public} (%{public})", request.method, request.url.path, request.url.encodedQuery ? "?..." : "", request.clientIPAddress != null ? request.clientIPAddress.stringRepresentation() : "(unknown ip)");
 
             request.maximumContentLength = this.defaultMaximumRequestContentLength;
 
@@ -128,13 +134,13 @@ JSClass("SKHTTPServer", JSObject, {
                     server.delegate.serverDidReceiveRequest(server, request);
                 }
             }catch(e){
-                logger.error(e);
+                request.logger.error(e);
             }
 
             // 1. Find a route for the request
             var routeMatch = this.rootRoute.routeMatchForRequest(request);
             if (routeMatch === null){
-                logger.warn("%{public} %{public} %{public} No route for request", request.tag, request.method, request.url.path);
+                request.logger.warn("%{public} %{public} No route for request", request.method, request.url.path);
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
 
@@ -150,7 +156,7 @@ JSClass("SKHTTPServer", JSObject, {
             // 3. Create a responder
             responder = routeMatch.route.responderWithRequest(request, context);
             if (responder === null){
-                logger.warn("%{public} No responder for request", request.tag);
+                request.logger.warn("No responder for request");
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
             if (this.delegate && this.delegate.serverFoundResponder){
