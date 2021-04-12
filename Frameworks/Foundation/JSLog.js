@@ -57,9 +57,9 @@ JSLogBuffer.prototype = {
     }
 };
 
-JSGlobalObject.JSLog = function(subsystem, category){
+JSGlobalObject.JSLog = function(subsystem, category, suffix){
     if (this === undefined){
-        return new JSLog(subsystem, category);
+        return new JSLog(subsystem, category, suffix);
     }
     if (subsystem === undefined || subsystem === null || subsystem === JSLog.any){
         throw new Error("JSLog() requires a subsystem");
@@ -70,6 +70,12 @@ JSGlobalObject.JSLog = function(subsystem, category){
     this.subsystem = subsystem;
     this.category = category;
     this.config = JSLog.getOrCreateConfig(subsystem, category);
+    if (suffix !== undefined){
+        this.category += suffix;
+        var handlers = this.config.handlers;
+        this.config = createConfiguration(this.config);
+        this.config.handlers = handlers;
+    }
 };
 
 JSLog.any = '__any__';
