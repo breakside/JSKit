@@ -178,6 +178,7 @@ JSClass("DBRedisStore", DBObjectStore, {
             var client = this.client;
             client.incr(id, function(error, result){
                 if (error !== null){
+                    logger.error("Error calling redis incr on key: %{error}", error);
                     completion(null);
                     return;
                 }
@@ -185,8 +186,12 @@ JSClass("DBRedisStore", DBObjectStore, {
                     var incrResult = result;
                     client.expire(id, lifetimeInterval, function(error, result){
                         if (error !== null){
+                            logger.error("Error calling redis expire on increment key: %{error}", error);
                             try{
                                 client.del(id, function(error, result){
+                                    if (error !== null){
+                                        logger.error("Error calling redis del on key: %{error}", error);
+                                    }
                                     completion(null);
                                 });
                             }catch (e){
@@ -201,6 +206,9 @@ JSClass("DBRedisStore", DBObjectStore, {
                     logger.error("Failure calling redis expire: %{error}", e);
                     try{
                         client.del(id, function(error, result){
+                            if (error !== null){
+                                logger.error("Error calling redis del on key: %{error}", error);
+                            }
                             completion(null);
                         });
                     }catch (e){
