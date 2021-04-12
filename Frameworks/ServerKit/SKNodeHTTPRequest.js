@@ -35,8 +35,8 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
             this._response = SKNodeHTTPResponse.initWithNodeResponse(nodeResponse, this.tag, this.logger);
         }
         if (this.clientIPAddress === null){
-            if (nodeRequest.socket.localAddress){
-                this.clientIPAddress = JSIPAddress.initWithString(nodeRequest.socket.localAddress);
+            if (nodeRequest.socket.remoteAddress){
+                this.clientIPAddress = JSIPAddress.initWithString(nodeRequest.socket.remoteAddress);
             }
         }
     },

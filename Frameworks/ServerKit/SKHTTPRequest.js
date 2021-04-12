@@ -47,7 +47,9 @@ JSClass("SKHTTPRequest", JSObject, {
             this._url.scheme = scheme;
         }
         var ip = this._headerMap.get("X-Forwarded-For", null);
-        this.clientIPAddress = JSIPAddress.initWithString(ip);
+        if (ip !== null){
+            this.clientIPAddress = JSIPAddress.initWithString(ip.split(",")[0]);
+        }
     },
 
     _getContentType: function(){

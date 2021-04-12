@@ -197,6 +197,21 @@ JSClass("SKHTTPRequestTests", TKTestSuite, {
             TKAssertExactEquals(obj.stringForKey('two', ''), "");
         }, this);
         this.wait(expectation, 1.0);
+    },
+
+    testClientIPAddress: function(){
+        var url = JSURL.initWithString("http://breakside.io/test/request");
+        var headers = JSMIMEHeaderMap();
+        var request = SKHTTPRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.clientIPAddress);
+
+        headers.set("X-Forwarded-For", "123.1.2.3");
+        request = SKHTTPRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertEquals(request.clientIPAddress.stringRepresentation(), "123.1.2.3");
+
+        headers.set("X-Forwarded-For", "123.1.2.3,1.2.3.123");
+        request = SKHTTPRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertEquals(request.clientIPAddress.stringRepresentation(), "123.1.2.3");
     }
 
 });
