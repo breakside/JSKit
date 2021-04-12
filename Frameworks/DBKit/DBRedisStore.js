@@ -44,13 +44,15 @@ JSClass("DBRedisStore", DBObjectStore, {
         var store = this;
         var errorHandler = function(error){
             logger.info("Failed to open Redis connection: %{error}", error);
-            store.client = null;
             completion(false);
             if (store.closeCallback){
                 var fn = store.closeCallback;
                 store.closeCallback = null;
                 store.close(fn);
+            }else{
+                store.client.quit();
             }
+            store.client = null;
         };
         var readyHandler = function(){
             logger.info("Redis client connected");
