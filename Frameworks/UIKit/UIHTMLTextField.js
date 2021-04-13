@@ -423,7 +423,7 @@ JSClass("UIHTMLTextField", UIControl, {
         layer.drawInContext(context);
         this.inputElement.style.width = layer.element.style.width;
         this.inputElement.style.height = layer.element.style.height;
-        this.inputElement.text = this._text;
+        this.inputElement.value = this._text;
         this.inputElement.placeholder = this._placeholder;
         var autocomplete = htmlAutocompleteByTextContentType[this._textContentType];
         if (autocomplete === ""){
