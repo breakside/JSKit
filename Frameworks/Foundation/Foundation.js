@@ -92,6 +92,7 @@
 // #import "JSUserDefaults.js"
 // #import "JSUndoManager.js"
 // #import "JSNotificationCenter.js"
+// #import "JSDistributedNotificationCenter.js"
 // #import "JSNotification.js"
 
 // #import "JSSynchronizer.js"
