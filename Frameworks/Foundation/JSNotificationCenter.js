@@ -45,12 +45,16 @@ JSClass("JSNotificationCenter", JSObject, {
         this.postNotification(notification);
     },
 
+    generateObserverID: function(){
+        return this._nextObserverId++;
+    },
+
     addObserver: function(name, sender, callback, target){
         var observers = this._observersByName[name];
         if (!observers){
             observers = this._observersByName[name] = {};
         }
-        var observerId = this._nextObserverId++;
+        var observerId = this.generateObserverID();
         var observer = {
             callback: callback,
             target: target,

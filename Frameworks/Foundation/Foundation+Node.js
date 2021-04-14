@@ -24,3 +24,5 @@
 // #import "JSNodeURLSessionStreamTask.js"
 // #import "JSURLSession+Node.js"
 // #import "JSEnvironment+Node.js"
+
+// #import "JSAMQPNotificationCenter.js"
