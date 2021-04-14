@@ -420,7 +420,6 @@ JSClass("UIHTMLTextField", UIControl, {
 
     drawLayerInContext: function(layer, context){
         UIHTMLTextField.$super.drawLayerInContext.call(this, layer, context);
-        layer.drawInContext(context);
         this.inputElement.style.width = layer.element.style.width;
         this.inputElement.style.height = layer.element.style.height;
         this.inputElement.value = this._text;
