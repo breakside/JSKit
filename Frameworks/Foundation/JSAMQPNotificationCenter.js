@@ -79,7 +79,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
                             return;
                         }
                         logger.info("AMQP queue ready");
-                        channel.consume(notificationCenter.queueName, notificationCenter.receiveMessage.bind(notificationCenter), function(error){
+                        channel.consume(notificationCenter.queueName, notificationCenter.receiveMessage.bind(notificationCenter), {}, function(error){
                             if (error){
                                 logger.error("Error creating AMQP consumer: %{error}", error);
                                 close();
@@ -138,7 +138,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
         };
         if (!this._observersByRoutingKey[routingKey]){
             this._observersByRoutingKey[routingKey] = {};
-            this.channel.bindQueue(this.queueName, this.exchangeName, routingKey, function(error){
+            this.channel.bindQueue(this.queueName, this.exchangeName, routingKey, {}, function(error){
                 if (error){
                     logger.error("AMQP bindQueue failed: %{error}", error);
                 }
@@ -174,7 +174,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
             }
             if (isEmpty){
                 delete this._observersByRoutingKey[routingKey];
-                this.channel.unbindQueue(this.queueName, this.exchangeName, routingKey, function(error){
+                this.channel.unbindQueue(this.queueName, this.exchangeName, routingKey, {}, function(error){
                     if (error){
                         logger.error("AMQP unbindQueue failed: %{error}", error);
                     }
@@ -184,16 +184,21 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
     },
 
     receiveMessage: function(message){
+        if (message === null){
+            // we've been canceled by the sever
+            logger.info("AMQP server canceled consumer");
+            return;
+        }
         var data = JSData.initWithNodeBuffer(message.content);
         var json = data.stringByDecodingUTF8();
         var obj = JSON.parse(json);
         var sender;
-        if (message.routingKey === nullRoutingKey){
+        if (message.fields.routingKey === nullRoutingKey){
             sender = null;
         }else{
-            sender = message.routingKey;
+            sender = message.fields.routingKey;
         }
-        var observersByName = this._observersByRoutingKey[message.routingKey];
+        var observersByName = this._observersByRoutingKey[message.fields.routingKey];
         var notification = JSNotification.initWithName(obj.name, sender, obj.userInfo);
         var observer;
         var i, l;

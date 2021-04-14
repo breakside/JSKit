@@ -80,30 +80,30 @@ MockAMQPChannel.prototype = {
         JSRunLoop.main.schedule(callback, undefined, result.error, result.ok);
     },
 
-    bindQueue: function(name, exchange, routingKey, callback){
+    bindQueue: function(name, exchange, routingKey, args, callback){
         var result = this.bindQueueMethod.results[this.bindQueueMethod.calls.length];
         if (result.execption){
             throw result.execption;
         }
-        this.bindQueueMethod.calls.push({name: name, exchange: exchange, routingKey: routingKey});
+        this.bindQueueMethod.calls.push({name: name, exchange: exchange, routingKey: routingKey, args: args});
         JSRunLoop.main.schedule(callback, undefined, result.error, result.ok);
     },
 
-    unbindQueue: function(name, exchange, routingKey, callback){
+    unbindQueue: function(name, exchange, routingKey, args, callback){
         var result = this.unbindQueueMethod.results[this.unbindQueueMethod.calls.length];
         if (result.execption){
             throw result.execption;
         }
-        this.unbindQueueMethod.calls.push({name: name, exchange: exchange, routingKey: routingKey});
+        this.unbindQueueMethod.calls.push({name: name, exchange: exchange, routingKey: routingKey, args: args});
         JSRunLoop.main.schedule(callback, undefined, result.error, result.ok);
     },
 
-    consume: function(name, fn, callback){
+    consume: function(name, fn, options, callback){
         var result = this.consumeMethod.results[this.consumeMethod.calls.length];
         if (result.execption){
             throw result.execption;
         }
-        this.consumeMethod.calls.push({name: name, fn: fn});
+        this.consumeMethod.calls.push({name: name, fn: fn, options: options});
         JSRunLoop.main.schedule(callback, undefined, result.error, result.ok);
     },
 
@@ -500,7 +500,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             });
 
             var message = {
-                routingKey: "senderName",
+                fields: {
+                    routingKey: "senderName"
+                },
                 content: JSON.stringify({name: "notificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -510,7 +512,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             TKAssertEquals(calls[3], 1);
 
             message = {
-                routingKey: "__null__",
+                fields: {
+                    routingKey: "__null__"
+                },
                 content: JSON.stringify({name: "notificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -521,7 +525,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
 
             center.removeObserver("notificationName", ids[3]);
             message = {
-                routingKey: "senderName",
+                fields: {
+                    routingKey: "senderName"
+                },
                 content: JSON.stringify({name: "notificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -531,7 +537,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             TKAssertEquals(calls[3], 2);
 
             message = {
-                routingKey: "otherSenderName",
+                fields: {
+                    routingKey: "otherSenderName"
+                },
                 content: JSON.stringify({name: "notificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -541,7 +549,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             TKAssertEquals(calls[3], 2);
 
             message = {
-                routingKey: "senderName",
+                fields: {
+                    routingKey: "senderName"
+                },
                 content: JSON.stringify({name: "otherNotificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -552,7 +562,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
 
             center.removeObserver("notificationName", ids[0]);
             message = {
-                routingKey: "senderName",
+                fields: {
+                    routingKey: "senderName"
+                },
                 content: JSON.stringify({name: "notificationName", userInfo: null}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
@@ -562,7 +574,9 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             TKAssertEquals(calls[3], 2);
 
             message = {
-                routingKey: "senderName",
+                fields: {
+                    routingKey: "senderName"
+                },
                 content: JSON.stringify({name: "otherNotificationName", userInfo: {one: 1, two: "2"}}).utf8().nodeBuffer()
             };
             center.receiveMessage(message);
