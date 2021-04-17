@@ -25,6 +25,9 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
 
     initWithNodeRequest: function(nodeRequest, nodeResponse){
         var url = JSURL.initWithString(nodeRequest.url);
+        if (url.pathComponents.length === 0){
+            url.path = "/";
+        }
         var headerMap = JSMIMEHeaderMap();
         for (var i = 0, l = nodeRequest.rawHeaders.length - 1; i < l; i += 2){
             headerMap.add(nodeRequest.rawHeaders[i], nodeRequest.rawHeaders[i + 1]);

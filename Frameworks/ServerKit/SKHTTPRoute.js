@@ -85,7 +85,7 @@ JSClass("SKHTTPRoute", JSObject, {
     },
 
     _routeMatchForPathComponents: function(pathComponents, matches){
-        if (pathComponents.length === null){
+        if (pathComponents.length === 0){
             return null;
         }
         var componentIndex = 0;
