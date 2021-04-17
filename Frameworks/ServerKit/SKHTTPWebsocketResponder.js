@@ -101,7 +101,7 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
 
     fail: function(error){
         if (this._socket !== null){
-            this._socket.close(SKHTTPWebSocket.Status.generic);
+            this._socket._close(SKHTTPWebSocket.Status.generic);
             return;
         }
         SKHTTPWebSocketResponder.$super.fail.call(this, error);
