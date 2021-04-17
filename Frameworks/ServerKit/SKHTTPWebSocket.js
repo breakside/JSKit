@@ -80,7 +80,16 @@ JSClass("SKHTTPWebSocket", JSObject, {
         }
         this._cleanup();
         if (this.delegate && this.delegate.socketDidClose){
-            this.delegate.socketDidClose(this);
+            var promise = this.delegate.socketDidClose(this);
+            var socket = this;
+            if (promise instanceof Promise){
+                promise.catch(function(error){
+                    socket.logger.error("Error during async socketDidClose: %{error}", error);
+                });
+            }
+        }
+        if (this.delegate && this.delegate.socketDidClosePrivate){
+            this.delegate.socketDidClosePrivate(this);
         }
     },
 
@@ -124,13 +133,27 @@ JSClass("SKHTTPWebSocket", JSObject, {
     webSocketParserDidReceiveData: function(parser, chunk){
         this._messageChunks.push(chunk);
         if (this.delegate && this.delegate.socketDidReceiveData){
-            this.delegate.socketDidReceiveData(this, chunk);
+            var promise = this.delegate.socketDidReceiveData(this, chunk);
+            var socket = this;
+            if (promise instanceof Promise){
+                promise.catch(function(error){
+                    socket.logger.error("Error during async socketDidReceiveData, closing: %{error}", error);
+                    socket._close(SKHTTPWebSocket.Status.generic);
+                });
+            }
         }
     },
 
     webSocketParserDidReceiveMessage: function(parser){
         if (this.delegate && this.delegate.socketDidReceiveMessage){
-            this.delegate.socketDidReceiveMessage(this, this._messageChunks);
+            var promise = this.delegate.socketDidReceiveMessage(this, this._messageChunks);
+            var socket = this;
+            if (promise instanceof Promise){
+                promise.catch(function(error){
+                    socket.logger.error("Error during async socketDidReceiveMessage, closing: %{error}", error);
+                    socket._close(SKHTTPWebSocket.Status.generic);
+                });
+            }
         }
         this._messageChunks = [];
     },

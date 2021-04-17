@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "SKHTTPResponder.js"
+// #import "SKHTTPWebSocket.js"
 'use strict';
 
 (function(){
@@ -71,12 +72,36 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         }
 
         this._socket.delegate = this;
-        this.websocketEstablished(this._socket);
+        this.startLisentingForNotifications();
+        return this.websocketEstablished(this._socket);
+    },
+
+    notificationObservers: null,
+
+    startLisentingForNotifications: function(){
+        if (this.notificationObservers === null){
+            this.notificationObservers = {
+                serverWillStop: this.server.notificationCenter.addObserver("SKHTTPServerWillStop", this.server, this.serverWillStop, this)
+            };
+        }
+    },
+
+    stopListeningForNotifications: function(){
+        if (this.notificationObservers !== null){
+            this.server.notificationCenter.removeObserver("SKHTTPServerWillStop", this.notificationObservers.serverWillStop);
+        }
+    },
+
+    serverWillStop: function(notification){
+        if (this._socket !== null){
+            this.logger.info("closing because server will stop");
+            this._socket._close(SKHTTPWebSocket.Status.goingAway);
+        }
     },
 
     fail: function(error){
         if (this._socket !== null){
-            this._request.close();
+            this._socket.close(SKHTTPWebSocket.Status.generic);
             return;
         }
         SKHTTPWebSocketResponder.$super.fail.call(this, error);
@@ -101,6 +126,13 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     socketDidClose: function(socket){
+    },
+
+    // always called even if subclass overrides socketDidClose
+    socketDidClosePrivate: function(socket){
+        this._socket.delegate = null;
+        this._socket = null;
+        this.stopListeningForNotifications();
     }
 
 });

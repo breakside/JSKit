@@ -32,6 +32,7 @@ JSClass("SKHTTPResponder", JSObject, {
     response: JSReadOnlyProperty('_response', null),
     allowedOrigins: null,
     route: null,
+    server: null,
 
     initWithRequest: function(request, context){
         this._request = request;
