@@ -31,8 +31,18 @@ JSClass("OAService", JSObject, {
     },
 
     initWithEndpointURL: function(endpointURL, urlSession){
-        this.discoveryURL = endpointURL.appendingPathComponents(['.well-known', 'openid-configuration']);
-        this.urlSession = urlSession || JSURLSession.shared;
+        var discoveryURL = endpointURL.appendingPathComponents(['.well-known', 'openid-configuration']);
+        if (urlSession === undefined){
+            urlSession = JSURLSession.shared;
+        }
+        var sharedKey = discoveryURL.encodedString;
+        var shared = OAService.servicesByDiscoveryURL[sharedKey];
+        if (shared && shared.urlSession === urlSession){
+            return shared;
+        }
+        this.discoveryURL = discoveryURL;
+        this.urlSession = urlSession;
+        OAService.servicesByDiscoveryURL[sharedKey] = this;
     },
 
     identifier: null,
@@ -50,6 +60,10 @@ JSClass("OAService", JSObject, {
         }
         var task = this.urlSession.dataTaskWithURL(this.discoveryURL, function(error){
             var response = task.response;
+            if (this._isLoaded){ // another task already got here
+                completion.call(target, true);
+                return;
+            }
             if (!response || response.statusClass != JSURLResponse.StatusClass.success){
                 completion.call(target, false);
                 return;
@@ -94,6 +108,8 @@ JSClass("OAService", JSObject, {
 
 });
 
+OAService.servicesByDiscoveryURL = {};
+
 Object.defineProperties(OAService, {
     google: {
         configurable: true,
@@ -108,6 +124,22 @@ Object.defineProperties(OAService, {
         get: function(){
             var service = OAService.initWithIdentifier('microsoft');
             Object.defineProperty(this, 'microsoft', {value: service});
+            return service;
+        }
+    },
+    apple: {
+        configurable: true,
+        get: function(){
+            var service = OAService.initWithIdentifier('apple');
+            Object.defineProperty(this, 'apple', {value: service});
+            return service;
+        }
+    },
+    authprivacy: {
+        configurable: true,
+        get: function(){
+            var service = OAService.initWithIdentifier('authprivacy');
+            Object.defineProperty(this, 'authprivacy', {value: service});
             return service;
         }
     }
