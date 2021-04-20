@@ -15,6 +15,7 @@
 
 // #import "DBObjectStore.js"
 // #import "DBID.js"
+// #import "DBObjectChange.js"
 // jshint node: true
 'use strict';
 
@@ -176,6 +177,148 @@ JSClass("DBMongoStore", DBObjectStore, {
         }catch (e){
             logger.error("Failed to delete mongo object: %{error}", e);
             completion(false);
+        }
+    },
+
+    exclusiveSave: function(id, change, completion){
+        var maxRetires = 30;
+        var waitInterval = JSTimeInterval.milliseconds(20);
+        var retires = 0;
+        var store = this;
+        var db = this.database;
+        var collection = this.database.collection(id.dbidPrefix);
+        var lock = UUID();
+        var inserted = false;
+        var unlock = function(completion){
+            var query = {_id: id, _dbkitlock: lock};
+            var update = {$unset: {_dbkitlock: ""}};
+            try{
+                if (inserted){
+                    collection.deleteOne(query, {}, function(error){
+                        completion();
+                    });
+                }else{
+                    collection.updateOne(query, {}, function(error){
+                        completion();
+                    });
+                }
+            }catch (e){
+                logger.error("Error unlocking object: %{error}", e);
+                completion();
+            }
+        };
+        var tryLock = function(){
+            var query = {_id: id, _dbkitlock: { $exists: false }};
+            var update = {$set: {_dbkitlock: lock}};
+            var options = {upsert: true};
+            try{
+                db.updateOne(query, update, options, function(error, result){
+                    if (!error && result.matchedCount === 1){
+                        inserted = result.upsertedCount === 1;
+                        store.object(id, function(obj){
+                            if (inserted){
+                                obj = null;
+                            }
+                            try{
+                                change(obj, function(obj){
+                                    try{
+                                        var mongoObject = JSCopy(obj);
+                                        mongoObject._id = obj.id;
+                                        delete mongoObject.id;
+                                        collection.replaceOne({_id: mongoObject._id, _dbkitlock: lock}, mongoObject, {upsert: true}, function(error){
+                                            if (error){
+                                                logger.error("Error saving mongo object: %{error}", error);
+                                                unlock(function(){
+                                                    completion(false);
+                                                });
+                                            }else{
+                                                completion(true);
+                                            }
+                                        });
+                                    }catch (e){
+                                        logger.error("Error thrown saving mongo object: %{error}", e);
+                                        unlock(function(){
+                                            completion(false);
+                                        });
+                                    }
+                                });
+                            }catch (e){
+                                logger.error("Error thrown calling exclusing save change function: %{error}", e);
+                                unlock(function(){
+                                    completion(false);
+                                });
+                            }
+                        });
+                    }else{
+                        ++retires;
+                        if (retires > maxRetires){
+                            completion(false);
+                            return;
+                        }
+                        JSTimeInterval.scheduedTimerWithInterval(waitInterval, tryLock);
+                        waitInterval = Math.min(1, waitInterval * 2);
+                    }
+                });
+            }catch (e){
+                logger.error("Error thrown locking mongo object: %{error}", e);
+                completion(false);
+            }
+        };
+        tryLock();
+    },
+
+    saveChange: function(change, completion){
+        try{
+            var collection = this.database.collection(change.object.id.dbidPrefix);
+            var query = {_id: change.object.id, dbkitSecure: {$exists: false}};
+            var update = change.mongoStoreUpdate();
+            var options = {};
+            collection.updateOne(query, update, options, function(error, result){
+                if (error){
+                    logger.error("Error updating mongo object: %{error}", error);
+                    completion(false);
+                }else{
+                    completion(result.matchedCount === 1);
+                }
+            });
+        }catch (e){
+            logger.error("Failed to update mongo object: %{error}", e);
+            completion(false);
+        }
+    }
+
+});
+
+DBObjectChange.definePropertiesFromExtensions({
+
+    mongoStoreUpdate: function(){
+        var value = this.object[this.property];
+        if (this.operator === DBObjectChange.Operator.set){
+            var set = {};
+            set[this.property] = value;
+            return {
+                $set: set
+            };
+        }else if (this.operator === DBObjectChange.Operator.increment){
+            var inc = {};
+            inc[this.property] = 1;
+            return {
+                $inc: inc
+            };
+        }else if (this.operator === DBObjectChange.Operator.insert){
+            var push = {};
+            push[this.property] = value[this.index];
+            return {
+                $push: push
+            };
+        }else if (this.operator === DBObjectChange.Operator.delete){
+            var pull = {};
+            pull[this.property] = value[this.index];
+            return {
+                $pull: pull
+            };
+        }else{
+            throw new Error("Unsupported change operator: %s".sprintf(this.operator));
         }
     }
 

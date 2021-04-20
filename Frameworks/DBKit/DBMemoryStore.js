@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "DBObjectStore.js"
+// #import "DBObjectChange.js"
 'use strict';
 
 JSClass("DBMemoryStore", DBObjectStore, {
@@ -28,7 +29,7 @@ JSClass("DBMemoryStore", DBObjectStore, {
     
     object: function(id, completion){
         var object = this._unexpiredDictionary(id);
-        JSRunLoop.main.schedule(completion, undefined, object);
+        JSRunLoop.main.schedule(completion, undefined, JSDeepCopy(object));
     },
 
     _unexpiredDictionary: function(id){
@@ -61,7 +62,7 @@ JSClass("DBMemoryStore", DBObjectStore, {
     },
 
     _saveExpiring: function(object, lifetimeInterval){
-        this.valuesByKey[object.id] = object;
+        this.valuesByKey[object.id] = JSDeepCopy(object);
         if (lifetimeInterval > 0){
             this.expirationsByKey[object.id] = JSDate.now.timeIntervalSince1970 + lifetimeInterval;
         }else{
@@ -79,22 +80,35 @@ JSClass("DBMemoryStore", DBObjectStore, {
         JSRunLoop.main.schedule(completion, undefined, result);
     },
 
-    saveChange: function(id, change, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
+    exclusiveSave: function(id, change, completion){
         var store = this;
         this.object(id, function(obj){
-            obj = change(obj);
-            store.save(obj, function(success){
-                if (!success){
-                    completion.call(target, null);
-                    return;
-                }
-                completion.call(target, obj);
+            change(obj, function(obj){
+                store.save(obj, completion);
             });
         });
-        return completion.promise;
+    },
+
+    saveChange: function(change, completion){
+        var object = this._unexpiredDictionary(change.object.id);
+        if (object === null){
+            completion(false);
+            return;
+        }
+        var value = change.object[change.property];
+        if (change.operator === DBObjectChange.Operator.set){
+            object[change.property] = value;
+        }else if (change.operator === DBObjectChange.Operator.increment){
+            object[change.property] += 1;
+        }else if (change.operator === DBObjectChange.Operator.insert){
+            object[change.property].splice(change.index, 0, value[change.index]);
+        }else if (change.operator === DBObjectChange.Operator.delete){
+            object[change.property].splice(change.index, 1);
+        }else{
+            completion(false);
+            return;
+        }
+        completion(true);
     }
 
 });

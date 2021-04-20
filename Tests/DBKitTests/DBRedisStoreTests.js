@@ -415,6 +415,74 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testSaveChange: function(){
+        var client = null;
+        var redis = {
+            createClient: function(options){
+                client = new MockRedisClient(options);
+                return client;
+            }
+        };
+        var url = JSURL.initWithString("redis://localhost:1234");
+        var store = DBRedisStore.initWithURL(url, redis);
+        var expectation = TKExpectation.init();
+        var calls = {
+            watch: 0,
+            get: 0,
+            multi: 0,
+            multiExec: 0,
+            multiSet: 0,
+            multiQuit: 0
+        };
+        expectation.call(store.open, store, function(success){
+            client.multi = function(args, callback){
+                ++calls.multi;
+                var multi = new MockRedisClient();
+                multi.set = function(callback){
+                    ++calls.multiSet;
+                    TKAssertEquals(args.length, 2);
+                    TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                    if (calls.multiSet === 1){
+                        TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":["one","two","three"]}');
+                    }else{
+                        TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":2,"b":["one","two","three"]}');
+                    }
+                    JSRunLoop.main.schedule(callback, undefined, null, 1);
+                };
+                multi.exec = function(callback){
+                    ++calls.multiExec;
+                    if (calls.multiExec === 1){
+                        JSRunLoop.main.schedule(callback, undefined, null, null);    
+                    }else{
+                        JSRunLoop.main.schedule(callback, undefined, null, [1]);
+                    }
+                };
+                multi.quit = function(){
+                    ++calls.multiQuit;
+                };
+                JSRunLoop.main.schedule(callback, undefined, null, multi);
+            };
+            client.get = function(key, callback){
+                ++calls.get;
+                TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                var json = JSON.stringify({
+                    id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                    a: calls.get,
+                    b: ["one", "two"]
+                });
+                JSRunLoop.main.schedule(callback, undefined, null, json);
+            };
+            expectation.call(store.exclusiveSave, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(obj){
+                obj.b.push("three");
+            }, function(success){
+                TKAssert(success);
+                TKAssertEquals(calls.watch, 1);
+                TKAssertEquals(calls.watch, 1);
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testDelete: function(){
         var client = null;
         var redis = {

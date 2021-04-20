@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "DBObjectStore.js"
+// #import "DBObjectChange.js"
 // jshint node: true
 'use strict';
 
@@ -225,49 +226,140 @@ JSClass("DBRedisStore", DBObjectStore, {
         }
     },
 
-    saveChange: function(id, change, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
+    exclusiveSave: function(id, change, completion){
+        // 1. Open a new cilent so we can WATCH a single key without worrying
+        //    about any other exclusiveSave adding to the WATCH list.
+        var client = this.redis.createClient({url: this.url.encodedString});
         var maxRetires = 30;
         var waitInterval = JSTimeInterval.milliseconds(20);
         var retires = 0;
-        var store = this;
-        var client = this.client;
+        var store = DBRedisStore.initWithClient(client);
         var trySave = function(){
-            client.watch(id, function(error){
-                if (error !== null){
-                    logger.error("Failure calling redis watch: %{error}", error);
-                    completion.call(target, null);
-                    return;
-                }
-                store.object(id, function(obj){
-                    obj = change(obj);
-                    var multi = client.multi();
-                    var transactionStore = DBRedisStore.initWithClient(multi);
-                    transactionStore.save(obj, function(success){});
-                    multi.exec(function(error, results){
-                        if (error !== null){
-                            completion.call(target, null);
-                            return;
+            try{
+                client.watch(id, function(error){
+                    if (error !== null){
+                        logger.error("Failure calling redis watch: %{error}", error);
+                        completion(false);
+                        return;
+                    }
+                    store.object(id, function(obj){
+                        try{
+                            change(obj, function(obj){
+                                var multi = client.multi();
+                                var multiStore = DBRedisStore.initWithClient(multi);
+                                try{
+                                    multiStore.save(obj, function(success){});
+                                    multi.exec(function(error, results){
+                                        multi.quit();
+                                        if (error !== null){
+                                            completion(false);
+                                            return;
+                                        }
+                                        if (results === null){
+                                            ++retires;
+                                            if (retires > maxRetires){
+                                                completion(false);
+                                                return;
+                                            }
+                                            JSTimeInterval.scheduedTimerWithInterval(waitInterval, trySave);
+                                            waitInterval = Math.min(1, waitInterval * 2);
+                                            return;
+                                        }
+                                        completion(true);
+                                    });
+                                }catch (e){
+                                    logger.error("Error thrown calling redis save/exec: %{error}", e);
+                                    multi.quit();
+                                    completion(false);
+                                }
+                            });
+                        }catch (e){
+                            logger.error("Error thrown calling exclusive save change function: %{error}", e);
+                            completion(false);
                         }
-                        if (results === null){
-                            ++retires;
-                            if (retires > maxRetires){
-                                completion.call(target, null);
-                                return;
-                            }
-                            JSTimeInterval.scheduedTimerWithInterval(waitInterval, trySave);
-                            waitInterval = Math.min(1, waitInterval * 2);
-                            return;
-                        }
-                        completion.call(target, obj);
                     });
                 });
-            });
+            }catch (e){
+                logger.error("Error thrown calling redis watch: %{error}", e);
+                completion(false);
+            }
         };
         trySave();
-        return completion.proimise;
+    },
+
+    saveChange: function(change, completion){
+        try{
+            var script = change.redisStoreLuaScript();
+            var value = change.object[change.property];
+            this.client.eval([script, 1, change.object.id, change.property, value, change.index], function(error, result){
+                if (error !== null){
+                    completion(false);
+                    return;
+                }
+                completion(result == "OK");
+            });
+        }catch (e){
+            logger.error("Failed to update redis object: %{error}", e);
+            completion(false);
+        }
+    }
+
+});
+
+DBObjectChange.definePropertiesFromExtensions({
+
+    redisStoreLuaScript: function(){
+        var script = function(lines){
+            return [
+                "local o = cjson.decode(redis.call('get', KEYS[1]))",
+                "if o['dbkitSecure'] ~= nil then",
+                "  return 'ENC'",
+                "end",
+            ].join("\n") + lines.join("n") + [
+                "local json = cjson.encode(o)",
+                // FIXME: empty arrays get encoed as empty dictionaries
+                // We could replace {} with [], but that might change string
+                // values and might incorrectly change values that are supposed
+                // to be empty maps
+                "local ttl = redis.call('ttl', KEYS[1])",
+                "if ttl >= 0 then",
+                "  return redis.call('set', KEYS[1], json, 'EX', ttl)",
+                "end",
+                "return redis.call('set', KEYS[1], json)"
+            ].join("\n");
+        };
+        if (this.operator === DBObjectChange.Operator.set){
+            return script([
+                "o[ARGV[1]] = ARGV[2]"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.increment){
+            return script([
+                "o[ARGV[1]] += 1"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.insert){
+            return script([
+                "table.insert(o[ARGV[1]], ARGV[3], ARGV[2])"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.delete){
+            return script([
+                "local i = ARGV[3]",
+                "local a = o[ARGV[1]]",
+                "if a[i] != ARGV[2] then",
+                "  i = -1",
+                "  for j = 0, #a do",
+                "    if a[j] == ARGV[2] then",
+                "      i = j",
+                "      break",
+                "    end",
+                "  end",
+                "end",
+                "if i > 0 then",
+                "  table.remove(a, i)",
+                "end"
+            ]);
+        }else{
+            throw new Error("Unsupported change operator: %s".sprintf(this.operator));
+        }
     }
 
 });

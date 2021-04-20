@@ -73,7 +73,13 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this.store.open(completion);
+        var handler = function(success){
+            completion.call(target, success);
+        };
+        var promise = this.store.open(handler);
+        if (promise instanceof Promise){
+            promise.then(handler);
+        }
         return completion.promise;
     },
 
@@ -81,7 +87,13 @@ JSClass("DBObjectDatabase", JSObject, {
         if (!completion){
             completion = Promise.completion();
         }
-        this.store.close(completion);
+        var handler = function(success){
+            completion.call(target, success);
+        };
+        var promise = this.store.close(handler);
+        if (promise instanceof Promise){
+            promise.then(handler);
+        }
         return completion.promise;
     },
 
@@ -96,21 +108,7 @@ JSClass("DBObjectDatabase", JSObject, {
         }else{
             var db = this;
             var handler = function(dictionary){
-                var storable = dictionary;
-                var storableClass = db.storableClassResolver.classForID(id);
-                if (dictionary !== null){
-                    if (dictionary.dbkitSecure === true){
-                        storable = DBEncryptedObject.initFromStorableDictionary(dictionary);
-                        storable.id = dictionary.id;
-                        storable.objectClass = storableClass;
-                        storable.keystore = db.keystore;
-                    }else{
-                        if (storableClass !== null){
-                            storable = storableClass.initFromStorableDictionary(dictionary);
-                            storable.id = dictionary.id;
-                        }
-                    }
-                }
+                var storable = db.storableFromStorableDictionary(dictionary);
                 completion.call(target, storable);
             };
             var promise = this.store.object(id, handler);
@@ -138,7 +136,122 @@ JSClass("DBObjectDatabase", JSObject, {
         return completion.promise;
     },
 
-    _pepareStorableForSave: function(storable, completion, target){
+    save: function(storable, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!DBID.isValid(storable.id)){
+            logger.error("Cannot save object without a valid id");
+            JSRunLoop.main.schedule(completion, target, false);
+        }else{
+            this.storableDictionaryFromStorable(storable, function(dictionary){
+                if (dictionary === null){
+                    completion.call(target, false);
+                    return;
+                }
+                var handler = function(success){
+                    completion.call(target, success);
+                };
+                var promise = this.store.save(dictionary, handler);
+                if (promise instanceof Promise){
+                    promise.then(handler);
+                }
+            }, this);
+        }
+        return completion.promise;
+    },
+
+    saveExpiring: function(storable, lifetimeInterval, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!DBID.isValid(storable.id)){
+            logger.error("Cannot save expiring object without a valid id");
+            JSRunLoop.main.schedule(completion, target, false);
+        }else if (this.store.saveExpiring){
+            this.storableDictionaryFromStorable(storable, function(preparedStorable){
+                if (preparedStorable === null){
+                    completion.call(target, false);
+                    return;
+                }
+                var handler = function(success){
+                    completion.call(target, success);
+                };
+                var promise = this.store.saveExpiring(preparedStorable, lifetimeInterval, handler);
+                if (promise instanceof Promise){
+                    promise.then(handler);
+                }
+            }, this);
+        }else{
+            logger.error("%{public} does not support saveExpriring", this.store.$class.className);
+            JSRunLoop.main.schedule(completion, target, false);
+        }
+        return completion.promise;
+    },
+
+    exclusiveSave: function(id, change, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!DBID.isValid(id)){
+            logger.error("Cannot save change without a valid id");
+            JSRunLoop.main.schedule.call(completion, target, false);
+        }else if (this.store.exclusiveSave){
+            var db = this;
+            this.store.exclusiveSave(id, function(dictionary, changeCompletion){
+                var storable = db.storableFromStorableDictionary(dictionary);
+                var changedStorable = change(storable);
+                if (changedStorable === undefined){
+                    changedStorable = storable;
+                }
+                if (changedStorable === null){
+                    changeCompletion(null);
+                }else{
+                    db.storableDictionaryFromStorable(changedStorable, function(changedDictionary){
+                        changeCompletion(changedDictionary);
+                    });
+                }
+            }, function(success){
+                completion.call(target, success);
+            });
+        }else{
+            logger.error("%{public} does not support exclusiveSave", this.store.$class.className);
+            JSRunLoop.main.schedule(completion, target, false);
+        }
+        return completion.promise;
+    },
+
+    saveChange: function(change, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
+        if (!DBID.isValid(change.object.id)){
+            logger.error("Cannot save change without a valid id");
+            JSRunLoop.main.schedule.call(completion, target, false);
+        }else if (this.store.saveChange){
+            if (change.object instanceof DBEncryptedObject){
+                logger.error("Cannot save change on an encrypted object");
+                JSRunLoop.main.schedule.call(completion, target, false);
+            }else{
+                this.storableDictionaryFromStorable(change.object, function(dictionary){
+                    if (dictionary === null){
+                        completion.call(target, false);
+                        return;
+                    }
+                    var storeChange = DBObjectChange.initWithObject(dictionary, change.property, change.operator, change.index);
+                    this.store.saveChange(storeChange, function(success){
+                        completion.call(target, success);
+                    });
+                }, this);
+            }
+        }else{
+            logger.error("%{public} does not support exclusiveSave", this.store.$class.className);
+            JSRunLoop.main.schedule(completion, target, false);
+        }
+        return completion.promise;
+    },
+
+    storableDictionaryFromStorable: function(storable, completion, target){
         if (storable instanceof DBEncryptedObject){
             storable.keystore = this.keystore;
             storable.encrypt(this.encryptionDefaults.algorithm, this.encryptionDefaults.keyIdentifer, this.encryptionDefaults.keyBitLength, function(success){
@@ -165,57 +278,23 @@ JSClass("DBObjectDatabase", JSObject, {
         }
     },
 
-    save: function(storable, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
-        if (!DBID.isValid(storable.id)){
-            logger.error("Cannot save object without a valid id");
-            JSRunLoop.main.schedule(completion, target, false);
-        }else{
-            this._pepareStorableForSave(storable, function(preparedStorable){
-                if (preparedStorable === null){
-                    completion.call(target, false);
-                    return;
+    storableFromStorableDictionary: function(dictionary){
+        var storable = dictionary;
+        if (dictionary !== null){
+            var storableClass = this.storableClassResolver.classForID(dictionary.id);
+            if (dictionary.dbkitSecure === true){
+                storable = DBEncryptedObject.initFromStorableDictionary(dictionary);
+                storable.id = dictionary.id;
+                storable.objectClass = storableClass;
+                storable.keystore = this.keystore;
+            }else{
+                if (storableClass !== null){
+                    storable = storableClass.initFromStorableDictionary(dictionary);
+                    storable.id = dictionary.id;
                 }
-                var handler = function(success){
-                    completion.call(target, success);
-                };
-                var promise = this.store.save(preparedStorable, handler);
-                if (promise instanceof Promise){
-                    promise.then(handler);
-                }
-            }, this);
+            }
         }
-        return completion.promise;
-    },
-
-    saveExpiring: function(storable, lifetimeInterval, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
-        if (!DBID.isValid(storable.id)){
-            logger.error("Cannot save expiring object without a valid id");
-            JSRunLoop.main.schedule(completion, target, false);
-        }else if (this.store.saveExpiring){
-            this._pepareStorableForSave(storable, function(preparedStorable){
-                if (preparedStorable === null){
-                    completion.call(target, false);
-                    return;
-                }
-                var handler = function(success){
-                    completion.call(target, success);
-                };
-                var promise = this.store.saveExpiring(preparedStorable, lifetimeInterval, handler);
-                if (promise instanceof Promise){
-                    promise.then(handler);
-                }
-            }, this);
-        }else{
-            logger.error("%{public} does not support saveExpriring", this.store.$class.className);
-            JSRunLoop.main.schedule(completion, target, false);
-        }
-        return completion.promise;
+        return storable;
     },
 
     incrementExpiring: function(id, lifetimeInterval, completion, target){

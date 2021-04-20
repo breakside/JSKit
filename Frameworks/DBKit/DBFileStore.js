@@ -58,6 +58,16 @@ JSClass("DBFileStore", DBObjectStore, {
         }, this);
     },
 
+    exclusiveSave: function(id, change, completion){
+        // TODO: don't clobber any other changes
+        var store = this;
+        this.object(id, function(obj){
+            change(obj, function(obj){
+                store.save(obj, completion);
+            });
+        });
+    },
+
     _urlForID: function(id){
         var hashlen = 40;
         var i = id.length - hashlen;
