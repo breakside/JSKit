@@ -6,13 +6,13 @@ JSClass("DBObjectChange", JSObject, {
     object: null,
     property: null,
     operator: null,
-    index: null,
+    operands: null,
 
-    initWithObject: function(object, property, operator, index){
+    initWithObject: function(object, property, operator, operands){
         this.object = object;
         this.property = property;
         this.operator = operator;
-        this.index = index || null;
+        this.operands = operands || [];
     }
 
 });
@@ -21,21 +21,24 @@ DBObjectChange.set = function(object, property){
     return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.set);
 };
 
-DBObjectChange.increment = function(object, property){
-    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.increment);
+DBObjectChange.increment = function(object, property, amount){
+    if (amount === undefined){
+        amount = 1;
+    }
+    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.increment, [amount]);
 };
 
 DBObjectChange.insert = function(object, property, index){
-    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.insert, index);
+    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.insert, [index]);
 };
 
-DBObjectChange.remove = function(object, property, index){
-    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.remove, index);
+DBObjectChange.delete = function(object, property, index){
+    return new DBObjectChange.initWithObject(object, property, DBObjectChange.Operator.delete, [index]);
 };
 
 DBObjectChange.Operator = {
     set: "set",
     increment: "increment",
     insert: "insert",
-    remove: "remove"
+    delete: "delete"
 };
