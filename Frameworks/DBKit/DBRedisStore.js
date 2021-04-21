@@ -257,6 +257,9 @@ JSClass("DBRedisStore", DBObjectStore, {
     cleanupWatchClientQueueTimer: null,
 
     cleanupWatchClientQueue: function(){
+        if (this.watchClientQueue === null){
+            return;
+        }
         if (this.cleanupWatchClientQueueTimer !== null){
             this.cleanupWatchClientQueueTimer.invalidate();
             this.cleanupWatchClientQueueTimer = null;

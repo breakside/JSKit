@@ -92,7 +92,7 @@ JSClass("DBMemoryStore", DBObjectStore, {
         var maxRetires = 10;
         var retires = 0;
         var tryChange = function(){
-            var dictionary = store._unexpiredDictionary(change.object.id);
+            var dictionary = store._unexpiredDictionary(id);
             var object = null;
             if (dictionary !== null){
                 object = JSDeepCopy(dictionary);
@@ -103,9 +103,9 @@ JSClass("DBMemoryStore", DBObjectStore, {
                     completion(false);
                     return;
                 }
-                var latestDictionary = store._unexpiredDictionary(change.object.id);
+                var latestDictionary = store._unexpiredDictionary(id);
                 if (latestDictionary === dictionary){
-                    var changedDictionary = JSDeepCopy(object);
+                    var changedDictionary = JSDeepCopy(changedObject);
                     changedDictionary.dbkitMemoryExpiration = latestDictionary !== null ? latestDictionary.dbkitMemoryExpiration : JSDate.distantFuture;
                     store.valuesByKey[changedDictionary.id] = changedDictionary;
                     completion(true);
