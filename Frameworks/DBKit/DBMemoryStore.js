@@ -14,31 +14,39 @@
 // limitations under the License.
 
 // #import "DBObjectStore.js"
+// #import "DBObjectChange.js"
 'use strict';
 
 JSClass("DBMemoryStore", DBObjectStore, {
 
     init: function(){
         this.valuesByKey = {};
-        this.expirationsByKey = {};
     },
 
     valuesByKey: null,
-    expirationsByKey: null,
     
     object: function(id, completion){
-        var object = this._unexpiredDictionary(id);
+        var object = this._unexpiredObject(id);
         JSRunLoop.main.schedule(completion, undefined, object);
     },
 
-    _unexpiredDictionary: function(id){
-        var object = this.valuesByKey[id] || null;
-        var expiration = this.expirationsByKey[id];
-        if (expiration !== undefined && expiration <= JSDate.now.timeIntervalSince1970){
-            this._delete(id);
-            object = null;
+    _unexpiredObject: function(id){
+        var dictionary = this._unexpiredDictionary(id);
+        if (dictionary !== null){
+            var object = JSDeepCopy(dictionary);
+            delete object.dbkitMemoryExpiration;
+            return object;
         }
-        return object;
+        return null;
+    },
+
+    _unexpiredDictionary: function(id){
+        var dictionary = this.valuesByKey[id] || null;
+        if (dictionary !== null && dictionary.dbkitMemoryExpiration.isPast()){
+            this._delete(id);
+            return null;
+        }
+        return dictionary;
     },
 
     save: function(object, completion){
@@ -52,7 +60,6 @@ JSClass("DBMemoryStore", DBObjectStore, {
 
     _delete: function(key){
         delete this.valuesByKey[key];
-        delete this.expirationsByKey[key];
     },
 
     saveExpiring: function(object, lifetimeInterval, completion){
@@ -61,16 +68,17 @@ JSClass("DBMemoryStore", DBObjectStore, {
     },
 
     _saveExpiring: function(object, lifetimeInterval){
-        this.valuesByKey[object.id] = object;
+        var dictionary = JSDeepCopy(object);
         if (lifetimeInterval > 0){
-            this.expirationsByKey[object.id] = JSDate.now.timeIntervalSince1970 + lifetimeInterval;
+            dictionary.dbkitMemoryExpiration = JSDate.initWithTimeIntervalSinceNow(lifetimeInterval);
         }else{
-            delete this.expirationsByKey[object.id];
+            dictionary.dbkitMemoryExpiration = JSDate.distantFuture;
         }
+        this.valuesByKey[object.id] = dictionary;
     },
 
     incrementExpiring: function(id, lifetimeInterval, completion){
-        var object = this._unexpiredDictionary(id);
+        var object = this._unexpiredObject(id);
         if (object === null){
             object = {id: id, count: 0};
         }
@@ -79,22 +87,68 @@ JSClass("DBMemoryStore", DBObjectStore, {
         JSRunLoop.main.schedule(completion, undefined, result);
     },
 
-    saveChange: function(id, change, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
+    exclusiveSave: function(id, change, completion){
         var store = this;
-        this.object(id, function(obj){
-            obj = change(obj);
-            store.save(obj, function(success){
-                if (!success){
-                    completion.call(target, null);
+        var maxRetires = 10;
+        var retires = 0;
+        var tryChange = function(){
+            var dictionary = store._unexpiredDictionary(id);
+            var object = null;
+            if (dictionary !== null){
+                object = JSDeepCopy(dictionary);
+                delete object.dbkitMemoryExpiration;
+            }
+            change(object, function(changedObject){
+                if (changedObject === null){
+                    completion(false);
                     return;
                 }
-                completion.call(target, obj);
+                var latestDictionary = store._unexpiredDictionary(id);
+                if (latestDictionary === dictionary){
+                    var changedDictionary = JSDeepCopy(changedObject);
+                    changedDictionary.dbkitMemoryExpiration = latestDictionary !== null ? latestDictionary.dbkitMemoryExpiration : JSDate.distantFuture;
+                    store.valuesByKey[changedDictionary.id] = changedDictionary;
+                    completion(true);
+                }else{
+                    ++retires;
+                    if (retires > maxRetires){
+                        completion(false);
+                    }else{
+                        tryChange();
+                    }
+                }
             });
-        });
-        return completion.promise;
+        };
+        tryChange();
+    },
+
+    saveChange: function(change, completion){
+        var dictionary = this._unexpiredDictionary(change.object.id);
+        if (dictionary === null){
+            completion(false);
+            return;
+        }
+        if (dictionary.dbkitSecure){
+            completion(false);
+            return;
+        }
+        var value = change.object[change.property];
+        if (change.operator === DBObjectChange.Operator.set){
+            dictionary[change.property] = value;
+        }else if (change.operator === DBObjectChange.Operator.increment){
+            if (isNaN(dictionary[change.property])){
+                dictionary[change.property] = 0;
+            }
+            dictionary[change.property] += change.operands[0];
+        }else if (change.operator === DBObjectChange.Operator.insert){
+            dictionary[change.property].splice(change.operands[0], 0, value[change.operands[0]]);
+        }else if (change.operator === DBObjectChange.Operator.delete){
+            dictionary[change.property].splice(change.operands[0], 1);
+        }else{
+            completion(false);
+            return;
+        }
+        completion(true);
     }
 
 });

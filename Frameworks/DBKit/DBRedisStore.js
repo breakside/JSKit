@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "DBObjectStore.js"
+// #import "DBObjectChange.js"
 // jshint node: true
 'use strict';
 
@@ -39,7 +40,7 @@ JSClass("DBRedisStore", DBObjectStore, {
     connected: false,
 
     open: function(completion){
-        logger.info("Redis client connecting to %{public}:%d...", this.url.host, this.url.port);
+        logger.info("Redis client connecting to %{public}:%d...", this.url.host, this.url.port || 6379);
         this.client = this.redis.createClient({url: this.url.encodedString});
         var store = this;
         var errorHandler = function(error){
@@ -73,6 +74,7 @@ JSClass("DBRedisStore", DBObjectStore, {
     closeCallback: null,
 
     close: function(completion){
+        this.cleanupWatchClientQueue();
         if (this.client !== null){
             if (this.connected){
                 logger.info("Redis client closing");
@@ -225,49 +227,241 @@ JSClass("DBRedisStore", DBObjectStore, {
         }
     },
 
-    saveChange: function(id, change, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
+    watchClientQueue: null,
+
+    dequeueReusableWatchClient: function(){
+        if (this.watchClientQueue === null){
+            this.watchClientQueue = [];
         }
+        if (this.watchClientQueue.length > 0){
+            if (this.cleanupWatchClientQueueTimer !== null){
+                this.cleanupWatchClientQueueTimer.invalidate();
+                this.cleanupWatchClientQueueTimer = null;
+            }
+            return this.watchClientQueue.shift();
+        }
+        logger.info("opening watch client to %{public}:%d", this.url.host, this.url.port || 6379);
+        return this.redis.createClient({url: this.url.encodedString});
+    },
+
+    enqueueReusableWatchClient: function(client){
+        if (this.watchClientQueue.length > 0){
+            logger.info("closing watch client (queue full) to %{public}:%d", this.url.host, this.url.port || 6379);
+            client.quit();
+        }else{
+            this.watchClientQueue.push(client);
+            this.cleanupWatchClientQueueTimer = JSTimer.scheduledTimerWithInterval(JSTimeInterval.minutes(5), this.cleanupWatchClientQueue, this);
+        }
+    },
+
+    cleanupWatchClientQueueTimer: null,
+
+    cleanupWatchClientQueue: function(){
+        if (this.watchClientQueue === null){
+            return;
+        }
+        if (this.cleanupWatchClientQueueTimer !== null){
+            this.cleanupWatchClientQueueTimer.invalidate();
+            this.cleanupWatchClientQueueTimer = null;
+        }
+        var client;
+        while (this.watchClientQueue.length > 0){
+            client = this.watchClientQueue.pop();
+            logger.info("closing watch client (cleanup) to %{public}:%d", this.url.host, this.url.port || 6379);
+            client.quit();
+        }
+    },
+
+    exclusiveSave: function(id, change, completion){
+        var watchClient = this.dequeueReusableWatchClient();
         var maxRetires = 30;
         var waitInterval = JSTimeInterval.milliseconds(20);
         var retires = 0;
         var store = this;
-        var client = this.client;
         var trySave = function(){
-            client.watch(id, function(error){
-                if (error !== null){
-                    logger.error("Failure calling redis watch: %{error}", error);
-                    completion.call(target, null);
-                    return;
-                }
-                store.object(id, function(obj){
-                    obj = change(obj);
-                    var multi = client.multi();
-                    var transactionStore = DBRedisStore.initWithClient(multi);
-                    transactionStore.save(obj, function(success){});
-                    multi.exec(function(error, results){
-                        if (error !== null){
-                            completion.call(target, null);
-                            return;
-                        }
-                        if (results === null){
-                            ++retires;
-                            if (retires > maxRetires){
-                                completion.call(target, null);
+            try{
+                watchClient.watch(id, function(error){
+                    if (error !== null){
+                        logger.error("Failure calling redis watch: %{error}", error);
+                        watchClient.quit();
+                        completion(false);
+                        return;
+                    }
+                    try{
+                        watchClient.get(id, function(error, json){
+                            if (error !== null){
+                                logger.error("Failure calling redis get: %{error}", error);
+                                watchClient.quit();
+                                completion(false);
                                 return;
                             }
-                            JSTimeInterval.scheduedTimerWithInterval(waitInterval, trySave);
-                            waitInterval = Math.min(1, waitInterval * 2);
-                            return;
-                        }
-                        completion.call(target, obj);
-                    });
+                            var object = null;
+                            try{
+                                object = JSON.parse(json);
+                            }catch (e){
+                                logger.error("Failure parsing object json: %{error}", error);
+                                watchClient.quit();
+                                completion(false);
+                                return;
+                            }
+                            try{
+                                watchClient.ttl(id, function(error, ttl){
+                                    if (error !== null){
+                                        logger.error("Failure calling redis ttl: %{error}", error);
+                                        watchClient.quit();
+                                        completion(false);
+                                        return;
+                                    }
+                                    try{
+                                        change(object, function(changedObject){
+                                            if (changedObject === null){
+                                                watchClient.quit();
+                                                completion(false);
+                                                return;
+                                            }
+                                            var changedJSON = null;
+                                            try{
+                                                changedJSON = JSON.stringify(changedObject);
+                                            }catch (e){
+                                                logger.error("Failed to serialize object for redis: %{error}", e);
+                                                watchClient.quit();
+                                                completion(false);
+                                                return;
+                                            }
+                                            var args = [id, changedJSON];
+                                            if (ttl > 0){
+                                                args.push("EX");
+                                                args.push(ttl);
+                                            }
+                                            try{
+                                                watchClient.multi().set(args).exec(function(error, results){
+                                                    if (error !== null){
+                                                        logger.error("Failure calling redis multi/set/exec: %{error}", error);
+                                                        watchClient.quit();
+                                                        completion(false);
+                                                        return;
+                                                    }
+                                                    if (results === null){
+                                                        // null results means the transaction failed, so it's our signal to retry
+                                                        ++retires;
+                                                        if (retires > maxRetires){
+                                                            store.enqueueReusableWatchClient(watchClient);
+                                                            completion(true);
+                                                            return;
+                                                        }
+                                                        JSTimer.scheduledTimerWithInterval(waitInterval, trySave);
+                                                        waitInterval = Math.min(1, waitInterval * 2);
+                                                        return;
+                                                    }
+                                                    store.enqueueReusableWatchClient(watchClient);
+                                                    completion(true);
+                                                });
+                                            }catch (e){
+                                                logger.error("Error thrown calling redis multi/set/exec: %{error}", e);
+                                                watchClient.quit();
+                                                completion(false);
+                                            }
+                                        });
+                                    }catch (e){
+                                        logger.error("Error thrown calling change function: %{error}", error);
+                                        watchClient.quit();
+                                        completion(false);
+                                    }
+                                });
+                            }catch (e){
+                                logger.error("Error thrown calling redis ttl: %{error}", error);
+                                watchClient.quit();
+                                completion(false);
+                            }
+                        });
+                    }catch (e){
+                        logger.error("Error thrown calling redis get: %{error}", error);
+                        watchClient.quit();
+                        completion(false);
+                    }
                 });
-            });
+            }catch (e){
+                logger.error("Error thrown calling redis watch: %{error}", e);
+                watchClient.quit();
+                completion(false);
+            }
         };
         trySave();
-        return completion.proimise;
+    },
+
+    saveChange: function(change, completion){
+        try{
+            var script = change.redisStoreLuaScript();
+            var value = change.object[change.property];
+            this.client.eval([script, 1, change.object.id, change.property, value].concat(change.operands), function(error, result){
+                if (error !== null){
+                    completion(false);
+                    return;
+                }
+                completion(result == "OK");
+            });
+        }catch (e){
+            logger.error("Failed to update redis object: %{error}", e);
+            completion(false);
+        }
+    }
+
+});
+
+DBObjectChange.definePropertiesFromExtensions({
+
+    redisStoreLuaScript: function(){
+        var script = function(lines){
+            return [
+                "local o = cjson.decode(redis.call('get', KEYS[1]))",
+                "if o['dbkitSecure'] ~= nil then",
+                "  return 'ENC'",
+                "end",
+            ].join("\n") + lines.join("n") + [
+                "local json = cjson.encode(o)",
+                // FIXME: empty arrays get encoed as empty dictionaries
+                // We could replace {} with [], but that might change string
+                // values and might incorrectly change values that are supposed
+                // to be empty maps
+                "local ttl = redis.call('ttl', KEYS[1])",
+                "if ttl >= 0 then",
+                "  return redis.call('set', KEYS[1], json, 'EX', ttl)",
+                "end",
+                "return redis.call('set', KEYS[1], json)"
+            ].join("\n");
+        };
+        if (this.operator === DBObjectChange.Operator.set){
+            return script([
+                "o[ARGV[1]] = ARGV[2]"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.increment){
+            return script([
+                "o[ARGV[1]] += ARGV[3]"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.insert){
+            return script([
+                "table.insert(o[ARGV[1]], ARGV[3], ARGV[2])"
+            ]);
+        }else if (this.operator === DBObjectChange.Operator.delete){
+            return script([
+                "local i = ARGV[3]",
+                "local a = o[ARGV[1]]",
+                "if a[i] != ARGV[2] then",
+                "  i = -1",
+                "  for j = 0, #a do",
+                "    if a[j] == ARGV[2] then",
+                "      i = j",
+                "      break",
+                "    end",
+                "  end",
+                "end",
+                "if i > 0 then",
+                "  table.remove(a, i)",
+                "end"
+            ]);
+        }else{
+            throw new Error("Unsupported change operator: %s".sprintf(this.operator));
+        }
     }
 
 });

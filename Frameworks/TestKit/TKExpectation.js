@@ -65,6 +65,10 @@ JSClass("TKExpectation", JSObject, {
         }
     },
 
+    continue: function(){
+        ++this._callCount;
+    },
+
     /// Start a timer that can interrupt the async process early
     ///
     /// Typically called automatically by TKTestSuite.wait, a timeout ensures that

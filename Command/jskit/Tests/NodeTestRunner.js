@@ -126,13 +126,9 @@ JSClass('NodeTestRun', TKTestRun, {
 });
 
 module.exports.run = function(){
-    JSLog.configure({print: false}, JSLog.Level.debug);
-    JSLog.configure({print: false}, JSLog.Level.info);
-    JSLog.configure({print: false}, JSLog.Level.log);
-    JSLog.configure({print: false}, JSLog.Level.warn);
-    JSLog.configure({print: false}, JSLog.Level.error);
     var args = JSArguments.initWithOptions({
         help: {kind: "flag", shortcut: "h", hidden: true},
+        logs: {kind: "flag", shortcut: "l", help: "Show all logs"},
         suite: {default: null, help: "The single test suite (class name) to run"},
         case: {default: null, help: "The single test case (method name) to run (requires --suite)"}
     });
@@ -151,6 +147,11 @@ module.exports.run = function(){
         process.exit(0);
         return;
     }
+    JSLog.configure({print: args.logs}, JSLog.Level.debug);
+    JSLog.configure({print: args.logs}, JSLog.Level.info);
+    JSLog.configure({print: args.logs}, JSLog.Level.log);
+    JSLog.configure({print: args.logs}, JSLog.Level.warn);
+    JSLog.configure({print: args.logs}, JSLog.Level.error);
     var testRun = NodeTestRun.init();
     if (args.suite !== null){
         if (args.case !== null){

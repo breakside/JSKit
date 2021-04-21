@@ -2,3 +2,7 @@ google:
   endpoint: https://accounts.google.com/
 microsoft:
   endpoint: https://login.microsoftonline.com/common/v2.0/
+apple:
+  endpoint: https://appleid.apple.com/
+authprivacy:
+  endpoint: https://authprivacy.com/

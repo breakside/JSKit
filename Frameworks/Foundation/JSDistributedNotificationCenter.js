@@ -1,9 +1,10 @@
 // #import "JSNotificationCenter.js"
+// #import "JSRunLoop.js"
 "use strict";
 
 JSClass("JSDistributedNotificationCenter", JSNotificationCenter, {
 
-    init: function(){
+    initLocal: function(){
         JSDistributedNotificationCenter.$super.init.call(this);
     },
 
@@ -19,9 +20,19 @@ JSClass("JSDistributedNotificationCenter", JSNotificationCenter, {
     },
 
     open: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        JSRunLoop.main.schedule(completion, target);
+        return completion.promise;
     },
 
     close: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        JSRunLoop.main.schedule(completion, target);
+        return completion.promise;
     }
 
 });

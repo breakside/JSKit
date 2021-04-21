@@ -15,6 +15,7 @@
 
 // #import "DBObjectStore.js"
 // #import "DBID.js"
+// #import "DBObjectChange.js"
 // jshint node: true
 'use strict';
 
@@ -132,6 +133,7 @@ JSClass("DBMongoStore", DBObjectStore, {
                         var object = JSCopy(mongoObject);
                         object.id = mongoObject._id;
                         delete object._id;
+                        delete object.dbkitMongoLock;
                         completion(object);
                     }
                 }
@@ -176,6 +178,159 @@ JSClass("DBMongoStore", DBObjectStore, {
         }catch (e){
             logger.error("Failed to delete mongo object: %{error}", e);
             completion(false);
+        }
+    },
+
+    exclusiveSave: function(id, change, completion){
+        var maxRetires = 30;
+        var waitInterval = JSTimeInterval.milliseconds(20);
+        var retires = 0;
+        var store = this;
+        var collection = this.database.collection(id.dbidPrefix);
+        var lock = UUID();
+        var inserted = false;
+        var unlock = function(unlockCompletion){
+            var query = {_id: id, dbkitMongoLock: lock};
+            var update = {$unset: {dbkitMongoLock: ""}};
+            try{
+                if (inserted){
+                    collection.deleteOne(query, {}, function(error){
+                        unlockCompletion();
+                    });
+                }else{
+                    collection.updateOne(query, update, {}, function(error){
+                        unlockCompletion();
+                    });
+                }
+            }catch (e){
+                logger.error("Error unlocking object: %{error}", e);
+                unlockCompletion();
+            }
+        };
+        var tryLock = function(){
+            var query = {_id: id, dbkitMongoLock: { $exists: false }};
+            var update = {$set: {dbkitMongoLock: lock}};
+            var options = {upsert: true};
+            try{
+                collection.updateOne(query, update, options, function(error, result){
+                    if (!error && (result.modifiedCount + result.upsertedCount) > 0){
+                        inserted = result.upsertedCount > 0;
+                        store.object(id, function(object){
+                            if (inserted){
+                                object = null;
+                            }
+                            try{
+                                change(object, function(changedObject){
+                                    try{
+                                        var mongoObject = JSCopy(changedObject);
+                                        mongoObject._id = changedObject.id;
+                                        delete mongoObject.id;
+                                        collection.replaceOne({_id: mongoObject._id, dbkitMongoLock: lock}, mongoObject, {}, function(error, result){
+                                            if (error){
+                                                logger.error("Error saving mongo object: %{error}", error);
+                                                unlock(function(){
+                                                    completion(false);
+                                                });
+                                            }else{
+                                                if (result.modifiedCount > 0){
+                                                    completion(true);
+                                                    return;   
+                                                }
+                                                // we lost the lock, retry
+                                                ++retires;
+                                                if (retires > maxRetires){
+                                                    completion(false);
+                                                    return;
+                                                }
+                                                JSTimer.scheduledTimerWithInterval(waitInterval, tryLock);
+                                                waitInterval = Math.min(1, waitInterval * 2);
+                                            }
+                                        });
+                                    }catch (e){
+                                        logger.error("Error thrown saving mongo object: %{error}", e);
+                                        unlock(function(){
+                                            completion(false);
+                                        });
+                                    }
+                                });
+                            }catch (e){
+                                logger.error("Error thrown calling exclusing save change function: %{error}", e);
+                                unlock(function(){
+                                    completion(false);
+                                });
+                            }
+                        });
+                    }else{
+                        // couldn't get the lock, retry
+                        ++retires;
+                        if (retires > maxRetires){
+                            completion(false);
+                            return;
+                        }
+                        JSTimer.scheduledTimerWithInterval(waitInterval, tryLock);
+                        waitInterval = Math.min(1, waitInterval * 2);
+                    }
+                });
+            }catch (e){
+                logger.error("Error thrown locking mongo object: %{error}", e);
+                completion(false);
+            }
+        };
+        tryLock();
+    },
+
+    saveChange: function(change, completion){
+        try{
+            var collection = this.database.collection(change.object.id.dbidPrefix);
+            var query = {_id: change.object.id, dbkitSecure: {$exists: false}};
+            var update = change.mongoStoreUpdate();
+            var options = {};
+            collection.updateOne(query, update, options, function(error, result){
+                if (error){
+                    logger.error("Error updating mongo object: %{error}", error);
+                    completion(false);
+                }else{
+                    completion(result.matchedCount === 1);
+                }
+            });
+        }catch (e){
+            logger.error("Failed to update mongo object: %{error}", e);
+            completion(false);
+        }
+    }
+
+});
+
+DBObjectChange.definePropertiesFromExtensions({
+
+    mongoStoreUpdate: function(){
+        var value = this.object[this.property];
+        if (this.operator === DBObjectChange.Operator.set){
+            var set = {};
+            set[this.property] = value;
+            return {
+                $set: set
+            };
+        }else if (this.operator === DBObjectChange.Operator.increment){
+            var inc = {};
+            inc[this.property] = this.operands[0];
+            return {
+                $inc: inc
+            };
+        }else if (this.operator === DBObjectChange.Operator.insert){
+            var push = {};
+            push[this.property] = value[this.operands[0]];
+            return {
+                $push: push
+            };
+        }else if (this.operator === DBObjectChange.Operator.delete){
+            var pull = {};
+            pull[this.property] = value[this.operands[0]];
+            return {
+                $pull: pull
+            };
+        }else{
+            throw new Error("Unsupported change operator: %s".sprintf(this.operator));
         }
     }
 

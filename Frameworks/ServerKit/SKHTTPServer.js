@@ -38,10 +38,12 @@ JSClass("SKHTTPServer", JSObject, {
     tlsCertificate: null,
     tlsPrivateKey: null,
     defaultMaximumRequestContentLength: 1024 * 1024 * 2,
+    notificationCenter: null,
 
     initWithPort: function(port){
         this._port = port;
         this._extensionInit();
+        this.notificationCenter = JSNotificationCenter.shared;
     },
 
     initWithSpec: function(spec){
@@ -60,6 +62,7 @@ JSClass("SKHTTPServer", JSObject, {
         if (spec.containsKey("defaultMaximumRequestContentLength")){
             this.defaultMaximumRequestContentLength = spec.valueForKey("defaultMaximumRequestContentLength");
         }
+        this.notificationCenter = JSNotificationCenter.shared;
     },
 
     _extensionInit: function(){
@@ -159,6 +162,7 @@ JSClass("SKHTTPServer", JSObject, {
                 request.logger.warn("No responder for request");
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
+            responder.server = this;
             if (this.delegate && this.delegate.serverFoundResponder){
                 this.delegate.serverFoundResponder(this, responder);
             }
@@ -207,6 +211,6 @@ JSClass("SKHTTPServer", JSObject, {
             catcher(e).then(finish);
         }
         return completion.promise;
-    }
+    },
 
 });

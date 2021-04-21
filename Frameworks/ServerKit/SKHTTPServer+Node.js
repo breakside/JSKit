@@ -63,6 +63,7 @@ SKHTTPServer.definePropertiesFromExtensions({
             completion.call(target);
         }else{
             logger.info("HTTP server closing, waiting for outstanding requests to close");
+            this.notificationCenter.post("SKHTTPServerWillStop", this);
             this._nodeHttpServer.close(function(){
                 logger.info("HTTP server closed");
                 completion.call(target);
