@@ -47,6 +47,15 @@ topics:
             summary: Call when the connection is open
         description: |
           The default implementation calls back with `true` immediately.
+      - name: open
+        introduced: 2021.14.1
+        suffix: promise
+        kind: method
+        type: Promise
+        summary: Open a connection to the store with a promise
+        promise:
+          resolve:
+            summary: Resolve when the connection opens successfully
       - name: close
         introduced: 2021.14.1
         kind: method
@@ -58,6 +67,15 @@ topics:
             summary: Call when the connection has closed
         description: |
           The default implementation calls back immediately
+      - name: close
+        introduced: 2021.14.1
+        suffix: promise
+        kind: method
+        type: Promise
+        summary: Close the connection to the store with a promise
+        promise:
+          resolve:
+            summary: Resolve when the connection has closed
   - name: Retrieving Objects
     members:
       - name: object

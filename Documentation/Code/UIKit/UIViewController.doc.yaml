@@ -133,8 +133,17 @@ topics:
                     title: Test
                   ````
           -
-            name: Tab View
+            name: Items for Containing View Controllers
             members:
+              -
+                name: navigationItem
+                type: UINavigationItem
+                summary: An item that informs a parent `UINavigationController` what to
+                  put on its `navigationBar`(UINavigationController.navigationBar) when
+                  this view controller is visible.
+                description: |
+                  If no navigation item is set, one will be created automatically
+                  as needed
               -
                 name: tabViewItem
                 type: UITabViewItem

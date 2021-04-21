@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: class
 inherits: JSObject
 introduced: 2020.33.0
+environment: html
 summary: Use the local device to authenticate a user with a built-in authenticator
   or an external security key
 description: |
