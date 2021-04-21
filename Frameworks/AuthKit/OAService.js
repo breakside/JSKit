@@ -135,11 +135,11 @@ Object.defineProperties(OAService, {
             return service;
         }
     },
-    authprivacy: {
+    authPrivacy: {
         configurable: true,
         get: function(){
-            var service = OAService.initWithIdentifier('authprivacy');
-            Object.defineProperty(this, 'authprivacy', {value: service});
+            var service = OAService.initWithIdentifier('authPrivacy');
+            Object.defineProperty(this, 'authPrivacy', {value: service});
             return service;
         }
     }
