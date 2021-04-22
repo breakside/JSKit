@@ -63,12 +63,26 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        this._persist(function JSUserDefaults_close_persisted(success){
-            if (success){
-                this._values = null;
-            }
-            completion.call(target, success);
-        }, this);
+        var needsSave = false;
+        if (this._persistScheduled){
+            this._persistScheduled = false;
+            needsSave = true;
+        }
+        if (this._persistTimer !== null){
+            this._persistTimer.invalidate();
+            this._persistTimer = null;
+            needsSave = true;
+        }
+        if (needsSave){
+            this._persist(function JSUserDefaults_close_persisted(success){
+                if (success){
+                    this._values = null;
+                }
+                completion.call(target, success);
+            }, this);
+        }else{
+            JSRunLoop.main.schedule(completion, target, true);
+        }
         return completion.promise;
     },
 
@@ -141,7 +155,9 @@ JSClass("JSUserDefaults", JSObject, {
         }
         this._persistTimer = null;
         if (this._values === null){
-            completion.call(target, true);
+            if (completion){
+                completion.call(target, true);
+            }
         }else{
             var data = JSON.stringify(this._values).utf8();
             logger.info("saving user defaults");
