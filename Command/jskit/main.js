@@ -24,7 +24,7 @@
 
 var options = {
     help:    {kind: "flag", shortcut: "h", hidden: true},
-    command: {kind: "positional", help: "The jskit sub-command to run", allowed: Command.names},
+    command: {kind: "positional", subcommand: true, help: "The jskit sub-command to run", allowed: Command.names},
     subargs: {kind: "unknown", help: "Additional arguments for the sub-command"}
 };
 
