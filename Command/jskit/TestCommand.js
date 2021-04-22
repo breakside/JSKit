@@ -28,12 +28,12 @@ JSClass("TestCommand", Command, {
     help: "Build and execute a test run for the given tests project",
 
     options: {
-        "builds-root":  {default: null, help: "Root folder for builds"},
         project: {kind: "positional", help: "The test project to build and run"},
+        "builds-root":  {default: null, help: "Root folder for builds"},
         "inspect-brk": {kind: "flag", help: "Wait for a debugger to attach when running tests"},
-        testargs: {kind: "unknown", help: "Additional arguments for the test run"},
         "http-port": {default: null, help: "Runs an http server for in-browser testing"},
-        "browser": {default: null, help: "Uses Playwright to run the tests in browser", allowed: ["chrome", "firefox", "webkit"]}
+        "browser": {default: null, help: "Uses Playwright to run the tests in browser", allowed: ["chrome", "firefox", "webkit"]},
+        testargs: {kind: "unknown", help: "Additional arguments for the test run"},
     },
 
     run: async function(){
