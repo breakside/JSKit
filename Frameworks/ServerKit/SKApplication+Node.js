@@ -60,6 +60,8 @@ SKApplication.definePropertiesFromExtensions({
                 logger.error("Error while handling crash: %{error}", e);
                 exit();
             }
+        }else{
+            exit();
         }
     }
 
