@@ -37,6 +37,30 @@ SKApplication.definePropertiesFromExtensions({
                 this.stop(signal);
                 break;
         }
+    },
+
+    _crash: function(error){
+        logger.error(error);
+        var exit = function(){
+            logger.info("exit(1)");
+            process.exit(1);
+        };
+        if (this.delegate && this.delegate.applicationDidCrash){
+            var logs = JSLog.getRecords();
+            try{
+                var promise = this.delegate.applicationDidCrash(this, error, logs);
+                if (promise instanceof Promise){
+                    promise.catch(function(error){
+                        logger.error("Error while handling crash: %{error}", error);
+                    }).finally(exit);
+                }else{
+                    exit();
+                }
+            }catch (e){
+                logger.error("Error while handling crash: %{error}", e);
+                exit();
+            }
+        }
     }
 
 });
@@ -51,6 +75,18 @@ JSGlobalObject.SKApplicationMain = function SKApplicationMain(){
     });
     process.on("SIGHUP", function(){
         application._signal(SKApplication.Signal.hangup);
+    });
+    process.on("uncaughtException", function(error){
+        logger.log("uncaught exception");
+        application._crash(error);
+    });
+    process.on("unhandledRejection", function(error){
+        logger.log("unhandled promise rejection");
+        if (error instanceof Error){
+            application._crash(error);
+        }else{
+            application._crash(new Error("unhandled promise rejection with non-error result"));
+        }
     });
     application.run(function(error){
         if (error !== null){

@@ -18,6 +18,8 @@
 
 JSProtocol("SKApplicationDelegate", JSProtocol, {
 
-    applicationDidFinishLaunching: function(application, launchOptions){}
+    applicationDidFinishLaunching: function(application, launchOptions){},
+    applicationWillTerminate: function(application, signal){},
+    applicationDidCrash: function(application, error, logs){}
 
 });
