@@ -30,6 +30,7 @@ JSClass('SKApplication', JSObject, {
     bundle: null,
     workingDirectoryURL: null,
     secrets: null,
+    environment: null,
 
     init: function(){
         if (shared){
@@ -38,6 +39,7 @@ JSClass('SKApplication', JSObject, {
         shared = this;
         this.bundle = JSBundle.mainBundle;
         this.workingDirectoryURL = this._getWorkingDirectoryURL();
+        this.environment = JSEnvironment.current;
     },
 
     deinit: function(){
@@ -79,7 +81,7 @@ JSClass('SKApplication', JSObject, {
 
     populateSecrets: function(fileManager, completion, target){
         this.secrets = SKSecrets.initWithNames(this.bundle.info.SKApplicationSecrets || []);
-        this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(JSEnvironment.current));
+        this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(this.environment));
         var debugEnvPath = this.launchOptions.SKDebugEnv;
         if (debugEnvPath !== null){
             var envURL = fileManager.urlForPath(debugEnvPath, this.workingDirectoryURL);

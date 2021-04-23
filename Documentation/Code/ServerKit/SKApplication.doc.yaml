@@ -113,8 +113,15 @@ topics:
         description: |
           Every application must have a delegate
   -
-    name: Working Directory
+    name: Environment & Working Directory
     members:
+      -
+        name: environment
+        introduced: 2021.16.2
+        type: JSEnvironment
+        summary: The environment in which the application is running
+        description: |
+          Defaults to `JSEnvironment.current`
       -
         name: workingDirectoryURL
         type: JSURL
