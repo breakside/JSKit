@@ -111,6 +111,7 @@ topics:
       - JSMIMEHeader
       - JSMIMEHeaderMap
       - JSSynchronizer
+      - JSIPAddress
   -
     name: Text & Typesetting
     summary: Text layout & font management
