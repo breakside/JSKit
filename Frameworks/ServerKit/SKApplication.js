@@ -140,30 +140,38 @@ JSClass('SKApplication', JSObject, {
 
     _isStopping: false,
 
-    stop: function(signal){
+    stop: function(signal, completion, target){
         if (this._isStopping){
             return;
         }
         this._isStopping = true;
-        this._gracefulShutdown(signal);
+        this._gracefulShutdown(signal, function(){
+            completion.call(target);
+        });
     },
 
-    _gracefulShutdown: function(signal){
+    _gracefulShutdown: function(signal, completion){
         var app = this;
         var shutdown = function(){
-            app.shutdown();
+            app.shutdown(completion);
         };
         if (this.delegate && this.delegate.applicationWillTerminate){
-            var promise = this.delegate.applicationWillTerminate(this, signal, shutdown);
-            if (promise instanceof Promise){
-                promise.then(shutdown);
+            try{
+                var promise = this.delegate.applicationWillTerminate(this, signal, shutdown);
+                if (promise instanceof Promise){
+                    promise.then(shutdown);
+                }
+            }catch (e){
+                logger.error("Error calling applicationWillTerminate: %{error}", e);
+                shutdown();
             }
         }else{
             shutdown();
         }
     },
 
-    shutdown: function(){
+    shutdown: function(completion){
+        completion();
     }
 
 });

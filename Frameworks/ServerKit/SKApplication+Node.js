@@ -34,34 +34,39 @@ SKApplication.definePropertiesFromExtensions({
             case SKApplication.Signal.terminate:
             case SKApplication.Signal.interrupt:
             case SKApplication.Signal.hangup:
-                this.stop(signal);
+                this.stop(signal, function(){
+                    process.exit(0);
+                });
                 break;
         }
     },
 
     _crash: function(error){
-        logger.error(error);
-        var exit = function(){
-            logger.info("exit(1)");
-            process.exit(1);
+        var app = this;
+        var stop = function(){
+            app.stop(0, function(){
+                logger.info("exit(1)");
+                process.exit(1);
+            });
         };
         if (this.delegate && this.delegate.applicationDidCrash){
-            var logs = JSLog.getRecords();
             try{
+                var logs = JSLog.getRecords();
                 var promise = this.delegate.applicationDidCrash(this, error, logs);
                 if (promise instanceof Promise){
                     promise.catch(function(error){
                         logger.error("Error while handling crash: %{error}", error);
-                    }).finally(exit);
+                    }).finally(stop);
                 }else{
-                    exit();
+                    stop();
                 }
             }catch (e){
                 logger.error("Error while handling crash: %{error}", e);
-                exit();
+                stop();
             }
         }else{
-            exit();
+            logger.error(error);
+            stop();
         }
     }
 
