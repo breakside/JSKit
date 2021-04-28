@@ -74,27 +74,45 @@ SKApplication.definePropertiesFromExtensions({
 
 JSGlobalObject.SKApplicationMain = function SKApplicationMain(){
     var application = SKApplication.init();
-    process.on("SIGTERM", function(){
-        application._signal(SKApplication.Signal.terminate);
-    });
-    process.on("SIGINT", function(){
-        application._signal(SKApplication.Signal.interrupt);
-    });
-    process.on("SIGHUP", function(){
-        application._signal(SKApplication.Signal.hangup);
-    });
-    process.on("uncaughtException", function(error){
-        logger.log("uncaught exception");
-        application._crash(error);
-    });
-    process.on("unhandledRejection", function(error){
-        logger.log("unhandled promise rejection");
-        if (error instanceof Error){
+    var listeners = {
+        SIGTERM: function(){
+            removeListeners();
+            application._signal(SKApplication.Signal.terminate);
+        },
+        SIGINT: function(){
+            removeListeners();
+            application._signal(SKApplication.Signal.interrupt);
+        },
+        SIGHUP: function(){
+            removeListeners();
+            application._signal(SKApplication.Signal.hangup);
+        },
+        uncaughtException: function(error){
+            removeListeners();
+            logger.log("uncaught exception");
             application._crash(error);
-        }else{
-            application._crash(new Error("unhandled promise rejection with non-error result"));
+        },
+        unhandledRejection: function(error){
+            removeListeners();
+            logger.log("unhandled promise rejection");
+            if (error instanceof Error){
+                application._crash(error);
+            }else{
+                application._crash(new Error("unhandled promise rejection with non-error result"));
+            }
         }
-    });
+    };
+    var addListeners = function(){
+        for (var name in listeners){
+            process.on(name, listeners[name]);
+        }
+    };
+    var removeListeners = function(){
+        for (var name in listeners){
+            process.off(name, listeners[name]);
+        }
+    };
+    addListeners();
     application.run(function(error){
         if (error !== null){
             logger.error(error);

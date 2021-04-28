@@ -81,18 +81,21 @@ JSClass('SKApplication', JSObject, {
 
     populateSecrets: function(fileManager, completion, target){
         this.secrets = SKSecrets.initWithNames(this.bundle.info.SKApplicationSecrets || []);
-        this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(this.environment));
         var debugEnvPath = this.launchOptions.SKDebugEnv;
         if (debugEnvPath !== null){
             var envURL = fileManager.urlForPath(debugEnvPath, this.workingDirectoryURL);
             fileManager.contentsAtURL(envURL, function(data){
                 if (data !== null){
-                    var env = JSEnvironment.initWithData(data);
-                    this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(env));
+                    this.environment = JSEnvironment.initWithData(data);
+                }else{
+                    logger.warn("env file not found: %{public}".sprintf(debugEnvPath));
+                    this.environment = JSEnvironment.init();
                 }
+                this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(this.environment));
                 completion.call(target);
             }, this);
         }else{
+            this.secrets.addProvider(SKSecretsEnvironmentProvider.initWithEnvironment(this.environment));
             completion.call(target);
         }
     },
@@ -106,14 +109,7 @@ JSClass('SKApplication', JSObject, {
             throw new Error("ApplicationDelegate does not implement applicationDidFinishLaunching()");
         }
         logger.info("Calling delegate.applicationDidFinishLaunching");
-        var promise = this.delegate.applicationDidFinishLaunching(this, this.launchOptions);
-        var app = this;
-        if (promise instanceof Promise){
-            promise.catch(function(error){
-                logger.error(error);
-                app.stop();
-            });
-        }
+        this.delegate.applicationDidFinishLaunching(this, this.launchOptions);
     },
 
     setupFonts: function(){
@@ -161,7 +157,9 @@ JSClass('SKApplication', JSObject, {
             try{
                 var promise = this.delegate.applicationWillTerminate(this, signal, shutdown);
                 if (promise instanceof Promise){
-                    promise.then(shutdown);
+                    promise.catch(function(error){
+                        logger.error("Error calling applicationWillTerminate: %{error}", error);
+                    }).finally(shutdown);
                 }
             }catch (e){
                 logger.error("Error calling applicationWillTerminate: %{error}", e);
