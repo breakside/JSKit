@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "CKConferenceCall.js"
+// #import "CKManagedConferenceCall.js"
 // #import "CKTURNService.js"
 // #import "CKSessionDescription.js"
 // #import "CKParticipant.js"

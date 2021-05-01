@@ -23,7 +23,7 @@
 
 (function(){
 
-var logger = JSLog("confcall", "html");
+var logger = JSLog("conference", "html-connection");
 
 JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
@@ -34,6 +34,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
     open: function(isCaller){
         logger.info("opening connection to participant %d", this.participant.number);
+        this.call.delegate.conferenceCallWillReceiveStreamFromParticipant(this.call, this.participant);
         var configuration = {
             iceServers: [],
             iceTransportPolicy: "all",
@@ -106,7 +107,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
                 if (htmlDescription !== null){
                     var description = CKSessionDescription.initWithHTMLDescription(htmlDescription);
                     logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
-                    connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
+                    connection.call.sendDescriptionToParticipant(description, connection.participant);
                 }else{
                     logger.warn("null local description after setLocalDescription");
                 }
@@ -240,7 +241,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             logger.info("ice candidate null, not sending to participant %d", this.participant.number);
         }else{
             logger.info("sending ice candidate, %{public} @%{public}:%d, to participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
-            this.call.delegate.conferenceCallSendCandidateToParticipant(this.call, candidate !== null ? candidate.toJSON() : null, this.participant);
+            this.call.sendCandidateToParticipant(candidate !== null ? candidate.toJSON() : null, this.participant);
         }
     },
 

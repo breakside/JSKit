@@ -26,15 +26,33 @@ JSClass("MKHTMLStream", MKStream, {
         this.htmlAudioTrack = htmlMediaStream.getAudioTracks()[0] || null;
     },
 
-    muteAudio: function(){
+    audioMuted: JSDynamicProperty(),
+
+    getAudioMuted: function(){
+        if (this.htmlAudioTrack){
+            return !this.htmlAudioTrack.enabled;
+        }
+        return true;
+    },
+
+    setAudioMuted: function(muted){
         if (this.htmlAudioTrack !== null){
-            this.htmlAudioTrack.enabled = false;
+            this.htmlAudioTrack.enabled = !muted;
         }
     },
 
-    unmuteAudio: function(){
-        if (this.htmlAudioTrack !== null){
-            this.htmlAudioTrack.enabled = true;
+    videoMuted: JSDynamicProperty(),
+
+    getVideoMuted: function(){
+        if (this.htmlVideoTrack){
+            return !this.htmlVideoTrack.enabled;
+        }
+        return true;
+    },
+
+    setVideoMuted: function(muted){
+        if (this.htmlVideoTrack !== null){
+            this.htmlVideoTrack.enabled = !muted;
         }
     },
 
@@ -57,13 +75,13 @@ JSClass("MKHTMLStream", MKStream, {
 
 });
 
-MKStream.requestLocalVideo = function(completion, target){
+MKStream.requestLocalStream = function(type, completion, target){
     if (!completion){
         completion = Promise.completion();
     }
     var constraints = {
-        audio: true,
-        video: true
+        audio: (type & MKStream.Type.audio) == MKStream.Type.audio,
+        video: (type & MKStream.Type.video) == MKStream.Type.video
     };
     navigator.mediaDevices.getUserMedia(constraints).then(function(htmlMediaStream){
         var stream = MKHTMLStream.initWithHTMLMediaStream(htmlMediaStream);
