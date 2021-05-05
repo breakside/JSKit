@@ -37,27 +37,36 @@ JSClass("CKConferenceCall", JSObject, {
     localParticipant: JSDynamicProperty("_localParticipant", null),
 
     setLocalParticipant: function(participant){
+        if (participant === this._localParticipant){
+            return;
+        }
+        var stream = null;
+        if (this._localParticipant !== null){
+            stream = this._localParticipant.stream;
+        }
+        participant.isLocal = true;
         participant.number = this.nextParticipantNumber++;
+        participant.call = this;
         this._localParticipant = participant;
-        participant.addObserverForKeyPath(this, "audioMuted");
-        participant.addObserverForKeyPath(this, "videoMuted");
-        this.requestLocalStream();
+        if (stream === null){
+            this.openLocalStream();
+        }else{
+            participant.stream = stream;
+        }
     },
 
     connectToParticipant: function(participant, isCaller){
         participant.number = this.nextParticipantNumber++;
         var connection = CKParticipantConnection.createForParticipant(participant);
-        participant.addObserverForKeyPath(this, "audioMuted");
-        participant.addObserverForKeyPath(this, "videoMuted");
+        participant.call = this;
         connection.call = this;
         this.connectionsByParticipantID[participant.identifier] = connection;
-        connection.setLocalStream(this._localStream);
+        connection.setLocalStream(this._localParticipant.stream);
         connection.open(isCaller);
     },
 
     disconnectFromParticipant: function(participant){
-        participant.removeObserverForKeyPath(this, "audioMuted");
-        participant.removeObserverForKeyPath(this, "videoMuted");
+        participant.call = null;
         this._closeConnectionForIdentifier(participant.identifier);
     },
 
@@ -69,10 +78,33 @@ JSClass("CKConferenceCall", JSObject, {
         this.delegate.conferenceCallSendCandidateToParticipant(this, candidate, participant);
     },
 
+    _didChangeMuteStateForParticipant: function(participant){
+        if (this.call.delegate && this.call.delegate.conferenceCallDidChangeMuteStateForParticipant){
+            this.call.delegate.conferenceCallDidChangeMuteStateForParticipant(this.call, this);
+        }
+    },
+
+    start: function(){
+    },
+
     end: function(){
         var ids = Object.keys(this.connectionsByParticipantID);
         for (var i = 0, l = ids.length; i < l; ++i){
             this._closeConnectionForIdentifier(ids[i]);
+        }
+        if (this._localParticipant !== null){
+            if (this._localParticipant.stream){
+                this._localParticipant.stream.close();
+            }
+            this._localParticipant.call = null;
+            this._localParticipant = null;
+        }
+    },
+
+    fail: function(){
+        this.end();
+        if (this.delegate && this.delegate.conferenceCallDidFail){
+            this.delegate.conferenceCallDidFail(this);
         }
     },
 
@@ -80,9 +112,13 @@ JSClass("CKConferenceCall", JSObject, {
         var connection = this.connectionsByParticipantID[id];
         if (connection){
             connection.close();
-            connection.call = null;
-            delete this.connectionsByParticipantID[id];
+            this._removeConnection(connection);
         }
+    },
+
+    _removeConnection: function(connection){
+        connection.call = null;
+        delete this.connectionsByParticipantID[connection.participant.identifier];
     },
 
     updateDescriptionForParticipant: function(description, participant){
@@ -110,82 +146,37 @@ JSClass("CKConferenceCall", JSObject, {
         return null;
     },
 
-    localAudioMuted: JSDynamicProperty("_localAudioMuted", false),
-    localVideoMuted: JSDynamicProperty("_localVideoMuted", false),
-
-    setLocalAudioMuted: function(muted){
-        if (muted !== this._localAudioMuted){
-            this._localAudioMuted = muted;
-            if (this._localStream !== null){
-                this._localStream.audioMuted = muted;
-            }
-            if (this.delegate && this.delegate.conferenceCallDidChangeLocalMuteState){
-                this.delegate.conferenceCallDidChangeLocalMuteState(this);
-            }
+    openLocalStream: function(){
+        this._localParticipant._setVideoStreamMuted(false);
+        if (this.delegate && this.delegate.conferenceCallWillStartStreamFromParticipant){
+            this.delegate.conferenceCallWillStartStreamFromParticipant(this, this._localParticipant);
         }
-    },
-
-    setLocalVideoMuted: function(muted){
-        if (muted !== this._localVideoMuted){
-            this._localVideoMuted = muted;
-            if (this._localStream !== null){
-                this._localStream.videoMuted = muted;
-            }
-            if (this.delegate && this.delegate.conferenceCallDidChangeLocalMuteState){
-                this.delegate.conferenceCallDidChangeLocalMuteState(this);
-            }
+        var type = MKStream.Type.audio;
+        if (!this._localParticipant.videoSoftMuted){
+            type |= MKStream.Type.video;
         }
-    },
-
-    localStream: JSDynamicProperty("_localStream", null),
-
-    setLocalStream: function(stream){
-        this._localStream = stream;
-        this._localStream.audioMuted = this._localAudioMuted;
-        this._localStream.videoMuted = this._localVideoMuted;
-        var connection;
-        for (var id in this.connectionsByParticipantID){
-            connection = this.connectionsByParticipantID[id];
-            connection.setLocalStream(stream);
-        }
-        if (this.delegate && this.delegate.conferenceCallDidReceiveLocalStream){
-            this.delegate.conferenceCallDidReceiveLocalStream(this, stream);
-        }
-    },
-
-    requestLocalStream: function(){
-        this.localVideoMuted = false;
-        if (this.delegate && this.delegate.conferenceCallWillReceiveLocalStream){
-            this.delegate.conferenceCallWillReceiveLocalStream(this);
-        }
-        MKStream.requestLocalStream(MKStream.Type.audioVideo, this.handleLocalStream, this);
+        MKStream.openLocalStreamOfType(type, this.handleLocalStream, this);
     },
 
     handleLocalStream: function(stream){
         if (stream === null){
-            this.localVideoMuted = true;
+            this._localParticipant._setVideoStreamMuted(true);
             if (this.delegate && this.delegate.conferenceCallNeedsPermissionToLocalStream){
-                this.deleagte.conferenceCallNeedsPermissionToLocalStream(this);
+                this.deleagte.conferenceCallNeedsPermissionToLocalStream(this, this.requestLocalStream.bind(this));
             }
         }else{
-            this.setLocalStream(stream);
-        }
-    },
-
-    remoteStreamForParticipant: function(participant){
-        var connection = this.connectionsByParticipantID[participant.identifier];
-        if (connection){
-            return connection.remoteStream;
-        }
-        return null;
-    },
-
-    observeValueForKeyPath: function(keyPath, ofObject, change, context){
-        if (ofObject.isKindOfClass(CKParticipant)){
-            if (this.delegate && this.delegate.conferenceCallDidChangeMuteStateForParticipant){
-                this.delegate.conferenceCallDidChangeMuteStateForParticipant(this, ofObject);
+            this._localParticipant.stream = stream;
+            stream.audioMuted = this._localParticipant.audioSoftMuted;
+            stream.videoMuted = this._localParticipant.videoSoftMuted;
+            var connection;
+            for (var id in this.connectionsByParticipantID){
+                connection = this.connectionsByParticipantID[id];
+                connection.setLocalStream(stream);
+            }
+            if (this.delegate && this.delegate.conferenceCallDidStartStreamFromParticipant){
+                this.delegate.conferenceCallDidStartStreamFromParticipant(this, stream, this._localParticipant);
             }
         }
-    }
+    },
 
 });

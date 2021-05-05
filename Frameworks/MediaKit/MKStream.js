@@ -19,11 +19,14 @@
 JSClass("MKStream", MKAsset, {
 
     audioMuted: false,
-    videoMuted: false
+    videoMuted: false,
+
+    close: function(){
+    }
 
 });
 
-MKStream.requestLocalStream = function(type, completion, target){
+MKStream.openLocalStreamOfType = function(type, completion, target){
 };
 
 MKStream.Type = {

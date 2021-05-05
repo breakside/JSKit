@@ -73,6 +73,15 @@ JSClass("MKHTMLStream", MKStream, {
     htmlVideoTrack: null,
     htmlAudioTrack: null,
 
+    close: function(){
+        if (this.htmlVideoTrack !== null){
+            this.htmlVideoTrack.stop();
+        }
+        if (this.htmlAudioTrack !== null){
+            this.htmlAudioTrack.stop();
+        }
+    }
+
 });
 
 MKStream.requestLocalStream = function(type, completion, target){

@@ -22,6 +22,9 @@ var logger = JSLog("conference", "managed-call");
 
 JSClass("CKManagedConferenceCall", CKConferenceCall, {
 
+    // ----------------------------------------------------------------------
+    // MARK: - Creating a managed call
+
     url: null,
     urlSession: null,
 
@@ -29,23 +32,19 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
         this.url = url;
         this.urlSession = urlSession || JSURLSession.shared;
         this.localParticipantID = this.url.query.get("username");
+        this.sideChannelSendQueue = [];
     },
 
-    sideChannelTask: null,
-    sideChannelConnected: false,
+    // ----------------------------------------------------------------------
+    // MARK: - Overrides
 
     start: function(){
-        if (this.sideChannelTask === null){
-            this.sideChannelTask = this.urlSession.streamTaskWithURL(this.url, ["conf1"]);
-            this.sideChannelTask.streamDelegate = this;
-            this.sideChannelTask.resume();
-        }
+        CKManagedConferenceCall.$super.start.call(this);
+        this.openSideChannel();
     },
 
     end: function(){
-        this.sideChannelTask.streamDelegate = null;
-        this.sideChannelTask.cancel();
-        this.sideChannelTask = null;
+        this.closeSideChannel();
         CKManagedConferenceCall.$super.end.call(this);
     },
 
@@ -74,33 +73,87 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
         this.sendSideChannelMessage(message);
     },
 
-    setLocalAudioMuted: function(muted){
-        if (this.localAudioMuted !== muted){
-            CKManagedConferenceCall.$super.setLocalAudioMuted.call(this, muted);
-            this.sendSideChannelMessage({type: "mute", audioMuted: muted});
+    _didChangeMuteStateForParticipant: function(participant){
+        CKManagedConferenceCall.$super._didChangeMuteStateForParticipant.call(this, participant);
+        if (participant === this._localParticipant){
+            this.sendSideChannelMessage({type: "mute", audioMuted: participant.audioSoftMuted, videoMuted: participant.videoSoftMuted});
         }
     },
 
-    setLocalVideoMuted: function(muted){
-        if (this.localVideoMuted !== muted){
-            CKManagedConferenceCall.$super.setLocalVideoMuted.call(this, muted);
-            this.sendSideChannelMessage({type: "mute", videoMuted: muted});
+    // ----------------------------------------------------------------------
+    // MARK: - Side Channel
+
+    sideChannelTask: null,
+    sideChannelStreamOpen: false,
+    sideChannelConnected: false,
+
+    openSideChannel: function(){
+        if (this.sideChannelTask === null){
+            this.sideChannelTask = this.urlSession.streamTaskWithURL(this.url, ["conf1"]);
+            this.sideChannelTask.streamDelegate = this;
+            this.sideChannelTask.resume();
+        }
+    },
+
+    closeSideChannel: function(){
+        if (this.sideChannelTask !== null){
+            this.sideChannelTask.streamDelegate = null;
+            this.sideChannelTask.cancel();
+            this.sideChannelTask = null;
+            this.sideChannelConnected = false;
+            this.sideChannelStreamOpen = false;
+        }
+    },
+
+    reconnectAttempts: 0,
+    maximumReconnectAttempts: 3,
+    initialReconnectWaitInterval: 0.5,
+    _reconnectWaitInterval: null,
+    _reconnectTimer: null,
+
+    reconnectSideChannel: function(){
+        if (this._reconnectTimer !== null){
+            this._reconnectTimer.invalidate();
+            this._reconnectTimer = null;
+        }
+        if (this.reconnectAttempts < this.maximumReconnectAttempts){
+            this.openSideChannel();
+        }else{
+            this.fail();
         }
     },
 
     taskDidOpenStream: function(task){
-        logger.info("stream open");
-        this.sideChannelConnected = true;
+        logger.info("side channel open");
+        this.sideChannelStreamOpen = true;
+        this.reconnectAttempts = 0;
+        this._reconnectWaitInterval = null;
     },
 
     taskDidCloseStream: function(task){
-        logger.info("stream closed");
+        logger.info("side channel closed");
         this.sideChannelConnected = false;
+        this.sideChannelStreamOpen = false;
+        this.sideChannelTask.streamDelegate = null;
+        this.sideChannelTask = null;
+        this.reconnectSideChannel();
     },
 
     taskDidReceiveStreamError: function(task){
-        logger.error("room error");
-        // TODO:
+        if (!this.sideChannelStreamOpen){
+            logger.error("error opening side channel");
+            this.sideChannelTask.streamDelegate = null;
+            this.sideChannelTask = null;
+            if (this._reconnectTimer === null){
+                if (this._reconnectWaitInterval === null){
+                    this._reconnectWaitInterval = this.initialReconnectWaitInterval;
+                }
+                this._reconnectTimer = JSTimer.scheduledTimerWithInterval(this._reconnectWaitInterval, this.reconnectSideChannel, this);
+                this._reconnectWaitInterval *= 2;
+            }
+        }else{
+            logger.error("error when side channel open");
+        }
     },
 
     taskDidReceiveStreamData: function(task, data){
@@ -119,6 +172,28 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
         }
     },
 
+    // ----------------------------------------------------------------------
+    // MARK: - Side Channel Messages
+
+    sideChannelSendQueue: null,
+
+    sendSideChannelMessage: function(message){
+        if (!this.sideChannelStreamOpen){
+            this.sideChannelSendQueue.push(message);
+            return;
+        }
+        var data = JSON.stringify(message);
+        this.sideChannelTask.sendSideChannelMessage(data);
+    },
+
+    flushSideChannelSendQueue: function(){
+        var messages = this.sideChannelSendQueue;
+        this.sideChannelSendQueue = [];
+        for (var i = 0, l = messages.length; i < l; ++i){
+            this.sendSideChannelMessage(messages[i]);
+        }
+    },
+
     receiveSideChannelMessage: function(message){
         if (message.type == "connected"){
             this.handleConnectedMessage(message);
@@ -133,45 +208,37 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
         }
     },
 
-    sendSideChannelMessage: function(message){
-        if (!this.sideChannelConnected){
-            // TODO: queue messages until connected
-            return;
-        }
-        var data = JSON.stringify(message);
-        this.sideChannelTask.sendSideChannelMessage(data);
-    },
-
     handleConnectedMessage: function(message){
-        // TODO: handle reconnect situation
-        // - only connect to participants we aren't already connected to
-        // - don't bother updating TURN services?
-        // - don't request local stream
-        // - update participants
-        // - ??
         var turnService = CKTURNService.initWithURLs(message.turn.uris, this.url.query.get("username"), this.url.query.get("password"));
-        this.turnServices.push(turnService);
+        this.turnServices = [turnService];
 
         var participant;
-        var participants;
+        var newParticipants;
         var participantDictionary;
         var i, l;
         for (i = 0, l = message.participants.length; i < l; ++i){
             participantDictionary = message.participants[i];
-            participant = CKParticipant.initWithIdentifier(participantDictionary.id);
+            participant = this.participantForIdentifier(participantDictionary.id);
+            if (participant === null){
+                participant = CKParticipant.initWithIdentifier(participantDictionary.id);
+                newParticipants.push(participant);
+            }
             participant.audioSoftMuted = participantDictionary.audioMuted;
             participant.videoSoftMuted = participantDictionary.videoMuted;
-            if (participantDictionary.id == this.localParticipantID){
+            if (participant.identifier == this.localParticipantID){
                 this.localParticpant = participant;
-                this.requestLocalStream();
-            }else{
-                participants.push(participant);
             }
         }
 
-        for (i = 0, l = participants.length; i < l; ++i){
-            this.connectToParticipant(participants[i], true);
+        for (i = 0, l = newParticipants.length; i < l; ++i){
+            participant = newParticipants[i];
+            if (participant.identifier != this.localParticpantID){
+                this.connectToParticipant(participant, true);
+            }
         }
+
+        this.sideChannelConnected = true;
+        this.flushSideChannelSendQueue();
     },
 
     handleDescriptionMessage: function(message){
@@ -188,18 +255,17 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
     },
 
     handleParticipantMessage: function(message){
-        var existing = this.participantForIdentifier(message.participant.id);
-        if (existing !== null){
-            if (existing.connected && !message.participant.connected){
-                this.disconnectFromParticipant(existing);
-            }
-            existing.audioSoftMuted = message.participant.audioMuted;
-            existing.videoSoftMuted = message.participant.videoMuted;
-        }else{
-            var participant = CKParticipant.initWithIdentifier(message.participant.id);
-            participant.audioSoftMuted = message.participant.audioMuted;
-            participant.videoSoftMuted = message.participant.videoMuted;
+        var participant = this.participantForIdentifier(message.participant.id);
+        if (participant === null){
+            participant = CKParticipant.initWithIdentifier(message.participant.id);
+        }
+        participant.audioSoftMuted = message.participant.audioMuted;
+        participant.videoSoftMuted = message.participant.videoMuted;
+        if (!participant.connected && message.participant.connected){
+            participant.connected = true;
             this.connectToParticipant(participant, false);
+        }else if (participant.connected && !message.participant.connected){
+            participant.connected = false;
         }
     }
 
