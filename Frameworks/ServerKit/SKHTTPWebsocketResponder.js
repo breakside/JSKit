@@ -72,36 +72,36 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         }
 
         this._socket.delegate = this;
-        this.startLisentingForNotifications();
+        this._startLisentingForNotifications();
         return this.websocketEstablished(this._socket);
     },
 
-    notificationObservers: null,
+    _notificationObservers: null,
 
-    startLisentingForNotifications: function(){
-        if (this.notificationObservers === null){
-            this.notificationObservers = {
+    _startLisentingForNotifications: function(){
+        if (this._notificationObservers === null){
+            this._notificationObservers = {
                 serverWillStop: this.server.notificationCenter.addObserver("SKHTTPServerWillStop", this.server, this.serverWillStop, this)
             };
         }
     },
 
-    stopListeningForNotifications: function(){
-        if (this.notificationObservers !== null){
-            this.server.notificationCenter.removeObserver("SKHTTPServerWillStop", this.notificationObservers.serverWillStop);
+    _stopListeningForNotifications: function(){
+        if (this._notificationObservers !== null){
+            this.server.notificationCenter.removeObserver("SKHTTPServerWillStop", this._notificationObservers.serverWillStop);
         }
     },
 
     serverWillStop: function(notification){
         if (this._socket !== null){
             this.logger.info("closing because server will stop");
-            this._socket._close(SKHTTPWebSocket.Status.goingAway);
+            this._socket.close(SKHTTPWebSocket.Status.goingAway);
         }
     },
 
     fail: function(error){
         if (this._socket !== null){
-            this._socket._close(SKHTTPWebSocket.Status.generic);
+            this._socket.close(SKHTTPWebSocket.Status.generic);
             return;
         }
         SKHTTPWebSocketResponder.$super.fail.call(this, error);
@@ -119,6 +119,10 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         this._socket.continueMessage(data, isFinal);
     },
 
+    close: function(status){
+        this._socket.close(status);
+    },
+
     websocketEstablished: function(socket){
     },
 
@@ -129,10 +133,13 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     // always called even if subclass overrides socketDidClose
-    socketDidClosePrivate: function(socket){
+    socketDidClosePrivate: function(socket, didClosePromise){
         this._socket.delegate = null;
         this._socket = null;
-        this.stopListeningForNotifications();
+        this._stopListeningForNotifications();
+        if (this.server.isStopping && (didClosePromise instanceof Promise)){
+            this.server._websocketClosePromises.push(didClosePromise);
+        }
     }
 
 });

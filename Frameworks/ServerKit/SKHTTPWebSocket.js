@@ -26,6 +26,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _sentClose: false,
     _messageChunks: null,
     _pingTimer: null,
+    closeStatus: null,
     pingInterval: JSDynamicProperty('_pingInterval', 45),
     logger: null,
     tag: null,
@@ -73,29 +74,6 @@ JSClass("SKHTTPWebSocket", JSObject, {
     _write: function(bytes){
     },
 
-    cleanup: function(){
-        if (this._pingTimer !== null){
-            this._pingTimer.invalidate();
-            this._pingTimer = null;
-        }
-        this._cleanup();
-        if (this.delegate && this.delegate.socketDidClose){
-            var promise = this.delegate.socketDidClose(this);
-            var socket = this;
-            if (promise instanceof Promise){
-                promise.catch(function(error){
-                    socket.logger.error("Error during async socketDidClose: %{error}", error);
-                });
-            }
-        }
-        if (this.delegate && this.delegate.socketDidClosePrivate){
-            this.delegate.socketDidClosePrivate(this);
-        }
-    },
-
-    _cleanup: function(){
-    },
-
     webSocketParserDidReceivePing: function(parser, chunks){
         this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData(chunks), JSHTTPWebSocketParser.FrameCode.pong);
         for (var i = 0, l = chunks.length; i < l; ++i){
@@ -107,27 +85,14 @@ JSClass("SKHTTPWebSocket", JSObject, {
         // Only needed if we send a ping and want to verify the response
     },
 
-    webSocketParserDidReceiveClose: function(parser, chunks){
-        if (this._sentClose){
-            this.cleanup();
-        }else{
-            this.logger.info("received close from client");
-            this._sentClose = true;
-            this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData(chunks), JSHTTPWebSocketParser.FrameCode.close);
-            for (var i = 0, l = chunks.length; i < l; ++i){
-                this._write(chunks[i]);
-            }
-        }
-    },
-
     webSocketParserDidReceiveFrameOutOfSequence: function(parser){
         // TODO: cancel parsing?
-        this._close(SKHTTPWebSocket.Status.generic);
+        this.close(SKHTTPWebSocket.Status.generic);
     },
 
     webSocketParserDidReceiveInvalidLength: function(parser){
         // TODO: cancel parsing?
-        this._close(SKHTTPWebSocket.Status.messageTooLarge);
+        this.close(SKHTTPWebSocket.Status.messageTooLarge);
     },
 
     webSocketParserDidReceiveData: function(parser, chunk){
@@ -138,7 +103,7 @@ JSClass("SKHTTPWebSocket", JSObject, {
             if (promise instanceof Promise){
                 promise.catch(function(error){
                     socket.logger.error("Error during async socketDidReceiveData, closing: %{error}", error);
-                    socket._close(SKHTTPWebSocket.Status.generic);
+                    socket.close(SKHTTPWebSocket.Status.generic);
                 });
             }
         }
@@ -151,21 +116,69 @@ JSClass("SKHTTPWebSocket", JSObject, {
             if (promise instanceof Promise){
                 promise.catch(function(error){
                     socket.logger.error("Error during async socketDidReceiveMessage, closing: %{error}", error);
-                    socket._close(SKHTTPWebSocket.Status.generic);
+                    socket.close(SKHTTPWebSocket.Status.generic);
                 });
             }
         }
         this._messageChunks = [];
     },
 
-    _close: function(status){
-        this._sentClose = true;
-        var payload = JSData.initWithLength(2);
-        payload[0] = status >> 8;
-        payload[1] = status & 0xFF;
-        this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData([payload]), JSHTTPWebSocketParser.FrameCode.close);
-        this._write(payload);
-    }
+    webSocketParserDidReceiveClose: function(parser, chunks){
+        this.logger.info("received close from client");
+        var data = JSData.initWithChunks(chunks);
+        if (data.length > 2){
+            this.closeStatus = (data[0] << 8) | data[1];
+        }else{
+            this.closeStatus = SKHTTPWebSocket.Status.noStatusProvided;
+        }
+        this._sendCloseIfNeeded(this.closeStatus);
+        this.cleanup();
+    },
+
+    close: function(status){
+        this._sendCloseIfNeeded(status);
+    },
+
+    _sendCloseIfNeeded: function(status){
+        if (!this._sentClose){
+            var payload;
+            if (status !== undefined && status !== SKHTTPWebSocket.Status.noStatusProvided){
+                payload = JSData.initWithLength(2);
+                payload[0] = status >> 8;
+                payload[1] = status & 0xFF;
+            }else{
+                payload = JSData.init();
+            }
+            this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData([payload]), JSHTTPWebSocketParser.FrameCode.close);
+            this._write(payload);
+            this._sentClose = true;
+        }
+    },
+
+    cleanup: function(){
+        if (this._pingTimer !== null){
+            this._pingTimer.invalidate();
+            this._pingTimer = null;
+        }
+        this._cleanup();
+        var promise;
+        if (this.delegate && this.delegate.socketDidClose){
+            promise = this.delegate.socketDidClose(this, this.closeStatus);
+            var socket = this;
+            if (promise instanceof Promise){
+                promise = promise.catch(function(error){
+                    socket.logger.error("Error during async socketDidClose: %{error}", error);
+                });
+                return;
+            }
+        }
+        if (this.delegate && this.delegate.socketDidClosePrivate){
+            this.delegate.socketDidClosePrivate(this, promise);
+        }
+    },
+
+    _cleanup: function(){
+    },
 
 });
 
@@ -174,9 +187,12 @@ SKHTTPWebSocket.Status = {
     goingAway: 1001,
     protocolError: 1002,
     unsupportedDataType: 1003,
+    noStatusProvided: 1005,
+    noCloseFrameReceived: 1006,
     invalidData: 1007,
     generic: 1008,
-    messageTooLarge: 1009
+    messageTooLarge: 1009,
+    firstUserStatus: 4000
 };
 
 })();
