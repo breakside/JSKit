@@ -114,6 +114,9 @@ JSClass("JSURLRequest", JSObject, {
     },
 
     addBasicAuthorization: function(username, password){
+        if (username === null || username === undefined){
+            return;
+        }
         var combined;
         if (password){
             combined = username + ":" + password;
@@ -125,6 +128,9 @@ JSClass("JSURLRequest", JSObject, {
     },
 
     addBearerAuthorization: function(token){
+        if (token === null || token === undefined){
+            return;
+        }
         this.headerMap.add("Authorization", "Bearer " + token);
     }
 
