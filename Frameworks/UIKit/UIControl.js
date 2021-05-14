@@ -313,7 +313,10 @@ JSClass("UIControl", UIView, {
     },
 
     getFocusRingPath: function(){
-        return this._styler.focusRingPathForControl(this);
+        if (this._styler !== null){
+            return this._styler.focusRingPathForControl(this);
+        }
+        return UIControl.$super.getFocusRingPath.call(this);
     },
 
     // -------------------------------------------------------------------------
