@@ -79,8 +79,8 @@ JSClass("CKConferenceCall", JSObject, {
     },
 
     _didChangeMuteStateForParticipant: function(participant){
-        if (this.call.delegate && this.call.delegate.conferenceCallDidChangeMuteStateForParticipant){
-            this.call.delegate.conferenceCallDidChangeMuteStateForParticipant(this.call, this);
+        if (this.delegate && this.delegate.conferenceCallDidChangeMuteStateForParticipant){
+            this.delegate.conferenceCallDidChangeMuteStateForParticipant(this, participant);
         }
     },
 
@@ -162,7 +162,7 @@ JSClass("CKConferenceCall", JSObject, {
         if (stream === null){
             this._localParticipant._setVideoStreamMuted(true);
             if (this.delegate && this.delegate.conferenceCallNeedsPermissionToLocalStream){
-                this.deleagte.conferenceCallNeedsPermissionToLocalStream(this, this.requestLocalStream.bind(this));
+                this.delegate.conferenceCallNeedsPermissionToLocalStream(this, this.openLocalStream.bind(this));
             }
         }else{
             this._localParticipant.stream = stream;

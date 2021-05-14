@@ -13,7 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import ConferenceKit
+// #import "CKConferenceCall.js"
+// #import "CKTURNService.js"
+// #import "CKSessionDescription.js"
 "use strict";
 
 (function(){
@@ -29,6 +31,7 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
     urlSession: null,
 
     initWithURL: function(url, urlSession){
+        CKManagedConferenceCall.$super.init.call(this);
         this.url = url;
         this.urlSession = urlSession || JSURLSession.shared;
         this.localParticipantID = this.url.query.get("username");
@@ -117,6 +120,7 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
             this._reconnectTimer = null;
         }
         if (this.reconnectAttempts < this.maximumReconnectAttempts){
+            ++this.reconnectAttempts;
             this.openSideChannel();
         }else{
             this.fail();
@@ -126,8 +130,6 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
     taskDidOpenStream: function(task){
         logger.info("side channel open");
         this.sideChannelStreamOpen = true;
-        this.reconnectAttempts = 0;
-        this._reconnectWaitInterval = null;
     },
 
     taskDidCloseStream: function(task){
@@ -157,6 +159,10 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
     },
 
     taskDidReceiveStreamData: function(task, data){
+        if (data.length === 0){
+            logger.warn("received empty message from server");
+            return;
+        }
         if (data[0] == 0x7B){
             var message = null;
             try{
@@ -183,7 +189,7 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
             return;
         }
         var data = JSON.stringify(message);
-        this.sideChannelTask.sendSideChannelMessage(data);
+        this.sideChannelTask.sendMessage(data);
     },
 
     flushSideChannelSendQueue: function(){
@@ -209,11 +215,14 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
     },
 
     handleConnectedMessage: function(message){
+        this.reconnectAttempts = 0;
+        this._reconnectWaitInterval = null;
+
         var turnService = CKTURNService.initWithURLs(message.turn.uris, this.url.query.get("username"), this.url.query.get("password"));
         this.turnServices = [turnService];
 
         var participant;
-        var newParticipants;
+        var newParticipants = [];
         var participantDictionary;
         var i, l;
         for (i = 0, l = message.participants.length; i < l; ++i){
@@ -226,13 +235,13 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
             participant.audioSoftMuted = participantDictionary.audioMuted;
             participant.videoSoftMuted = participantDictionary.videoMuted;
             if (participant.identifier == this.localParticipantID){
-                this.localParticpant = participant;
+                this.localParticipant = participant;
             }
         }
 
         for (i = 0, l = newParticipants.length; i < l; ++i){
             participant = newParticipants[i];
-            if (participant.identifier != this.localParticpantID){
+            if (participant.identifier != this.localParticipantID){
                 this.connectToParticipant(participant, true);
             }
         }

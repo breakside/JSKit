@@ -406,7 +406,9 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         if (this.audioTrackNeedsUnmute){
             return;
         }
-        this.call.delegate.conferenceCallDidStartStreamFromParticipant(this.call, this.remoteStream, this.participant);
+        if (this.call.delegate && this.call.delegate.conferenceCallDidStartStreamFromParticipant){
+            this.call.delegate.conferenceCallDidStartStreamFromParticipant(this.call, this.remoteStream, this.participant);
+        }
     },
 
     notifyAfterInactive: function(){
@@ -414,7 +416,9 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             return;
         }
         this.participant.stream = null;
-        this.call.delegate.conferenceCallDidStopStreamFromParticipant(this.call, this.participant);
+        if (this.call.delegate && this.call.delegate.conferenceCallDidStopStreamFromParticipant){
+            this.call.delegate.conferenceCallDidStopStreamFromParticipant(this.call, this.participant);
+        }
         this.call._removeConnection(this);
     },
 
