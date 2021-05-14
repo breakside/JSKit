@@ -77,9 +77,6 @@ JSBundleIdentifier:         com.yourcompany.MessagesWeb
 JSBundleVersion:            1.0.0
 UIMainSpec:                 MainWindow
 UIApplicationTitle:         .applicationTitle
-UIApplicationLaunchOptions:
-  uistate: {kind: positional, default: null}
-  others: {kind: unknown}
 UIApplicationSystemFont:    SourceSansPro-Light
 JSDevelopmentLanguage:      en
 ````

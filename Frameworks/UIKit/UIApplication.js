@@ -280,6 +280,10 @@ JSClass('UIApplication', UIResponder, {
 
     shortcutMenu: null,
 
+    // MARK: - State
+
+    state: null,
+
     // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
