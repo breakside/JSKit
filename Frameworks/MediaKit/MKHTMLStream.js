@@ -84,7 +84,7 @@ JSClass("MKHTMLStream", MKStream, {
 
 });
 
-MKStream.requestLocalStream = function(type, completion, target){
+MKStream.openLocalStreamOfType = function(type, completion, target){
     if (!completion){
         completion = Promise.completion();
     }
