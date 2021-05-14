@@ -51,14 +51,18 @@ JSClass("SECPassword", JSObject, {
         if (completion === undefined){
             completion = Promise.completion();
         }
-        SECPassword.dataDerivedFromPassphrase(plainPassword, this.pbkdf2Data.length, this.salt, this.iterations, this.hashAlgorithm, function(data){
-            if (data === null){
-                completion.call(target, false);
-                return;
-            }
-            var verified = data.isEqual(this.pbkdf2Data);
-            completion.call(target, verified);
-        }, this);
+        if (plainPassword !== null && plainPassword !== undefined){
+            SECPassword.dataDerivedFromPassphrase(plainPassword, this.pbkdf2Data.length, this.salt, this.iterations, this.hashAlgorithm, function(data){
+                if (data === null){
+                    completion.call(target, false);
+                    return;
+                }
+                var verified = data.isEqual(this.pbkdf2Data);
+                completion.call(target, verified);
+            }, this);
+        }else{
+            JSRunLoop.main.schedule(completion, target, false);
+        }
         return completion.promise;
     }
 
