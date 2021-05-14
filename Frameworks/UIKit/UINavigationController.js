@@ -29,11 +29,11 @@ JSProtocol("UINavigationControllerDelegate", JSProtocol, {
 
 JSClass("UINavigationController", UIViewController, {
 
-    initWithRootViewController: function(rootViewController){
+    initWithRootViewController: function(rootViewController, barStyler){
         UINavigationController.$super.init.call(this);
         this.addChildViewController(rootViewController);
         this._viewControllers = [rootViewController];
-        this.navigationBar = UINavigationBar.initWithRootItem(rootViewController.navigationItem);
+        this.navigationBar = UINavigationBar.initWithRootItem(rootViewController.navigationItem, barStyler);
     },
 
     initWithSpec: function(spec){
