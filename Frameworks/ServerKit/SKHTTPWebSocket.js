@@ -75,7 +75,8 @@ JSClass("SKHTTPWebSocket", JSObject, {
     },
 
     webSocketParserDidReceivePing: function(parser, chunks){
-        this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData(chunks), JSHTTPWebSocketParser.FrameCode.pong);
+        var header = JSHTTPWebSocketParser.UnmaskedHeaderForData(chunks, JSHTTPWebSocketParser.FrameCode.pong);
+        this._write(header);
         for (var i = 0, l = chunks.length; i < l; ++i){
             this._write(chunks[i]);
         }
@@ -124,13 +125,13 @@ JSClass("SKHTTPWebSocket", JSObject, {
     },
 
     webSocketParserDidReceiveClose: function(parser, chunks){
-        this.logger.info("received close from client");
         var data = JSData.initWithChunks(chunks);
         if (data.length > 2){
             this.closeStatus = (data[0] << 8) | data[1];
         }else{
             this.closeStatus = SKHTTPWebSocket.Status.noStatusProvided;
         }
+        this.logger.info("websocket received close from client: %d", this.closeStatus);
         this._sendCloseIfNeeded(this.closeStatus);
         this.cleanup();
     },
@@ -147,10 +148,12 @@ JSClass("SKHTTPWebSocket", JSObject, {
                 payload[0] = status >> 8;
                 payload[1] = status & 0xFF;
             }else{
-                payload = JSData.init();
+                payload = JSData.initWithLength(0);
             }
-            this._write(JSHTTPWebSocketParser.UnmaskedHeaderForData([payload]), JSHTTPWebSocketParser.FrameCode.close);
+            var header = JSHTTPWebSocketParser.UnmaskedHeaderForData([payload], JSHTTPWebSocketParser.FrameCode.close); 
+            this._write(header);
             this._write(payload);
+            this.logger.info("websocket sent close: %d", status || SKHTTPWebSocket.Status.noStatusProvided);
             this._sentClose = true;
         }
     },
@@ -169,7 +172,6 @@ JSClass("SKHTTPWebSocket", JSObject, {
                 promise = promise.catch(function(error){
                     socket.logger.error("Error during async socketDidClose: %{error}", error);
                 });
-                return;
             }
         }
         if (this.delegate && this.delegate.socketDidClosePrivate){
@@ -192,6 +194,7 @@ SKHTTPWebSocket.Status = {
     invalidData: 1007,
     generic: 1008,
     messageTooLarge: 1009,
+    unexpectedCondition: 1011,
     firstUserStatus: 4000
 };
 

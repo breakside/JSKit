@@ -94,7 +94,7 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
 
     serverWillStop: function(notification){
         if (this._socket !== null){
-            this.logger.info("closing because server will stop");
+            this.request.logger.info("closing because server will stop");
             this._socket.close(SKHTTPWebSocket.Status.goingAway);
         }
     },
@@ -120,7 +120,9 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     close: function(status){
-        this._socket.close(status);
+        if (this._socket !== null){
+            this._socket.close(status);
+        }
     },
 
     websocketEstablished: function(socket){
@@ -134,6 +136,7 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
 
     // always called even if subclass overrides socketDidClose
     socketDidClosePrivate: function(socket, didClosePromise){
+        this.request.logger.info("websocket closed");
         this._socket.delegate = null;
         this._socket = null;
         this._stopListeningForNotifications();
