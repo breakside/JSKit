@@ -1138,18 +1138,6 @@ topics:
         name: convertPointToScreen
         kind: method
         type: JSPoint
-        return: A point in the screen's coordinate space
-        summary: Convert a point from the `windows`'s `screen`(UIWindow.screen)
-          coordinate space to this view's coordinate space
-        arguments:
-          -
-            name: point
-            type: JSPoint
-            summary: The point in the `screen`(UIWindow.screen)'s coordinate space
-      -
-        name: convertPointFromScreen
-        kind: method
-        type: JSPoint
         return: A point in the `screen`(UIWindow.screen)'s coordinate space
         summary: Convert a point from this view's coordinate space to
           the `screen`(UIWindow.screen)'s coordinate space
@@ -1158,6 +1146,18 @@ topics:
             name: point
             type: JSPoint
             summary: The point in this view's coordinate space
+      -
+        name: convertPointFromScreen
+        kind: method
+        type: JSPoint
+        return: A point in this view's coordinate space
+        summary: Convert a point from the `windows`'s `screen`(UIWindow.screen)
+          coordinate space to this view's coordinate space
+        arguments:
+          -
+            name: point
+            type: JSPoint
+            summary: The point in the `screen`(UIWindow.screen)'s coordinate space
       -
         name: convertRectToScreen
         kind: method
