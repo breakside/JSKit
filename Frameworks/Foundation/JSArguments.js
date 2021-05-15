@@ -186,7 +186,9 @@ JSClass("JSArguments", JSObject, {
             }
         }
 
-        this.throwErrorsForMissingRequiredOptions();
+        if (this.help !== true){
+            this.throwErrorsForMissingRequiredOptions();
+        }
     },
 
 
