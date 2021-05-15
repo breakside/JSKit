@@ -108,15 +108,21 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     sendMessage: function(data){
-        this._socket.sendMessage(data);
+        if (this._socket !== null){
+            this._socket.sendMessage(data);
+        }
     },
 
     startMessage: function(data){
-        this._socket.startMessage(data);
+        if (this._socket !== null){
+            this._socket.startMessage(data);
+        }
     },
 
     continueMessage: function(data, isFinal){
-        this._socket.continueMessage(data, isFinal);
+        if (this._socket !== null){
+            this._socket.continueMessage(data, isFinal);
+        }
     },
 
     close: function(status){
