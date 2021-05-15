@@ -9,14 +9,14 @@ JSClass("JSDistributedNotificationCenter", JSNotificationCenter, {
     },
 
     initWithURL: function(url, identifier){
-        if (url.scheme === "amqp"){
+        if (url.scheme === "amqp" || url.scheme === "amqps"){
             if (JSGlobalObject.JSAMQPNotificationCenter){
                 return JSGlobalObject.JSAMQPNotificationCenter.initWithURL(url, identifier);
             }else{
                 throw new Error("AMQP notification center not supported for this environment");
             }
         }
-        throw new Error("Unsupported notification center: %{public}".sprintf(url.scheme));
+        throw new Error("Unsupported notification center: %s".sprintf(url.scheme));
     },
 
     open: function(completion, target){
