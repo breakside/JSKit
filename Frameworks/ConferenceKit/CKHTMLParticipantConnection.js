@@ -23,7 +23,7 @@
 
 (function(){
 
-var logger = JSLog("confcall", "html");
+var logger = JSLog("conference", "html-connection");
 
 JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
@@ -34,6 +34,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
     open: function(isCaller){
         logger.info("opening connection to participant %d", this.participant.number);
+        this.call.delegate.conferenceCallWillStartStreamFromParticipant(this.call, this.participant);
         var configuration = {
             iceServers: [],
             iceTransportPolicy: "all",
@@ -81,6 +82,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         this.removePeerConnectionEventListeners();
         this.htmlPeerConnection.close();
         this.htmlPeerConnection = null;
+        this.participant.stream = null;
     },
 
     sendLocalDescription: function(){
@@ -106,7 +108,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
                 if (htmlDescription !== null){
                     var description = CKSessionDescription.initWithHTMLDescription(htmlDescription);
                     logger.info("sending local description (%d) to participant %d", description.type, connection.participant.number);
-                    connection.call.delegate.conferenceCallSendDescriptionToParticipant(connection.call, description, connection.participant);
+                    connection.call.sendDescriptionToParticipant(description, connection.participant);
                 }else{
                     logger.warn("null local description after setLocalDescription");
                 }
@@ -240,7 +242,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             logger.info("ice candidate null, not sending to participant %d", this.participant.number);
         }else{
             logger.info("sending ice candidate, %{public} @%{public}:%d, to participant %d", candidate.candidate, candidate.address || "null", candidate.port || -1, this.participant.number);
-            this.call.delegate.conferenceCallSendCandidateToParticipant(this.call, candidate !== null ? candidate.toJSON() : null, this.participant);
+            this.call.sendCandidateToParticipant(candidate !== null ? candidate.toJSON() : null, this.participant);
         }
     },
 
@@ -281,25 +283,26 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         var track = event.track;
         if (track.kind == "video"){
             if (this.remoteHTMLVideoTrack !== null){
-                this.removeEventListener("mute", this.remoteHTMLVideoTrack);
-                this.removeEventListener("unmute", this.remoteHTMLVideoTrack);
+                logger.info("%d removing previous video track", this.participant.number);
+                this.remoteHTMLMediaStream.removeTrack(this.remoteHTMLVideoTrack);
+                this.removeEventListenersFromTrack(this.remoteHTMLVideoTrack);
             }
             this.remoteHTMLVideoTrack = track;
-            this.remoteHTMLVideoTrack.addEventListener("mute", this);
-            this.remoteHTMLVideoTrack.addEventListener("unmute", this);
+            this.addEventListenersToTrack(this.remoteHTMLVideoTrack);
         }else if (track.kind == "audio"){
             if (this.remoteHTMLAudioTrack !== null){
-                this.removeEventListener("mute", this.remoteHTMLAudioTrack);
-                this.removeEventListener("unmute", this.remoteHTMLAudioTrack);
+                logger.info("%d removing previous audio track", this.participant.number);
+                this.removeTrack(this.remoteHTMLAudioTrack);
+                this.removeEventListenersFromTrack(this.remoteHTMLAudioTrack);
             }
             this.remoteHTMLAudioTrack = track;
-            this.remoteHTMLAudioTrack.addEventListener("mute", this);
-            this.remoteHTMLAudioTrack.addEventListener("unmute", this);
+            this.addEventListenersToTrack(this.remoteHTMLAudioTrack);
         }
         if (this.remoteHTMLMediaStream === null){
             logger.info("%d received remote %{public} track, creating stream", this.participant.number, track.kind);
             this.remoteHTMLMediaStream = new MediaStream([track]);
             this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.remoteHTMLMediaStream);
+            this.participant.stream = this.remoteStream;
         }else{
             logger.info("%d received remote %{public} track, adding to existing stream", this.participant.number, track.kind);
             this.remoteHTMLMediaStream.addTrack(track);
@@ -330,6 +333,18 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         //     this._updateLocalTracks();
         // }
         // this._createRemoteStream();
+    },
+
+    addEventListenersToTrack: function(track){
+        track.addEventListener("mute", this);
+        track.addEventListener("unmute", this);
+        track.addEventListener("ended", this);
+    },
+
+    removeEventListenersFromTrack: function(track){
+        track.removeEventListener("mute", this);
+        track.removeEventListener("unmute", this);
+        track.removeEventListener("ended", this);
     },
 
     _event_mute: function(event){
@@ -374,6 +389,16 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         }
     },
 
+    _event_ended: function(event){
+        if (event.currentTarget === this.remoteHTMLVideoTrack){
+            logger.info("video track ended from participant %d", this.participant.number);
+            this.notifyAfterInactive();
+        }else if (event.currentTarget === this.remoteHTMLAudioTrack){
+            logger.info("audio track ended from participant %d", this.participant.number);
+            this.notifyAfterInactive();
+        }
+    },
+
     notifyAfterAllUnmutes: function(){
         if (this.videoTrackNeedsUnmute){
             return;
@@ -381,21 +406,35 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         if (this.audioTrackNeedsUnmute){
             return;
         }
-        this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
+        if (this.call.delegate && this.call.delegate.conferenceCallDidStartStreamFromParticipant){
+            this.call.delegate.conferenceCallDidStartStreamFromParticipant(this.call, this.remoteStream, this.participant);
+        }
     },
 
-    _createRemoteStream: function(){
-        if (this.remoteHTMLVideoTrack === null){
+    notifyAfterInactive: function(){
+        if (this.remoteHTMLMediaStream.active){
             return;
         }
-        if (this.remoteHTMLAudioTrack === null){
-            return;
+        this.participant.stream = null;
+        if (this.call.delegate && this.call.delegate.conferenceCallDidStopStreamFromParticipant){
+            this.call.delegate.conferenceCallDidStopStreamFromParticipant(this.call, this.participant);
         }
-        logger.info("creating stream from participant %d", this.participant.number);
-        this.remoteHTMLMediaStream = new MediaStream([this.remoteHTMLVideoTrack, this.remoteHTMLAudioTrack]);
-        this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.remoteHTMLMediaStream);
-        this.call.delegate.conferenceCallDidReceiveStreamFromParticipant(this.call, this.remoteStream, this.participant);
+        this.call._removeConnection(this);
     },
+
+    // _createRemoteStream: function(){
+    //     if (this.remoteHTMLVideoTrack === null){
+    //         return;
+    //     }
+    //     if (this.remoteHTMLAudioTrack === null){
+    //         return;
+    //     }
+    //     logger.info("creating stream from participant %d", this.participant.number);
+    //     this.remoteHTMLMediaStream = new MediaStream([this.remoteHTMLVideoTrack, this.remoteHTMLAudioTrack]);
+    //     this.remoteStream = MKHTMLStream.initWithHTMLMediaStream(this.remoteHTMLMediaStream);
+    //     this.participant.stream = this.remoteStream;
+    //     this.call.delegate.conferenceCallDidStartStreamFromParticipant(this.call, this.remoteStream, this.participant);
+    // },
 
     _event_datachannel: function(event){
         // A new RTCDataChannel is dispatched to the script in response to the other peer creating a channel.

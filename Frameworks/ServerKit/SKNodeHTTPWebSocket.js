@@ -29,16 +29,33 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
         this._setupEventListeners();
     },
 
+    _isWriting: false,
+    _shouldDestroy: false,
+
     _write: function(data){
-        this._nodeSocket.write(data.nodeBuffer());
+        if (this._sentClose){
+            return;
+        }
+        var websocket = this;
+        this._isWriting = true;
+        this._nodeSocket.write(data.nodeBuffer(), function(){
+            websocket._isWriting = false;
+            if (websocket._shouldDestroy){
+                websocket._cleanup();
+            }
+        });
     },
 
     _cleanup: function(){
         this._cleanupEventListeners();
         if (this._nodeSocket !== null){
-            var socket = this._nodeSocket;
-            this._nodeSocket = null;
-            socket.destroy();
+            if (this._isWriting){
+                this._shouldDestroy = true;
+            }else{
+                var socket = this._nodeSocket;
+                this._nodeSocket = null;
+                socket.destroy();
+            }
         }
     },
 
@@ -54,9 +71,11 @@ JSClass("SKNodeHTTPWebSocket", SKHTTPWebSocket, {
         if (this._dataListener !== null){
             this.logger.info("websocket un-listening for data");
             this._nodeSocket.removeListener('data', this._dataListener);
+            this._dataListener = null;
         }
         if (this._closeListener !== null){
             this._nodeSocket.removeListener('close', this._closeListener);
+            this._closeListener = null;
         }
     },
 

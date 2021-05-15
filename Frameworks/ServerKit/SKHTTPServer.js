@@ -39,6 +39,8 @@ JSClass("SKHTTPServer", JSObject, {
     tlsPrivateKey: null,
     defaultMaximumRequestContentLength: 1024 * 1024 * 2,
     notificationCenter: null,
+    isStopping: false,
+    _websocketClosePromises: null,
 
     initWithPort: function(port){
         this._port = port;

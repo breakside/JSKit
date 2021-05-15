@@ -57,9 +57,6 @@ JSBundleIdentifier:         com.example.OAuthDemo
 JSBundleVersion:            1.0.0
 UIApplicationTitle:         .applicationTitle
 UIApplicationDelegate:      ApplicationDelegate
-UIApplicationLaunchOptions:
-  uistate:  {kind: positional, default: null}
-  others:   {kind: unknown}
 UIApplicationSystemFont:    SourceSansPro-Light
 JSDevelopmentLanguage:      en
 
@@ -121,11 +118,8 @@ So we need to add a couple launch options:
 `Info.yaml`
 ````
 # ...
+# Launch Options for OAuth
 UIApplicationLaunchOptions:
-  uistate:  {kind: positional, default: null}
-  others:   {kind: unknown}
-
-  # Launch Options for OAuth
   state:    {default: null}
   id_token: {default: null}
 

@@ -80,15 +80,19 @@ JSClass("JSHTTPWebSocketParser", JSObject, {
             // If we have created a frame, then we must be parsing frame data,
             // so read as much as we can, either to the end of the available data
             // or to the end of the frame's length.
-            if (consumed < l && this.frame !== null){
-                var length = Math.min(l - consumed, this.frame.length - this.frame.received);
-                var chunk = framedData.subdataInRange(JSRange(consumed, length));
-                consumed += length;
-                if (this.frame.maskingKey !== null){
-                    this._unmask(chunk, this.frame.received);
+            if (this.frame !== null){
+                if (this.frame.length === 0){
+                    this._handleChunk(JSData.initWithLength(0));
+                }else if (consumed < l){
+                    var length = Math.min(l - consumed, this.frame.length - this.frame.received);
+                    var chunk = framedData.subdataInRange(JSRange(consumed, length));
+                    consumed += length;
+                    if (this.frame.maskingKey !== null){
+                        this._unmask(chunk, this.frame.received);
+                    }
+                    this.frame.received += length;
+                    this._handleChunk(chunk);
                 }
-                this.frame.received += length;
-                this._handleChunk(chunk);
                 if (this.frame.received == this.frame.length){
                     this._reset();
                 }

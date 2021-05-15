@@ -88,8 +88,8 @@ JSClass("JSHTMLURLSessionStreamTask", JSURLSessionStreamTask, {
     },
 
     _event_close: function(e){
+        this.closeStatus = e.code;
         this.session._taskDidCloseStream(this);
-        // TODO:
     }
 });
 

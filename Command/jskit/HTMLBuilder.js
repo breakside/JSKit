@@ -417,7 +417,7 @@ JSClass("HTMLBuilder", Builder, {
         }
         for (let i = 0, l = entries.length; i < l; ++i){
             let entry = entries[i];
-            if (entry.name.startsWith('.')){
+            if (entry.name.startsWith('.') && entry.name != ".well-known"){
                 continue;
             }
             let toURL = this.wwwURL.appendingPathComponent(entry.url.lastPathComponent);

@@ -352,20 +352,21 @@ JSClass("JSArgumentsTests", TKTestSuite, {
         var subargs = JSArguments.initWithOptions({
             output: {},
             decode: {shortcut: "d", kind: "flag"},
+            verbose: {shortcut: "v", kind: "flag"},
             input: {kind: "positional", multiple: true}
         });
 
         var subcmd = [args.subcommand].concat(args.unknown);
         subargs.parse(subcmd);
         TKAssert(subargs.decode);
+        TKAssert(subargs.verbose);
         TKAssertEquals(subargs.output, "out.txt");
-        TKAssertEquals(subargs.input.length, 6);
-        TKAssertEquals(subargs.input[0], "-v");
-        TKAssertEquals(subargs.input[1], "in.txt");
-        TKAssertEquals(subargs.input[2], "in2.txt");
-        TKAssertEquals(subargs.input[3], "-");
-        TKAssertEquals(subargs.input[4], "-test1");
-        TKAssertEquals(subargs.input[5], "--test2");
+        TKAssertEquals(subargs.input.length, 5);
+        TKAssertEquals(subargs.input[0], "in.txt");
+        TKAssertEquals(subargs.input[1], "in2.txt");
+        TKAssertEquals(subargs.input[2], "-");
+        TKAssertEquals(subargs.input[3], "-test1");
+        TKAssertEquals(subargs.input[4], "--test2");
     },
 
     testHelpString: function(){
@@ -376,7 +377,7 @@ JSClass("JSArgumentsTests", TKTestSuite, {
             subcommand: {kind: "positional", subcommand: true, help: "The subcommand to run."},
             unknown: {kind: "unknown", help: "Subcommand arguments"},
         });
-        args.parse(["cmd", "-v", "--count", "-5", "-v", "sub", "-v", "-d", "in.txt", "--output", "out.txt", "in2.txt", "-", "--", "-test1", "--test2"]);
+        args.parse(["cmd", "-v", "--count", "-5", "-v", "sub", "-d", "in.txt", "--output", "out.txt", "in2.txt", "-", "--", "-test1", "--test2"]);
         var str = args.helpString();
         var lines = [
             "Usage: cmd [--base base] [-v] --count count subcommand ...",

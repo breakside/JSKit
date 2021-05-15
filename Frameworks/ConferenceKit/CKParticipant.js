@@ -33,6 +33,10 @@ JSClass("CKParticipant", JSObject, {
     videoMuted: JSReadOnlyProperty(),
     audioMuted: JSReadOnlyProperty(),
 
+    call: null,
+    stream: null,
+    isLocal: false,
+
     getVideoMuted: function(){
         return this._videoSoftMuted || this._videoStreamMuted;
     },
@@ -51,7 +55,11 @@ JSClass("CKParticipant", JSObject, {
         }
         this._audioSoftMuted = muted;
         if (change){
+            if (this.isLocal && this.stream !== null){
+                this.stream.audioMuted = muted;
+            }
             this.didChangeValueForKey("audioMuted");
+            this._notifyDelegateOfMuteState();
         }
     },
 
@@ -65,7 +73,11 @@ JSClass("CKParticipant", JSObject, {
         }
         this._videoSoftMuted = muted;
         if (change){
+            if (this.isLocal && this.stream !== null){
+                this.stream.audioMuted = muted;
+            }
             this.didChangeValueForKey("videoMuted");
+            this._notifyDelegateOfMuteState();
         }
     },
 
@@ -80,6 +92,7 @@ JSClass("CKParticipant", JSObject, {
         this._audioStreamMuted = muted;
         if (change){
             this.didChangeValueForKey("audioMuted");
+            this._notifyDelegateOfMuteState();
         }
     },
 
@@ -94,7 +107,15 @@ JSClass("CKParticipant", JSObject, {
         this._videoStreamMuted = muted;
         if (change){
             this.didChangeValueForKey("videoMuted");
+            this._notifyDelegateOfMuteState();
         }
+    },
+
+    _notifyDelegateOfMuteState: function(){
+        if (this.call === null){
+            return;
+        }
+        this.call._didChangeMuteStateForParticipant(this);
     }
 
 });

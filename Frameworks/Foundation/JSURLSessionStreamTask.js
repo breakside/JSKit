@@ -24,6 +24,7 @@ JSClass("JSURLSessionStreamTask", JSURLSessionTask, {
     requestedProtocols: null,
     protocol: null,
     streamDelegate: null,
+    closeStatus: null,
 
     initWithURL: function(url, requestedProtocols){
         this._originalURL = url;

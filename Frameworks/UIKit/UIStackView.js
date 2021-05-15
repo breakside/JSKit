@@ -121,6 +121,7 @@ JSClass("UIStackView", UIView, {
 
     sizeToFitSize: function(size){
         this.layoutManager.sizeStackViewToFitSize(this, size);
+        this.setNeedsLayout();
     },
 
     layoutSubviews: function(){

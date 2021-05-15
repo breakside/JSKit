@@ -15,6 +15,7 @@
 
 // #import "UIApplication.js"
 // #import "UIHTMLWindowServer.js"
+// #import "UIState.js"
 // jshint browser: true
 'use strict';
 
@@ -28,32 +29,36 @@ UIApplication.definePropertiesFromExtensions({
     setup: function(completion, target){
         this.environment = JSEnvironment.initWithDictionary(this.bundle.info.HTMLApplicationEnvironment || {});
         this._baseURL = JSURL.initWithString(window.location.origin + window.location.pathname);
-        originalSetup.call(this, completion, target);
-    },
-
-    launchOptions: function(){
         var url = JSURL.initWithString(window.location.href);
         var fragment = url.fragment;
         var query = "";
-        var positional = [];
+        var state = null;
         if (fragment !== null && fragment.length > 0){
             if (fragment[0] == '/'){
                 var queryIndex = fragment.indexOf('?');
                 if (queryIndex >= 0){
                     query = fragment.substr(queryIndex + 1);
-                    positional.push(fragment.substr(0, queryIndex));
+                    state = fragment.substr(0, queryIndex);
                 }else{
-                    positional.push(fragment);
+                    state = fragment;
                 }
             }else{
                 query = fragment;
             }
         }
+        this.launchOptionsQueryString = query;
+        this.state = UIState.initWithPath(state);
+        url.fragment = state !== null ? state : null;
+        window.history.replaceState(null, null, url.encodedString);
+        originalSetup.call(this, completion, target);
+    },
+
+    launchOptionsQueryString: null,
+
+    launchOptions: function(){
         var options = this.bundle.info.UIApplicationLaunchOptions || {};
         var args = JSArguments.initWithOptions(options);
-        args.parseQueryString(query, positional);
-        url.fragment = positional.length > 0 ? positional[0] : null;
-        window.history.replaceState(null, null, url.encodedString);
+        args.parseQueryString(this.launchOptionsQueryString);
         return args;
     },
 

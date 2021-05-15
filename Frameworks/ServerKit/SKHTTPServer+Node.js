@@ -63,10 +63,20 @@ SKHTTPServer.definePropertiesFromExtensions({
             completion.call(target);
         }else{
             logger.info("HTTP server closing, waiting for outstanding requests to close");
+            this.isStopping = true;
+            this._websocketClosePromises = [];
             this.notificationCenter.post("SKHTTPServerWillStop", this);
+            var server = this;
             this._nodeHttpServer.close(function(){
                 logger.info("HTTP server closed");
-                completion.call(target);
+                if (server._websocketClosePromises.length > 0){
+                    logger.info("waiting for websocket delegates to complete");
+                    Promise.all(server._websocketClosePromises).then(function(){
+                        completion.call(target);
+                    });
+                }else{
+                    completion.call(target);
+                }
             });
         }
         return completion.promise;

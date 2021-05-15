@@ -142,7 +142,7 @@ JSClass("DBRedisStore", DBObjectStore, {
             var args = [object.id, json];
             if (lifetimeInterval > 0){
                 args.push("EX");
-                args.push(lifetimeInterval);
+                args.push(Math.floor(lifetimeInterval));
             }
             this.client.set(args, function(error, result){
                 if (error !== null){
@@ -188,7 +188,7 @@ JSClass("DBRedisStore", DBObjectStore, {
                 }
                 try{
                     var incrResult = result;
-                    client.expire(id, lifetimeInterval, function(error, result){
+                    client.expire(id, Math.floor(lifetimeInterval), function(error, result){
                         if (error !== null){
                             logger.error("Error calling redis expire on increment key: %{error}", error);
                             try{
@@ -363,7 +363,7 @@ JSClass("DBRedisStore", DBObjectStore, {
                                             }
                                         });
                                     }catch (e){
-                                        logger.error("Error thrown calling change function: %{error}", error);
+                                        logger.error("Error thrown calling change function: %{error}", e);
                                         watchClient.quit();
                                         completion(false);
                                     }

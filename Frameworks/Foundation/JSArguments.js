@@ -71,7 +71,7 @@ JSClass("JSArguments", JSObject, {
                 unknownName = name;
             }
             if (option.shortcut){
-                shortcuts["-" + option.shortcut] = "--" + name;
+                shortcuts["-" + option.shortcut] = name;
             }
         }
 
@@ -96,86 +96,63 @@ JSClass("JSArguments", JSObject, {
         }
 
         var written = {};
-        var self = this;
-        var setValueForName = function(value, name, option){
-            // Parse the value according to the valueType
-            if (option.valueType == "integer"){
-                value = parseInt(value);
-                if (isNaN(value)){
-                    throw new Error("Option must be an integer: %s".sprintf(name));
-                }
-            }
-            if (option.allowed){
-                if (option.allowed.indexOf(value) < 0){
-                    throw new Error("Invalid value for %s: %s".sprintf(name, value));
-                }
-            }
-            if (option.multiple){
-                self[name].push(value);
-            }else{
-                // Set the value for a single value option, but it's
-                // an error if we've already set the value for the option.
-                if (name in written){
-                    throw new Error("Option cannot be used multiple times: %s".sprintf(name));
-                }
-                written[name] = true;
-                Object.defineProperty(self, name, {value: value});
-
-            }
-        };
 
         var arg;
         var positionalNameIndex = 0;
         for (; i < l; ++i){
             arg = argv[i];
-            if (arg in shortcuts){
-                arg = shortcuts[arg];
-            }
             if (arg == "--"){
                 // everything else is positional
                 for (i = i + 1; i < l; ++i){
                     arg = argv[i];
                     if (positionalNameIndex < positionalNames.length){
                         name = positionalNames[positionalNameIndex++];
-                        setValueForName(arg, name, this._options[name]);
+                        this.setValueForName(arg, name);
                     }else if (finalPositionalName !== null){
-                        setValueForName(arg, finalPositionalName, this._options[finalPositionalName]);
+                        this.setValueForName(arg, finalPositionalName);
                     }else if (unknownName !== null){
                         this[unknownName].push(arg);
                     }else{
                         throw new Error("Got a positional arg, but no option for it");
                     }
                 }
-            }else if (arg.startsWith("--")){
-                name = arg.substr(2);
-                option = this._options[name];
+            }else if (arg.startsWith("-") && arg.length > 1){
+                if (arg.startsWith("--")){
+                    name = arg.substr(2);
+                }else{
+                    name = shortcuts[arg];
+                }
+                option = name !== undefined ? this._options[name] : undefined;
                 if (option !== undefined){
                     if (option.kind == "flag"){
                         // flag options get set to true
-                        setValueForName(true, name, option);
+                        this.setValueForName(true, name);
                     }else{
                         // non-flag options look ahead to next argv
                         ++i;
                         if (i < l){
                             arg = argv[i];
-                            if (arg in shortcuts){
-                                arg = shortcuts[arg];
-                            }
                             // if the next argv is a known option, treat it
                             // as a missing value
                             if (arg == "--"){
-                                throw Error("Missing value for option: %s".sprintf(argv[i]));
+                                throw Error("Missing value for option: %s".sprintf(arg));
                             }
-                            if (arg.startsWith("--")){
-                                if (arg.substr(2) in this._options){
-                                    throw Error("Missing value for option: %s".sprintf(argv[i]));
+                            if (arg.startsWith("-") && arg.length > 1){
+                                if (arg.startsWith("--")){
+                                    if (arg.substr(2) in this._options){
+                                        throw Error("Missing value for option: %s".sprintf(arg));
+                                    }
+                                }else{
+                                    if (shortcuts[arg] !== undefined){
+                                        throw Error("Missing value for option: %s".sprintf(arg));
+                                    }
                                 }
                             }
                             // Otherwise, treat it as a value even if it looks like an arg
                             // (allows for options that blindly pass-through args to some internal process)
-                            setValueForName(argv[i], name, option);
+                            this.setValueForName(arg, name);
                         }else{
-                            throw Error("Missing value for option: %s".sprintf(argv[i]));
+                            throw Error("Missing value for option: %s".sprintf(arg));
                         }
                     }
                 }else if (unknownName !== null){
@@ -187,7 +164,7 @@ JSClass("JSArguments", JSObject, {
                 if (positionalNameIndex < positionalNames.length){
                     name = positionalNames[positionalNameIndex++];
                     option = this._options[name];
-                    setValueForName(arg, name, option);
+                    this.setValueForName(arg, name);
                     // subcommand options force the remainder of the arguments
                     // onto the unknown stack
                     if (option.subcommand){
@@ -200,7 +177,7 @@ JSClass("JSArguments", JSObject, {
                         }
                     }
                 }else if (finalPositionalName !== null){
-                    setValueForName(arg, finalPositionalName, this._options[finalPositionalName]);
+                    this.setValueForName(arg, finalPositionalName);
                 }else if (unknownName !== null){
                     this[unknownName].push(arg);
                 }else{
@@ -209,7 +186,43 @@ JSClass("JSArguments", JSObject, {
             }
         }
 
-        // Throw errors for missing required arguments
+        if (this.help !== true){
+            this.throwErrorsForMissingRequiredOptions();
+        }
+    },
+
+
+    setValueForName: function(value, name){
+        var option = this._options[name];
+        // Parse the value according to the valueType
+        if (option.valueType == "integer"){
+            value = parseInt(value);
+            if (isNaN(value)){
+                throw new Error("Option must be an integer: %s".sprintf(name));
+            }
+        }
+        if (option.allowed){
+            if (option.allowed.indexOf(value) < 0){
+                throw new Error("Invalid value for %s: %s".sprintf(name, value));
+            }
+        }
+        if (option.multiple){
+            this[name].push(value);
+        }else{
+            // Set the value for a single value option, but it's
+            // an error if we've already set the value for the option.
+            try{
+                Object.defineProperty(this, name, {writable: false, configurable: false, value: value});
+            }catch (e){
+                throw new Error("Option cannot be used multiple times: %s".sprintf(name));
+            }
+
+        }
+    },
+
+    throwErrorsForMissingRequiredOptions: function(){
+        var name;
+        var option;
         for (name in this._options){
             option = this._options[name];
             if (!("default" in option) && option.kind != "flag"){
@@ -425,28 +438,44 @@ JSClass("JSArguments", JSObject, {
         }
     },
 
-    parseQueryString: function(query, positional){
+    parseQueryString: function(query){
+        // prep work
+        var name;
+        var option;
+        var shortcuts = {};
+        for (name in this._options){
+            option = this._options[name];
+            if (option.shortcut){
+                shortcuts[option.shortcut] = name;
+            }
+        }
+
         if (query.length > 0 && query.charAt(0) == '?'){
             query = query.substr(1);
         }
         var map = JSFormFieldMap();
         map.decode(query.utf8(), true);
-        var argv = [null];
         var field;
         var i, l;
         for (i = 0, l = map.fields.length; i < l; ++i){
             field = map.fields[i];
-            argv.push('--' + field.name);
-            if (field.value !== null){
-                argv.push(field.value);
+            name = field.name;
+            if (name in shortcuts){
+                name = shortcuts[name];
+            }
+            option = this._options[name];
+            if (option !== undefined){
+                if (option.kind === "flag"){
+                    this.setValueForName(true, name);
+                }else{
+                    if (field.value !== null){
+                        this.setValueForName(field.value, name);
+                    }
+                }
             }
         }
-        if (positional){
-            for (i = 0, l = positional.length; i < l; ++i){
-                argv.push(positional[i]);
-            }
-        }
-        this.parse(argv);
+
+        this.throwErrorsForMissingRequiredOptions();
     },
 
     helpString: function(){

@@ -50,6 +50,7 @@ topics:
     members:
       -
         name: sendMessage
+        kind: method
         type: JSData
         summary: Send a chunk of data as a WebSocket message
         description: |

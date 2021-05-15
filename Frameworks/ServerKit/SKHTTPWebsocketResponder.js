@@ -72,51 +72,63 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
         }
 
         this._socket.delegate = this;
-        this.startLisentingForNotifications();
+        this._startLisentingForNotifications();
         return this.websocketEstablished(this._socket);
     },
 
-    notificationObservers: null,
+    _notificationObservers: null,
 
-    startLisentingForNotifications: function(){
-        if (this.notificationObservers === null){
-            this.notificationObservers = {
+    _startLisentingForNotifications: function(){
+        if (this._notificationObservers === null){
+            this._notificationObservers = {
                 serverWillStop: this.server.notificationCenter.addObserver("SKHTTPServerWillStop", this.server, this.serverWillStop, this)
             };
         }
     },
 
-    stopListeningForNotifications: function(){
-        if (this.notificationObservers !== null){
-            this.server.notificationCenter.removeObserver("SKHTTPServerWillStop", this.notificationObservers.serverWillStop);
+    _stopListeningForNotifications: function(){
+        if (this._notificationObservers !== null){
+            this.server.notificationCenter.removeObserver("SKHTTPServerWillStop", this._notificationObservers.serverWillStop);
         }
     },
 
     serverWillStop: function(notification){
         if (this._socket !== null){
-            this.logger.info("closing because server will stop");
-            this._socket._close(SKHTTPWebSocket.Status.goingAway);
+            this.request.logger.info("closing because server will stop");
+            this._socket.close(SKHTTPWebSocket.Status.goingAway);
         }
     },
 
     fail: function(error){
         if (this._socket !== null){
-            this._socket._close(SKHTTPWebSocket.Status.generic);
+            this._socket.close(SKHTTPWebSocket.Status.generic);
             return;
         }
         SKHTTPWebSocketResponder.$super.fail.call(this, error);
     },
 
     sendMessage: function(data){
-        this._socket.sendMessage(data);
+        if (this._socket !== null){
+            this._socket.sendMessage(data);
+        }
     },
 
     startMessage: function(data){
-        this._socket.startMessage(data);
+        if (this._socket !== null){
+            this._socket.startMessage(data);
+        }
     },
 
     continueMessage: function(data, isFinal){
-        this._socket.continueMessage(data, isFinal);
+        if (this._socket !== null){
+            this._socket.continueMessage(data, isFinal);
+        }
+    },
+
+    close: function(status){
+        if (this._socket !== null){
+            this._socket.close(status);
+        }
     },
 
     websocketEstablished: function(socket){
@@ -129,10 +141,14 @@ JSClass('SKHTTPWebSocketResponder', SKHTTPResponder, {
     },
 
     // always called even if subclass overrides socketDidClose
-    socketDidClosePrivate: function(socket){
+    socketDidClosePrivate: function(socket, didClosePromise){
+        this.request.logger.info("websocket closed");
         this._socket.delegate = null;
         this._socket = null;
-        this.stopListeningForNotifications();
+        this._stopListeningForNotifications();
+        if (this.server.isStopping && (didClosePromise instanceof Promise)){
+            this.server._websocketClosePromises.push(didClosePromise);
+        }
     }
 
 });
