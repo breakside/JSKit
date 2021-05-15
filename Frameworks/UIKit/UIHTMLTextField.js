@@ -415,7 +415,9 @@ JSClass("UIHTMLTextField", UIControl, {
 
     _event_blur: function(e){
         this._inputElementFocused = false;
-        this.updateInputElementFocus();
+        if (this.isFirstResponder()){
+            this.window.firstResponder = null;
+        }
     },
 
     drawLayerInContext: function(layer, context){
@@ -733,7 +735,7 @@ JSClass("UIHTMLTextField", UIControl, {
         var selection;
         for (var i = selections.length - 1; i >= 0; --i){
             selection = selections[i];
-            this.inputElement.setRangeText("", selection.location, selection.end);
+            this.inputElement.setRangeText(replacement, selection.location, selection.end, "end");
         }
         this._sendChangeNotificaions();
     },
