@@ -19,6 +19,7 @@
 JSClass("SKMockHTTPServer", SKHTTPServer, {
 
     _extensionInit: function(){
+        this.notificationCenter = JSNotificationCenter.init();
     },
 
 });
