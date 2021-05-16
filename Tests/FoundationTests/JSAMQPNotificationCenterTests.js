@@ -153,7 +153,7 @@ JSClass("JSAMQPNotificationCenterTests", TKTestSuite, {
             TKAssertEquals(channel.assertExchangeMethod.calls[0].name, "JSNC.test");
             TKAssertEquals(channel.assertExchangeMethod.calls[0].type, "topic");
             TKAssertExactEquals(channel.assertExchangeMethod.calls[0].options.durable, false);
-            TKAssertExactEquals(channel.assertExchangeMethod.calls[0].options.autoDelete, true);
+            TKAssertExactEquals(channel.assertExchangeMethod.calls[0].options.autoDelete, false);
             TKAssertEquals(channel.assertQueueMethod.calls.length, 1);
             TKAssertEquals(channel.assertQueueMethod.calls[0].name, "JSNC.test." + center.uniqueID);
             TKAssertExactEquals(channel.assertQueueMethod.calls[0].options.exclusive, true);
