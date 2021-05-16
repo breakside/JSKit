@@ -23,7 +23,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
             try{
                 amqp = require('amqplib/callback_api');
             }catch (e){
-                throw new Error("");
+                throw new Error("amqplib not installed");
             }
         }
         JSAMQPNotificationCenter.$super.init.call(this);
