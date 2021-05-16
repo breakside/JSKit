@@ -65,7 +65,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
                     return;
                 }
                 logger.info("AMQP channel created");
-                channel.assertExchange(notificationCenter.exchangeName, "topic", {durable: false, autoDelete: true}, function(error){
+                channel.assertExchange(notificationCenter.exchangeName, "topic", {durable: false, autoDelete: false}, function(error){
                     if (error){
                         logger.error("Error asserting AMQP exchange: %{error}", error);
                         close();
