@@ -35,6 +35,7 @@ JSClass("OASession", JSObject, {
     state: null,
     redirectURL: null,
     responseTypes: null,
+    responseMode: "fragment",
     nonce: 1,
     urlSession: null,
 
@@ -47,6 +48,7 @@ JSClass("OASession", JSObject, {
         query.add('scope', this.scopes.join(' '));
         query.add('state', this.state);
         query.add('response_type', this.responseTypes.join(' '));
+        query.add('response_mode', this.responseMode);
         if (this.responseTypes.indexOf('id_token') >= 0){
             query.add('nonce', this.nonce);
             ++this.nonce;
@@ -96,3 +98,8 @@ JSClass("OASession", JSObject, {
     }
 
 });
+
+OASession.ResponseMode = {
+    query: "query",
+    fragment: "fragment"
+};
