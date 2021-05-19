@@ -33,7 +33,6 @@ var JSLogBuffer = function(capacity){
 };
 
 JSLogBuffer.prototype = {
-    readIndex: 0,
     writeIndex: 0,
     length: 0,
 
@@ -43,9 +42,6 @@ JSLogBuffer.prototype = {
             this.length += 1;
         }
         this.writeIndex = (this.writeIndex + 1) % this.capacity;
-        if (this.writeIndex === this.readIndex){
-            this.readIndex = (this.readIndex + 1) % this.capacity;
-        }
     },
 
     readAll: function(){
@@ -53,7 +49,7 @@ JSLogBuffer.prototype = {
         if (this.length < this.capacity){
             return this.array.slice(0, this.length);
         }
-        return this.array.slice(this.writeIndex, this.capacity - this.writeIndex).concat(this.array.slice(this.writeIndex));
+        return this.array.slice(this.writeIndex).concat(this.array.slice(0, this.writeIndex));
     }
 };
 
@@ -207,6 +203,10 @@ JSLog.dump = function(){
         record = records[i];
         console[record.level](JSLog.format(record));
     }
+};
+
+JSLog._createBuffer = function(capacity){
+    return new JSLogBuffer(capacity);
 };
 
 JSLog.buffer = JSLogBuffer(200);
