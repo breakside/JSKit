@@ -230,6 +230,7 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
             participant = this.participantForIdentifier(participantDictionary.id);
             if (participant === null){
                 participant = CKParticipant.initWithIdentifier(participantDictionary.id);
+                participant.shortID = participant.identifier.substr(7, 6);
                 newParticipants.push(participant);
             }
             participant.audioSoftMuted = participantDictionary.audioMuted;
@@ -267,6 +268,7 @@ JSClass("CKManagedConferenceCall", CKConferenceCall, {
         var participant = this.participantForIdentifier(message.participant.id);
         if (participant === null){
             participant = CKParticipant.initWithIdentifier(message.participant.id);
+            participant.shortID = participant.identifier.substr(7, 6);
         }
         participant.audioSoftMuted = message.participant.audioMuted;
         participant.videoSoftMuted = message.participant.videoMuted;

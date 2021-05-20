@@ -33,7 +33,6 @@ JSClass("CKConferenceCall", JSObject, {
 
     turnServices: null,
     connectionsByParticipantID: null,
-    nextParticipantNumber: 1,
     localParticipant: JSDynamicProperty("_localParticipant", null),
 
     setLocalParticipant: function(participant){
@@ -45,7 +44,6 @@ JSClass("CKConferenceCall", JSObject, {
             stream = this._localParticipant.stream;
         }
         participant.isLocal = true;
-        participant.number = this.nextParticipantNumber++;
         participant.call = this;
         this._localParticipant = participant;
         if (stream === null){
@@ -56,7 +54,6 @@ JSClass("CKConferenceCall", JSObject, {
     },
 
     connectToParticipant: function(participant, isCaller){
-        participant.number = this.nextParticipantNumber++;
         var connection = CKParticipantConnection.createForParticipant(participant);
         participant.call = this;
         connection.call = this;

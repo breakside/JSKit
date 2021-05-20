@@ -26,6 +26,19 @@ JSClass("MKHTMLStream", MKStream, {
         this.htmlAudioTrack = htmlMediaStream.getAudioTracks()[0] || null;
     },
 
+    addHTMLTrack: function(htmlTrack){
+        this.htmlMediaStream.addTrack(htmlTrack);
+        if (htmlTrack.kind === "audio"){
+            if (this.htmlAudioTrack === null){
+                this.htmlAudioTrack = htmlTrack;
+            }
+        }else if (htmlTrack.kind == "video"){
+            if (this.htmlVideoTrack === null){
+                this.htmlVideoTrack = htmlTrack;
+            }
+        }
+    },
+
     audioMuted: JSDynamicProperty(),
 
     getAudioMuted: function(){

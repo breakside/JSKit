@@ -20,10 +20,11 @@ JSClass("CKParticipant", JSObject, {
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
+        this.shortID = this.identifier.substr(0, 6);
     },
 
     identifier: null,
-    number: null,
+    shortID: null,
 
     videoSoftMuted: JSDynamicProperty('_videoSoftMuted', false),
     audioSoftMuted: JSDynamicProperty('_audioSoftMuted', false),
