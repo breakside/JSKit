@@ -48,6 +48,12 @@ MockAMQPConnection.prototype = {
         }
         this.createChannelMethod.calls.push({});
         JSRunLoop.main.schedule(callback, undefined, result.error, result.channel);
+    },
+
+    on: function(){
+    },
+
+    off: function(){
     }
 
 };
@@ -114,6 +120,12 @@ MockAMQPChannel.prototype = {
         }
         this.publishMethod.calls.push({exchange: exchange, routingKey: routingKey, message: message});
         return result;
+    },
+
+    on: function(){
+    },
+
+    off: function(){
     }
 };
 

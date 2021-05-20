@@ -1,5 +1,6 @@
 // #import "JSLog.js"
 // #import "JSDistributedNotificationCenter.js"
+// #import "JSTimer.js"
 // jshint node: true
 "use strict";
 
@@ -35,6 +36,10 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
         this.queueName = "%s.%s".sprintf(this.exchangeName, this.uniqueID);
         this._observersByID = {};
         this._observersByRoutingKey = {};
+        this.connectionCloseHandler = this.handleConnectionClose.bind(this);
+        this.connectionErrorHandler = this.handleConnectionError.bind(this);
+        this.channelCloseHandler = this.handleChannelClose.bind(this);
+        this.channelErrorHandler = this.handleChannelError.bind(this);
     },
 
     open: function(completion, target){
@@ -88,6 +93,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
                             logger.info("AMQP consumer ready");
                             notificationCenter.connection = connection;
                             notificationCenter.channel = channel;
+                            notificationCenter.addEventListeners();
                             completion.call(target, true); 
                         });
                     });
@@ -102,8 +108,11 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
             completion = Promise.completion();
         }
         if (this.connection){
-            var notificationCenter = this;
-            this.connection.close(function(error){
+            this.removeEventListeners();
+            var connection = this.connection;
+            this.connection = null;
+            this.channel = null;
+            connection.close(function(error){
                 if (error){
                     logger.error("Error closing AMQP connection: %{error}", error);
                 }
@@ -114,6 +123,67 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
         }
         return completion.promise;
     },
+
+    addEventListeners: function(){
+        this.connection.on("error", this.connectionErrorHandler);
+        this.connection.on("close", this.connectionCloseHandler);
+        this.channel.on("error", this.channelErrorHandler);
+        this.channel.on("close", this.channelCloseHandler);
+    },
+
+    removeEventListeners: function(){
+        this.connection.off("error", this.connectionErrorHandler);
+        this.connection.off("close", this.connectionCloseHandler);
+        this.channel.off("error", this.channelErrorHandler);
+        this.channel.off("close", this.channelCloseHandler);
+    },
+
+    handleConnectionError: function(error){
+        logger.error("AMQP onnection error: %{error}", error);
+    },
+
+    handleChannelError: function(error){
+        logger.error("AMQP channel error: %{error}", error);
+    },
+
+    handleConnectionClose: function(){
+        logger.warn("AMQP connection closed");
+    },
+
+    handleChannelClose: function(){
+        logger.warn("AMQP channel closed, crashing...");
+        this.removeEventListeners();
+        this.channel = null;
+        this.connection = null;
+        throw new Error("AMQP channel closed");
+    },
+
+    // reconnectAttempts: 0,
+    // maximumReconnectAttempts: 3,
+    // reconnectInterval: 0.1,
+    //
+    // reconnect: function(){
+    //     var interval = this.reconnectInterval;
+    //     var attempt = function(){
+    //         if (this.reconnectAttempts < this.maximumReconnectAttempts){
+    //             ++this.reconnectAttempts;
+    //             logger.info("AMQP reconnect attempt %d", this.reconnectAttempts);
+    //             this.open(function(success){
+    //                 if (success){
+    //                     // TODO: re-bind listeners
+    //                     // TODO: post queued notifications
+    //                 }else{
+    //                     JSTimer.scheduledTimerWithInterval(interval, attempt, this);
+    //                     interval *= 2;
+    //                 }
+    //             }, this);
+    //         }else{
+    //             logger.error("AMQP reconnect attempts exhausted");
+    //             throw new Error("AMQP connection failed");
+    //         }
+    //     };
+    //     attempt.call(this);
+    // },
 
     postNotification: function(notification){
         var obj = {name: notification.name, userInfo: notification.userInfo};
