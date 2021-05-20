@@ -737,6 +737,7 @@ JSClass("UIHTMLTextField", UIControl, {
             selection = selections[i];
             this.inputElement.setRangeText(replacement, selection.location, selection.end, "end");
         }
+        this._text = this.inputElement.value;
         this._sendChangeNotificaions();
     },
 
