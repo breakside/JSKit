@@ -14,12 +14,12 @@
 // limitations under the License.
 
 // Extensions
-// #import "UIApplication+HTML.js"
 // #import "UIPlatform+HTML.js"
 // #import "UIDevice+HTML.js"
 // #import "UIWebView+HTML.js"
 
 // Specialized Subclasses
+// #import "UIHTMLApplication.js"
 // #import "UIHTMLDisplayServer.js"
 // #import "UIHTMLDisplayServerContext.js"
 // #import "UIHTMLWindowServer.js"

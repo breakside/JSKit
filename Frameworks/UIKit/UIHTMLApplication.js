@@ -21,10 +21,9 @@
 
 (function(){
 
-var originalSetup = UIApplication.prototype.setup;
 var logger = JSLog("uikit", "application");
 
-UIApplication.definePropertiesFromExtensions({
+JSClass("UIHTMLApplication", UIApplication, {
 
     setup: function(completion, target){
         this.environment = JSEnvironment.initWithDictionary(this.bundle.info.HTMLApplicationEnvironment || {});
@@ -50,7 +49,7 @@ UIApplication.definePropertiesFromExtensions({
         this.state = UIState.initWithPath(state);
         url.fragment = state !== null ? state : null;
         window.history.replaceState(null, null, url.encodedString);
-        originalSetup.call(this, completion, target);
+        UIHTMLApplication.$super.setup.call(this, completion, target);
     },
 
     launchOptionsQueryString: null,
@@ -159,7 +158,7 @@ UIApplication.definePropertiesFromExtensions({
 
 JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     var windowServer = UIHTMLWindowServer.initWithRootElement(rootElement);
-    var application = UIApplication.initWithWindowServer(windowServer);
+    var application = UIHTMLApplication.initWithWindowServer(windowServer);
     application.run(function(error){
         if (error === null){
             window.addEventListener('error', application);
