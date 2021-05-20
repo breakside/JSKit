@@ -79,6 +79,8 @@ MKVideoView.definePropertiesFromExtensions({
         }
     },
 
+    _isWaitingForPlay: false,
+
     _updatePlaybackState: function(){
         if (this.videoElement === null){
             return;
@@ -88,14 +90,25 @@ MKVideoView.definePropertiesFromExtensions({
             case MKVideoView.PlaybackState.notPlaying:
                 break;
             case MKVideoView.PlaybackState.playing:
-                this.videoElement.play().then(function(){
-                }, function(error){
-                    logger.error(error);
-                    view._playbackState = MKVideoView.PlaybackState.notPlaying;
-                });
+                if (!this._isWaitingForPlay){
+                    this._isWaitingForPlay = true;
+                    this.videoElement.play().then(function(){
+                        view._isWaitingForPlay = false;
+                    }, function(error){
+                        logger.error("play() failed: %{error}", error);
+                        view._isWaitingForPlay = false;
+                        view._playbackState = MKVideoView.PlaybackState.notPlaying;
+                    });
+                }else{
+                    logger.warn("play() requested while still waiting for an earlier play()");
+                }
                 break;
             case MKVideoView.PlaybackState.paused:
-                this.videoElement.pause();
+                if (!this._isWaitingForPlay){
+                    this.videoElement.pause();
+                }else{
+                    logger.warn("pause() requested while still waiting for play()");
+                }
                 break;
         }
     },
