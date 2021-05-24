@@ -312,6 +312,12 @@ JSLog.prototype = {
             var i, l;
             if (config.parent){
                 if (config.parent.parent){
+                    if (config.parent.parent.parent){
+                        for (i = 0, l = config.parent.parent.parent.handlers.length; i < l; ++i){
+                            handler = config.parent.parent.parent.handlers[i];
+                            handler.handleLog(record);
+                        }
+                    }
                     for (i = 0, l = config.parent.parent.handlers.length; i < l; ++i){
                         handler = config.parent.parent.handlers[i];
                         handler.handleLog(record);
