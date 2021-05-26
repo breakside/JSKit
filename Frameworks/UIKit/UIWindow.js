@@ -213,12 +213,23 @@ JSClass('UIWindow', UIView, {
     },
 
     setContentViewController: function(contentViewController){
-        if (this._contentViewController !== null && this._contentViewControllerHasAppeared){
-            this._contentViewController.viewWillDisappear();
+        var previousViewController = this._contentViewController;
+        if (this._isVisible){
+            if (previousViewController !== null){
+                previousViewController.viewWillDisappear(false);
+            }
+            if (contentViewController !== null){
+                contentViewController.viewWillAppear(false);
+            }
         }
         this.contentView = contentViewController.view;
-        if (this._contentViewController !== null && this._contentViewControllerHasAppeared){
-            this._contentViewController.viewDidDisappear();
+        if (this._isVisible){
+            if (previousViewController !== null){
+                previousViewController.viewDidDisappear(false);
+            }
+            if (contentViewController !== null){
+                contentViewController.viewDidAppear(false);
+            }
         }
         this._contentViewController = contentViewController;
     },
@@ -426,8 +437,11 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    _isVisible: false,
+
     didBecomeVisible: function(){
         this._application._windows.push(this);
+        this._isVisible = true;
         if (this.viewController){
             this.viewController.viewDidAppear(false);
         }else if (this._contentViewController){
@@ -449,6 +463,7 @@ JSClass('UIWindow', UIView, {
         }else if (this._contentViewController){
             this._contentViewController.viewDidDisappear(false);
         }
+        this._isVisible = false;
         if (this._parent && this._parent.modal === this){
             this._parent._modal = null;
             this._parent._flushTrackingEvents();
