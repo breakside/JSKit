@@ -28,8 +28,8 @@ var logger = JSLog("conference", "html-connection");
 JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
 
     htmlPeerConnection: null,
-    htmlVideoTransceiver: null,
-    htmlAudioTransceiver: null,
+    // htmlVideoTransceiver: null,
+    // htmlAudioTransceiver: null,
     isCaller: false,
 
     open: function(isCaller){
@@ -61,11 +61,9 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             }
         }
         this.isCaller = isCaller;
-        this._expectedVideoUnmutes = 1;
-        this._expectedAudioUnmutes = 1;
         this.htmlPeerConnection = new RTCPeerConnection(configuration);
         this.audioTrackNeedsUnmute = true;
-        this.videoTrackNeedsUnmute = true;
+        this.videoTrackNeedsUnmute = !this.participant.videoSoftMuted;
         this._updateLocalTracks();
         // if (this.isCaller){
         //     this.htmlVideoTransceiver = this.htmlPeerConnection.addTransceiver("video");
@@ -162,6 +160,8 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         this._updateLocalTracks();
     },
 
+    _senders: null,
+
     _updateLocalTracks: function(){
         logger.info("updating local tracks to participant %{public}", this.participant.shortID);
         if (this._localStream === null){
@@ -172,12 +172,23 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
             logger.info("connection not yet set %{public}", this.participant.shortID);
             return;
         }
+        if (this._senders === null){
+            this._senders = [];
+        }
+        var i, l;
+        var sender;
+        for (i = 0, l = this._senders.length; i < l; ++i){
+            sender = this._senders[i];
+            this.htmlPeerConnection.removeTrack(sender);
+        }
+        this._senders = [];
         var tracks = this._localStream.htmlMediaStream.getTracks();
         var track;
-        for (var i = 0, l = tracks.length; i < l; ++i){
+        for (i = 0, l = tracks.length; i < l; ++i){
             track = tracks[i];
             logger.info("adding local %{public} track to participant %{public}", track.kind, this.participant.shortID);
-            this.htmlPeerConnection.addTrack(tracks[i]);
+            sender = this.htmlPeerConnection.addTrack(tracks[i]);
+            this._senders.push(sender);
         }
         // if (!(this._localStream instanceof MKHTMLStream)){
         //     logger.warn("local stream is not an html stream %{public}", this.participant.shortID);
@@ -286,8 +297,8 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
     remoteHTMLMediaStream: null,
     remoteHTMLVideoTrack: null,
     remoteHTMLAudioTrack: null,
-    audioTrackNeedsUnmute: true,
-    videoTrackNeedsUnmute: true,
+    audioTrackNeedsUnmute: false,
+    videoTrackNeedsUnmute: false,
 
     _event_track: function(event){
         // New incoming media has been negotiated for a specific RTCRtpReceiver, and that receiver's track has been added to any associated remote MediaStreams.
@@ -303,7 +314,7 @@ JSClass("CKHTMLParticipantConnection", CKParticipantConnection, {
         }else if (track.kind == "audio"){
             if (this.remoteHTMLAudioTrack !== null){
                 logger.info("%{public} removing previous audio track", this.participant.shortID);
-                this.removeTrack(this.remoteHTMLAudioTrack);
+                this.remoteHTMLMediaStream.removeTrack(this.remoteHTMLAudioTrack);
                 this.removeEventListenersFromTrack(this.remoteHTMLAudioTrack);
             }
             this.remoteHTMLAudioTrack = track;
