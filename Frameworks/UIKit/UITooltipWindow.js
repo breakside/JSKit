@@ -57,12 +57,7 @@ JSClass("UITooltipWindow", UIWindow, {
         return false;
     },
 
-    containsPoint: function(location){
-        // We don't want to interact with anything, so we'll claim to not
-        // contain any point.  That way, the window server won't ever consider
-        // us a target
-        return false;
-    },
+    userInteractionEnabled: false,
 
     accessibilitySubrole: UIAccessibility.Subrole.tooltip
 

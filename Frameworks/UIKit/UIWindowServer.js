@@ -478,7 +478,7 @@ JSClass("UIWindowServer", JSObject, {
                 return window;
             }
             locationInWindow = window.convertPointFromScreen(location);
-            if (window.containsPoint(locationInWindow)){
+            if (window.userInteractionEnabled && window.containsPoint(locationInWindow)){
                 return window;
             }
         }
