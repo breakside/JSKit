@@ -40,7 +40,7 @@ JSClass("MKVideoView", UIView, {
     videoResolution: null,
 
     getIntrinsicSize: function(){
-        if (this.videoResolution !== null){
+        if (this.videoResolution !== null && this.videoResolution.width > 0 && this.videoResolution.height > 0){
             return this.videoResolution;
         }
         return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
