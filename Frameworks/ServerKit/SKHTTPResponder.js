@@ -63,7 +63,11 @@ JSClass("SKHTTPResponder", JSObject, {
                 return;
             }
         }
-        this.sendStatus(statusCode);
+        if (statusCode === SKHTTPResponse.StatusCode.noResponse || statusCode === SKHTTPResponse.StatusCode.unknown){
+            this.request.close();
+        }else{
+            this.sendStatus(statusCode);
+        }
     },
 
     urlForResponder: function(responder, params){
