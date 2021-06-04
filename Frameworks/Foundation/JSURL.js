@@ -378,6 +378,9 @@ JSClass("JSURL", JSObject, {
             this._query = JSFormFieldMap(query);
         }
         this._encodedQuery = this._query.urlEncoded();
+        if (this._encodedQuery.length === 0){
+            this._encodedQuery = null;
+        }
     },
 
     getEncodedString: function(){
@@ -523,7 +526,7 @@ JSClass("JSURL", JSObject, {
 
     encodedStringRelativeTo: function(baseURL){
         if (this._scheme != baseURL._scheme){
-            return this;
+            return this.encodedString;
         }
         var url = this.copy();
         url.scheme = null;
