@@ -156,13 +156,17 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
             completion = Promise.completion();
         }
         if (this.supportsHTMLNotifications){
+            var handled = false;
             var handler = function(permission){
-                completion.call(target, permission === "granted");
+                if (!handled){
+                    handled = true;
+                    completion.call(target, permission === "granted");
+                }
             };
             var promise = Notification.requestPermission(handler);
             if (promise instanceof Promise){
                 promise.then(handler, function(){
-                    completion.call(target, false);
+                    handler("denied");
                 });
             }
         }else{
