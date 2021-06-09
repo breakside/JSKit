@@ -24,7 +24,7 @@ JSClass("NKUserNotification", JSObject, {
 
     initWithTitle: function(title, body){
         this.title = title;
-        this.body = body;
+        this.body = body || null;
         this.identifier = UUID();
     }
 

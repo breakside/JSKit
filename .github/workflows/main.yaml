@@ -186,6 +186,18 @@ jobs:
       - name: Test SearchKit in Webkit
         run: npx jskit test --browser webkit Tests/SearchKitTests
 
+      - name: Test NotificationKit
+        run: npx jskit test Tests/NotificationKitTests
+
+      - name: Test NotificationKit in Chrome
+        run: npx jskit test --browser chrome Tests/NotificationKitTests
+
+      - name: Test NotificationKit in Firefox
+        run: npx jskit test --browser firefox Tests/NotificationKitTests
+
+      - name: Test NotificationKit in Webkit
+        run: npx jskit test --browser webkit Tests/NotificationKitTests
+
       - name: Test ServerKit
         run: npx jskit test Tests/ServerKitTests
 
