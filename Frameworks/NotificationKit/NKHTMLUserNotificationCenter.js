@@ -111,7 +111,6 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
         }
         var showing = this.showingNotificationsByID[notification.identifier];
         if (showing){
-            delete this.showingNotificationsByID[notification.identifier];
             showing.htmlNotification.close();
         }
     },
@@ -189,6 +188,8 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
     },
 
     _event_click: function(e){
+        var htmlNotification = e.currentTarget;
+        htmlNotification.close();
         // TODO: notify delegate
     },
 
