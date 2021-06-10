@@ -300,6 +300,14 @@ JSClass('UIScrollView', UIView, {
         );
     },
 
+    isScrolledToTop: function(){
+        return this._contentOffset.y <= this._minContentOffset.y;
+    },
+
+    isScrolledToBottom: function(){
+        return this._contentOffset.y >= this._maxContentOffset.y;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Scrolling
 
@@ -310,9 +318,7 @@ JSClass('UIScrollView', UIView, {
         if (position === undefined){
             position = UIScrollView.ScrollPosition.auto;
         }
-        if (scrollsVertically && scrollsHorizontally){
-            // TODO:
-        }else if (scrollsVertically){
+        if (scrollsVertically){
             if (position === UIScrollView.ScrollPosition.auto){
                 // Auto position means choose top if the target is above the current offset,
                 // bottom if the target is below the offset, or nothing if the target is fully visible
@@ -336,7 +342,8 @@ JSClass('UIScrollView', UIView, {
                     contentOffset.y = rect.origin.y + rect.size.height / 2.0 - this.contentView.bounds.size.height / 2.0;
                     break;
             }
-        }else if (scrollsHorizontally){
+        }
+        if (scrollsHorizontally){
             if (position === UIScrollView.ScrollPosition.auto){
                 // Auto position means choose top if the target is above the current offset,
                 // bottom if the target is below the offset, or nothing if the target is fully visible
