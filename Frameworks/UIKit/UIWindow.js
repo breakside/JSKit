@@ -214,6 +214,11 @@ JSClass('UIWindow', UIView, {
 
     setContentViewController: function(contentViewController){
         var previousViewController = this._contentViewController;
+        var contentView = null;
+        // load the view before calling viewWillAppear
+        if (contentViewController){
+            contentView = contentViewController.view;
+        }
         if (this._isVisible){
             if (previousViewController !== null){
                 previousViewController.viewWillDisappear(false);
@@ -222,7 +227,7 @@ JSClass('UIWindow', UIView, {
                 contentViewController.viewWillAppear(false);
             }
         }
-        this.contentView = contentViewController.view;
+        this.contentView = contentView;
         if (this._isVisible){
             if (previousViewController !== null){
                 previousViewController.viewDidDisappear(false);
