@@ -254,7 +254,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
         }
 
         // Missing Unicode cmap
-        errors.unicode = !this.tables.cmap || !this.tables.cmap.getMap([0, 3], [3, 10], [3, 1]);
+        errors.unicode = !this.tables.cmap || !this.tables.cmap.getMap([0, 4], [0, 3], [3, 10], [3, 1]);
 
         // Table Search params
         var entrySelector = log2(this.tableCount);
@@ -338,7 +338,118 @@ JSClass("FNTOpenTypeFont", JSObject, {
             completion.call(target, this);
         }
         return completion.promise;
-    }
+    },
+
+    getFontSubsetWithGlyphs: function(glyphs, postScriptName, cmaps, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+
+        // only support TrueType glyf table based fonts
+        if (this.version !== 0x00010000){
+            completion.call(target, null);
+            return;
+        }
+
+        // copy the head and always use the long loca format so we don't have to
+        // do extra work to use the short format
+        var head = FNTOpenTypeFontTableHead.initWithData(JSData.initWithCopyOfData(this.tables.head.data));
+        head.indexToLocFormat = 1;
+
+        // Copy the hhea and update the number of glyphs
+        var hhea = FNTOpenTypeFontTableHhea.initWithData(JSData.initWithCopyOfData(this.tables.hhea.data));
+        hhea.numberOfHMetrics = glyphs.length;
+
+        // Copy the maxp and update the number of glyphs
+        var maxp = FNTOpenTypeFontTableMaxp.initWithData(JSData.initWithCopyOfData(this.tables.maxp.data));
+        maxp.numberOfGlyphs = glyphs.length;
+
+        // Create a new name table and set the new poscript name
+        var name = FNTOpenTypeFontTableName.init();
+        name.addName(1, 0, 0, 6, postScriptName.latin1());
+        name.addName(3, 1, 1033, 6, postScriptName.latin1());
+
+        // Copy the OS/2 table and reset the default char to 0 (it probably already is),
+        // since we know we're including that glyph
+        var os2 = FNTOpenTypeFontTableOS2.initWithData(JSData.initWithCopyOfData(this.tables["OS/2"].data));
+        os2.usDefaultChar = 0;
+        // Do we need to adjust any of these?
+        // - ulUnicodeRange1
+        // - ulUnicodeRange2
+        // - ulUnicodeRange3
+        // - ulUnicodeRange4
+        // - usFirstCharIndex
+        // - usLastCharIndex
+        // - ulCodePageRange1
+        // - ulCodePageRange2
+
+        // Copy the post table, but only the first 32 bytes and make it Version 3,
+        // leaving out the glyph names
+        var post = FNTOpenTypeFontTablePost.initWithData(JSData.initWithCopyOfData(this.tables.post.data.subdataInRange(JSRange(0, 32))));
+        post.majorVersion = 3;
+        post.minorVersion = 0;
+
+        // Rewrite the loca, glyf, and htmx tables to include only the specified glyphs
+        var newGlyfLength = 0;
+        var locations = [];
+        var widths = [];
+        var glyfChunks = [];
+        var location = 0;
+        var originalGlyphIndex;
+        var originalGlyphDataRange;
+        var newGlyphIndex, l;
+        for (newGlyphIndex = 0, l = glyphs.length; newGlyphIndex < l; ++newGlyphIndex){
+            originalGlyphIndex = glyphs[newGlyphIndex];
+            originalGlyphDataRange = this.tables.loca.rangeForGlyph(originalGlyphIndex, this.tables.head.indexToLocFormat);
+            locations.push(location);
+            glyfChunks.push(this.tables.glyf.data.subdataInRange(originalGlyphDataRange));
+            widths.push(this.tables.hmtx.widthOfGlyph(originalGlyphIndex));
+            location += originalGlyphDataRange.length;
+        }
+        locations.push(location);
+        var loca = FNTOpenTypeFontTableLoca.initWithLocations(locations);
+        var glyf = FNTOpenTypeFontTableGlyf.initWithData(JSData.initWithChunks(glyfChunks));
+        var hmtx = FNTOpenTypeFontTableHmtx.initWithWidths(widths);
+
+        // Rewrite the cmap table to include only the specified glyphs
+        var cmap = FNTOpenTypeFontTableCmap.init();
+        var i;
+        for (i = 0, l = cmaps.length; i < l; ++i){
+            cmap.addMap(cmaps[i][0], cmaps[i][1], cmaps[i][2]);
+        }
+
+        var tables = [
+            head,
+            hhea,
+            maxp,
+            name,
+            os2,
+            post,
+            hmtx,
+            cmap,
+            loca,
+            glyf
+        ];
+        if (this.tables.cvt){
+            tables.push(this.tables.cvt);
+        }
+        if (this.tables.fpgm){
+            tables.push(this.tables.fpgm);
+        }
+        if (this.tables.prep){
+            tables.push(this.tables.prep);
+        }
+        var constructor = FNTOpenTypeConstructor.initWithTables(tables);
+        constructor.getData(function(data){
+            if (data === null){
+                completion.call(target, null);
+                return;
+            }
+            var font = FNTOpenTypeFont.initWithData(data);
+            completion.call(target, font);
+        });
+        return completion.promise;
+    },
 
 });
 
@@ -711,6 +822,11 @@ JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
         FNTOpenTypeFontTableHmtx.$super.initWithDataLength.call(this, 0);
     },
 
+    initWithWidths: function(widths){
+        this.init();
+        this.setWidths(widths);
+    },
+
     initWithData: function(data, font){
         FNTOpenTypeFontTableHmtx.$super.initWithData.call(this, data);
         this.widthCount = font.tables.hhea.numberOfHMetrics;
@@ -976,6 +1092,48 @@ JSClass("FNTOpenTypeFontTableCFF", FNTOpenTypeFontTable, {
     tag: 'CFF ',
 });
 
+JSClass("FNTOpenTypeFontTableGlyf", FNTOpenTypeFontTable, {
+    tag: 'glyf'
+});
+
+JSClass("FNTOpenTypeFontTableLoca", FNTOpenTypeFontTable, {
+    tag: 'loca',
+
+    init: function(){
+        FNTOpenTypeFontTableLoca.$super.initWithDataLength.call(this, 0);
+    },
+
+    initWithLocations: function(locations){
+        this.init();
+        this.setLocations(locations);
+    },
+
+    rangeForGlyph: function(glyphIndex, format){
+        var l0;
+        var l1;
+        var i;
+        if (format === 0){
+            i = glyphIndex * 2;
+            l0 = this.dataView.getUint16(i) * 2;
+            l1 = this.dataView.getUint16(i + 2) * 2;
+        }else{
+            i = glyphIndex * 4;
+            l0 = this.dataView.getUint32(i);
+            l1 = this.dataView.getUint32(i + 4);
+        }
+        return JSRange(l0, l1 - l0);
+    },
+
+    setLocations: function(locations){
+        this.data = JSData.initWithLength(locations.length * 4);
+        this.dataView = this.data.dataView();
+        var offset = 0;
+        for (var i = 0, l = locations.length; i < l; ++i, offset += 4){
+            this.dataView.setUint16(offset, locations[i]);
+        }
+    }
+});
+
 var UnicodeConvertingCmap = function(unicodeMap, map){
     if (this === undefined){
         return new UnicodeConvertingCmap(unicodeMap, map);
@@ -1183,6 +1341,15 @@ JSClass("FNTOpenTypeFontCmap0", FNTOpenTypeFontCmap, {
     format: DataBackedProperty(0, 'uint16'),
     length: DataBackedProperty(2, 'uint16'),
     language: DataBackedProperty(4, 'uint16'),
+
+    initWithSingleByteEncoding: function(encoding){
+        FNTOpenTypeFontCmap0.$super.initWithData.call(this, JSData.initWithLength(262));
+        this.length = 256;
+        var i = 6;
+        for (var code = 0, l = encoding.length; code < l; ++code, ++i){
+            this.data[i] = encoding[code];
+        }
+    },
 
     glyphForCharacterCode: function(code){
         if (code > 255){

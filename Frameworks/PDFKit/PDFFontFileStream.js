@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,25 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "PDFIndirectObject.js"
-// #import "PDFName.js"
-// #import "PDFObject.js"
-// #import "PDFArray.js"
-// #import "PDFDocument.js"
-// #import "PDFPages.js"
-// #import "PDFPage.js"
-// #import "PDFResources.js"
-// #import "PDFGraphicsStateParameters.js"
 // #import "PDFStream.js"
-// #import "PDFTrailer.js"
-// #import "PDFFont.js"
-// #import "PDFFontDescriptor.js"
-// #import "PDFCMap.js"
-// #import "PDFXObject.js"
-// #import "PDFImage.js"
-// #import "PDFForm.js"
-// #import "PDFXrefStream.js"
-// #import "PDFObjectStream.js"
-// #import "PDFFontFileStream.js"
-// #import "PDFFunction.js"
 'use strict';
+
+
+JSGlobalObject.PDFFontFileStream = function(){
+    if (this === undefined){
+        return new PDFFontFileStream();
+    }
+};
+
+JSGlobalObject.PDFFontFileStream.prototype = Object.create(PDFStream.prototype, {
+    Length1:    PDFObjectProperty,
+    Length2:    PDFObjectProperty,
+    Length3:    PDFObjectProperty,
+    Subtype:    PDFObjectProperty,
+    Metadata:   PDFObjectProperty
+});

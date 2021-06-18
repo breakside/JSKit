@@ -182,6 +182,7 @@ JSClass("PDFContext", JSContext, {
             var stream = writer.stream;
             for (var row = 0; row < bitmap.size.height; ++row){
                 for (var col = 0; col < bitmap.size.width; ++col){
+                    // FIXME: doesn't advance writer._offset
                     stream.write(bitmap.data, offset, 3);
                     offset += 4;
                     length += 3;
@@ -197,13 +198,16 @@ JSClass("PDFContext", JSContext, {
 
     _populateFontResources: function(job){
         var infos = [];
+        var i, l;
         for (var postScriptName in this._fontInfo){
-            infos.push(this._fontInfo[postScriptName]);
+            for (i = 0, l = this._fontInfo[postScriptName].length; i < l; ++i){
+                infos.push(this._fontInfo[postScriptName][i]);
+            }
         }
         if (infos.length > 0){
             this._pages.Resources.Font = {};
             var fontJob;
-            for (var i = infos.length - 1; i >= 0; --i){
+            for (i = infos.length - 1; i >= 0; --i){
                 fontJob = job.queue.insertJob(this, this._populateFontResource);
                 fontJob.fontInfo = infos[i];
             }
@@ -212,16 +216,94 @@ JSClass("PDFContext", JSContext, {
     },
 
     _populateFontResource: function(job){
-        // TODO: get TTF data from file
-        // TODO: slice font to only include info.usedGlyphs
-        // For a font subset, the PostScript name of the font -- the value of the font’s BaseFont entry and the font descriptor’s FontName entry -- shall begin with a tag followed by a plus sign (+). The tag shall consist of exactly six uppercase letters; the choice of letters is arbitrary, but different subsets in the same PDF file shall have different tags.
         var info = job.fontInfo;
-        var fonts = this._pages.Resources.Font;
-        var font = PDFType1Font();
-        font.BaseFont = PDFName("Helvetica");
-        this._writer.writeObject(font);
-        fonts[info.resourceName] = font.indirect;
-        job.complete();
+        info.descriptor.getData(function(otfData){
+            var fullOTF = FNTOpenTypeFont.initWithData(otfData);
+            var cmap = FNTOpenTypeFontCmap0.initWithSingleByteEncoding(info.singleByteEncoding);
+            fullOTF.getFontSubsetWithGlyphs(info.baseGlyphs, info.postScriptName, [[1, 0, cmap]], function(subsetOTF){
+                var pdfFontFile = PDFFontFileStream();
+                pdfFontFile.Subtype = PDFName("OpenType");
+                pdfFontFile.Length = this._writer.createIndirect();
+                pdfFontFile.Length1 = subsetOTF.data.length;
+                this._writer.beginStreamObject(pdfFontFile);
+                this._writer.writeStreamData(subsetOTF.data);
+                this._writer.endStreamObject();
+                pdfFontFile.Length.resolvedValue = subsetOTF.data.length;
+                this._writer.writeObject(pdfFontFile.Length);
+
+                var os2 = subsetOTF.tables["OS/2"];
+                var head = subsetOTF.tables.head;
+                var pdfDescriptor = PDFFontDescriptor();
+                pdfDescriptor.FontName = PDFName(info.postScriptName);
+                switch (os2.usWidthClass){
+                    case 1:
+                        pdfDescriptor.FontStretch = PDFName("UltraCondensed");
+                        break;
+                    case 2:
+                        pdfDescriptor.FontStretch = PDFName("ExtraCondensed");
+                        break;
+                    case 3:
+                        pdfDescriptor.FontStretch = PDFName("Condensed");
+                        break;
+                    case 4:
+                        pdfDescriptor.FontStretch = PDFName("SemiCondensed");
+                        break;
+                    case 5:
+                        pdfDescriptor.FontStretch = PDFName("Normal");
+                        break;
+                    case 6:
+                        pdfDescriptor.FontStretch = PDFName("SemiExpanded");
+                        break;
+                    case 7:
+                        pdfDescriptor.FontStretch = PDFName("Expanded");
+                        break;
+                    case 8:
+                        pdfDescriptor.FontStretch = PDFName("ExtraExpanded");
+                        break;
+                    case 9:
+                        pdfDescriptor.FontStretch = PDFName("UltraExpanded");
+                        break;
+                }
+                pdfDescriptor.FontWeight = os2.usWeightClass;
+                pdfDescriptor.Flags = 0;
+                pdfDescriptor.ItalicAngle = 0;
+                if ((os2.fsSelection & 0x0001) === 0x0001){
+                    pdfDescriptor.Falgs |= PDFFontDescriptor.Flags.italic;
+                    pdfDescriptor.ItalicAngle = -30;
+                }
+                pdfDescriptor.FontBBox = PDFArray([
+                    head.xMin,
+                    head.yMin,
+                    head.xMax,
+                    head.yMax
+                ]);
+                pdfDescriptor.Ascent = os2.sTypoAscender;
+                pdfDescriptor.Descent = os2.sTypoDescender;
+                pdfDescriptor.CapHeight = os2.sCapHeight;
+                pdfDescriptor.XHeight = os2.sxHeight;
+                pdfDescriptor.StemV = info.estimatedStemV;
+                pdfDescriptor.FontFile3 = pdfFontFile.indirect;
+                this._writer.writeObject(pdfDescriptor);
+
+                var widthValues = [];
+                for (var i = info.firstCode; i <= info.lastCode; ++i){
+                    widthValues.push(info.pdfWidthOfGlyph(info.singleByteEncoding[i]));
+                }
+                var pdfWidths = PDFArray(widthValues);
+                this._writer.writeObject(pdfWidths);
+
+                var pdfFont = PDFTrueTypeFont();
+                pdfFont.BaseFont = PDFName(info.postScriptName);
+                pdfFont.FirstChar = info.firstCode;
+                pdfFont.LastChar = info.lastCode;
+                pdfFont.Widths = pdfWidths.indirect;
+                pdfFont.FontDescriptor = pdfDescriptor.indirect;
+                this._writer.writeObject(pdfFont);
+                this._pages.Resources.Font[info.resourceName] = pdfFont.indirect;
+                job.complete();
+
+            }, this);
+        }, this);
     },
 
     _finalizeDocument: function(job){
@@ -339,37 +421,50 @@ JSClass("PDFContext", JSContext, {
 
     showGlyphs: function(glyphs){
         // TODO: if any glyphs are bitmaps (like in emoji fonts), might need to draw them as images
-        var chars = this.state.font.charactersForGlyphs(glyphs);
-        var info = this._infoForFont(this.state.font);
-        var encoded = this._encodedString(chars, info);
+        var operation = this._textOperationForShowingGlyphs(glyphs, this.state.font.descriptor);
         var tm = this.state.textMatrix;
-        info.useGlyphs(glyphs);
-        info.hasMacEncoding = info.hasMacEncoding || encoded.isMacEncoding;
-        info.hasUTF16Encoding = info.hasUTF16Encoding || !encoded.isMacEncoding;
-        this._writeStreamData("BT %N %n Tf ", encoded.fontResourceName, this.state.font.pointSize);
-        this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, tm.d, tm.tx, tm.ty);
-        this._writeStreamData("%S Tj ", encoded.string);
+        this._writeStreamData("BT %N %n Tf ", operation.fontResourceName, this.state.font.pointSize);
+        this._writeStreamData("%n %n %n %n %n %n Tm ", tm.a, tm.b, tm.c, -tm.d, tm.tx, tm.ty);
+        this._writeStreamData("%S Tj ", operation.string);
         this._writeStreamData("ET ");
     },
 
-    _encodedString: function(chars, info){
-        var codes = [];
-        for (var i = 0, l = chars.length; i < l; ++i){
-            codes.push(chars[i].code);
-        }
-        // TODO: determine which encoding to use, and build a string
-        return {
-            string: String.fromCodePoint.apply(null, codes),
+    _textOperationForShowingGlyphs: function(glyphs, descriptor){
+        var info = this._fontInfoForGlyphs(glyphs, descriptor);
+        var operation = {
             fontResourceName: info.resourceName,
-            isMacEncoding: false
+            string: ""
         };
+        var character;
+        for (var i = 0, l = glyphs.length; i < l; ++i){
+            character = info.codeForBaseGlyph(glyphs[i]);
+            operation.string += String.fromCharCode(character);
+        }
+        return operation;
     },
 
-    _infoForFont: function(font){
-        var info = this._fontInfo[font.postScriptName];
-        if (!info){
-            info = this._fontInfo[font.postScriptName] = PDFFontInfo(font);
-            info.resourceName = PDFName("F%d".sprintf(this._nextFontNumber++));
+    _fontInfoForGlyphs: function(glyphs, descriptor){
+        var infos = this._fontInfo[descriptor.postScriptName];
+        if (!infos){
+            this._fontInfo[descriptor.postScriptName] = infos = [];
+        }
+        var info = null;
+        var candidate;
+        for (var i = 0, l = infos.length; i < l && info === null; ++i){
+            candidate = infos[i];
+            if (candidate.includeBaseGlyphs(glyphs)){
+                info = candidate;
+            }
+        }
+        if (info === null){
+            info = PDFFontInfo(descriptor);
+            if (info.includeBaseGlyphs(glyphs)){
+                info.resourceName = PDFName("F%d".sprintf(this._nextFontNumber++));
+                infos.push(info);
+            }else{
+                // TODO: support CID fonts
+                throw new Error("Cannot represent all glyphs with a simple font");
+            }
         }
         return info;
     },
@@ -505,38 +600,102 @@ JSClass("PDFContext", JSContext, {
 
 });
 
-var PDFFontInfo = function(font){
+var PDFFontInfo = function(descriptor){
     if (this === undefined){
-        return new PDFFontInfo(font);
+        return new PDFFontInfo(descriptor);
     }
-    this.font = font;
+    this.descriptor = descriptor;
+    // For a font subset, the PostScript name of the font -- 
+    // the value of the font’s BaseFont entry and the font 
+    // descriptor’s FontName entry -- shall begin with a tag 
+    // followed by a plus sign (+). The tag shall consist of exactly
+    // six uppercase letters; the choice of letters is arbitrary, 
+    // but different subsets in the same PDF file shall have
+    // different tags.
+    this.postScriptName = "%s+%s".sprintf(PDFFontInfo.subsetPrefix(), descriptor.postScriptName);
+    this.baseGlyphs = [0];
+    this.firstCode = 0;
+    this.lastCode = 0;
+    this.codesByBaseGlyph = {};
     this.resourceName = null;
-    this.usedGlyphs = [];
+    this.singleByteEncoding = [
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+    ];
+    this.nextCode = 0x80;
+    this.estimatedStemV = 50 + Math.round((Math.max(100, Math.min(900, descriptor.weight)) - 100) / 4);
+};
+
+PDFFontInfo.subsetPrefix = function(){
+    var str = "";
+    for (var i = 0; i < 6; ++i){
+        str += String.fromCharCode(0x41 + Math.floor(Math.random() * 26));
+    }
+    return str;
 };
 
 PDFFontInfo.prototype = {
 
-    useGlyphs: function(glyphs){
-        for (var i = 0, l = glyphs.length; i < l; ++i){
-            this._useGlyph(glyphs[i]);
-        }
+    pdfWidthOfBaseGlyph: function(baseGlyph){
+        var emWidth = this.descriptor.widthOfGlyph(baseGlyph);
+        return emWidth * 1000 / this.descriptor.unitsPerEM;
     },
 
-    _useGlyph: function(glyph){
-        var min = 0;
-        var max = this.usedGlyphs.length;
-        var mid;
-        while (min < max){
-            mid = min + Math.floor((max - min) / 2);
-            if (glyph < this.usedGlyphs[mid]){
-                max = mid;
-            }else if (glyph > this.usedGlyphs[mid]){
-                min = mid + 1;
-            }else{
-                return;
+    pdfWidthOfGlyph: function(glyph){
+        return this.pdfWidthOfBaseGlyph(this.baseGlyphs[glyph]);
+    },
+
+    includeBaseGlyphs: function(baseGlyphs){
+        for (var i = 0, l = baseGlyphs.length; i < l; ++i){
+            if (!this._includeBaseGlyph(baseGlyphs[i])){
+                return false;
             }
         }
-        this.usedGlyphs.splice(mid, 0, glyph);
+        return true;
+    },
+
+    codeForBaseGlyph: function(baseGlyph){
+        return this.codesByBaseGlyph[baseGlyph] || 0;
+    },
+
+    _allocateCodeForBaseGlyph: function(baseGlyph){
+        var character = this.descriptor.characterForGlyph(baseGlyph);
+        if (character.code < 0x80){
+            return character.code;
+        }
+        return this.nextCode++;
+    },
+
+    _includeBaseGlyph: function(baseGlyph){
+        if (baseGlyph === 0){
+            return true;
+        }
+        var code = this.codesByBaseGlyph[baseGlyph];
+        if (code !== undefined){
+            return true;
+        }
+        code = this._allocateCodeForBaseGlyph(baseGlyph);
+        if (code > 0xFF){
+            return false;
+        }
+        var glyph = this.baseGlyphs.length;
+        this.codesByBaseGlyph[baseGlyph] = code;
+        this.baseGlyphs.push(baseGlyph);
+        this.singleByteEncoding[code] = glyph;
+        if (this.firstCode === 0 && this.lastCode === 0){
+            this.firstCode = this.lastCode = code;
+        }else if (code < this.firstCode){
+            this.firstCode = code;
+        }else if (code > this.lastCode){
+            this.lastCode = code;
+        }
+        return true;
     }
 };
 

@@ -16,9 +16,15 @@
 // #import "PDFObject.js"
 'use strict';
 
-JSGlobalObject.PDFArray = function(){
+JSGlobalObject.PDFArray = function(items){
     if (this === undefined){
-        return new PDFArray();
+        return new PDFArray(items);
+    }
+    if (items !== undefined){
+        for (var i = 0, l = items.length; i < l; ++i){
+            this[i] = items[i];
+        }
+        this.length = items.length;
     }
 };
 
