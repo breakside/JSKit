@@ -95,12 +95,13 @@ JSClass("PDFContext", JSContext, {
         this.endPage();
         this._page = PDFPage();
         this._page.Parent = this._pages.indirect;
-        this._page.Resources = PDFResources();
+        // this._page.Resources = PDFResources();
         if (options.mediaBox !== undefined){
             this._page.MediaBox = options.mediaBox.pdfRectangle();
         }
         this._createNewContentStream();
-        this._writer.indirect(this._page, this._page.Resources);
+        // this._writer.indirect(this._page, this._page.Resources);
+        this._writer.indirect(this._page);
         this.save();
 
         // exact equivalence to false means the default (undefined) is true
@@ -116,7 +117,7 @@ JSClass("PDFContext", JSContext, {
 
         this.restore();
         this._endContentStream();
-        this._writer.writeObject(this._page.Resources);
+        // this._writer.writeObject(this._page.Resources);
         this._writer.writeObject(this._page);
 
         this._pages.Kids.push(this._page.indirect);
@@ -222,7 +223,6 @@ JSClass("PDFContext", JSContext, {
             var cmap = FNTOpenTypeFontCmap0.initWithSingleByteEncoding(info.singleByteEncoding);
             fullOTF.getFontSubsetWithGlyphs(info.baseGlyphs, info.postScriptName, [[1, 0, cmap]], function(subsetOTF){
                 var pdfFontFile = PDFFontFileStream();
-                pdfFontFile.Subtype = PDFName("OpenType");
                 pdfFontFile.Length = this._writer.createIndirect();
                 pdfFontFile.Length1 = subsetOTF.data.length;
                 this._writer.beginStreamObject(pdfFontFile);
@@ -265,10 +265,10 @@ JSClass("PDFContext", JSContext, {
                         break;
                 }
                 pdfDescriptor.FontWeight = os2.usWeightClass;
-                pdfDescriptor.Flags = 0;
+                pdfDescriptor.Flags = 0x20;
                 pdfDescriptor.ItalicAngle = 0;
                 if ((os2.fsSelection & 0x0001) === 0x0001){
-                    pdfDescriptor.Falgs |= PDFFontDescriptor.Flags.italic;
+                    pdfDescriptor.Flags |= PDFFontDescriptor.Flags.italic;
                     pdfDescriptor.ItalicAngle = -30;
                 }
                 pdfDescriptor.FontBBox = PDFArray([
@@ -282,7 +282,7 @@ JSClass("PDFContext", JSContext, {
                 pdfDescriptor.CapHeight = os2.sCapHeight;
                 pdfDescriptor.XHeight = os2.sxHeight;
                 pdfDescriptor.StemV = info.estimatedStemV;
-                pdfDescriptor.FontFile3 = pdfFontFile.indirect;
+                pdfDescriptor.FontFile2 = pdfFontFile.indirect;
                 this._writer.writeObject(pdfDescriptor);
 
                 var widthValues = [];
@@ -459,7 +459,7 @@ JSClass("PDFContext", JSContext, {
         if (info === null){
             info = PDFFontInfo(descriptor);
             if (info.includeBaseGlyphs(glyphs)){
-                info.resourceName = PDFName("F%d".sprintf(this._nextFontNumber++));
+                info.resourceName = PDFName("TT%d".sprintf(this._nextFontNumber++));
                 infos.push(info);
             }else{
                 // TODO: support CID fonts
@@ -630,6 +630,7 @@ var PDFFontInfo = function(descriptor){
     ];
     this.nextCode = 0x80;
     this.estimatedStemV = 50 + Math.round((Math.max(100, Math.min(900, descriptor.weight)) - 100) / 4);
+    this.pages = [];
 };
 
 PDFFontInfo.subsetPrefix = function(){
@@ -644,7 +645,7 @@ PDFFontInfo.prototype = {
 
     pdfWidthOfBaseGlyph: function(baseGlyph){
         var emWidth = this.descriptor.widthOfGlyph(baseGlyph);
-        return emWidth * 1000 / this.descriptor.unitsPerEM;
+        return emWidth * 1000;
     },
 
     pdfWidthOfGlyph: function(glyph){

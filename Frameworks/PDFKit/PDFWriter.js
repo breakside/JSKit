@@ -115,10 +115,10 @@ JSClass("PDFWriter", JSObject, {
             }
         }else if (preferIndirect && obj && obj.indirect && obj.indirect instanceof PDFIndirectObject){
             this._writeIndirectObject(obj.indirect);
+        }else if ((obj instanceof PDFArray) || (obj instanceof Array)){
+            this._writeArrayObject(obj);
         }else if (obj instanceof PDFObject){
             this._writeDictionaryObject(obj);
-        }else if (obj instanceof Array){
-            this._writeArrayObject(obj);
         }else if (typeof(obj) == 'string'){
             this._writeStringObject(obj);
         }else if (typeof(obj) == 'boolean'){
