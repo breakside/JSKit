@@ -363,8 +363,8 @@ JSClass("FNTOpenTypeFont", JSObject, {
 
         // Copy the OS/2 table and reset the default char to 0 (it probably already is),
         // since we know we're including that glyph
-        var os2 = FNTOpenTypeFontTableOS2.initWithData(JSData.initWithCopyOfData(this.tables["OS/2"].data));
-        os2.usDefaultChar = 0;
+        // var os2 = FNTOpenTypeFontTableOS2.initWithData(JSData.initWithCopyOfData(this.tables["OS/2"].data));
+        // os2.usDefaultChar = 0;
         // Do we need to adjust any of these?
         // - ulUnicodeRange1
         // - ulUnicodeRange2
@@ -386,8 +386,6 @@ JSClass("FNTOpenTypeFont", JSObject, {
         for (i = 0, l = cmaps.length; i < l; ++i){
             cmap.addMap(cmaps[i][0], cmaps[i][1], cmaps[i][2]);
         }
-        var unicodeMap = UnicodeConvertingCmap(UnicodeToMacRoman, cmaps[0][2]);
-        cmap.addMap(3, 10, FNTOpenTypeFontCmap12.initWithUnicodeGlyphPairs(unicodeMap.getUnicodeGlyphPairs()));
 
         // Rewrite the loca, glyf, and htmx tables to include the specified glyphs,
         // adding any unincluded glyphs that are referenced by included compund glyphs
@@ -405,15 +403,37 @@ JSClass("FNTOpenTypeFont", JSObject, {
         var glyfChunks = [];
         var locations = [];
         var widths = [];
+        var leftSideBearings = [];
         var addedGlyphs;
         var location = 0;
         var maxComponentDepth = 1;
         var padding;
         for (newGlyphIndex = 0; newGlyphIndex < glyphs.length; ++newGlyphIndex){ // don't cache glyphs.length because we're updating as we go
+            originalGlyphIndex = glyphs[newGlyphIndex];
             locations.push(location);
-            originalGlyphDataRange = this.tables.loca.rangeForGlyph(glyphs[newGlyphIndex]);
+            originalGlyphDataRange = this.tables.loca.rangeForGlyph(originalGlyphIndex, this.tables.head.indexToLocFormat);
             widths.push(this.tables.hmtx.widthOfGlyph(originalGlyphIndex));
+            leftSideBearings.push(this.tables.hmtx.leftSideBearingOfGlyph(originalGlyphIndex));
             glyph = FNTOpenTypeGlyph.initWithData(this.tables.glyf.data.subdataInRange(originalGlyphDataRange));
+            // if (newGlyphIndex === 0){
+            //     head.xMin = glyph.xMin;
+            //     head.yMin = glyph.yMin;
+            //     head.xMax = glyph.xMax;
+            //     head.yMax = glyph.yMax;
+            // }else{
+            //     if (glyph.xMin < head.xMin){
+            //         head.xMin = glyph.xMin;
+            //     }
+            //     if (glyph.yMin < head.yMin){
+            //         head.yMin = glyph.yMin;
+            //     }
+            //     if (glyph.xMax > head.xMax){
+            //         head.xMax = glyph.xMax;
+            //     }
+            //     if (glyph.yMax > head.yMax){
+            //         head.yMax = glyph.yMax;
+            //     }
+            // }
             if (glyph.isKindOfClass(FNTOpenTypeCompoundGlyph)){
                 maxComponentDepth = 2; // FIXME: could be more than 2
                 addedGlyphs = glyph.updateReferencedGlyphs(glyphIndexByOriginalIndex, glyphs.length);
@@ -432,7 +452,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
         locations.push(location);
         var loca = FNTOpenTypeFontTableLoca.initWithLocations(locations);
         var glyf = FNTOpenTypeFontTableGlyf.initWithData(JSData.initWithChunks(glyfChunks));
-        var hmtx = FNTOpenTypeFontTableHmtx.initWithWidths(widths);
+        var hmtx = FNTOpenTypeFontTableHmtx.initWithWidths(widths, leftSideBearings);
 
         // Copy the hhea and update the number of glyphs
         var hhea = FNTOpenTypeFontTableHhea.initWithData(JSData.initWithCopyOfData(this.tables.hhea.data));
@@ -448,7 +468,7 @@ JSClass("FNTOpenTypeFont", JSObject, {
             hhea,
             maxp,
             name,
-            os2,
+            // os2,
             post,
             hmtx,
             cmap,
@@ -636,6 +656,17 @@ JSClass("FNTOpenTypeFontTableHead", FNTOpenTypeFontTable, {
 
     setBold: function(){
         this.macStyle = this.macStyle | 0x1;
+    },
+
+    boundingBox: JSDynamicProperty(),
+
+    getBoundingBox: function(){
+        return [
+            this.xMin,
+            this.yMin,
+            this.xMax,
+            this.yMax
+        ];
     },
 
     setBoundingBox: function(box){
@@ -841,39 +872,73 @@ JSClass("FNTOpenTypeFontTableHhea", FNTOpenTypeFontTable, {
 
 JSClass("FNTOpenTypeFontTableHmtx", FNTOpenTypeFontTable, {
     tag: 'hmtx',
-    widthCount: 0,
+    numberOfWidths: 0,
+    numberOfLeftSideBearings: 0,
 
     init: function(){
         FNTOpenTypeFontTableHmtx.$super.initWithDataLength.call(this, 0);
     },
 
-    initWithWidths: function(widths){
+    initWithWidths: function(widths, leftSideBearings){
         this.init();
-        this.setWidths(widths);
+        this.setWidths(widths, leftSideBearings);
     },
 
     initWithData: function(data, font){
         FNTOpenTypeFontTableHmtx.$super.initWithData.call(this, data);
-        this.widthCount = font.tables.hhea.numberOfHMetrics;
+        this.numberOfWidths = font.tables.hhea.numberOfHMetrics;
+        this.numberOfLeftSideBearings = font.tables.maxp.numberOfGlyphs;
         this.dataView = data.dataView();
-        if (data.length < this.widthCount * 4){
-            throw new Error("hmtx length not enough");
+        if (data.length < this.numberOfWidths * 4){
+            throw new Error("hmtx length not enough for widths");
+        }
+        if (this.numberOfLeftSideBearings > this.numberOfWidths){
+            if (data.length < (this.numberOfWidths * 4 + (this.numberOfLeftSideBearings - this.numberOfWidths) * 2)){
+                throw new Error("hmtx length not enough for left side bearings");
+            }
         }
     },
 
     widthOfGlyph: function(glyphIndex){
-        var offset = Math.min(glyphIndex, this.widthCount - 1) * 4;
+        var offset = Math.min(glyphIndex, this.numberOfWidths - 1) * 4;
         return this.dataView.getUint16(offset);
     },
 
-    setWidths: function(widths){
-        this.data = JSData.initWithLength(widths.length * 4);
+    leftSideBearingOfGlyph: function(glyphIndex){
+        var offset;
+        if (glyphIndex < this.numberOfWidths){
+            offset = Math.min(glyphIndex, this.numberOfWidths - 1) * 4 + 2;
+        }else{
+            offset = this.numberOfWidths * 4 + (glyphIndex - this.numberOfWidths) * 2;
+        }
+        return this.dataView.getInt16(offset);
+    },
+
+    setWidths: function(widths, leftSideBearings){
+        var dataLength = widths.length * 4;
+        if (leftSideBearings !== undefined && leftSideBearings.length > widths.length){
+            dataLength += (leftSideBearings.length - widths.length) * 2;
+        }
+        this.data = JSData.initWithLength(dataLength * 4);
         this.dataView = this.data.dataView();
         var offset = 0;
-        for (var i = 0, l = widths.length; i < l; ++i, offset += 4){
+        var i, l;
+        for (i = 0, l = widths.length; i < l; ++i, offset += 4){
             this.dataView.setUint16(offset, widths[i]);
         }
-        this.widthCount = widths.length;
+        this.numberOfWidths = widths.length;
+        if (leftSideBearings !== undefined){
+            offset = 2;
+            for (i = 0, l = leftSideBearings.length; i < l && i < this.numberOfWidths; ++i, offset += 4){
+                this.dataView.setInt16(offset, leftSideBearings[i]);
+            }
+            for (offset = this.numberOfWidths * 4; i < l; ++i, offset += 2){
+                this.dataView.setInt16(offset, leftSideBearings[i]);
+            }
+            this.numberOfLeftSideBearings = leftSideBearings.length;
+        }else{
+            this.numberOfLeftSideBearings = this.numberOfWidths;
+        }
     }
 });
 
@@ -1725,11 +1790,19 @@ JSClass("FNTOpenTypeFontCmap13", FNTOpenTypeFontCmap, {
 JSClass("FNTOpenTypeGlyph", JSObject, {
 
     initWithData: function(data){
-        if (data.dataView().getInt16(0) < 0){
+        if (data.length >= 2 && data.dataView().getInt16(0) < 0){
             return FNTOpenTypeCompoundGlyph.initWithData(data);
         }
         return FNTOpenTypeSimpleGlyph.initWithData(data);
     },
+
+    data: null,
+    dataView: null,
+
+    xMin: DataBackedProperty(2, "int16"),
+    yMin: DataBackedProperty(4, "int16"),
+    xMax: DataBackedProperty(6, "int16"),
+    yMax: DataBackedProperty(8, "int16")
 
 });
 

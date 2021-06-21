@@ -231,7 +231,7 @@ JSClass("PDFContext", JSContext, {
                 pdfFontFile.Length.resolvedValue = subsetOTF.data.length;
                 this._writer.writeObject(pdfFontFile.Length);
 
-                var os2 = subsetOTF.tables["OS/2"];
+                var os2 = fullOTF.tables["OS/2"];
                 var head = subsetOTF.tables.head;
                 var pdfDescriptor = PDFFontDescriptor();
                 pdfDescriptor.FontName = PDFName(info.postScriptName);
@@ -271,12 +271,7 @@ JSClass("PDFContext", JSContext, {
                     pdfDescriptor.Flags |= PDFFontDescriptor.Flags.italic;
                     pdfDescriptor.ItalicAngle = -30;
                 }
-                pdfDescriptor.FontBBox = PDFArray([
-                    head.xMin,
-                    head.yMin,
-                    head.xMax,
-                    head.yMax
-                ]);
+                pdfDescriptor.FontBBox = head.boundingBox;
                 pdfDescriptor.Ascent = os2.sTypoAscender;
                 pdfDescriptor.Descent = os2.sTypoDescender;
                 pdfDescriptor.CapHeight = os2.sCapHeight;
@@ -492,6 +487,10 @@ JSClass("PDFContext", JSContext, {
     setShadow: function(offset, blur, color){
         PDFContext.$super.setShadow.call(this, offset, blur, color);
         // Doesn't seem to be a supported operation in PDF
+        // Options
+        // - Double-draw, shadow first at offset (can we do blur with a filter?) (double text isn't ideal for text extraction)
+        // - rasterize the shadow at a reasonable DPI and draw it as an image (Sketch does this)
+        // - ??
     },
 
     // ----------------------------------------------------------------------
