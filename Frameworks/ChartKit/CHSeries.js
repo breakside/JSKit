@@ -14,31 +14,28 @@
 // limitations under the License.
 
 // #import Foundation
-// #import "CHTheme.js"
 "use strict";
 
-JSClass("CHChart", JSObject, {
+JSClass("CHSeries", JSObject, {
 
-    init: function(){
-        this.initWithTheme(CHTheme.default);
+    name: null,
+    color: null,
+    values: null,
+    strokeWidth: 0,
+    dashArray: null,
+
+    initWithName: function(name, color, values){
+        this.name = name;
+        this.color = color;
+        if (values !== undefined){
+            this.values = JSCopy(values);
+        }else{
+            this.values = [];
+        }
     },
 
-    initWithTheme: function(theme){
-        this.series = [];
-        this.colors = JSCopy(theme.colors);
-    },
-
-    series: null,
-
-    addSeries: function(series){
-        this.series.push(series);
-    },
-
-    colorForSeriesAtIndex: function(index){
-        return this.colors[index % this.colors.length];
-    },
-
-    drawInContext: function(context, size){
+    addValue: function(value){
+        this.values.push(value);
     }
 
 });

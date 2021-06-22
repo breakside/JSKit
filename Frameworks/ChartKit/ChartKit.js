@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
 
 // #import "CHChart.js"
 // #import "CHBarChart.js"
-// #import "CHAxis.js"
+// #import "CHLineChart.js"
 // #import "CHPieChart.js"
+// #import "CHSeries.js"
+// #import "CHAxis.js"
+// #import "CHLegend.js"
+// #import "CHTheme.js"
 // #import "JSContext+CHChart.js"

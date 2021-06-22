@@ -13,32 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
-// #import "CHTheme.js"
+// #import "CHAxisChart.js"
 "use strict";
 
-JSClass("CHChart", JSObject, {
+JSClass("CHLineChart", CHChart, {
 
-    init: function(){
-        this.initWithTheme(CHTheme.default);
-    },
-
-    initWithTheme: function(theme){
-        this.series = [];
-        this.colors = JSCopy(theme.colors);
-    },
-
-    series: null,
-
-    addSeries: function(series){
-        this.series.push(series);
-    },
-
-    colorForSeriesAtIndex: function(index){
-        return this.colors[index % this.colors.length];
-    },
-
-    drawInContext: function(context, size){
+    drawValuesInContext: function(context, rect){
     }
 
 });
