@@ -35,6 +35,8 @@ JSClass("CHPieChart", CHChart, {
         this.framesetter = JSTextFramesetter.init();
         this.legend = CHLegend.initWithSeries(this.series);
         this.legend.placement = CHLegend.Placement.right;
+        this.legend.indicatorPath = JSPath.init();
+        this.legend.indicatorPath.addEllipseInRect(JSRect(0, 0, 1, 1));
     },
 
     setDataPoints: function(points, names){

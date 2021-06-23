@@ -13,25 +13,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "CHChart.js"
-// #import "CHValueAxis.js"
+// #import "CHAxis.js"
 "use strict";
 
-JSClass("CHAxisChart", CHChart, {
+JSClass("CHCategoryAxis", CHAxis, {
 
     init: function(){
-        this.valueAxis = CHValueAxis.init();
-        this.categoryAxis = CHAxis.init();
+        CHCategoryAxis.$super.init.call(this);
+        this.categories = [];
     },
 
-    valueAxis: null,
-    categoryAxis: null,
-    alternateValueAxis: null,
+    categories: null,
 
-    drawInContext: function(context, size){
+    sizeOfLargestLabel: function(){
+        return JSSize(0, this.labelFont.lineHeight);
     },
 
-    drawValuesInContext: function(context, rect){
+    getMajorPositions: function(x0, x1){
+        var steps = this.categories.length - 1;
+        var dx = (x1 - x0) / steps;
+        var positions = [x0];
+        var x = x0 + dx;
+        for (var i = 1; i < steps; ++i, x += dx){
+            positions.push(x);
+        }
+        positions.push(x1);
+        return positions;
+    },
+
+    getMajorLabels: function(){
+        return this.categories;
     }
+
 
 });

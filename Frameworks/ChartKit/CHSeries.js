@@ -21,8 +21,8 @@ JSClass("CHSeries", JSObject, {
     name: null,
     color: null,
     values: null,
-    strokeWidth: 0,
-    dashArray: null,
+    lineWidth: 4,
+    dashLengths: null,
 
     initWithName: function(name, color, values){
         this.name = name;

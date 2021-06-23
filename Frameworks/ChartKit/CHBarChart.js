@@ -13,10 +13,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "CHAxisChart.js"
+// #import "CHCategoryChart.js"
 "use strict";
 
-JSClass("CHBarChart", CHAxisChart, {
+JSClass("CHBarChart", CHCategoryChart, {
 
     drawValuesInContext: function(context, rect){
     }

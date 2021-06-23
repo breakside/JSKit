@@ -18,19 +18,34 @@
 
 JSClass("CHLegend", JSObject, {
 
-    font: null,
+    font: JSDynamicProperty("_font", null),
     textColor: JSColor.black,
     series: null,
     indicatorPath: null,
+    indicatorSize: null,
+    indicatorSpacing: 0,
+    seriesSpacing: 0,
     placement: 0,
-    chartSpacing: 20,
+    chartSpacing: 0,
 
     initWithSeries: function(series){
         this.series = series;
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this.indicatorPath = JSPath.init();
-        this.indicatorPath.addEllipseInRect(JSRect(0, 0, 1, 1));
+        this.indicatorPath.addRect(JSRect(0, 0, 1, 1));
         this.framesetter = JSTextFramesetter.init();
+    },
+
+    setFont: function(font){
+        this._font = font;
+        this.recalculateFontDerivedSizes();
+    },
+
+    recalculateFontDerivedSizes: function(){
+        this.indicatorSize = JSSize(Math.floor(this.font.ascender), Math.floor(this.font.ascender));
+        this.indicatorSpacing = Math.floor(this.font.lineHeight / 3);
+        this.seriesSpacing = this.font.lineHeight;
+        this.chartSpacing = Math.floor(this.font.lineHeight * 1.2);
     },
 
     sizeThatFitsSize: function(maxSize){
@@ -48,11 +63,34 @@ JSClass("CHLegend", JSObject, {
     },
 
     horizontalSizeThatFitsSize: function(maxSize){
+        var origin = JSPoint.Zero;
+        var width;
+        var largestWidth = 0;
+        var i, l;
+        for (i = 0, l = this.series.length; i < l; ++i){
+            width = this.indicatorSize.width + this.indicatorSpacing + this.font.widthOfString(this.series[i].name);
+            if (origin.x > 0 && origin.x + this.seriesSpacing + width > maxSize.width){
+                origin.y += this.font.lineHeight;
+                origin.x = 0;
+            }else{
+                width += this.seriesSpacing;
+            }
+            origin.x += width;
+            if (origin.x > largestWidth){
+                largestWidth = origin.x;
+            }
+        }
+        var size = JSSize(largestWidth, origin.y + this.font.lineHeight + this.chartSpacing);
+        if (size.width > maxSize.width){
+            size.width = maxSize.width;
+        }
+        if (size.height > maxSize.height){
+            size.height = maxSize.height;
+        }
+        return size;
     },
 
     verticalSizeThatFitsSize: function(maxSize){
-        var indicatorSize = Math.floor(this.font.ascender);
-        var indicatorSpacing = Math.floor(this.font.lineHeight / 3);
         var width;
         var largestWidth = 0;
         var i, l;
@@ -62,7 +100,10 @@ JSClass("CHLegend", JSObject, {
                 largestWidth = width;
             }
         }
-        var size = JSSize(this.chartSpacing + indicatorSize + indicatorSpacing + largestWidth, this.font.lineHeight * this.series.length);
+        var size = JSSize(
+            this.chartSpacing + this.indicatorSize.width + this.indicatorSpacing + largestWidth,
+            this.font.lineHeight * this.series.length
+        );
         if (size.width > maxSize.width){
             size.width = maxSize.width;
         }
@@ -75,8 +116,10 @@ JSClass("CHLegend", JSObject, {
     drawInContext: function(context, rect){
         switch (this.placement){
             case CHLegend.Placement.above:
+                this.drawHorizontallyInContext(context, rect.rectWithInsets(0, 0, this.chartSpacing, 0));
+                break;
             case CHLegend.Placement.below:
-                this.drawHorizontallyInContext(context, rect);
+                this.drawHorizontallyInContext(context, rect.rectWithInsets(this.chartSpacing, 0, 0, 0));
                 break;
             case CHLegend.Placement.left:
                 this.drawVerticallyInContext(context, rect.rectWithInsets(0, 0, 0, this.chartSpacing));
@@ -91,24 +134,59 @@ JSClass("CHLegend", JSObject, {
     },
 
     drawHorizontallyInContext: function(context, rect){
+        var series;
+        var indicatorPathSize = this.indicatorPath.boundingRect.size;
+        var indicatorScale = JSPoint(this.indicatorSize.width / indicatorPathSize.width, this.indicatorSize.height / indicatorPathSize.height);
+        var textFrame;
+        var width;
+        var origin = JSPoint.Zero;
+        context.save();
+        context.translateBy(rect.origin.x, rect.origin.y);
+        for (var i = 0, l = this.series.length; i < l; ++i){
+            series = this.series[i];
+            width = this.indicatorSize.width + this.indicatorSpacing + this.font.widthOfString(series.name);
+            if (origin.x > 0){
+                if (origin.x + this.seriesSpacing + width > rect.size.width){
+                    origin.y += this.font.lineHeight;
+                    origin.x = 0;
+                }else{
+                    origin.x += this.seriesSpacing;  
+                }
+            }
+            context.save();
+            context.translateBy(origin.x, origin.y);
+            context.setFillColor(series.color);
+            context.translateBy(0, (this.font.lineHeight - this.indicatorSize.height) / 2);
+            context.scaleBy(indicatorScale.x, indicatorScale.y);
+            context.addPath(this.indicatorPath);
+            context.fillPath();
+            context.restore();
+            origin.x += this.indicatorSize.width + this.indicatorSpacing;
+            this.framesetter.attributedString = JSAttributedString.initWithString(series.name, {
+                font: this.font,
+                textColor: this.textColor
+            });
+            textFrame = this.framesetter.createFrame(JSSize(rect.size.width - origin.x, 0), JSRange(0, series.name.length), 1);
+            textFrame.drawInContextAtPoint(context, origin);
+            origin.x += textFrame.usedSize.width;
+        }
+        context.restore();
 
     },
 
     drawVerticallyInContext: function(context, rect){
         var series;
-        var indicatorSize = JSSize(Math.floor(this.font.ascender), Math.floor(this.font.ascender));
-        var indicatorSpacing = Math.floor(this.font.lineHeight / 3);
         var indicatorPathSize = this.indicatorPath.boundingRect.size;
-        var indicatorScale = JSPoint(indicatorSize.width / indicatorPathSize.width, indicatorSize.height / indicatorPathSize.height);
+        var indicatorScale = JSPoint(this.indicatorSize.width / indicatorPathSize.width, this.indicatorSize.height / indicatorPathSize.height);
         var textFrame;
-        var textRect = JSRect(indicatorSize.width + indicatorSpacing, 0, rect.size.width - indicatorSize.width - indicatorSpacing, 0);
+        var textRect = JSRect(this.indicatorSize.width + this.indicatorSpacing, 0, rect.size.width - this.indicatorSize.width - this.indicatorSpacing, 0);
         context.save();
         context.translateBy(rect.origin.x, rect.origin.y);
         for (var i = 0, l = this.series.length; i < l; ++i){
             series = this.series[i];
             context.save();
             context.setFillColor(series.color);
-            context.translateBy(0, (this.font.lineHeight - indicatorSize.height) / 2);
+            context.translateBy(0, (this.font.lineHeight - this.indicatorSize.height) / 2);
             context.scaleBy(indicatorScale.x, indicatorScale.y);
             context.addPath(this.indicatorPath);
             context.fillPath();
