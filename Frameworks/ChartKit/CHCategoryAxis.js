@@ -30,7 +30,10 @@ JSClass("CHCategoryAxis", CHAxis, {
     },
 
     getMajorPositions: function(x0, x1){
-        var steps = this.categories.length - 1;
+        var steps = this.categories.length;
+        if (this.labelPosition !== CHAxis.LabelPosition.betweenTickMarks){
+            steps -= 1;
+        }
         var dx = (x1 - x0) / steps;
         var positions = [x0];
         var x = x0 + dx;

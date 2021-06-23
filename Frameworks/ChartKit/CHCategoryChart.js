@@ -29,9 +29,9 @@ JSClass("CHCategoryChart", CHChart, {
         this.valueAxis.majorGridlineWidth = 0.5;
         this.valueAxis.showsLabels = true;
         this.categoryAxis = CHCategoryAxis.init();
-        this.categoryAxis.lineWidth = 2;
-        this.categoryAxis.majorTickMarkLength = 6;
-        this.categoryAxis.minorTickMarkLength = 4;
+        this.categoryAxis.lineWidth = 1;
+        // this.categoryAxis.majorTickMarkLength = 6;
+        // this.categoryAxis.minorTickMarkLength = 4;
         this.categoryAxis.edge = CHAxis.Edge.trailing;
         this.categoryAxis.showsLabels = true;
         this.valueDirection = CHAxis.Direction.vertical;

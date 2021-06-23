@@ -36,6 +36,7 @@ JSClass("CHAxis", JSObject, {
     labelTextColor: JSColor.black,
     labelAngle: 0,
     labelInsets: null,
+    labelPosition: 0,
 
     majorTickMarkStyle: 0,
     majorTickMarkLength: 5,
@@ -184,7 +185,16 @@ JSClass("CHAxis", JSObject, {
         if (this.showsLabels){
             var labels = this.getMajorLabels();
             var maxLabelSize = JSSize(0, 0);
+            var labelInsets = JSInsets(this.labelInsets);
             var labelTextFrame;
+            if (this.edge === CHAxis.Edge.leading){
+                this.framesetter.attributes.textAlignment = JSTextAlignment.right;
+                labelInsets.bottom += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            }else{
+                this.framesetter.attributes.textAlignment = JSTextAlignment.left;
+                labelInsets.top += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            }
+            var labelOrigin = JSPoint(0, rect.origin.y + this.labelInsets.top);
             this.framesetter.attributes.textAlignment = JSTextAlignment.left;
             for (i = 0, l = labels.length; i < l; ++i){
                 this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
@@ -192,10 +202,11 @@ JSClass("CHAxis", JSObject, {
                     textColor: this.labelTextColor
                 });
                 labelTextFrame = this.framesetter.createFrame(maxLabelSize, JSRange(0, labels[i].length), 1);
-                labelTextFrame.drawInContextAtPoint(context, JSPoint(
-                    majorPositions[i] - labelTextFrame.size.width / 2,
-                    rect.origin.y + this.labelInsets.top + Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength)
-                ));
+                labelOrigin.x = majorPositions[i] - labelTextFrame.size.width / 2;
+                if (this.labelPosition === CHAxis.LabelPosition.betweenTickMarks){
+                    labelOrigin.x += (majorPositions[i + 1] - majorPositions[i]) / 2;
+                }
+                labelTextFrame.drawInContextAtPoint(context, labelOrigin);
             }
         }
 
@@ -297,9 +308,16 @@ JSClass("CHAxis", JSObject, {
         // labels
         if (this.showsLabels){
             var labels = this.getMajorLabels();
-            var maxLabelSize = JSSize(rect.size.width - this.labelInsets.width - Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength), 0);
+            var labelInsets = JSInsets(this.labelInsets);
             var labelTextFrame;
-            this.framesetter.attributes.textAlignment = JSTextAlignment.right;
+            if (this.edge === CHAxis.Edge.leading){
+                this.framesetter.attributes.textAlignment = JSTextAlignment.right;
+                labelInsets.right += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            }else{
+                this.framesetter.attributes.textAlignment = JSTextAlignment.left;
+                labelInsets.left += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            }
+            var maxLabelSize = JSSize(rect.size.width - this.labelInsets.width, 0);
             for (i = 0, l = labels.length; i < l; ++i){
                 this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
                     font: this.labelFont,
@@ -369,4 +387,9 @@ CHAxis.TickMarkStyle = {
     inside: 1,
     outside: 2,
     centered: 3
+};
+
+CHAxis.LabelPosition = {
+    onTickMarks: 0,
+    betweenTickMarks: 1
 };

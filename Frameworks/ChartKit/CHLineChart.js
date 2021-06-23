@@ -19,6 +19,8 @@
 JSClass("CHLineChart", CHCategoryChart, {
 
     drawValuesInContext: function(context, rect){
+        // TODO: flipped axis, probably easiest to to coordinate transformations
+        // FIXME: assumes 0 value is axis line
         var series;
         var i, l;
         var j, k;
