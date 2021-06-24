@@ -25,8 +25,9 @@ JSGlobalObject.PDFGraphicsStateParameters = function(){
 };
 
 JSGlobalObject.PDFGraphicsStateParameters.prototype = Object.create(PDFObject.prototype, {
-    Type:   { eunmerable: true, value: PDFName("ExtGState") },
+    Type:   { enumerable: true, value: PDFName("ExtGState") },
     Font:   PDFObjectProperty,
     CA:     PDFObjectProperty,
-    ca:     PDFObjectProperty
+    ca:     PDFObjectProperty,
+    SA:     PDFObjectProperty
 });

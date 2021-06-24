@@ -50,6 +50,9 @@ JSClass("PDFContext", JSContext, {
     _imageInfo: null,
     _nextImageNumber: 1,
 
+    _graphicsStateInfo: null,
+    _nextGraphicsStateNumber: 1,
+
     // ----------------------------------------------------------------------
     // MARK: - Creating a PDF Context
 
@@ -62,6 +65,7 @@ JSClass("PDFContext", JSContext, {
         PDFContext.$super.init.call(this);
         this._fontInfo = {};
         this._imageInfo = {};
+        this._graphicsStateInfo = {};
         if (mediaBox === undefined){
             mediaBox = JSRect(0, 0, this._dpi * this._defaultPageWidthInInches, this._dpi * this._defaultPageHeightInInches);
         }
@@ -132,6 +136,7 @@ JSClass("PDFContext", JSContext, {
         this.endPage();
         var writer = this._writer;
         var queue = PDFJobQueue();
+        queue.addJob(this, this._populateGraphicsStateResources);
         queue.addJob(this, this._populateFontResources);
         queue.addJob(this, this._populateImageResources);
         queue.addJob(this, this._finalizeDocument);
@@ -299,6 +304,31 @@ JSClass("PDFContext", JSContext, {
 
             }, this);
         }, this);
+    },
+
+    _populateGraphicsStateResources: function(job){
+        var infos = [];
+        var i, l;
+        for (var id in this._graphicsStateInfo){
+            infos.push(this._graphicsStateInfo[id]);
+        }
+        if (infos.length > 0){
+            this._pages.Resources.ExtGState = {};
+            var graphicsStateJob;
+            for (i = infos.length - 1; i >= 0; --i){
+                graphicsStateJob = job.queue.insertJob(this, this._populateGraphicsStateResource);
+                graphicsStateJob.graphicsStateInfo = infos[i];
+            }
+        }
+        job.complete();
+    },
+
+    _populateGraphicsStateResource: function(job){
+        var info = job.graphicsStateInfo;
+        var parameters = info.parameters;
+        this._writer.writeObject(parameters);
+        this._pages.Resources.ExtGState[info.resourceName] = parameters.indirect;
+        job.complete();
     },
 
     _finalizeDocument: function(job){
@@ -474,23 +504,50 @@ JSClass("PDFContext", JSContext, {
 
     setFillColor: function(fillColor){
         PDFContext.$super.setFillColor.call(this, fillColor);
+        var info = this._graphicsStateInfoForFillAlpha(fillColor.alpha);
         this._writeStreamData(fillColor.pdfFillColorCommand());
-        // TODO: adjust state parameter dictionary with alpha
+        this._writeStreamData("%N gs ", info.resourceName);
     },
 
     setStrokeColor: function(strokeColor){
         PDFContext.$super.setStrokeColor.call(this, strokeColor);
+        var info = this._graphicsStateInfoForStrokeAlpha(strokeColor.alpha);
         this._writeStreamData(strokeColor.pdfStrokeColorCommand());
-        // TODO: adjust state parameter dictionary with alpha
+        this._writeStreamData("%N gs ", info.resourceName);
     },
 
     setShadow: function(offset, blur, color){
         PDFContext.$super.setShadow.call(this, offset, blur, color);
         // Doesn't seem to be a supported operation in PDF
-        // Options
-        // - Double-draw, shadow first at offset (can we do blur with a filter?) (double text isn't ideal for text extraction)
-        // - rasterize the shadow at a reasonable DPI and draw it as an image (Sketch does this)
-        // - ??
+        // Best option is to draw a shadow image and paint it behind the drawn objects
+    },
+
+    _graphicsStateInfoForFillAlpha: function(alpha){
+        var id = "ca%d".sprintf(Math.round(alpha * 1000));
+        var info = this._graphicsStateInfoForID(id);
+        if (info.parameters.ca === null){
+            info.parameters.ca = alpha;
+        }
+        return info;
+    },
+
+    _graphicsStateInfoForStrokeAlpha: function(alpha){
+        var id = "CA%d".sprintf(Math.round(alpha * 1000));
+        var info = this._graphicsStateInfoForID(id);
+        if (info.parameters.CA === null){
+            info.parameters.CA = alpha;
+        }
+        return info;
+    },
+
+    _graphicsStateInfoForID: function(id){
+        var info = this._graphicsStateInfo[id];
+        if (info === undefined){
+            info = PDFGraphicsStateInfo();
+            info.resourceName = PDFName("GS%d".sprintf(this._nextGraphicsStateNumber++));
+            this._graphicsStateInfo[id] = info;
+        }
+        return info;
     },
 
     // ----------------------------------------------------------------------
@@ -708,6 +765,19 @@ var PDFImageInfo = function(image){
 };
 
 PDFImageInfo.prototype = {
+};
+
+var PDFGraphicsStateInfo = function(){
+    if (this === undefined){
+        return new PDFGraphicsStateInfo();
+    }
+    this.resourceName = null;
+    this.parameters = PDFGraphicsStateParameters();
+};
+
+PDFGraphicsStateInfo.prototype = {
+    resourceName: null,
+    parameters: null,
 };
 
 var PDFJobQueue = function(){
