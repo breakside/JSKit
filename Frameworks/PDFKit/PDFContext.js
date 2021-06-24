@@ -498,9 +498,9 @@ JSClass("PDFContext", JSContext, {
 
     clip: function(fillRule){
         if (fillRule == JSContext.FillRule.evenOdd){
-            this._writeStreamData("W* ");
+            this._writeStreamData("W* n ");
         }else{
-            this._writeStreamData("W ");
+            this._writeStreamData("W n ");
         }
     },
 
