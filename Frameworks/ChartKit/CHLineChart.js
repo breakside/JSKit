@@ -14,13 +14,27 @@
 // limitations under the License.
 
 // #import "CHCategoryChart.js"
+// #import "CHSeriesStyle.js"
 "use strict";
 
 JSClass("CHLineChart", CHCategoryChart, {
+    
+    initWithTheme: function(theme){
+        CHLineChart.$super.initWithTheme.call(this, theme);
+        this.defaultSeriesStyle = theme.lineStyle;
+    },
 
     drawValuesInContext: function(context, rect){
-        // TODO: flipped axis, probably easiest to to coordinate transformations
-        // FIXME: assumes 0 value is axis line
+        context.save();
+        context.translateBy(rect.origin.x, rect.origin.y);
+        if (this.valueAxis.direction === CHAxis.Direction.vertical){
+            context.translateBy(0, rect.size.height);
+            context.scaleBy(1, -1);
+        }else{
+            context.rotateByDegrees(90);
+            context.scaleBy(1, -1);
+            rect = JSRect(0, 0, rect.size.height, rect.size.width);
+        }
         var series;
         var i, l;
         var j, k;
@@ -28,26 +42,25 @@ JSClass("CHLineChart", CHCategoryChart, {
         var v;
         var vPrevious;
         var p = JSPoint.Zero;
-        var x0 = rect.origin.x;
-        var x = x0;
+        var x, y;
         var dx = rect.size.width / (k - 1);
-        var y;
-        context.save();
+        var scale = rect.size.height / (this.valueAxis.maximumValue - this.valueAxis.minimumValue);
         for (i = 0, l = this.series.length; i < l; ++i){
             series = this.series[i];
             context.save();
-            context.setStrokeColor(series.color);
-            context.setLineWidth(series.lineWidth);
+            context.setStrokeColor(series.style.color);
+            context.setLineWidth(series.style.lineWidth);
+            context.setLineCap(series.style.lineCap);
             context.beginPath();
-            if (series.dashLengths !== null){
-                context.setLineDash(0, series.dashLengths);
+            if (series.style.lineDashLengths !== null){
+                context.setLineDash(0, series.style.lineDashLengths);
             }
             vPrevious = null;
-            x = x0;
+            x = 0;
             for (j = 0; j < k; ++j){
                 v = series.values[j];
                 if (v !== null && v !== undefined){
-                    y = rect.origin.y + rect.size.height - (v - this.valueAxis.minimumValue) / (this.valueAxis.maximumValue - this.valueAxis.minimumValue) * rect.size.height;
+                    y = (v - this.valueAxis.minimumValue) * scale;
                     if (vPrevious === null || vPrevious === undefined){
                         context.moveToPoint(x, y);
                     }else{
@@ -59,6 +72,36 @@ JSClass("CHLineChart", CHCategoryChart, {
             }
             context.strokePath();
             context.restore();
+            if (series.style.symbolPath !== null){
+                context.save();
+                if (series.style.symbolFillColor){
+                    context.setFillColor(series.style.symbolFillColor);
+                }
+                if (series.style.symbolStrokeColor !== null){
+                    context.setStrokeColor(series.style.symbolStrokeColor);
+                }else{
+                    context.setStrokeColor(series.style.color);
+                }
+                if (series.style.symbolLineWidth !== null){
+                    context.setLineWidth(series.style.symbolLineWidth);
+                }else{
+                    context.setLineWidth(series.style.lineWidth);
+                }
+                x = 0;
+                for (j = 0; j < k; ++j){
+                    v = series.values[j];
+                    if (v !== null && v !== undefined){
+                        y = (v - this.valueAxis.minimumValue) * scale;
+                        context.save();
+                        context.translateBy(x, y);
+                        context.addPath(series.style.symbolPath);
+                        context.drawPath(series.style.symbolFillColor !== null ? JSContext.DrawingMode.fillStroke : JSContext.DrawingMode.stroke);
+                        context.restore();
+                    }
+                    x += dx;
+                }
+                context.restore();
+            }
         }
         context.restore();
     }

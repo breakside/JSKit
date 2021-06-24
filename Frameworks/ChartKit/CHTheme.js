@@ -14,15 +14,32 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "CHSeriesStyle.js"
 "use strict";
 
 JSClass("CHTheme", JSObject, {
 
     initWithColors: function(colors){
         this.colors = JSCopy(colors);
+        this.barStyle = CHSeriesBarStyle.initWithColor(null);
+        this.barStyle.borderWidth = 1;
+        this.barStyle.borderColor = JSColor.black.colorWithAlpha(0.2);
+        this.barStyle.maskedBorders = CHSeriesBarStyle.Sides.end;
+        this.lineStyle = CHSeriesLineStyle.initWithColor(null);
+        this.lineStyle.lineWidth = 4;
+        this.lineStyle.symbolPath = JSPath.init();
+        this.lineStyle.symbolPath.addEllipseInRect(JSRect(-6, -6, 12, 12));
+        this.lineStyle.symbolFillColor = JSColor.white;
+        this.valueAxisGridlineColor = JSColor.initWithWhite(0.6);
     },
 
-    colors: null
+    colors: null,
+    valueAxisLineWidth: 0,
+    valueAxisMajorGridlineWidth: 0.5,
+    valueAxisMajorGridlineColor: null,
+    categoryAxisLineWidth: 1,
+    barStyle: null,
+    lineStyle: null,
 
 });
 

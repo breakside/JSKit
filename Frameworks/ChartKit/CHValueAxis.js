@@ -33,12 +33,6 @@ JSClass("CHValueAxis", CHAxis, {
         this.valueFormatter.format = "#,##0";
     },
 
-    sizeOfLargestLabel: function(){
-        var label = this.valueFormatter.stringFromNumber(this.maximumValue);
-        return JSSize(this.labelFont.widthOfString(label), this.labelFont.lineHeight);
-    },
-
-
     _minimumSeenValue: Number.MAX_VALUE,
     _maximumSeenValue: -Number.MAX_VALUE,
 

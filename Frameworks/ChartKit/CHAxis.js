@@ -21,7 +21,7 @@ JSClass("CHAxis", JSObject, {
     init: function(){
         this.lineWidth = 1;
         this.labelFont = JSFont.systemFontOfSize(JSFont.Size.normal);
-        this.labelInsets = JSInsets(5, 5);
+        this.labelInsets = JSInsets(5, 10);
         this.framesetter = JSTextFramesetter.init();
     },
 
@@ -80,6 +80,16 @@ JSClass("CHAxis", JSObject, {
     },
 
     sizeOfLargestLabel: function(){
+        var labels = this.getMajorLabels();
+        var size = JSSize(0, this.labelFont.lineHeight);
+        var width;
+        for (var i = 0, l = labels.length; i < l; ++i){
+            width = this.labelFont.widthOfString(labels[i]);
+            if (width > size.width){
+                size.width = width;
+            }
+        }
+        return size;
     },
 
     drawInContext: function(context, rect, chartRect){
@@ -318,16 +328,18 @@ JSClass("CHAxis", JSObject, {
                 labelInsets.left += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }
             var maxLabelSize = JSSize(rect.size.width - this.labelInsets.width, 0);
+            var labelOrigin = JSPoint(rect.origin.x + this.labelInsets.left, 0);
             for (i = 0, l = labels.length; i < l; ++i){
                 this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
                     font: this.labelFont,
                     textColor: this.labelTextColor
                 });
                 labelTextFrame = this.framesetter.createFrame(maxLabelSize, JSRange(0, labels[i].length), 1);
-                labelTextFrame.drawInContextAtPoint(context, JSPoint(
-                    rect.origin.x + this.labelInsets.left,
-                    majorPositions[i] - labelTextFrame.size.height / 2
-                ));
+                labelOrigin.y = majorPositions[i] - labelTextFrame.size.height / 2;
+                if (this.labelPosition === CHAxis.LabelPosition.betweenTickMarks){
+                    labelOrigin.y += (majorPositions[i + 1] - majorPositions[i]) / 2;
+                }
+                labelTextFrame.drawInContextAtPoint(context, labelOrigin);
             }
         }
 

@@ -25,10 +25,6 @@ JSClass("CHCategoryAxis", CHAxis, {
 
     categories: null,
 
-    sizeOfLargestLabel: function(){
-        return JSSize(0, this.labelFont.lineHeight);
-    },
-
     getMajorPositions: function(x0, x1){
         var steps = this.categories.length;
         if (this.labelPosition !== CHAxis.LabelPosition.betweenTickMarks){
@@ -41,6 +37,9 @@ JSClass("CHCategoryAxis", CHAxis, {
             positions.push(x);
         }
         positions.push(x1);
+        if (this.direction === CHAxis.Direction.vertical){
+            positions.reverse();
+        }
         return positions;
     },
 

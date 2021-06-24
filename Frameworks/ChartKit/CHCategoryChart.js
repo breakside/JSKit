@@ -25,13 +25,11 @@ JSClass("CHCategoryChart", CHChart, {
     initWithTheme: function(theme){
         CHCategoryChart.$super.initWithTheme.call(this, theme);
         this.valueAxis = CHValueAxis.init();
-        this.valueAxis.lineWidth = 0;
-        this.valueAxis.majorGridlineWidth = 0.5;
+        this.valueAxis.lineWidth = theme.valueAxisLineWidth;
+        this.valueAxis.majorGridlineWidth = theme.valueAxisMajorGridlineWidth;
         this.valueAxis.showsLabels = true;
         this.categoryAxis = CHCategoryAxis.init();
-        this.categoryAxis.lineWidth = 1;
-        // this.categoryAxis.majorTickMarkLength = 6;
-        // this.categoryAxis.minorTickMarkLength = 4;
+        this.categoryAxis.lineWidth = theme.categoryAxisLineWidth;
         this.categoryAxis.edge = CHAxis.Edge.trailing;
         this.categoryAxis.showsLabels = true;
         this.valueDirection = CHAxis.Direction.vertical;
@@ -47,15 +45,28 @@ JSClass("CHCategoryChart", CHChart, {
 
     legend: null,
 
+    defaultSeriesStyle: null,
+
     setValueDirection: function(valueDirection){
         this._valueDirection = valueDirection;
         this.valueAxis.direction = this._valueDirection;
-        this.categoryAxis.direction = this._valueDirection === CHAxis.Direction.vertical ? CHAxis.Direction.horizontal : CHAxis.Direction.vertical;
+        if (this._valueDirection === CHAxis.Direction.vertical){
+            this.categoryAxis.direction = CHAxis.Direction.horizontal;
+            this.categoryAxis.edge = CHAxis.Edge.trailing;
+            this.valueAxis.edge = CHAxis.Edge.leading;
+        }else{
+            this.categoryAxis.direction = CHAxis.Direction.vertical;
+            this.categoryAxis.edge = CHAxis.Edge.leading;
+            this.valueAxis.edge = CHAxis.Edge.trailing;
+        }
     },
 
     addValues: function(values, name){
-        var series = CHSeries.initWithName(name, this.colorForSeriesAtIndex(this.series.length), values);
+        var color = this.colorForSeriesAtIndex(this.series.length);
+        var style = this.defaultSeriesStyle.styleWithColor(color);
+        var series = CHSeries.initWithName(name, style, values);
         this.addSeries(series);
+        return series;
     },
 
     addSeries: function(series){

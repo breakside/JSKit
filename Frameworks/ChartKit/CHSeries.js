@@ -19,14 +19,12 @@
 JSClass("CHSeries", JSObject, {
 
     name: null,
-    color: null,
     values: null,
-    lineWidth: 4,
-    dashLengths: null,
+    style: null,
 
-    initWithName: function(name, color, values){
+    initWithName: function(name, style, values){
         this.name = name;
-        this.color = color;
+        this.style = style;
         if (values !== undefined){
             this.values = JSCopy(values);
         }else{

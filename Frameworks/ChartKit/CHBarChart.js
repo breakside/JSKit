@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "CHCategoryChart.js"
+// #import "CHSeriesStyle.js"
 "use strict";
 
 JSClass("CHBarChart", CHCategoryChart, {
@@ -21,43 +22,93 @@ JSClass("CHBarChart", CHCategoryChart, {
     initWithTheme: function(theme){
         CHBarChart.$super.initWithTheme.call(this, theme);
         this.categoryAxis.labelPosition = CHAxis.LabelPosition.betweenTickMarks;
+        this.defaultSeriesStyle = theme.barStyle;
     },
 
     barWidth: 0.67,
 
     drawValuesInContext: function(context, rect){
-        // TODO: flipped axis, probably easiest to to coordinate transformations
-        // FIXME: assumes 0 value is axis line
+        context.save();
+        context.addRect(rect);
+        context.clip();
+        context.translateBy(rect.origin.x, rect.origin.y);
+        if (this.valueAxis.direction === CHAxis.Direction.vertical){
+            context.translateBy(0, rect.size.height);
+            context.scaleBy(1, -1);
+        }else{
+            context.rotateByDegrees(90);
+            context.scaleBy(1, -1);
+            rect = JSRect(0, 0, rect.size.height, rect.size.width);
+        }
         var series;
         var i, l;
         var j, k;
         k = this.categoryAxis.categories.length;
         var v;
-        var vPrevious;
-        var p = JSPoint.Zero;
-        var x0 = rect.origin.x;
-        var x = x0;
-        var dx = rect.size.width / (k);
-        var y;
+        var x, y;
+        var dx = rect.size.width / k;
         var w = dx * this.barWidth;
         var sw = w / this.series.length;
-        context.save();
+        var scale = rect.size.height / (this.valueAxis.maximumValue - this.valueAxis.minimumValue);
+        var zeroY = -this.valueAxis.minimumValue * scale;
+        var barRect;
+        var originSide;
+        var oppositeSide;
         for (i = 0, l = this.series.length; i < l; ++i){
             series = this.series[i];
             context.save();
-            context.setFillColor(series.color);
-            vPrevious = null;
-            x = x0;
+            context.setFillColor(series.style.color);
+            if (series.style.borderWidth > 0){
+                context.setLineWidth(series.style.borderWidth);
+                context.setStrokeColor(series.style.borderColor);
+            }
+            x = 0;
             for (j = 0; j < k; ++j){
-                context.beginPath();
                 v = series.values[j];
                 if (v !== null && v !== undefined){
-                    y = rect.origin.y + rect.size.height - (v - this.valueAxis.minimumValue) / (this.valueAxis.maximumValue - this.valueAxis.minimumValue) * rect.size.height;
-                    context.addRect(JSRect(x + (dx - w) / 2 + i * sw, y, sw, rect.origin.y + rect.size.height - y));
+                    y = (v - this.valueAxis.minimumValue) * scale;
+                    if (y >= zeroY){
+                        barRect = JSRect(x + (dx - w) / 2 + i * sw, zeroY, sw, y - zeroY);
+                        originSide = CHSeriesBarStyle.Sides.base;
+                        oppositeSide = CHSeriesBarStyle.Sides.end;
+                    }else{
+                        barRect = JSRect(x + (dx - w) / 2 + i * sw, y, sw, zeroY - y);
+                        originSide = CHSeriesBarStyle.Sides.end;
+                        oppositeSide = CHSeriesBarStyle.Sides.base;
+                    }
+                    if (barRect.size.height > 0){
+                        context.fillRect(barRect);
+                        if (series.style.borderWidth > 0){
+                            barRect = barRect.rectWithInsets(series.style.borderWidth / 2);
+                            context.beginPath();
+                            context.moveToPoint(barRect.origin.x, barRect.origin.y);
+                            if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
+                                context.addLineToPoint(barRect.origin.x, barRect.origin.y + barRect.size.height);
+                            }else{
+                                context.moveToPoint(barRect.origin.x, barRect.origin.y + barRect.size.height);
+                            }
+                            if ((series.style.maskedBorders & oppositeSide) === oppositeSide){
+                                context.addLineToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y + barRect.size.height);
+                            }else{
+                                context.moveToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y + barRect.size.height);
+                            }
+                            if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.trailing) === CHSeriesBarStyle.Sides.trailing){
+                                context.addLineToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y);
+                            }else{
+                                context.moveToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y);
+                            }
+                            if ((series.style.maskedBorders & originSide) === originSide){
+                                if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
+                                    context.closePath();
+                                }else{
+                                    context.addLineToPoint(barRect.origin.x, barRect.origin.y);
+                                }
+                            }
+                            context.strokePath();
+                        }
+                    }
                 }
-                vPrevious = v;
                 x += dx;
-                context.fillPath();
             }
             context.restore();
         }
