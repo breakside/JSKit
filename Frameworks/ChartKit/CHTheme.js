@@ -22,22 +22,14 @@ JSClass("CHTheme", JSObject, {
     initWithColors: function(colors){
         this.colors = JSCopy(colors);
         this.barStyle = CHSeriesBarStyle.initWithColor(null);
-        this.barStyle.borderWidth = 1;
-        this.barStyle.borderColor = JSColor.black.colorWithAlpha(0.2);
-        this.barStyle.maskedBorders = CHSeriesBarStyle.Sides.end;
         this.lineStyle = CHSeriesLineStyle.initWithColor(null);
-        this.lineStyle.lineWidth = 4;
-        this.lineStyle.symbolPath = JSPath.init();
-        this.lineStyle.symbolPath.addEllipseInRect(JSRect(-6, -6, 12, 12));
-        this.lineStyle.symbolFillColor = JSColor.white;
-        this.valueAxisGridlineColor = JSColor.initWithWhite(0.6);
     },
 
     colors: null,
     valueAxisLineWidth: 0,
-    valueAxisMajorGridlineWidth: 0.5,
+    valueAxisMajorGridlineWidth: 0,
     valueAxisMajorGridlineColor: null,
-    categoryAxisLineWidth: 1,
+    categoryAxisLineWidth: 0,
     barStyle: null,
     lineStyle: null,
 
@@ -55,6 +47,13 @@ Object.defineProperties(CHTheme, {
                 JSColor.initWithRGBAHexString("8033CC")
             ];
             var theme = CHTheme.initWithColors(colors);
+            theme.lineStyle.lineWidth = 4;
+            theme.lineStyle.symbolPath = JSPath.init();
+            theme.lineStyle.symbolPath.addEllipseInRect(JSRect(-6, -6, 12, 12));
+            theme.lineStyle.symbolFillColor = JSColor.white;
+            theme.valueAxisMajorGridlineWidth = 0.5;
+            theme.valueAxisGridlineColor = JSColor.initWithWhite(0.6);
+            theme.categoryAxisLineWidth = 1;
             Object.defineProperty(this, "default", {value: theme});
             return theme;
         }

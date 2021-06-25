@@ -26,6 +26,8 @@ JSClass("CHBarChart", CHCategoryChart, {
     },
 
     barWidth: 0.67,
+    maskedCorners: CHSeriesBarStyle.Corners.all,
+    cornerRadius: 0,
 
     drawValuesInContext: function(context, rect){
         context.save();
@@ -52,8 +54,12 @@ JSClass("CHBarChart", CHCategoryChart, {
         var scale = rect.size.height / (this.valueAxis.maximumValue - this.valueAxis.minimumValue);
         var zeroY = -this.valueAxis.minimumValue * scale;
         var barRect;
-        var originSide;
-        var oppositeSide;
+        var barClipPath;
+        var barBorderPath;
+        var maskedBorders;
+        var maskedCorners;
+        var borderInsets;
+        var cornerRadius = this.cornerRadius * sw / 2;
         for (i = 0, l = this.series.length; i < l; ++i){
             series = this.series[i];
             context.save();
@@ -66,47 +72,46 @@ JSClass("CHBarChart", CHCategoryChart, {
             for (j = 0; j < k; ++j){
                 v = series.values[j];
                 if (v !== null && v !== undefined){
+                    context.save();
                     y = (v - this.valueAxis.minimumValue) * scale;
                     if (y >= zeroY){
                         barRect = JSRect(x + (dx - w) / 2 + i * sw, zeroY, sw, y - zeroY);
-                        originSide = CHSeriesBarStyle.Sides.base;
-                        oppositeSide = CHSeriesBarStyle.Sides.end;
+                        maskedBorders = CHSeriesBarStyle.Sides.pathSidesForPositiveBarSides(series.style.maskedBorders);
+                        maskedCorners = CHSeriesBarStyle.Corners.pathCornersForPositiveBarCorners(this.maskedCorners);
                     }else{
                         barRect = JSRect(x + (dx - w) / 2 + i * sw, y, sw, zeroY - y);
-                        originSide = CHSeriesBarStyle.Sides.end;
-                        oppositeSide = CHSeriesBarStyle.Sides.base;
+                        maskedBorders = CHSeriesBarStyle.Sides.pathSidesForNegativeBarSides(series.style.maskedBorders);
+                        maskedCorners = CHSeriesBarStyle.Corners.pathCornersForNegativeBarCorners(this.maskedCorners);
                     }
                     if (barRect.size.height > 0){
+                        if (cornerRadius > 0 && maskedCorners !== JSPath.Corners.none){
+                            barClipPath = JSPath.init();
+                            barClipPath.addRectWithSidesAndCorners(barRect, JSPath.Sides.all, maskedCorners, cornerRadius);
+                            context.addPath(barClipPath);
+                            context.clip();
+                        }
                         context.fillRect(barRect);
                         if (series.style.borderWidth > 0){
-                            barRect = barRect.rectWithInsets(series.style.borderWidth / 2);
-                            context.beginPath();
-                            context.moveToPoint(barRect.origin.x, barRect.origin.y);
-                            if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
-                                context.addLineToPoint(barRect.origin.x, barRect.origin.y + barRect.size.height);
-                            }else{
-                                context.moveToPoint(barRect.origin.x, barRect.origin.y + barRect.size.height);
+                            borderInsets = JSInsets(series.style.borderWidth / 2);
+                            if ((maskedBorders & JSPath.Sides.minX) === 0){
+                                borderInsets.left = 0;
                             }
-                            if ((series.style.maskedBorders & oppositeSide) === oppositeSide){
-                                context.addLineToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y + barRect.size.height);
-                            }else{
-                                context.moveToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y + barRect.size.height);
+                            if ((maskedBorders & JSPath.Sides.minY) === 0){
+                                borderInsets.top = 0;
                             }
-                            if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.trailing) === CHSeriesBarStyle.Sides.trailing){
-                                context.addLineToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y);
-                            }else{
-                                context.moveToPoint(barRect.origin.x + barRect.size.width, barRect.origin.y);
+                            if ((maskedBorders & JSPath.Sides.maxX) === 0){
+                                borderInsets.right = 0;
                             }
-                            if ((series.style.maskedBorders & originSide) === originSide){
-                                if ((series.style.maskedBorders & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
-                                    context.closePath();
-                                }else{
-                                    context.addLineToPoint(barRect.origin.x, barRect.origin.y);
-                                }
+                            if ((maskedBorders & JSPath.Sides.maxY) === 0){
+                                borderInsets.bottom = 0;
                             }
+                            barBorderPath = JSPath.init();
+                            barBorderPath.addRectWithSidesAndCorners(barRect.rectWithInsets(borderInsets), maskedBorders, maskedCorners, cornerRadius - series.style.borderWidth / 2);
+                            context.addPath(barBorderPath);
                             context.strokePath();
                         }
                     }
+                    context.restore();
                 }
                 x += dx;
             }

@@ -52,7 +52,41 @@ CHSeriesBarStyle.Corners = {
     baseTrailing: 1 << 1,
     endLeading: 1 << 2,
     endTrailing: 1 << 3,
-    all: 0xF
+    all: 0xF,
+
+    pathCornersForPositiveBarCorners: function(barCorners){
+        var pathCorners = 0;
+        if ((barCorners & CHSeriesBarStyle.Corners.baseLeading) === CHSeriesBarStyle.Corners.baseLeading){
+            pathCorners |= JSPath.Corners.minXminY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.baseTrailing) === CHSeriesBarStyle.Corners.baseTrailing){
+            pathCorners |= JSPath.Corners.maxXminY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.endLeading) === CHSeriesBarStyle.Corners.endLeading){
+            pathCorners |= JSPath.Corners.minXmaxY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.endTrailing) === CHSeriesBarStyle.Corners.endTrailing){
+            pathCorners |= JSPath.Corners.maxXmaxY;
+        }
+        return pathCorners;
+    },
+
+    pathCornersForNegativeBarCorners: function(barCorners){
+        var pathCorners = 0;
+        if ((barCorners & CHSeriesBarStyle.Corners.baseLeading) === CHSeriesBarStyle.Corners.baseLeading){
+            pathCorners |= JSPath.Corners.minXmaxY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.baseTrailing) === CHSeriesBarStyle.Corners.baseTrailing){
+            pathCorners |= JSPath.Corners.maxXmaxY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.endLeading) === CHSeriesBarStyle.Corners.endLeading){
+            pathCorners |= JSPath.Corners.minXminY;
+        }
+        if ((barCorners & CHSeriesBarStyle.Corners.endTrailing) === CHSeriesBarStyle.Corners.endTrailing){
+            pathCorners |= JSPath.Corners.maxXminY;
+        }
+        return pathCorners;
+    }
 };
 
 CHSeriesBarStyle.Corners.base = CHSeriesBarStyle.Corners.baseLeading | CHSeriesBarStyle.Corners.baseTrailing;
@@ -66,7 +100,41 @@ CHSeriesBarStyle.Sides = {
     trailing: 1 << 1,
     base: 1 << 2,
     end: 1 << 3,
-    all: 0xF
+    all: 0xF,
+
+    pathSidesForPositiveBarSides: function(barSides){
+        var pathSides = 0;
+        if ((barSides & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
+            pathSides |= JSPath.Sides.minX;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.trailing) === CHSeriesBarStyle.Sides.trailing){
+            pathSides |= JSPath.Sides.maxX;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.base) === CHSeriesBarStyle.Sides.base){
+            pathSides |= JSPath.Sides.minY;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.end) === CHSeriesBarStyle.Sides.end){
+            pathSides |= JSPath.Sides.maxY;
+        }
+        return pathSides;
+    },
+
+    pathSidesForNegativeBarSides: function(barSides){
+        var pathSides = 0;
+        if ((barSides & CHSeriesBarStyle.Sides.leading) === CHSeriesBarStyle.Sides.leading){
+            pathSides |= JSPath.Sides.minX;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.trailing) === CHSeriesBarStyle.Sides.trailing){
+            pathSides |= JSPath.Sides.maxX;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.base) === CHSeriesBarStyle.Sides.base){
+            pathSides |= JSPath.Sides.maxY;
+        }
+        if ((barSides & CHSeriesBarStyle.Sides.end) === CHSeriesBarStyle.Sides.end){
+            pathSides |= JSPath.Sides.minY;
+        }
+        return pathSides;
+    }
 };
 
 JSClass("CHSeriesLineStyle", CHSeriesStyle, {
