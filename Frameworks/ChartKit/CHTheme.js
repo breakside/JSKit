@@ -23,6 +23,7 @@ JSClass("CHTheme", JSObject, {
         this.colors = JSCopy(colors);
         this.barStyle = CHSeriesBarStyle.initWithColor(null);
         this.lineStyle = CHSeriesLineStyle.initWithColor(null);
+        this.areaStyle = CHSeriesAreaStyle.initWithColor(null);
     },
 
     colors: null,
@@ -32,6 +33,7 @@ JSClass("CHTheme", JSObject, {
     categoryAxisLineWidth: 0,
     barStyle: null,
     lineStyle: null,
+    areaStyle: null
 
 });
 

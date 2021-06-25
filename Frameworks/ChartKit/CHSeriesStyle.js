@@ -163,6 +163,13 @@ JSClass("CHSeriesLineStyle", CHSeriesStyle, {
 
 JSClass("CHSeriesAreaStyle", CHSeriesLineStyle, {
 
-    lineWidth: 0
+    lineWidth: 0,
+    lineColor: null,
+
+    styleWithColor: function(color){
+        var style = CHSeriesAreaStyle.$super.styleWithColor.call(this, color);
+        style.lineColor = this.lineColor;
+        return style;
+    }
 
 });

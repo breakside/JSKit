@@ -14,11 +14,16 @@
 // limitations under the License.
 
 // #import "CHChart.js"
+// #import "CHCategoryChart.js"
 // #import "CHBarChart.js"
 // #import "CHLineChart.js"
+// #import "CHAreaChart.js"
 // #import "CHPieChart.js"
 // #import "CHSeries.js"
+// #import "CHSeriesStyle.js"
 // #import "CHAxis.js"
+// #import "CHCategoryAxis.js"
+// #import "CHValueAxis.js"
 // #import "CHLegend.js"
 // #import "CHTheme.js"
 // #import "JSContext+CHChart.js"

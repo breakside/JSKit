@@ -17,11 +17,11 @@
 // #import "CHSeriesStyle.js"
 "use strict";
 
-JSClass("CHLineChart", CHCategoryChart, {
+JSClass("CHAreaChart", CHCategoryChart, {
     
     initWithTheme: function(theme){
-        CHLineChart.$super.initWithTheme.call(this, theme);
-        this.defaultSeriesStyle = theme.lineStyle;
+        CHAreaChart.$super.initWithTheme.call(this, theme);
+        this.defaultSeriesStyle = theme.areaStyle;
     },
 
     drawValuesInContext: function(context, rect){
@@ -44,14 +44,24 @@ JSClass("CHLineChart", CHCategoryChart, {
         for (i = this.series.length - 1; i >= 0; --i){
             series = this.series[i];
             context.save();
-            context.setStrokeColor(series.style.color);
-            context.setLineWidth(series.style.lineWidth);
-            context.setLineCap(series.style.lineCap);
-            if (series.style.lineDashLengths !== null){
-                context.setLineDash(0, series.style.lineDashLengths);
-            }
-            path = this.drawLineForValuesInContext(series.values, context, dx, scale);
+            context.setFillColor(series.style.color);
+            this.drawAreaForValuesInContext(series.values, context, dx, scale);
             context.restore();
+            if (series.style.lineWidth > 0){
+                context.save();
+                if (series.style.lineColor !== null){
+                    context.setStrokeColor(series.style.lineColor);
+                }else{
+                    context.setStrokeColor(series.style.color);
+                }
+                context.setLineWidth(series.style.lineWidth);
+                context.setLineCap(series.style.lineCap);
+                if (series.style.lineDashLengths !== null){
+                    context.setLineDash(0, series.style.lineDashLengths);
+                }
+                this.drawLineForValuesInContext(series.values, context, dx, scale);
+                context.restore();
+            }
             if (series.style.symbolPath !== null){
                 drawingMode = JSContext.DrawingMode.stroke;
                 context.save();
@@ -61,8 +71,10 @@ JSClass("CHLineChart", CHCategoryChart, {
                 }
                 if (series.style.symbolStrokeColor !== null){
                     context.setStrokeColor(series.style.symbolStrokeColor);
+                }else if (series.style.lineColor !== null){
+                    context.setStrokeColor(series.style.lineColor);
                 }else{
-                    context.setStrokeColor(series.style.color);
+                    context.setStrokeColor(series.color);
                 }
                 if (series.style.symbolLineWidth !== null){
                     context.setLineWidth(series.style.symbolLineWidth);
@@ -76,15 +88,43 @@ JSClass("CHLineChart", CHCategoryChart, {
         context.restore();
     },
 
-    drawLineForValuesInContext: function(values, context, dx, scale){
-        var x, y;
-        x = 0;
+    drawAreaForValuesInContext: function(values, context, dx, scale){
+        var x = 0;
         var v;
+        var y;
+        var y0 = -this.valueAxis.minimumValue * scale;
+        context.moveToPoint(x, y0);
         for (var i = 0, l = values.length; i < l; ++i, x += dx){
             v = values[i];
+            if (i === 0 || i === l - 1){
+                if (v === null || v === undefined){
+                    v = 0;
+                }
+            }
             if (v !== null && v !== undefined){
                 y = (v - this.valueAxis.minimumValue) * scale;
-                if (i === 0 || values[i - 1] === null || values[i - 1] === undefined){
+                context.addLineToPoint(x, y);
+            }
+        }
+        context.addLineToPoint(x - dx, y0);
+        context.closePath();
+        context.fillPath();
+    },
+
+    drawLineForValuesInContext: function(values, context, dx, scale){
+        var x = 0;
+        var v;
+        var y;
+        for (var i = 0, l = values.length; i < l; ++i, x += dx){
+            v = values[i];
+            if (i === 0 || i === l - 1){
+                if (v === null || v === undefined){
+                    v = 0;
+                }
+            }
+            if (v !== null && v !== undefined){
+                y = (v - this.valueAxis.minimumValue) * scale;
+                if (i === 0){
                     context.moveToPoint(x, y);
                 }else{
                     context.addLineToPoint(x, y);
@@ -95,15 +135,14 @@ JSClass("CHLineChart", CHCategoryChart, {
     },
 
     drawSymbolsForValuesInContext: function(symbolPath, values, context, drawingMode, dx, scale){
-        var x, y;
-        x = 0;
+        var point = JSPoint(0, 0);
         var v;
-        for (var i = 0, l = values.length; i < l; ++i, x += dx){
+        for (var i = 0, l = values.length; i < l; ++i, point.x += dx){
             v = values[i];
             if (v !== null && v !== undefined){
-                y = (v - this.valueAxis.minimumValue) * scale;
+                point.y = (v - this.valueAxis.minimumValue) * scale;
                 context.save();
-                context.translateBy(x, y);
+                context.translateBy(point.x, point.y);
                 context.addPath(symbolPath);
                 context.drawPath(drawingMode);
                 context.restore();
