@@ -153,6 +153,129 @@ JSClass("JSPath", JSObject, {
         this.closeSubpath();
     },
 
+    addRectWithSidesAndCorners: function(rect, sides, corners, cornerRadius, transform){
+        if (cornerRadius <= 0 || corners == JSPath.Corners.none){
+            cornerRadius = 0;
+        }
+
+        if (sides == JSPath.Sides.all && corners == JSPath.Corners.all){
+            this.addRoundedRect(rect, cornerRadius, transform);
+        }else{
+            var halfWidth = rect.size.width / 2;
+            var halfHeight = rect.size.height / 2;
+            if (cornerRadius > halfWidth){
+                cornerRadius = halfWidth;
+            }
+            if (cornerRadius > halfHeight){
+                cornerRadius = halfHeight;
+            }
+            var magicRadius = JSContext.ellipseCurveMagic * cornerRadius;
+
+            var p1, p2, cp1, cp2;
+
+            if ((corners & JSPath.Corners.minXminY) == JSPath.Corners.minXminY){
+                p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
+                p2 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y);
+                cp1 = JSPoint(p1.x, p1.y - magicRadius);
+                cp2 = JSPoint(p2.x - magicRadius, p2.y);
+                this.moveToPoint(p1, transform);
+                if ((sides & (JSPath.Sides.minX | JSPath.Sides.minY)) == (JSPath.Sides.minX | JSPath.Sides.minY)){
+                    this.addCurveToPoint(p2, cp1, cp2, transform);
+                }else{
+                    this.moveToPoint(p2, transform);
+                }
+            }else{
+                this.moveToPoint(rect.origin, transform);
+            }
+
+            if ((corners & JSPath.Corners.maxXminY) == JSPath.Corners.maxXminY){
+                p1 = JSPoint(rect.origin.x + rect.size.width - cornerRadius, rect.origin.y);
+                p2 = JSPoint(rect.origin.x + rect.size.width, rect.origin.y + cornerRadius);
+                cp1 = JSPoint(p1.x + magicRadius, p1.y);
+                cp2 = JSPoint(p2.x, p2.y - magicRadius);
+                if (sides & JSPath.Sides.minY){
+                    this.addLineToPoint(p1, transform);
+                }else{
+                    this.moveToPoint(p1, transform);
+                }
+                if ((sides & (JSPath.Sides.maxX | JSPath.Sides.minY)) == (JSPath.Sides.maxX | JSPath.Sides.minY)){
+                    this.addCurveToPoint(p2, cp1, cp2, transform);
+                }else{
+                    this.moveToPoint(p2, transform);
+                }
+            }else{
+                if (sides & JSPath.Sides.minY){
+                    this.addLineToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), transform);
+                }else{
+                    this.moveToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), transform);
+                }
+            }
+
+            if ((corners & JSPath.Corners.maxXmaxY) == JSPath.Corners.maxXmaxY){
+                p1 = JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height - cornerRadius);
+                p2 = JSPoint(rect.origin.x + rect.size.width - cornerRadius, rect.origin.y + rect.size.height);
+                cp1 = JSPoint(p1.x, p1.y + magicRadius);
+                cp2 = JSPoint(p2.x + magicRadius, p2.y);
+                if (sides & JSPath.Sides.maxX){
+                    this.addLineToPoint(p1, transform);
+                }else{
+                    this.moveToPoint(p1, transform);
+                }
+                if ((sides & (JSPath.Sides.maxX | JSPath.Sides.maxY)) == (JSPath.Sides.maxX | JSPath.Sides.maxY)){
+                    this.addCurveToPoint(p2, cp1, cp2, transform);
+                }else{
+                    this.moveToPoint(p2, transform);
+                }
+            }else{
+                if (sides & JSPath.Sides.maxX){
+                    this.addLineToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height), transform);
+                }else{
+                    this.moveToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height), transform);
+                }
+            }
+
+            if ((corners & JSPath.Corners.minXmaxY) == JSPath.Corners.minXmaxY){
+                p1 = JSPoint(rect.origin.x + cornerRadius, rect.origin.y + rect.size.height);
+                p2 = JSPoint(rect.origin.x, rect.origin.y + rect.size.height - cornerRadius);
+                cp1 = JSPoint(p1.x - magicRadius, p1.y);
+                cp2 = JSPoint(p2.x, p2.y + magicRadius);
+                if (sides & JSPath.Sides.maxY){
+                    this.addLineToPoint(p1, transform);
+                }else{
+                    this.moveToPoint(p1, transform);
+                }
+                if ((sides & (JSPath.Sides.minX | JSPath.Sides.maxY)) == (JSPath.Sides.minX | JSPath.Sides.maxY)){
+                    this.addCurveToPoint(p2, cp1, cp2, transform);
+                }else{
+                    this.moveToPoint(p2, transform);
+                }
+            }else{
+                if (sides & JSPath.Sides.maxY){
+                    this.addLineToPoint(JSPoint(rect.origin.x, rect.origin.y + rect.size.height), transform);
+                }else{
+                    this.moveToPoint(JSPoint(rect.origin.x, rect.origin.y + rect.size.height), transform);
+                }
+            }
+
+            if ((corners & JSPath.Corners.minXminY) == JSPath.Corners.minXminY){
+                p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
+                if (sides & JSPath.Sides.minX){
+                    this.closeSubpath();
+                }else{
+                    this.moveToPoint(p1, transform);
+                }
+            }else{
+                if (sides & JSPath.Sides.minX){
+                    this.closeSubpath();
+                }
+            }
+
+            // if (this.sides & JSPath.Sides.minX){
+            //     this.closeSubpath();
+            // }
+        }
+    },
+
     addEllipseInRect: function(rect, transform){
         var halfWidth = rect.size.width / 2.0;
         var halfHeight = rect.size.height / 2.0;
@@ -731,5 +854,89 @@ var HALF_PI = Math.PI / 2;
 // in order to best approximate an ellipse, or circle in the ideal case.
 // Derivation at https://www.tinaja.com/glib/ellipse4.pdf
 JSPath.ellipseCurveMagic = 0.551784;
+
+JSPath.Corners = {
+    none: 0,
+    minXminY: 1 << 0,
+    minXmaxY: 1 << 1,
+    maxXminY: 1 << 2,
+    maxXmaxY: 1 << 3,
+    all: 0xF,
+
+    initWithSpec: function(spec){
+        var i,l;
+        var corners = JSPath.Corners.none;
+        var option;
+        if (spec.numberValue !== null){
+            return spec.numberValue;
+        }
+        if (spec.stringValue !== null){
+            var options = spec.stringValue.split('|');
+            for (i = 0, l = options.length; i < l; ++i){
+                option = options[i];
+                if (option in JSPath.Corners){
+                    corners |= JSPath.Corners[option];
+                }
+            }
+            return corners;
+        }
+        if (spec.length !== null){
+            for (i = 0, l = spec.length; i < l; ++i){
+                option = spec;
+                if (option in JSPath.Corners){
+                    corners |= JSPath.Corners[option];
+                }
+            }
+            return corners;
+        }
+        return corners;
+    }
+};
+
+JSPath.Corners.minX = JSPath.Corners.minXminY | JSPath.Corners.minXmaxY;
+JSPath.Corners.maxX = JSPath.Corners.maxXminY | JSPath.Corners.maxXmaxY;
+JSPath.Corners.minY = JSPath.Corners.minXminY | JSPath.Corners.maxXminY;
+JSPath.Corners.maxY = JSPath.Corners.minXmaxY | JSPath.Corners.maxXmaxY;
+
+JSPath.Sides = {
+    none: 0,
+    minX: 1 << 0,
+    maxX: 1 << 1,
+    minY: 1 << 2,
+    maxY: 1 << 3,
+    all: 0xF,
+
+    initWithSpec: function(spec){
+        var i,l;
+        var sides = JSPath.Sides.none;
+        var option;
+        if (spec.numberValue !== null){
+            return spec.numberValue;
+        }
+        if (spec.stringValue !== null){
+            var options = spec.stringValue.split('|');
+            for (i = 0, l = options.length; i < l; ++i){
+                option = options[i];
+                if (option in JSPath.Sides){
+                    sides |= JSPath.Sides[option];
+                }
+            }
+            return sides;
+        }
+        if (spec.length !== null){
+            for (i = 0, l = spec.length; i < l; ++i){
+                option = spec;
+                if (option in JSPath.Sides){
+                    sides |= JSPath.Sides[option];
+                }
+            }
+            return sides;
+        }
+        return sides;
+    }
+};
+
+JSPath.Sides.minYmaxY = JSPath.Sides.minY | JSPath.Sides.maxY;
+JSPath.Sides.minXmaxX = JSPath.Sides.minX | JSPath.Sides.maxX;
 
 })();
