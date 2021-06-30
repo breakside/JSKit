@@ -42,3 +42,13 @@ JSClass("CHChart", JSObject, {
     }
 
 });
+
+CHChart.isValidNumericValue = function(value){
+    if (typeof(value) !== "number"){
+        return false;
+    }
+    if (!isFinite(value)){
+        return false;
+    }
+    return true;
+};

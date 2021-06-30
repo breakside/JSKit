@@ -170,6 +170,7 @@ JSClass("JSPath", JSObject, {
                 cornerRadius = halfHeight;
             }
             var magicRadius = JSContext.ellipseCurveMagic * cornerRadius;
+            var singleSubpath = true;
 
             var p1, p2, cp1, cp2;
 
@@ -197,17 +198,20 @@ JSClass("JSPath", JSObject, {
                     this.addLineToPoint(p1, transform);
                 }else{
                     this.moveToPoint(p1, transform);
+                    singleSubpath = false;
                 }
                 if ((sides & (JSPath.Sides.maxX | JSPath.Sides.minY)) == (JSPath.Sides.maxX | JSPath.Sides.minY)){
                     this.addCurveToPoint(p2, cp1, cp2, transform);
                 }else{
                     this.moveToPoint(p2, transform);
+                    singleSubpath = false;
                 }
             }else{
                 if (sides & JSPath.Sides.minY){
                     this.addLineToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), transform);
                 }else{
                     this.moveToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y), transform);
+                    singleSubpath = false;
                 }
             }
 
@@ -220,17 +224,20 @@ JSClass("JSPath", JSObject, {
                     this.addLineToPoint(p1, transform);
                 }else{
                     this.moveToPoint(p1, transform);
+                    singleSubpath = false;
                 }
                 if ((sides & (JSPath.Sides.maxX | JSPath.Sides.maxY)) == (JSPath.Sides.maxX | JSPath.Sides.maxY)){
                     this.addCurveToPoint(p2, cp1, cp2, transform);
                 }else{
                     this.moveToPoint(p2, transform);
+                    singleSubpath = false;
                 }
             }else{
                 if (sides & JSPath.Sides.maxX){
                     this.addLineToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height), transform);
                 }else{
                     this.moveToPoint(JSPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height), transform);
+                    singleSubpath = false;
                 }
             }
 
@@ -243,30 +250,39 @@ JSClass("JSPath", JSObject, {
                     this.addLineToPoint(p1, transform);
                 }else{
                     this.moveToPoint(p1, transform);
+                    singleSubpath = false;
                 }
                 if ((sides & (JSPath.Sides.minX | JSPath.Sides.maxY)) == (JSPath.Sides.minX | JSPath.Sides.maxY)){
                     this.addCurveToPoint(p2, cp1, cp2, transform);
                 }else{
                     this.moveToPoint(p2, transform);
+                    singleSubpath = false;
                 }
             }else{
                 if (sides & JSPath.Sides.maxY){
                     this.addLineToPoint(JSPoint(rect.origin.x, rect.origin.y + rect.size.height), transform);
                 }else{
                     this.moveToPoint(JSPoint(rect.origin.x, rect.origin.y + rect.size.height), transform);
+                    singleSubpath = false;
                 }
             }
 
             if ((corners & JSPath.Corners.minXminY) == JSPath.Corners.minXminY){
                 p1 = JSPoint(rect.origin.x, rect.origin.y + cornerRadius);
                 if (sides & JSPath.Sides.minX){
-                    this.closeSubpath();
-                }else{
-                    this.moveToPoint(p1, transform);
+                    if (singleSubpath){
+                        this.closeSubpath();
+                    }else{
+                        this.addLineToPoint(p1, transform);
+                    }
                 }
             }else{
                 if (sides & JSPath.Sides.minX){
-                    this.closeSubpath();
+                    if (singleSubpath){
+                        this.closeSubpath();
+                    }else{
+                        this.addLineToPoint(rect.origin, transform);
+                    }
                 }
             }
 

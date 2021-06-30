@@ -82,9 +82,9 @@ JSClass("CHLineChart", CHCategoryChart, {
         var v;
         for (var i = 0, l = values.length; i < l; ++i, x += dx){
             v = values[i];
-            if (v !== null && v !== undefined){
+            if (CHChart.isValidNumericValue(v)){
                 y = (v - this.valueAxis.minimumValue) * scale;
-                if (i === 0 || values[i - 1] === null || values[i - 1] === undefined){
+                if (i === 0 || !CHChart.isValidNumericValue(values[i - 1])){
                     context.moveToPoint(x, y);
                 }else{
                     context.addLineToPoint(x, y);
@@ -100,7 +100,7 @@ JSClass("CHLineChart", CHCategoryChart, {
         var v;
         for (var i = 0, l = values.length; i < l; ++i, x += dx){
             v = values[i];
-            if (v !== null && v !== undefined){
+            if (CHChart.isValidNumericValue(v)){
                 y = (v - this.valueAxis.minimumValue) * scale;
                 context.save();
                 context.translateBy(x, y);

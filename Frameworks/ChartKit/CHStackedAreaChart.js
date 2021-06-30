@@ -13,19 +13,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "CHCategoryChart.js"
+// #import "CHAreaChart.js"
 // #import "CHSeriesStyle.js"
 "use strict";
 
-JSClass("CHAreaChart", CHCategoryChart, {
+JSClass("CHStackedAreaChart", CHAreaChart, {
     
     initWithTheme: function(theme){
-        CHAreaChart.$super.initWithTheme.call(this, theme);
-        this.defaultSeriesStyle = theme.areaStyle;
+        CHStackedAreaChart.$super.initWithTheme.call(this, theme);
     },
+
+    cornerRadius: 1,
 
     drawValuesInContext: function(context, rect){
         context.save();
+        context.addRect(rect);
+        context.clip();
         context.translateBy(rect.origin.x, rect.origin.y);
         if (this.valueAxis.direction === CHAxis.Direction.vertical){
             context.translateBy(0, rect.size.height);
@@ -36,16 +39,67 @@ JSClass("CHAreaChart", CHCategoryChart, {
             rect = JSRect(0, 0, rect.size.height, rect.size.width);
         }
         var series;
-        var i, l;
         var dx = rect.size.width / (this.categoryAxis.categories.length - 1);
         var scale = rect.size.height / (this.valueAxis.maximumValue - this.valueAxis.minimumValue);
-        var path;
+        var stacks = [];
+        var y;
+        var h;
+        var x;
+        var v;
+        var valueIndex, valueCount;
+        var seriesIndex, seriesCount;
         var drawingMode;
-        for (i = this.series.length - 1; i >= 0; --i){
-            series = this.series[i];
+        for (valueIndex = 0, valueCount = this.categoryAxis.categories.length; valueIndex < valueCount; ++valueIndex){
+            stacks.push(0);
+            for (seriesIndex = 0, seriesCount = this.series.length; seriesIndex < seriesCount; ++seriesIndex){
+                series = this.series[seriesIndex];
+                v = series.values[valueIndex];
+                if (CHChart.isValidNumericValue(v)){
+                    stacks[valueIndex] += v;
+                }
+            }
+        }
+        x = 0;
+        for (seriesIndex = this.series.length - 1; seriesIndex >= 0; --seriesIndex){
+            series = this.series[seriesIndex];
             context.save();
             context.setFillColor(series.style.color);
-            this.drawAreaForValuesInContext(series.values, context, dx, scale);
+            if (seriesIndex > 0){
+                v = series.values[0];
+                if (!CHChart.isValidNumericValue(v)){
+                    v = 0;
+                }
+                y = ((stacks[0] - v) - this.valueAxis.minimumValue) * scale;
+            }else{
+                y = -this.valueAxis.minimumValue * scale;
+            }
+            context.moveToPoint(x, y);
+            for (valueIndex = 0, valueCount = this.categoryAxis.categories.length; valueIndex < valueCount; ++valueIndex, x += dx){
+                v = series.values[valueIndex];
+                if (!CHChart.isValidNumericValue(v)){
+                    v = 0;
+                }
+                y = (stacks[valueIndex] - this.valueAxis.minimumValue) * scale;
+                context.addLineToPoint(x, y);
+            }
+            if (seriesIndex > 0){
+                x -= dx;
+                // > 0 condition is intentional because closePath will take care
+                // of the final segment to the 0th index value
+                for (valueIndex = this.categoryAxis.categories.length - 1; valueIndex > 0; --valueIndex, x -= dx){
+                    v = series.values[valueIndex];
+                    if (!CHChart.isValidNumericValue(v)){
+                        v = 0;
+                    }
+                    y = ((stacks[valueIndex] - v) - this.valueAxis.minimumValue) * scale;
+                    context.addLineToPoint(x, y);
+                }
+            }else{
+                y = - this.valueAxis.minimumValue * scale;
+                context.addLineToPoint(x - dx, y);
+            }
+            context.closePath();
+            context.fillPath();
             context.restore();
             if (series.style.lineWidth > 0){
                 context.save();
@@ -59,7 +113,7 @@ JSClass("CHAreaChart", CHCategoryChart, {
                 if (series.style.lineDashLengths !== null){
                     context.setLineDash(0, series.style.lineDashLengths);
                 }
-                this.drawLineForValuesInContext(series.values, context, dx, scale);
+                this.drawLineForValuesInContext(stacks, context, dx, scale);
                 context.restore();
             }
             if (series.style.symbolPath !== null){
@@ -81,73 +135,15 @@ JSClass("CHAreaChart", CHCategoryChart, {
                 }else{
                     context.setLineWidth(series.style.lineWidth);
                 }
-                this.drawSymbolsForValuesInContext(series.style.symbolPath, series.values, context, drawingMode, dx, scale);
+                this.drawSymbolsForValuesInContext(series.style.symbolPath, stacks, context, drawingMode, dx, scale);
                 context.restore();
+            }
+            for (valueIndex = 0, valueCount = this.categoryAxis.categories.length; valueIndex < valueCount; ++valueIndex){
+                v = series.values[valueIndex];
+                stacks[valueIndex] -= v;
             }
         }
         context.restore();
-    },
-
-    drawAreaForValuesInContext: function(values, context, dx, scale){
-        var x = 0;
-        var v;
-        var y;
-        var y0 = -this.valueAxis.minimumValue * scale;
-        context.moveToPoint(x, y0);
-        for (var i = 0, l = values.length; i < l; ++i, x += dx){
-            v = values[i];
-            if (i === 0 || i === l - 1){
-                if (!CHChart.isValidNumericValue(v)){
-                    v = 0;
-                }
-            }
-            if (CHChart.isValidNumericValue(v)){
-                y = (v - this.valueAxis.minimumValue) * scale;
-                context.addLineToPoint(x, y);
-            }
-        }
-        context.addLineToPoint(x - dx, y0);
-        context.closePath();
-        context.fillPath();
-    },
-
-    drawLineForValuesInContext: function(values, context, dx, scale){
-        var x = 0;
-        var v;
-        var y;
-        for (var i = 0, l = values.length; i < l; ++i, x += dx){
-            v = values[i];
-            if (i === 0 || i === l - 1){
-                if (!CHChart.isValidNumericValue(v)){
-                    v = 0;
-                }
-            }
-            if (CHChart.isValidNumericValue(v)){
-                y = (v - this.valueAxis.minimumValue) * scale;
-                if (i === 0){
-                    context.moveToPoint(x, y);
-                }else{
-                    context.addLineToPoint(x, y);
-                }
-            }
-        }
-        context.strokePath();
-    },
-
-    drawSymbolsForValuesInContext: function(symbolPath, values, context, drawingMode, dx, scale){
-        var point = JSPoint(0, 0);
-        var v;
-        for (var i = 0, l = values.length; i < l; ++i, point.x += dx){
-            v = values[i];
-            if (CHChart.isValidNumericValue(v)){
-                point.y = (v - this.valueAxis.minimumValue) * scale;
-                context.save();
-                context.translateBy(point.x, point.y);
-                context.addPath(symbolPath);
-                context.drawPath(drawingMode);
-                context.restore();
-            }
-        }
     },
 
 });
