@@ -25,11 +25,11 @@ JSColor.definePropertiesFromExtensions({
             if (this.colorSpace === JSColor.SpaceIdentifier.rgba){
                 this._cachedCSSString = 'rgba(%d, %d, %d, %f)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
             }else if (this.colorSpace === JSColor.SpaceIdentifier.rgb){
-                this._cachedCSSString = 'rgb(%d, %d, %d)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
+                this._cachedCSSString = 'rgb(%d, %d, %d)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255));
             }else if (this.colorSpace === JSColor.SpaceIdentifier.hsla){
-                this._cachedCSSString = 'hsla(%d, %d, %d, %f)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
+                this._cachedCSSString = 'hsla(%ddeg, %d%%, %d%%, %f)'.sprintf(Math.round(this.components[0] * 360), Math.round(this.components[1] * 100), Math.round(this.components[2] * 100), this.components[3]);
             }else if (this.colorSpace === JSColor.SpaceIdentifier.hsl){
-                this._cachedCSSString = 'hsl(%d, %d, %d)'.sprintf(Math.round(this.components[0] * 255), Math.round(this.components[1] * 255), Math.round(this.components[2] * 255), this.components[3]);
+                this._cachedCSSString = 'hsl(%ddeg, %d%%, %d%%)'.sprintf(Math.round(this.components[0] * 360), Math.round(this.components[1] * 100), Math.round(this.components[2] * 100));
             }else if (this.colorSpace === JSColor.SpaceIdentifier.gray || this.colorSpace === JSColor.SpaceIdentifier.graya){
                 var w = Math.round(this.components[0] * 255);
                 var a = 1;

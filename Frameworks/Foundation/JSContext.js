@@ -235,7 +235,7 @@ JSClass("JSContext", JSObject, {
     },
 
     showText: function(text){
-        var glyphs = this.state.font.glyphsForString();
+        var glyphs = this.state.font.glyphsForString(text);
         this.showGlyphs(glyphs);
     },
 

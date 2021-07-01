@@ -32,5 +32,6 @@
 // #import "PDFForm.js"
 // #import "PDFXrefStream.js"
 // #import "PDFObjectStream.js"
+// #import "PDFFontFileStream.js"
 // #import "PDFFunction.js"
 'use strict';

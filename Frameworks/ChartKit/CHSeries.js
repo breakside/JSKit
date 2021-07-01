@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "PDFObject.js"
-// #import "PDFName.js"
-'use strict';
+// #import Foundation
+"use strict";
 
+JSClass("CHSeries", JSObject, {
 
-JSGlobalObject.PDFGraphicsStateParameters = function(){
-    if (this === undefined){
-        return new PDFGraphicsStateParameters();
+    name: null,
+    values: null,
+    style: null,
+
+    initWithName: function(name, style, values){
+        this.name = name;
+        this.style = style;
+        if (values !== undefined){
+            this.values = JSCopy(values);
+        }else{
+            this.values = [];
+        }
+    },
+
+    addValue: function(value){
+        this.values.push(value);
     }
-};
 
-JSGlobalObject.PDFGraphicsStateParameters.prototype = Object.create(PDFObject.prototype, {
-    Type:   { enumerable: true, value: PDFName("ExtGState") },
-    Font:   PDFObjectProperty,
-    CA:     PDFObjectProperty,
-    ca:     PDFObjectProperty,
-    SA:     PDFObjectProperty
 });

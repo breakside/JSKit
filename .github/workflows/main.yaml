@@ -162,6 +162,18 @@ jobs:
       - name: Test QRKit in Webkit
         run: npx jskit test --browser webkit Tests/QRKitTests
 
+      - name: Test ChartKit
+        run: npx jskit test Tests/ChartKitTests
+
+      - name: Test ChartKit in Chrome
+        run: npx jskit test --browser chrome Tests/ChartKitTests
+
+      - name: Test ChartKit in Firefox
+        run: npx jskit test --browser firefox Tests/ChartKitTests
+
+      - name: Test ChartKit in Webkit
+        run: npx jskit test --browser webkit Tests/ChartKitTests
+
       - name: Test DBKit
         run: npx jskit test Tests/DBKitTests
 

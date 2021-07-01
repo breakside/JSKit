@@ -131,3 +131,15 @@ JSGlobalObject.PDFFontDescriptor.prototype = Object.create(PDFObject.prototype, 
         }
     }
 });
+
+PDFFontDescriptor.Flags = {
+    fixedPitch: 1 >> 0,
+    serif: 1 >> 1,
+    symbolic: 1 >> 2,
+    script: 1 >> 3,
+    nonsymbolic: 1 >> 5,
+    italic: 1 >> 6,
+    allCapitals: 1 >> 16,
+    smallCapitials: 1 >> 17,
+    forceBold: 1 >> 18
+};

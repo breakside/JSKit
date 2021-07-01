@@ -94,6 +94,24 @@ JSClass('JSColor', JSObject, {
         }
     },
 
+    initWithRGBAHexString: function(hexString){
+        var components = JSColor.componentsFromHexString(hexString);
+        if (components === null){
+            return null;
+        }
+        this._components = components;
+        this._colorSpace = JSColor.SpaceIdentifier.rgba;
+    },
+
+    initWithHSLA: function(h, s, l, a){
+        this._colorSpace = JSColor.SpaceIdentifier.hsla;
+        if (h === undefined) h = 0;
+        if (s === undefined) s = 0;
+        if (l === undefined) l = 0;
+        if (a === undefined) a = 1.0;
+        this._components = [h,s,l,a];
+    },
+
     initWithBlendedColor: function(base, otherColor, blendPercentage){
         otherColor = otherColor.rgbaColor();
         var original = base.rgbaColor();
@@ -107,38 +125,18 @@ JSClass('JSColor', JSObject, {
         var components;
         if (spec.containsKey("rgba")){
             var rgba = spec.valueForKey("rgba");
-            if (rgba.startsWith("#")){
-                components = [
-                    parseInt(rgba.substringInRange(JSRange(1,2)) || "0", 16),
-                    parseInt(rgba.substringInRange(JSRange(3,2)) || "0", 16),
-                    parseInt(rgba.substringInRange(JSRange(5,2)) || "0", 16),
-                    (parseInt(rgba.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
-                ];
-            }else if (rgba.match(/^[0-9A-Fa-f]{6}$/)){
-                components = [
-                    parseInt(rgba.substringInRange(JSRange(0,2)), 16),
-                    parseInt(rgba.substringInRange(JSRange(2,2)), 16),
-                    parseInt(rgba.substringInRange(JSRange(4,2)), 16),
-                    1
-                ];
-            }else if (rgba.match(/^[0-9A-Fa-f]{8}$/)){
-                components = [
-                    parseInt(rgba.substringInRange(JSRange(0,2)), 16),
-                    parseInt(rgba.substringInRange(JSRange(2,2)), 16),
-                    parseInt(rgba.substringInRange(JSRange(4,2)), 16),
-                    (parseInt(rgba.substringInRange(JSRange(6,2)), 16)) / 255
-                ];
-            }else{
+            components = JSColor.componentsFromHexString(rgba);
+            if (components === null){
                 components = rgba.parseNumberArray();
-            }
-            if (components.length > 0){
-                components[0] = components[0] / 255;
-            }
-            if (components.length > 1){
-                components[1] = components[1] / 255;
-            }
-            if (components.length > 2){
-                components[2] = components[2] / 255;
+                if (components.length > 0){
+                    components[0] = components[0] / 255;
+                }
+                if (components.length > 1){
+                    components[1] = components[1] / 255;
+                }
+                if (components.length > 2){
+                    components[2] = components[2] / 255;
+                }
             }
             this.initWithRGBA.apply(this, components);
         }else if (spec.containsKey("white")){
@@ -280,6 +278,32 @@ JSColor.GrayToRGB = function(white){
 
 JSColor.RGBToGray = function(r, g, b){
     return [(r + g + b) / 3.0];
+};
+
+JSColor.componentsFromHexString = function(hexString){
+    if (hexString.startsWith("#")){
+        return [
+            parseInt(hexString.substringInRange(JSRange(1,2)) || "0", 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(3,2)) || "0", 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(5,2)) || "0", 16) / 255,
+            (parseInt(hexString.substringInRange(JSRange(7,2)) || "FF", 16)) / 255
+        ];
+    }else if (hexString.match(/^[0-9A-Fa-f]{6}$/)){
+        return [
+            parseInt(hexString.substringInRange(JSRange(0,2)), 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(2,2)), 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(4,2)), 16) / 255,
+            1
+        ];
+    }else if (hexString.match(/^[0-9A-Fa-f]{8}$/)){
+        return [
+            parseInt(hexString.substringInRange(JSRange(0,2)), 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(2,2)), 16) / 255,
+            parseInt(hexString.substringInRange(JSRange(4,2)), 16) / 255,
+            (parseInt(hexString.substringInRange(JSRange(6,2)), 16)) / 255
+        ];
+    }
+    return null;
 };
 
 JSColor.SpaceIdentifier = {

@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "PDFObject.js"
-// #import "PDFName.js"
-'use strict';
-
-
-JSGlobalObject.PDFGraphicsStateParameters = function(){
-    if (this === undefined){
-        return new PDFGraphicsStateParameters();
-    }
-};
-
-JSGlobalObject.PDFGraphicsStateParameters.prototype = Object.create(PDFObject.prototype, {
-    Type:   { enumerable: true, value: PDFName("ExtGState") },
-    Font:   PDFObjectProperty,
-    CA:     PDFObjectProperty,
-    ca:     PDFObjectProperty,
-    SA:     PDFObjectProperty
-});
+// #import "CHChart.js"
+// #import "CHCategoryChart.js"
+// #import "CHBarChart.js"
+// #import "CHStackedBarChart.js"
+// #import "CHLineChart.js"
+// #import "CHAreaChart.js"
+// #import "CHStackedAreaChart.js"
+// #import "CHPieChart.js"
+// #import "CHSeries.js"
+// #import "CHSeriesStyle.js"
+// #import "CHAxis.js"
+// #import "CHCategoryAxis.js"
+// #import "CHValueAxis.js"
+// #import "CHLegend.js"
+// #import "CHTheme.js"
+// #import "JSContext+CHChart.js"

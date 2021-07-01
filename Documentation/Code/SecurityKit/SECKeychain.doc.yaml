@@ -15,7 +15,7 @@ description: |
   where the client needs to generate secret encryption keys.
 topics:
   - 
-    name: Creating a Keycahin
+    name: Creating a Keychain
     members:
       -
         name: initWithIdentifier

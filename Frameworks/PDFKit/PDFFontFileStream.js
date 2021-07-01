@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,21 +13,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "PDFObject.js"
-// #import "PDFName.js"
+// #import "PDFStream.js"
 'use strict';
 
 
-JSGlobalObject.PDFGraphicsStateParameters = function(){
+JSGlobalObject.PDFFontFileStream = function(){
     if (this === undefined){
-        return new PDFGraphicsStateParameters();
+        return new PDFFontFileStream();
     }
 };
 
-JSGlobalObject.PDFGraphicsStateParameters.prototype = Object.create(PDFObject.prototype, {
-    Type:   { enumerable: true, value: PDFName("ExtGState") },
-    Font:   PDFObjectProperty,
-    CA:     PDFObjectProperty,
-    ca:     PDFObjectProperty,
-    SA:     PDFObjectProperty
+JSGlobalObject.PDFFontFileStream.prototype = Object.create(PDFStream.prototype, {
+    Length1:    PDFObjectProperty,
+    Length2:    PDFObjectProperty,
+    Length3:    PDFObjectProperty,
+    Subtype:    PDFObjectProperty,
+    Metadata:   PDFObjectProperty
 });

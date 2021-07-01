@@ -96,10 +96,10 @@ JSClass("PDFWriter", JSObject, {
         this._write("%d %d obj\n", indirect.objectID, indirect.generation);
     },
 
-    close: function(callback){
+    close: function(callback, target){
         this._writeCrossReferenceTable();
         this._writeTrailer();
-        this._stream.close(callback);
+        this._stream.close(callback, target);
     },
 
     _writeObject: function(obj, preferIndirect){
@@ -115,10 +115,10 @@ JSClass("PDFWriter", JSObject, {
             }
         }else if (preferIndirect && obj && obj.indirect && obj.indirect instanceof PDFIndirectObject){
             this._writeIndirectObject(obj.indirect);
+        }else if ((obj instanceof PDFArray) || (obj instanceof Array)){
+            this._writeArrayObject(obj);
         }else if (obj instanceof PDFObject){
             this._writeDictionaryObject(obj);
-        }else if (obj instanceof Array){
-            this._writeArrayObject(obj);
         }else if (typeof(obj) == 'string'){
             this._writeStringObject(obj);
         }else if (typeof(obj) == 'boolean'){
@@ -131,7 +131,7 @@ JSClass("PDFWriter", JSObject, {
     },
 
     _writeNameObject: function(name){
-        this._write(pdf_formatter.N(name.value));
+        this._write(pdf_formatter.N(name));
     },
 
     _writeStringObject: function(str){
@@ -235,6 +235,7 @@ JSClass("PDFWriterDataStream", JSObject, {
     },
 
     close: function(completion, target){
+        completion.call(target, true);
     }
 
 });
@@ -349,7 +350,7 @@ var pdf_formatter = {
 
     // name
     N: function(value, options){
-        var data = value.latin1();
+        var data = value.value.latin1();
         var str = "/";
         var byte;
         var hex;
@@ -374,8 +375,7 @@ var pdf_formatter = {
     },
 
     S: function(str, options){
-        // TODO: escapes
-        return "(" + str + ")";
+        return "(" + str.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)") + ")";
     }
 };
 
