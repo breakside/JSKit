@@ -56,9 +56,9 @@ JSClass("PDFWriterTests", TKTestSuite, {
         TKAssertEquals(writer.format("%b", null / null), "false");
 
         // TODO: Names
-        TKAssertEquals(writer.format("%N", "Test"), "/Test");
-        TKAssertEquals(writer.format("%N", "Hello, World!"), "/Hello,#20World!");
-        TKAssertEquals(writer.format("%N", "\x01\x02\xA0\xFF"), "/#01#02#A0#FF");
+        TKAssertEquals(writer.format("%N", PDFName("Test")), "/Test");
+        TKAssertEquals(writer.format("%N", PDFName("Hello, World!")), "/Hello,#20World!");
+        TKAssertEquals(writer.format("%N", PDFName("\x01\x02\xA0\xFF")), "/#01#02#A0#FF");
 
         // TODO: regular strings
 
