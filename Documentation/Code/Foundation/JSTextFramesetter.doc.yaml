@@ -1,0 +1,42 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextFramesetter
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A text layout factory for creating text frames
+description: |
+  `JSTextFramesetter` creates `JSTextFrame`s based on an attributed string.
+topics:
+  - name: String
+    members:
+      - name: attributedString
+        type: JSAttributedString
+        summary: The string to use for source text when creating frames
+      - name: attributes
+        type: JSTextParagraphAttributes
+        summary: Paragraph attributes for the created text frame
+  - name: Creating Frames
+    members:
+      - name: createFrame
+        kind: method
+        type: JSTextFrame
+        summary: Create a text frame from a section of the string
+        arguments:
+          - name: size
+            type: JSSize
+            summary: The maximum size of the frame
+          - name: range
+            type: JSRange
+            summary: The range of the string to use
+          - name: maximumLines
+            type: Number
+            summary: The maximum number of lines to create
+        description: |
+          Use `0`() for the `size.width`() or `size.height`() to have the frame
+          size-to-fit in that direction.
+
+          Use `0`() for `maximumLines`() to indicate no limit.
+
+          The `range`() provided may not fit within the size and lines
+          constraints.  You can check the returned frame's `range`(JSTextFrame.range)
+          for an indication of what range was actually used.

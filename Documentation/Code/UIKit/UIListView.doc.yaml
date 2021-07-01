@@ -1091,6 +1091,10 @@ topics:
                         type: JSColor
                         summary: The color to use for the accessory when it
                           is a template image
+                      -
+                        name: accessoryInsets
+                        type: JSInsets
+                        summary: Insets for the cells' `accessoryView`s
                   -
                     name: Separators
                     members:
@@ -1271,6 +1275,10 @@ topics:
                 type: JSColor
                 summary: The color to use for the accessory when it
                   is a template image
+              -
+                name: accessoryInsets
+                type: JSInsets
+                summary: Insets for the cells' `accessoryView`s
           -
             name: Separators
             members:

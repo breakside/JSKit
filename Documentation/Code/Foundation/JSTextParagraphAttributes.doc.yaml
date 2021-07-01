@@ -1,0 +1,22 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextParagraphAttributes
+kind: class
+anonymous: true
+introduced: 2020.1.0
+summary: Attributes for text frames
+topics:
+  - name: Properties
+    members:
+      - name: minimumLineHeight
+        type: Number
+        summary: The minimum height for a line, defaults to `0`()
+      - name: lineSpacing
+        type: Number
+        summary: The spacing factor for lines, as a multiple of the font's
+          `lineHeight`, defaults to `1.0`()
+      - name: textAlignment
+        type: JSTextAlignment
+        summary: The text alignment, defaults to `JSTextAlignment.left`
+      - name: lineBreakMode
+        type: JSLineBreakMode
+        summary: The method for calculating line breaks, defaults to `JSLineBreakMode.truncateTail`

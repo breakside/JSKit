@@ -25,6 +25,11 @@ topics:
                 name: axis
                 type: Axis
                 summary: The direction this view's subviews are stacked
+              -
+                name: alignment
+                introducted: 2021.10.1
+                type: Alignment
+                summary: The method of alignment along the axis
           -
             name: View Spacing
             members:
@@ -63,6 +68,39 @@ topics:
         name: axis
         type: Axis
         summary: The direction this view's subviews are stacked
+      -
+        name: Alignment
+        introducted: 2021.10.1
+        kind: enum
+        suffix: enum
+        summary: The options for aligning views along the axis
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: full
+                summary: Size views to take up the full size of the cross-axis direction
+              -
+                name: leading
+                summary: Align views to the leading edge
+              -
+                name: center
+                summary: Align views to the center
+              -
+                name: trailing
+                summary: Align views to the trailing edge
+              -
+                name: firstBaseline
+                summary: Align views to their first baselines (only applicable to horizontal stacks)
+              -
+                name: lastBaseline
+                summary: Align views to their last baselines (only applicable to horizontal stacks)
+      -
+        name: alignment
+        introducted: 2021.10.1
+        type: Alignment
+        summary: The method of alignment along the axis
   -
     name: View Spacing
     members:

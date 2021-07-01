@@ -23,6 +23,17 @@ topics:
         static: true
         type: OAService
         summary: Microsoft's OAuth service, including Office365
+      -
+        name: apple
+        introducted: 2021.16.0
+        platform: node
+        static: true
+        type: OAService
+        summary: Apple's OAuth service
+        note: |
+          Apple's OpenID discovery endpoints do not allow Cross-Origin requests
+          from within a browser, effectively limiting the usefulness of this
+          service to node-based servers.
   -
     name: Creating a Service
     members:

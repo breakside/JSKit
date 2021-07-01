@@ -120,13 +120,13 @@ topics:
       - JSFontDescriptor
       # - JSTextAttachment
       # - JSTextContainer
-      # - JSTextFrame
-      # - JSTextFramesetter
+      - JSTextFrame
+      - JSTextFramesetter
       # - JSTextLayoutManager
-      # - JSTextLine
-      # - JSTextRun
+      - JSTextLine
+      - JSTextRun
       # - JSTextStorage
-      # - JSTextTypesetter
+      - JSTextTypesetter
       -
         name: JSTextAlignment
         kind: enum

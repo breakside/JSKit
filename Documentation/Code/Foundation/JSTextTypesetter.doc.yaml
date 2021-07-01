@@ -1,0 +1,45 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextTypesetter
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A text layout factory for creating text lines
+description: |
+  `JSTextTypesetter` creates `JSTextLine`s based on an attributed string.
+
+  Typically you'll use a `JSTextFramesetter` to create several lines of
+  text that go together.  `JSTextTypesetter` is only useful for creating
+  a single line of text at a time.
+topics:
+  - name: String
+    members:
+      - name: attributedString
+        type: JSAttributedString
+        summary: The string to use for source text when creating frames
+  - name: Creating Lines
+    members:
+      - name: createLine
+        kind: method
+        type: JSTextLine
+        summary: Create a text line from a section of the string
+        arguments:
+          - name: range
+            type: JSRange
+            summary: The range of the string to use, typically a value
+              returned by `suggestLineBreak()`
+      - name: suggestLineBreak
+        kind: method
+        type: JSRange
+        return: The range of the string to create a line that will
+          fit within the given constraints
+        summary: Suggest the range for a line
+        arguments:
+          - name: width
+            type: Number
+            summary: The maximum width of the line
+          - name: range
+            type: JSRange
+            summary: The range of the string to consider
+          - name: lineBreakMode
+            type: JSLineBreakMode
+            summary: The method for calculating soft line breaks

@@ -70,6 +70,14 @@ topics:
 
           Open Chrome and navigate to `chrome://inspect`, then open the
           "Dedicated Node Tools".  See node docs for more debugging help.
+      -
+        introduced: 2021.16.0
+        name: --logs
+        summary: Print logs along with with the test results
+        description: |
+          The node test runner supresses logging by default.
+
+          To enable logging, for example to see error detail, use this flag.
   -
     name: Test Selection
     members:

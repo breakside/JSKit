@@ -49,6 +49,9 @@ topics:
                     name: chunks
                     type: JSData[]
                     summary: The entire message data
+                note: |
+                  If implemented as an `async`() function, `SKHTTPWebSocket`
+                  will catch and log any exceptions
               -
                 name: socketDidReceiveData
                 summary: Called when the socket receives any chunk of data,
@@ -62,6 +65,9 @@ topics:
                     name: data
                     type: JSData
                     summary: The chunk of data sent by the client
+                note: |
+                  If implemented as an `async`() function, `SKHTTPWebSocket`
+                  will catch and log any exceptions
               -
                 name: socketDidClose
                 summary: Called when the socket closes
@@ -70,6 +76,9 @@ topics:
                     name: socket
                     type: SKHTTPWebSocket
                     summary: The socket making this call
+                note: |
+                  If implemented as an `async`() function, `SKHTTPWebSocket`
+                  will catch and log any exceptions
       -
         name: delegate
         type: SKHTTPWebSocketDelegate

@@ -1,0 +1,86 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextLine
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A collection of runs of text
+description: |
+  A `JSTextLine` is the result of calling `JSTextTypesetter.createLine()`,
+  and contains a list of `JSTextRun`s.
+
+  Often you'll create text lines as part of a `JSTextFrame`.
+
+  The text typesetting process enables rich text layout in a graphics context.
+topics:
+  - name: Drawing
+    members:
+      - name: drawInContextAtPoint
+        kind: method
+        summary: Draw the line's text to the given graphics context
+        arguments:
+          - name: context
+            type: JSContext
+            summary: The context to draw to
+          - name: point
+            type: JSPoint
+            summary: The origin point for the line's top left corner
+  - name: Layout
+    members:
+      - name: origin
+        type: JSPoint
+        summary: The origin point of this line within its containing frame
+      - name: size
+        type: JSSize
+        summary: The size of the line
+      - name: baseline
+        type: Number
+        summary: The baseline of the runs in this line, measured as a positive
+          distance from the bottom of the line
+  - name: Contents
+    members:
+      - name: range
+        type: JSRange
+        summary: The range of the original string that is contained within this line
+        description: |
+          A typesetter may be used to create multiple lines for different
+          parts of a string.  The range of each line indicates which parts
+          of the string are in which line.
+  - name: Runs
+    members:
+      - name: runs
+        type: JSTextRun[]
+        summary: The runs within this line
+      - name: runForCharacterAtIndex
+        kind: method
+        summary: Get the run that contains the character at the given index
+        type: JSTextRun
+        nullable: true
+        arguments:
+          - name: index
+            type: Number
+            summary: The character index to search for, relative to the
+              original string
+      - name: runAtPoint
+        kind: method
+        summary: Get the run at the given point within the line
+        type: JSTextLine
+        nullable: true
+        arguments:
+          - name: point
+            type: JSPoint
+            summary: The point relative to the frame's upper left corner
+  - name: Truncation
+    members:
+      - name: truncatedLine
+        kind: method
+        type: JSLine
+        summary: Create a new line truncated to the specified width
+        arguments:
+          - name: width
+            type: Number
+            summary: The maximum width of the truncated line
+          - name: token
+            type: String
+            default: "\u2026"
+            summary: The character to use as a tructation indicator, defaults
+              to ellipses

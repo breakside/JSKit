@@ -106,6 +106,25 @@ topics:
                     summary: The system signal that was sent to the application
                 description: |
                   Used to stop running services, close connections to databases, etc.
+              -
+                name: applicationDidCrash
+                introduced: 2021.17.0
+                summary: Called when an unhandled exception or promise rejection occurs
+                  within the application's code
+                arguments:
+                  -
+                    name: application
+                    type: SKApplication
+                    summary: The application
+                  -
+                    name: error
+                    type: Error
+                    summary: The uncaught error that caused the crash
+                  -
+                    name: logs
+                    type: JSLogRecord[]
+                    summary: The recent logs from the application's loggers
+                      leading up to the crash
       -
         name: delegate
         type: SKApplicationDelegate

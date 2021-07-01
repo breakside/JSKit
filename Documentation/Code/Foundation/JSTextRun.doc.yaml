@@ -1,0 +1,58 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextRun
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A collection of runs of text
+description: |
+  A `JSTextRun` represents a run of text with the same drawing characteristics
+  like font and color.
+
+  Runs are created as part of lines via `JSTextTypesetter.createLine()`.
+topics:
+  - name: Drawing
+    members:
+      - name: drawInContextAtPoint
+        kind: method
+        summary: Draw the runs's text to the given graphics context
+        arguments:
+          - name: context
+            type: JSContext
+            summary: The context to draw to
+          - name: point
+            type: JSPoint
+            summary: The origin point for the run's top left corner
+  - name: Layout
+    members:
+      - name: origin
+        type: JSPoint
+        summary: The origin point of this run within its containing line
+      - name: size
+        type: JSSize
+        summary: The size of the run
+      - name: baseline
+        type: Number
+        summary: The baseline of the run, measured as a positive
+          distance from the bottom of the run
+  - name: Contents
+    members:
+      - name: range
+        type: JSRange
+        summary: The range of the original string that is contained within this run
+        description: |
+          A typesetter may be used to create multiple runs for different
+          parts of a string.  The range of each run indicates which parts
+          of the string are in which run.
+  - name: Glyphps
+    members:
+      - name: glyphs
+        type: Number[]
+        summary: The glyphs contained in this run
+  - name: Style
+    members:
+      - name: font
+        type: JSFont
+        summary: The font of this run
+      - name: attributes
+        type: dictionary
+        summary: The `JSAttributedString` attributes for this run

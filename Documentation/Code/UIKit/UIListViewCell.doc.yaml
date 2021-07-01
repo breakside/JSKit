@@ -87,6 +87,10 @@ topics:
         description: |
           Setting this property is a shortcut for setting `accessoryView` to
           a `UIImageView` with the given image.
+      -
+        name: accessoryInsets
+        type: JSInsets
+        summary: Insets for the cell's `accessoryView`
   -
     name: Separators
     members:

@@ -94,6 +94,25 @@ topics:
                 note: Browsers don't allow any customization of the message shown to users,
                   and might ingore the request if they don't think the user has interacted
                   with the page.
+              -
+                name: applicationDidCrash
+                introduced: 2020.8.0
+                summary: Called when an unhandled exception or promise rejection occurs
+                  within the application's code
+                arguments:
+                  -
+                    name: application
+                    type: UIApplication
+                    summary: The application
+                  -
+                    name: error
+                    type: Error
+                    summary: The uncaught error that caused the crash
+                  -
+                    name: logs
+                    type: JSLogRecord[]
+                    summary: The recent logs from the application's loggers
+                      leading up to the crash
           -
             name: Application Updates
             members:
