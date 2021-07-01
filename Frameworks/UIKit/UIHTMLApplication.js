@@ -16,7 +16,6 @@
 // #import "UIApplication.js"
 // #import "UIHTMLWindowServer.js"
 // #import "UIState.js"
-// jshint browser: true
 'use strict';
 
 (function(){
@@ -25,10 +24,17 @@ var logger = JSLog("uikit", "application");
 
 JSClass("UIHTMLApplication", UIApplication, {
 
+    domWindow: null,
+
+    initWithBundle: function(bundle, windowServer){
+        UIHTMLApplication.$super.initWithBundle.call(this, bundle, windowServer);
+        this.domWindow = this.windowServer.domWindow;
+    },
+
     setup: function(completion, target){
         this.environment = JSEnvironment.initWithDictionary(this.bundle.info.HTMLApplicationEnvironment || {});
-        this._baseURL = JSURL.initWithString(window.location.origin + window.location.pathname);
-        var url = JSURL.initWithString(window.location.href);
+        this._baseURL = JSURL.initWithString(this.domWindow.location.origin + this.domWindow.location.pathname);
+        var url = JSURL.initWithString(this.domWindow.location.href);
         var fragment = url.fragment;
         var query = "";
         var state = null;
@@ -46,9 +52,7 @@ JSClass("UIHTMLApplication", UIApplication, {
             }
         }
         this.launchOptionsQueryString = query;
-        this.state = UIState.initWithPath(state);
-        url.fragment = state !== null ? state : null;
-        window.history.replaceState(null, null, url.encodedString);
+        this.setStateReplacingHTMLState(UIState.initWithPath(state));
         UIHTMLApplication.$super.setup.call(this, completion, target);
     },
 
@@ -66,12 +70,13 @@ JSClass("UIHTMLApplication", UIApplication, {
             options = {};
         }
         if (options.replacingApplication){
+            var application = this;
             var open = function(){
-                window.location.href = url.encodedString;
+                application.domWindow.location.href = url.encodedString;
             };
             this.stop(open);
         }else{
-            var child = window.open(url.encodedString);
+            var child = this.domWindow.open(url.encodedString);
             if ((url.scheme == "http" || url.scheme == "https") && !child){
                 if (this.delegate && this.delegate.applicationBrowserBlockedWindowForURL){
                     this.delegate.applicationBrowserBlockedWindowForURL(this, url);
@@ -81,13 +86,42 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     update: function(){
+        var application = this;
         var reload = function(){
-            window.location.reload();
+            application.domWindow.location.reload();
         };
         this.stop(reload);
     },
 
     baseURL: JSReadOnlyProperty('_baseURL'),
+
+    setState: function(state){
+        UIHTMLApplication.$super.setState.call(this, state);
+        var url = JSURL.initWithURL(this.baseURL);
+        if (state.path !== "/"){
+            url.fragment = state.path;
+        }
+        var href = url.encodedString;
+        if (href != this.domWindow.location.href){
+            this.domWindow.history.pushState(null, null, url.encodedString);
+        }
+    },
+
+    setStateReplacingHTMLState: function(state){
+        UIHTMLApplication.$super.setState.call(this, state);
+        var url = JSURL.initWithURL(this.baseURL);
+        if (state.path !== "/"){
+            url.fragment = state.path;
+        }
+        this.domWindow.history.replaceState(null, null, url.encodedString);
+    },
+
+    addEventListeners: function(){
+        this.domWindow.addEventListener("error", this);
+        this.domWindow.addEventListener("unhandledrejection", this);
+        this.domWindow.addEventListener("beforeunload", this);
+        this.domWindow.addEventListener("hashchange", this);
+    },
 
     handleEvent: function(e){
         this['_event_' + e.type](e);
@@ -121,6 +155,31 @@ JSClass("UIHTMLApplication", UIApplication, {
                 this._crash(error);
             }
         }
+    },
+
+    _event_hashchange: function(e){
+        var requestedURL = JSURL.initWithString(this.domWindow.location.href);
+        var requestedFragment = requestedURL.fragment;
+        var requestedPath = null;
+        if (requestedFragment !== null && requestedFragment.length > 0){
+            if (requestedFragment[0] == "/"){
+                var queryIndex = requestedFragment.indexOf('?');
+                if (queryIndex >= 0){
+                    requestedPath = requestedFragment.substr(0, queryIndex);
+                }else{
+                    requestedPath = requestedFragment;
+                }
+            }
+        }
+        var requestedState = UIState.initWithPath(requestedPath);
+        var state = null;
+        if (this.delegate && this.delegate.applicationDidRequestState){
+            state = this.delegate.applicationDidRequestState(this, requestedState);
+        }
+        if (state === null || state === undefined){
+            state = this.state;
+        }
+        this.setStateReplacingHTMLState(state);
     },
 
     _crash: function(error){
@@ -161,9 +220,7 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     var application = UIHTMLApplication.initWithWindowServer(windowServer);
     application.run(function(error){
         if (error === null){
-            window.addEventListener('error', application);
-            window.addEventListener('unhandledrejection', application);
-            window.addEventListener('beforeunload', application);
+            application.addEventListeners();
         }
         if (bootstrapper){
             bootstrapper.applicationLaunchResult(application, error);
