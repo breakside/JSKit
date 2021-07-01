@@ -282,7 +282,11 @@ JSClass('UIApplication', UIResponder, {
 
     // MARK: - State
 
-    state: null,
+    state: JSDynamicProperty("_state", null),
+
+    setState: function(state){
+        this._state = state; 
+    },
 
     // MARK: - Sending Events & Actions
 

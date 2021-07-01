@@ -53,8 +53,6 @@ JSClass("UIViewController", UIResponder, {
     // MARK: - Creating the View
 
     view: JSDynamicProperty('_view', null),
-    window: JSReadOnlyProperty(),
-    scene: JSReadOnlyProperty(),
     isViewLoaded: JSReadOnlyProperty(),
     _defaultViewClass: UIView,
     _viewKeyInSpec: "view",
@@ -223,6 +221,10 @@ JSClass("UIViewController", UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - Scene
 
+    window: JSReadOnlyProperty(),
+    scene: JSReadOnlyProperty(),
+    application: JSReadOnlyProperty(),
+
     getWindow: function(){
         if (this._view !== null){
             return this._view.window;
@@ -234,6 +236,14 @@ JSClass("UIViewController", UIResponder, {
         var window = this.window;
         if (window !== null){
             return window.scene;
+        }
+        return null;
+    },
+
+    getApplication: function(){
+        var window = this.getWindow();
+        if (window !== null){
+            return window.application;
         }
         return null;
     },
