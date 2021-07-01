@@ -158,7 +158,6 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _event_hashchange: function(e){
-        logger.info("hashchange");
         var requestedURL = JSURL.initWithString(this.domWindow.location.href);
         var requestedFragment = requestedURL.fragment;
         var requestedPath = null;
