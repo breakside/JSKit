@@ -194,11 +194,20 @@ topics:
                   type: DBStorable
                   nullable: true
                   summary: The loaded object, or `null` if no object was found
+                - name: error
+                  type: Error
+                  nullable: true
+                  summary: An error indicating a failure to fetch the object
+                    other than it simply not existing, such as a database
+                    communication issue.
             summary: The function to call when the object is loaded
           - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+        note: |
+          The `error`() argument in the `completion`() callback was added
+          in version 2021.26.1.
         description: |
           If you've registered classes using `registerStorableClass()`, the
           returned object will be an instance of the matching class created with

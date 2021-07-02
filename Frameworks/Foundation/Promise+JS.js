@@ -309,7 +309,16 @@ Object.defineProperties(PromiseClass, {
                 return result;
             };
         }
-    }
+    },
+
+    rejectNonNullSecondArgument: {
+        value: function(values){
+            if (values[1] !== null && values[1] !== undefined){
+                return Promise.reject(values[1]);
+            }
+            return values[0];
+        }
+    },
 
 });
     

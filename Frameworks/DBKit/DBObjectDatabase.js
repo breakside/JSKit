@@ -101,19 +101,22 @@ JSClass("DBObjectDatabase", JSObject, {
 
     object: function(id, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         if (!DBID.isValid(id)){
-            completion.call(target, null);
+            completion.call(target, null, null);
         }else{
             var db = this;
-            var handler = function(dictionary){
+            var handler = function(dictionary, error){
+                if (error === undefined){
+                    error = null;
+                }
                 var storable = db.storableFromStorableDictionary(dictionary);
-                completion.call(target, storable);
+                completion.call(target, storable, error);
             };
             var promise = this.store.object(id, handler);
             if (promise instanceof Promise){
-                promise.then(handler);
+                promise.then(handler, function(error){ handler(null, error); });
             }
         }
         return completion.promise;
@@ -154,7 +157,9 @@ JSClass("DBObjectDatabase", JSObject, {
                 };
                 var promise = this.store.save(dictionary, handler);
                 if (promise instanceof Promise){
-                    promise.then(handler);
+                    promise.then(handler, function(error){
+                        handler(false);
+                    });
                 }
             }, this);
         }
@@ -179,7 +184,9 @@ JSClass("DBObjectDatabase", JSObject, {
                 };
                 var promise = this.store.saveExpiring(preparedStorable, lifetimeInterval, handler);
                 if (promise instanceof Promise){
-                    promise.then(handler);
+                    promise.then(handler, function(error){
+                        handler(false);
+                    });
                 }
             }, this);
         }else{
@@ -332,7 +339,9 @@ JSClass("DBObjectDatabase", JSObject, {
             };
             var promise = this.store.delete(id, handler);
             if (promise instanceof Promise){
-                promise.then(handler);
+                promise.then(handler, function(error){
+                    handler(false);
+                });
             }
         }
         return completion.promise;

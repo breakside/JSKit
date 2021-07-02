@@ -38,10 +38,19 @@ topics:
                   type: object
                   nullable: true
                   summary: The requested object, or `null` if none was found
+                - name: error
+                  type: Error
+                  nullable: true
+                  summary: An error indicating a failure to fetch the object
+                    other than it simply not existing, such as a database
+                    communication issue.
           - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
+        note: |
+          The `error`() argument in the `completion`() callback was added
+          in version 2021.26.1.
         see:
           - addObjectForID
           - loadObjetForID
