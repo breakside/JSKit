@@ -37,17 +37,17 @@ JSClass("DBObjectGraph", JSObjectGraph, {
 
     objectOfClass: function(id, cls, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         if (!DBID.isValid(id)){
-            completion.call(target, null);
+            completion.call(target, null, null);
         }else{
             var database = this.databaseForID(id);
             var idClass = database.storableClassResolver.classForID(id);
             if (idClass !== null && idClass.isSubclassOfClass(cls)){
                 this.object(id, completion, target);
             }else{
-                completion.call(target, null);
+                completion.call(target, null, null);
             }
         }
         return completion.promise;

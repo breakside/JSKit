@@ -92,7 +92,16 @@ topics:
                   type: dictionary
                   nullable: true
                   summary: The loaded object as a plain JSON-compatible dictionary, or `null` if no object was found
+                - name: error
+                  type: Error
+                  nullable: true
+                  summary: An error indicating a failure to fetch the object
+                    other than it simply not existing, such as a database
+                    communication issue.
             summary: The function to call when the object is loaded
+        note: |
+          The `error`() argument in the `completion`() callback was added
+          in version 2021.26.1.
       - name: object
         suffix: promise
         kind: method

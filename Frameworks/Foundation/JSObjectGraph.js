@@ -42,30 +42,37 @@ JSClass("JSObjectGraph", JSObject, {
 
     object: function(id, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         if (id === null || id === undefined){
-            completion.call(target, null);
+            completion.call(target, null, null);
             return completion.promise;
         }
         var obj = this.objectsByID[id];
         if (obj !== undefined){
-            completion.call(target, obj);
+            completion.call(target, obj, null);
             return completion.promise;
         }
         var graph = this;
-        this.loadObjectForID(id, function(obj){
-            graph.addObjectForID(obj, id);
-            if (obj !== null && obj.awakeInGraph){
-                var promise = obj.awakeInGraph(graph);
-                if (promise instanceof Promise){
-                    promise.then(function(){
-                        completion.call(target, obj);
-                    });
-                    return;
+        this.loadObjectForID(id, function(obj, error){
+            if (error === undefined){
+                error = null;
+            }
+            if (error === null){
+                graph.addObjectForID(obj, id);
+                if (obj !== null && obj.awakeInGraph){
+                    var promise = obj.awakeInGraph(graph);
+                    if (promise instanceof Promise){
+                        promise.then(function(){
+                            completion.call(target, obj, null);
+                        }, function(error){
+                            completion.call(target, obj, error);
+                        });
+                        return;
+                    }
                 }
             }
-            completion.call(target, obj);
+            completion.call(target, obj, error);
         });
         return completion.promise;
     },
