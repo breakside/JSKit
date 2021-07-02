@@ -205,9 +205,6 @@ topics:
             type: object
             default: "undefined"
             summary: The object to use as `this`() when calling `completion`()
-        note: |
-          The `error`() argument in the `completion`() callback was added
-          in version 2021.26.1.
         description: |
           If you've registered classes using `registerStorableClass()`, the
           returned object will be an instance of the matching class created with
@@ -219,6 +216,9 @@ topics:
           Enctyped objects will always be returned as `DBEncryptedObject`s that
           still need to be decrypted manually to prevent any uncessessary
           decription of sensitive data.
+          
+          The `error`() argument in the `completion`() callback was added
+          in version 2021.26.1.
       - name: object
         suffix: Promise
         kind: method
