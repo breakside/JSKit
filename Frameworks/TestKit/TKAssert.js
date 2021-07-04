@@ -23,6 +23,8 @@ JSGlobalObject.TKAssertion = function(message){
     this.message = 'Line ' + line + '. ' + (message || '');
 };
 
+JSGlobalObject.TKAssertion.prototype = Object.create(Error.prototype);
+
 TKAssertion.LineForCurrentCaseInError = function(error){
     if (error.stack){
         var stack = error.stack.split("\n");

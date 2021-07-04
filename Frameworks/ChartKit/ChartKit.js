@@ -24,6 +24,7 @@
 // #import "CHSeries.js"
 // #import "CHSeriesStyle.js"
 // #import "CHAxis.js"
+// #import "CHAxisStyle.js"
 // #import "CHCategoryAxis.js"
 // #import "CHValueAxis.js"
 // #import "CHLegend.js"

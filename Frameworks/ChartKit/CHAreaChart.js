@@ -21,7 +21,7 @@ JSClass("CHAreaChart", CHCategoryChart, {
     
     initWithTheme: function(theme){
         CHAreaChart.$super.initWithTheme.call(this, theme);
-        this.defaultSeriesStyle = theme.areaStyle;
+        this.defaultSeriesStyle = theme.areaStyle.styleWithColor(null);
     },
 
     drawValuesInContext: function(context, rect){
@@ -149,5 +149,53 @@ JSClass("CHAreaChart", CHCategoryChart, {
             }
         }
     },
+
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){
+        var series = this.series[index];
+        context.setFillColor(series.style.color);
+        context.addRect(rect);
+        context.fillPath();
+        if (series.style.lineWidth > 0){
+            context.save();
+            if (series.style.lineColor !== null){
+                context.setStrokeColor(series.style.lineColor);
+            }else{
+                context.setStrokeColor(series.style.color);
+            }
+            context.setLineWidth(series.style.lineWidth);
+            context.setLineCap(series.style.lineCap);
+            if (series.style.lineDashLengths !== null){
+                context.setLineDash(0, series.style.lineDashLengths);
+            }
+            context.moveToPoint(rect.origin.x, rect.origin.y);
+            context.addLineToPoint(rect.origin.x + rect.size.width, rect.origin.y);
+            context.strokePath();
+            context.restore();
+        }
+        if (series.style.symbolPath !== null){
+            var drawingMode = JSContext.DrawingMode.stroke;
+            context.save();
+            if (series.style.symbolFillColor !== null){
+                drawingMode = JSContext.DrawingMode.fillStroke;
+                context.setFillColor(series.style.symbolFillColor);
+            }
+            if (series.style.symbolStrokeColor !== null){
+                context.setStrokeColor(series.style.symbolStrokeColor);
+            }else if (series.style.lineColor !== null){
+                context.setStrokeColor(series.style.lineColor);
+            }else{
+                context.setStrokeColor(series.color);
+            }
+            if (series.style.symbolLineWidth !== null){
+                context.setLineWidth(series.style.symbolLineWidth);
+            }else{
+                context.setLineWidth(series.style.lineWidth);
+            }
+            context.translateBy(rect.origin.x + rect.size.width / 2, rect.origin.y);
+            context.addPath(series.style.symbolPath);
+            context.drawPath(drawingMode);
+            context.restore();
+        }
+    }
 
 });

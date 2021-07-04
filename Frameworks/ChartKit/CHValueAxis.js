@@ -26,9 +26,8 @@ JSClass("CHValueAxis", CHAxis, {
     adjustsToFit: false,
     allowsTruncation: false,
 
-    init: function(){
-        CHValueAxis.$super.init.call(this);
-        this.labelFont = JSFont.systemFontOfSize(JSFont.Size.normal);
+    initWithStyle: function(style){
+        CHValueAxis.$super.initWithStyle.call(this, style);
         this.valueFormatter = JSNumberFormatter.init();
         this.valueFormatter.format = "#,##0";
     },

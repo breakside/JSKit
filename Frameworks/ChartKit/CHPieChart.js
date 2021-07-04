@@ -33,22 +33,43 @@ JSClass("CHPieChart", CHChart, {
         this.labelShadowColor = JSColor.black.colorWithAlpha(0.4);
         this.labelShadowOffset = JSPoint(1, 1);
         this.framesetter = JSTextFramesetter.init();
-        this.legend = CHLegend.initWithSeries(this.series);
+        this.legend = CHLegend.initWithStyle(theme.legendStyle.copy());
+        this.legend.delegate = this;
         this.legend.placement = CHLegend.Placement.right;
-        this.legend.indicatorPath = JSPath.init();
-        this.legend.indicatorPath.addEllipseInRect(JSRect(0, 0, 1, 1));
+        this.defaultSeriesStyle = theme.wedgeStyle.styleWithColor(null);
     },
 
     setDataPoints: function(points, names){
         var series;
+        var color;
+        var style;
         for (var i = 0, l = points.length; i < l; ++i){
-            series = CHSeries.initWithName(names[i], this.colorForSeriesAtIndex(this.series.length), [points[i]]);
+            color = this.colorForSeriesAtIndex(this.series.length);
+            style = this.defaultSeriesStyle.styleWithColor(color);
+            series = CHSeries.initWithName(names[i], style, [points[i]]);
             this.addSeries(series);
         }
     },
 
     showNames: false,
     showValues: true,
+    showValuesAsPercentages: JSDynamicProperty("_showValuesAsPercentages", true),
+
+    setShowValuesAsPercentages: function(showValuesAsPercentages){
+        this._showValuesAsPercentages = showValuesAsPercentages;
+        if (showValuesAsPercentages){
+            this.valueFormatter.multiplier = 100;
+            if (this.valueFormatter.format.indexOf("%") < 0){
+                this.valueFormatter.format = "#,##0%";
+            }
+        }else{
+            this.valueFormatter.multiplier = 1;
+            if (this.valueFormatter.format.indexOf("%") >= 0){
+                this.valueFormatter.format = "#,##0";
+            }
+        }
+    },
+
     valueFormatter: null,
     labelPosition: 0.67,
     labelFont: null,
@@ -59,6 +80,7 @@ JSClass("CHPieChart", CHChart, {
     labelShadowRadius: 0,
 
     legend: null,
+    defaultSeriesStyle: null,
 
     drawInContext: function(context, size){
         var pieRect = JSRect(JSPoint.Zero, size);
@@ -129,15 +151,17 @@ JSClass("CHPieChart", CHChart, {
         context.rotateBy(-Math.PI / 2);
         for (i = 0, l = values.length; i < l; ++i){
             value = values[i];
-            percentage = value / total;
-            a1 = (i < l - 1) ? (a0 + TWO_PI * percentage) : 0;
-            context.setFillColor(this.series[i].color);
-            context.beginPath();
-            context.moveToPoint(center.x, center.y);
-            context.addArc(center, radius, a0, a1 + ((i < l - 1) ? 0.01 : 0), true);
-            context.closePath();
-            context.fillPath();
-            a0 = a1;
+            if (value > 0){
+                percentage = value / total;
+                a1 = (i < l - 1) ? (a0 + TWO_PI * percentage) : 0;
+                context.setFillColor(this.series[i].style.color);
+                context.beginPath();
+                context.moveToPoint(center.x, center.y);
+                context.addArc(center, radius, a0, a1 + ((i < l - 1) ? 0.01 : 0), true);
+                context.closePath();
+                context.fillPath();
+                a0 = a1;
+            }
         }
 
         context.restore();
@@ -157,35 +181,43 @@ JSClass("CHPieChart", CHChart, {
             a0 = TWO_PI - Math.PI / 2;
             for (i = 0, l = values.length; i < l; ++i){
                 value = values[i];
-                percentage = value / total;
-                a1 = (i < l - 1) ? (a0 + TWO_PI * percentage) : -Math.PI / 2;
-                position = JSPoint(
-                    Math.cos(a0 + (a1 - a0) / 2) * radius * this.labelPosition,
-                    Math.sin(a0 + (a1 - a0 ) / 2) * radius * this.labelPosition
-                );
-                labelText = "";
-                if (this.showNames){
-                    labelText = this.series[i].name;
-                    if (this.showValues){
-                        labelText += "\n";
+                if (value > 0){
+                    percentage = value / total;
+                    a1 = (i < l - 1) ? (a0 + TWO_PI * percentage) : -Math.PI / 2;
+                    position = JSPoint(
+                        Math.cos(a0 + (a1 - a0) / 2) * radius * this.labelPosition,
+                        Math.sin(a0 + (a1 - a0 ) / 2) * radius * this.labelPosition
+                    );
+                    labelText = "";
+                    if (this.showNames){
+                        labelText = this.series[i].name;
+                        if (this.showValues){
+                            labelText += "\n";
+                        }
                     }
+                    if (this.showValues){
+                        labelText += this.valueFormatter.stringFromNumber(this._showValuesAsPercentages ? percentage : value);
+                    }
+                    this.framesetter.attributedString = JSAttributedString.initWithString(labelText, {
+                        font: this.labelFont,
+                        textColor: this.labelTextColor
+                    });
+                    labelTextFrame = this.framesetter.createFrame(JSSize.Zero, JSRange(0, labelText.length));
+                    position.x -= labelTextFrame.size.width / 2;
+                    position.y -= labelTextFrame.size.height / 2;
+                    labelTextFrame.drawInContextAtPoint(context, position);
+                    a0 = a1;
                 }
-                if (this.showValues){
-                    labelText += this.valueFormatter.stringFromNumber(percentage);   
-                }
-                this.framesetter.attributedString = JSAttributedString.initWithString(labelText, {
-                    font: this.labelFont,
-                    textColor: this.labelTextColor
-                });
-                labelTextFrame = this.framesetter.createFrame(JSSize.Zero, JSRange(0, labelText.length));
-                position.x -= labelTextFrame.size.width / 2;
-                position.y -= labelTextFrame.size.height / 2;
-                labelTextFrame.drawInContextAtPoint(context, position);
-                context.beginPath();
-                a0 = a1;
             }
             context.restore();
         }
+    },
+
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){
+        var series = this.series[index];
+        context.setFillColor(series.style.color);
+        context.addEllipseInRect(rect);
+        context.fillPath();
     }
 
 });

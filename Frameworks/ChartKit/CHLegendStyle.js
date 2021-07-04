@@ -16,28 +16,20 @@
 // #import Foundation
 "use strict";
 
-JSClass("CHSeries", JSObject, {
+JSClass("CHLegendStyle", JSObject, {
 
-    name: null,
-    values: null,
-    style: null,
+    font: null,
+    textColor: JSColor.black,
 
-    initWithName: function(name, style, values){
-        this.name = name;
-        this.style = style;
-        if (values !== undefined){
-            this.values = JSCopy(values);
-        }else{
-            this.values = [];
-        }
+    init: function(){
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
     },
 
-    addValue: function(value){
-        this.values.push(value);
-    },
-
-    setValues: function(values){
-        this.values = JSCopy(values);
+    copy: function(){
+        var style = CHLegendStyle.init();
+        style.font = this.font;
+        style.textColor = this.textColor;
+        return style;
     }
 
 });

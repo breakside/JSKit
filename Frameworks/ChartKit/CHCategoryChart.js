@@ -24,18 +24,14 @@ JSClass("CHCategoryChart", CHChart, {
 
     initWithTheme: function(theme){
         CHCategoryChart.$super.initWithTheme.call(this, theme);
-        this.valueAxis = CHValueAxis.init();
-        this.valueAxis.lineWidth = theme.valueAxisLineWidth;
-        this.valueAxis.majorGridlineWidth = theme.valueAxisMajorGridlineWidth;
-        this.valueAxis.showsLabels = true;
-        this.categoryAxis = CHCategoryAxis.init();
-        this.categoryAxis.lineWidth = theme.categoryAxisLineWidth;
+        this.valueAxis = CHValueAxis.initWithStyle(theme.valueAxisStyle.copy());
+        this.categoryAxis = CHCategoryAxis.initWithStyle(theme.categoryAxisStyle.copy());
         this.categoryAxis.edge = CHAxis.Edge.trailing;
-        this.categoryAxis.showsLabels = true;
         this.valueDirection = CHAxis.Direction.vertical;
-        this.legend = CHLegend.initWithSeries(this.series);
-        this.legend.placement = CHLegend.Placement.none;
-        this.chartInsets = JSInsets(10, 5);
+        this.legend = CHLegend.initWithStyle(theme.legendStyle.copy());
+        this.legend.delegate = this;
+        this.legend.placement = CHLegend.Placement.above;
+        this.chartInsets = JSInsets(5, 0, 0, 10);
     },
 
     valueAxis: null,

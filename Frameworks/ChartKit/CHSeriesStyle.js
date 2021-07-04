@@ -30,6 +30,10 @@ JSClass("CHSeriesStyle", JSObject, {
 
 });
 
+JSClass("CHSeriesWedgeStyle", CHSeriesStyle, {
+
+});
+
 JSClass("CHSeriesBarStyle", CHSeriesStyle, {
 
     borderWidth: 0,

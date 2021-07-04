@@ -191,7 +191,7 @@ JSClass("JSTextLine", JSObject, {
     },
 
     truncatedLine: function(width, token){
-        if (width >= this._size.width){
+        if (width + 0.1 >= this._size.width){
             return this;
         }
 
@@ -255,6 +255,8 @@ JSClass("JSTextLine", JSObject, {
                 line.size.width -= glyphWidth;
                 line.range.length -= characterLength;
             }
+
+            tokenRun.origin.x = line.size.width - tokenRun.size.width;
 
             line.verticallyAlignRuns();
         }

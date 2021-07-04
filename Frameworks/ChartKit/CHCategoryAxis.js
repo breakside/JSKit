@@ -18,8 +18,8 @@
 
 JSClass("CHCategoryAxis", CHAxis, {
 
-    init: function(){
-        CHCategoryAxis.$super.init.call(this);
+    initWithStyle: function(style){
+        CHCategoryAxis.$super.initWithStyle.call(this, style);
         this.categories = [];
     },
 
@@ -27,7 +27,7 @@ JSClass("CHCategoryAxis", CHAxis, {
 
     getMajorPositions: function(x0, x1){
         var steps = this.categories.length;
-        if (this.labelPosition !== CHAxis.LabelPosition.betweenTickMarks){
+        if (this.style.labelPosition !== CHAxisStyle.LabelPosition.betweenTickMarks){
             steps -= 1;
         }
         var dx = (x1 - x0) / steps;

@@ -22,7 +22,7 @@ JSClass("CHBarChart", CHCategoryChart, {
     initWithTheme: function(theme){
         CHBarChart.$super.initWithTheme.call(this, theme);
         this.categoryAxis.labelPosition = CHAxis.LabelPosition.betweenTickMarks;
-        this.defaultSeriesStyle = theme.barStyle;
+        this.defaultSeriesStyle = theme.barStyle.styleWithColor(null);
     },
 
     barWidth: 0.65,
@@ -117,6 +117,35 @@ JSClass("CHBarChart", CHCategoryChart, {
                 }
                 context.restore();
             }
+        }
+    },
+
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){
+        var series = this.series[index];
+        context.setFillColor(series.style.color);
+        context.addRect(rect);
+        context.fillPath();
+        if (series.style.borderWidth > 0){
+            context.setStrokeColor(series.style.borderColor);
+            context.setLineWidth(series.style.borderWidth);
+            var borderInsets = JSInsets(series.style.borderWidth / 2);
+            var maskedBorders = CHSeriesBarStyle.Sides.pathSidesForPositiveBarSides(series.style.maskedBorders);
+            if ((maskedBorders & JSPath.Sides.minX) === 0){
+                borderInsets.left = 0;
+            }
+            if ((maskedBorders & JSPath.Sides.minY) === 0){
+                borderInsets.top = 0;
+            }
+            if ((maskedBorders & JSPath.Sides.maxX) === 0){
+                borderInsets.right = 0;
+            }
+            if ((maskedBorders & JSPath.Sides.maxY) === 0){
+                borderInsets.bottom = 0;
+            }
+            var barBorderPath = JSPath.init();
+            barBorderPath.addRectWithSidesAndCorners(rect.rectWithInsets(borderInsets), maskedBorders, JSPath.Corners.all, 0);
+            context.addPath(barBorderPath);
+            context.strokePath();
         }
     }
 

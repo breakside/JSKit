@@ -14,66 +14,44 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "CHAxisStyle.js"
 "use strict";
 
 JSClass("CHAxis", JSObject, {
 
-    init: function(){
-        this.lineWidth = 1;
-        this.labelFont = JSFont.systemFontOfSize(JSFont.Size.normal);
-        this.labelInsets = JSInsets(5, 10);
+    initWithStyle: function(style){
         this.framesetter = JSTextFramesetter.init();
+        this.style = style;
+    },
+
+    init: function(){
+        var style = CHAxisStyle.init();
+        this.initWithStyle(style);
     },
 
     direction: 0,
     edge: 0,
     name: null,
-    lineWidth: 1,
-    lineColor: JSColor.black,
-
-    showsLabels: true,
-    labelFont: null,
-    labelTextColor: JSColor.black,
-    labelAngle: 0,
-    labelInsets: null,
-    labelPosition: 0,
-
-    majorTickMarkStyle: 0,
-    majorTickMarkLength: 5,
-    majorTickMarkWidth: 1,
-    majorTickMarkColor: JSColor.black,
-
-    minorTickMarkStyle: 0,
-    minorTickMarkLength: 3,
-    minorTickMarkWidth: 1,
-    minorTickMarkColor: JSColor.black,
-
-    majorGridlineColor: JSColor.initWithWhite(0.67),
-    majorGridlineWidth: 0,
-    majorGridlineDashLengths: null,
-
-    minorGridlineColor: JSColor.initWithWhite(0.8),
-    minorGridlineWidth: 0,
-    minorGridlineDashLengths: null,
+    style: null,
 
     sizeThatFitsSize: function(maxSize){
         var size = JSSize.Zero;
         var labelSize = JSSize.Zero;
-        if (this.showsLabels){
+        if (this.style.showsLabels){
             labelSize = this.sizeOfLargestLabel();
             // TODO: consider effect of label angle
-            labelSize.width += this.labelInsets.width;
-            labelSize.height += this.labelInsets.height;
+            labelSize.width += this.style.labelInsets.width;
+            labelSize.height += this.style.labelInsets.height;
         }
-        var majorTickMarkLength = this.majorTickMarkStyle !== CHAxis.TickMarkStyle.none ? this.majorTickMarkLength : 0;
-        var minorTickMarkLength = this.minorTickMarkStyle !== CHAxis.TickMarkStyle.none ? this.minorTickMarkLength : 0;
+        var majorTickMarkLength = this.style.majorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none ? this.style.majorTickMarkLength : 0;
+        var minorTickMarkLength = this.style.minorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none ? this.style.minorTickMarkLength : 0;
         if (this.direction === CHAxis.Direction.horizontal){
             size.width = maxSize.width;
-            size.height += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            size.height += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             size.height += labelSize.height;
         }else{
             size.height = maxSize.height;
-            size.width += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+            size.width += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             size.width += labelSize.width;
         }
         return size;
@@ -81,11 +59,11 @@ JSClass("CHAxis", JSObject, {
 
     sizeOfLargestLabel: function(){
         var labels = this.getMajorLabels();
-        var size = JSSize(0, this.labelFont.lineHeight);
+        var size = JSSize(0, this.style.labelFont.lineHeight);
         var width;
         for (var i = 0, l = labels.length; i < l; ++i){
             if (labels[i] !== null && labels[i] !== undefined && labels[i] !== ""){
-                width = this.labelFont.widthOfString(labels[i]);
+                width = this.style.labelFont.widthOfString(labels[i]);
                 if (width > size.width){
                     size.width = width;
                 }
@@ -111,12 +89,12 @@ JSClass("CHAxis", JSObject, {
         var minorPositions = this.getMinorPositions(rect.origin.x, rect.origin.x + rect.size.width);
 
         // gridlines
-        if (this.minorGridlineWidth > 0){
+        if (this.style.minorGridlineWidth > 0){
             context.save();
-            context.setStrokeColor(this.minorGridlineColor);
-            context.setLineWidth(this.minorGridlineWidth);
-            if (this.minorGridlineDashLengths !== null){
-                context.setLineDash(0, this.minorGridlineDashLengths);
+            context.setStrokeColor(this.style.minorGridlineColor);
+            context.setLineWidth(this.style.minorGridlineWidth);
+            if (this.style.minorGridlineDashLengths !== null){
+                context.setLineDash(0, this.style.minorGridlineDashLengths);
             }
             context.beginPath();
             for (i = 0, l = minorPositions.length; i < l; ++i){
@@ -127,12 +105,12 @@ JSClass("CHAxis", JSObject, {
             context.strokePath();
             context.restore();
         }
-        if (this.majorGridlineWidth > 0){
+        if (this.style.majorGridlineWidth > 0){
             context.save();
-            context.setStrokeColor(this.majorGridlineColor);
-            context.setLineWidth(this.majorGridlineWidth);
-            if (this.majorGridlineDashLengths !== null){
-                context.setLineDash(0, this.majorGridlineDashLengths);
+            context.setStrokeColor(this.style.majorGridlineColor);
+            context.setLineWidth(this.style.majorGridlineWidth);
+            if (this.style.majorGridlineDashLengths !== null){
+                context.setLineDash(0, this.style.majorGridlineDashLengths);
             }
             context.beginPath();
             for (i = 0, l = majorPositions.length; i < l; ++i){
@@ -152,12 +130,12 @@ JSClass("CHAxis", JSObject, {
 
         // tick marks
         var minorTickMarkLength = 0;
-        var minorTickMarkRange = this.rangeForTickMarkStyle(this.minorTickMarkStyle, this.minorTickMarkLength, y);
-        if (this.minorTickMarkStyle !== CHAxis.TickMarkStyle.none){
-            minorTickMarkLength = this.minorTickMarkLength;
+        var minorTickMarkRange = this.rangeForTickMarkStyle(this.style.minorTickMarkStyle, this.style.minorTickMarkLength, y);
+        if (this.style.minorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none){
+            minorTickMarkLength = this.style.minorTickMarkLength;
             context.save();
-            context.setStrokeColor(this.minorTickMarkColor);
-            context.setLineWidth(this.minorTickMarkWidth);
+            context.setStrokeColor(this.style.minorTickMarkColor);
+            context.setLineWidth(this.style.minorTickMarkWidth);
             context.beginPath();
             for (i = 0, l = minorPositions.length; i < l; ++i){
                 x = minorPositions[i];
@@ -168,12 +146,12 @@ JSClass("CHAxis", JSObject, {
             context.restore();
         }
         var majorTickMarkLength = 0;
-        var majorTickMarkRange = this.rangeForTickMarkStyle(this.majorTickMarkStyle, this.majorTickMarkLength, y);
-        if (this.majorTickMarkStyle !== CHAxis.TickMarkStyle.none){
-            majorTickMarkLength = this.majorTickMarkLength;
+        var majorTickMarkRange = this.rangeForTickMarkStyle(this.style.majorTickMarkStyle, this.style.majorTickMarkLength, y);
+        if (this.style.majorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none){
+            majorTickMarkLength = this.style.majorTickMarkLength;
             context.save();
-            context.setStrokeColor(this.majorTickMarkColor);
-            context.setLineWidth(this.majorTickMarkWidth);
+            context.setStrokeColor(this.style.majorTickMarkColor);
+            context.setLineWidth(this.style.majorTickMarkWidth);
             context.beginPath();
             for (i = 0, l = majorPositions.length; i < l; ++i){
                 x = majorPositions[i];
@@ -185,38 +163,38 @@ JSClass("CHAxis", JSObject, {
         }
 
         // line
-        if (this.lineWidth > 0){
-            context.setStrokeColor(this.lineColor);
-            context.setLineWidth(this.lineWidth);
+        if (this.style.lineWidth > 0){
+            context.setStrokeColor(this.style.lineColor);
+            context.setLineWidth(this.style.lineWidth);
             context.moveToPoint(rect.origin.x, y);
             context.addLineToPoint(rect.origin.x + rect.size.width, y);
             context.strokePath();
         }
 
         // labels
-        if (this.showsLabels){
+        if (this.style.showsLabels){
             var labels = this.getMajorLabels();
             var maxLabelSize = JSSize(0, 0);
-            var labelInsets = JSInsets(this.labelInsets);
+            var labelInsets = JSInsets(this.style.labelInsets);
             var labelTextFrame;
             if (this.edge === CHAxis.Edge.leading){
                 this.framesetter.attributes.textAlignment = JSTextAlignment.right;
-                labelInsets.bottom += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+                labelInsets.bottom += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }else{
                 this.framesetter.attributes.textAlignment = JSTextAlignment.left;
-                labelInsets.top += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+                labelInsets.top += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }
-            var labelOrigin = JSPoint(0, rect.origin.y + this.labelInsets.top);
+            var labelOrigin = JSPoint(0, rect.origin.y + this.style.labelInsets.top);
             this.framesetter.attributes.textAlignment = JSTextAlignment.left;
             for (i = 0, l = labels.length; i < l; ++i){
                 if (labels[i] !== null && labels[i] !== undefined && labels[i] !== ""){
                     this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
-                        font: this.labelFont,
-                        textColor: this.labelTextColor
+                        font: this.style.labelFont,
+                        textColor: this.style.labelTextColor
                     });
                     labelTextFrame = this.framesetter.createFrame(maxLabelSize, JSRange(0, labels[i].length), 1);
                     labelOrigin.x = majorPositions[i] - labelTextFrame.size.width / 2;
-                    if (this.labelPosition === CHAxis.LabelPosition.betweenTickMarks){
+                    if (this.style.labelPosition === CHAxisStyle.LabelPosition.betweenTickMarks){
                         labelOrigin.x += (majorPositions[i + 1] - majorPositions[i]) / 2;
                     }
                     labelTextFrame.drawInContextAtPoint(context, labelOrigin);
@@ -237,12 +215,12 @@ JSClass("CHAxis", JSObject, {
         var minorPositions = this.getMinorPositions(rect.origin.y + rect.size.height, rect.origin.y);
 
         // gridlines
-        if (this.minorGridlineWidth > 0){
+        if (this.style.minorGridlineWidth > 0){
             context.save();
-            context.setStrokeColor(this.minorGridlineColor);
-            context.setLineWidth(this.minorGridlineWidth);
-            if (this.minorGridlineDashLengths !== null){
-                context.setLineDash(0, this.minorGridlineDashLengths);
+            context.setStrokeColor(this.style.minorGridlineColor);
+            context.setLineWidth(this.style.minorGridlineWidth);
+            if (this.style.minorGridlineDashLengths !== null){
+                context.setLineDash(0, this.style.minorGridlineDashLengths);
             }
             context.beginPath();
             for (i = 0, l = minorPositions.length; i < l; ++i){
@@ -253,12 +231,12 @@ JSClass("CHAxis", JSObject, {
             context.strokePath();
             context.restore();
         }
-        if (this.majorGridlineWidth > 0){
+        if (this.style.majorGridlineWidth > 0){
             context.save();
-            context.setStrokeColor(this.majorGridlineColor);
-            context.setLineWidth(this.majorGridlineWidth);
-            if (this.majorGridlineDashLengths !== null){
-                context.setLineDash(0, this.majorGridlineDashLengths);
+            context.setStrokeColor(this.style.majorGridlineColor);
+            context.setLineWidth(this.style.majorGridlineWidth);
+            if (this.style.majorGridlineDashLengths !== null){
+                context.setLineDash(0, this.style.majorGridlineDashLengths);
             }
             context.beginPath();
             for (i = 0, l = majorPositions.length; i < l; ++i){
@@ -278,12 +256,12 @@ JSClass("CHAxis", JSObject, {
 
         // tick marks
         var minorTickMarkLength = 0;
-        var minorTickMarkRange = this.rangeForTickMarkStyle(this.minorTickMarkStyle, this.minorTickMarkLength, x);
-        if (this.minorTickMarkStyle !== CHAxis.TickMarkStyle.none){
-            minorTickMarkLength = this.minorTickMarkLength;
+        var minorTickMarkRange = this.rangeForTickMarkStyle(this.style.minorTickMarkStyle, this.style.minorTickMarkLength, x);
+        if (this.style.minorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none){
+            minorTickMarkLength = this.style.minorTickMarkLength;
             context.save();
-            context.setStrokeColor(this.minorTickMarkColor);
-            context.setLineWidth(this.minorTickMarkWidth);
+            context.setStrokeColor(this.style.minorTickMarkColor);
+            context.setLineWidth(this.style.minorTickMarkWidth);
             context.beginPath();
             for (i = 0, l = minorPositions.length; i < l; ++i){
                 y = minorPositions[i];
@@ -294,12 +272,12 @@ JSClass("CHAxis", JSObject, {
             context.restore();
         }
         var majorTickMarkLength = 0;
-        var majorTickMarkRange = this.rangeForTickMarkStyle(this.majorTickMarkStyle, this.majorTickMarkLength, x);
-        if (this.majorTickMarkStyle !== CHAxis.TickMarkStyle.none){
-            majorTickMarkLength = this.majorTickMarkLength;
+        var majorTickMarkRange = this.rangeForTickMarkStyle(this.style.majorTickMarkStyle, this.style.majorTickMarkLength, x);
+        if (this.style.majorTickMarkStyle !== CHAxisStyle.TickMarkStyle.none){
+            majorTickMarkLength = this.style.majorTickMarkLength;
             context.save();
-            context.setStrokeColor(this.majorTickMarkColor);
-            context.setLineWidth(this.majorTickMarkWidth);
+            context.setStrokeColor(this.style.majorTickMarkColor);
+            context.setLineWidth(this.style.majorTickMarkWidth);
             context.beginPath();
             for (i = 0, l = majorPositions.length; i < l; ++i){
                 y = majorPositions[i];
@@ -311,37 +289,37 @@ JSClass("CHAxis", JSObject, {
         }
 
         // line
-        if (this.lineWidth > 0){
-            context.setStrokeColor(this.lineColor);
-            context.setLineWidth(this.lineWidth);
+        if (this.style.lineWidth > 0){
+            context.setStrokeColor(this.style.lineColor);
+            context.setLineWidth(this.style.lineWidth);
             context.moveToPoint(x, rect.origin.y);
             context.addLineToPoint(x, rect.origin.y + rect.size.height);
             context.strokePath();
         }
 
         // labels
-        if (this.showsLabels){
+        if (this.style.showsLabels){
             var labels = this.getMajorLabels();
-            var labelInsets = JSInsets(this.labelInsets);
+            var labelInsets = JSInsets(this.style.labelInsets);
             var labelTextFrame;
             if (this.edge === CHAxis.Edge.leading){
                 this.framesetter.attributes.textAlignment = JSTextAlignment.right;
-                labelInsets.right += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+                labelInsets.right += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }else{
                 this.framesetter.attributes.textAlignment = JSTextAlignment.left;
-                labelInsets.left += Math.max(this.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
+                labelInsets.left += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }
-            var maxLabelSize = JSSize(rect.size.width - this.labelInsets.width, 0);
-            var labelOrigin = JSPoint(rect.origin.x + this.labelInsets.left, 0);
+            var maxLabelSize = JSSize(rect.size.width - this.style.labelInsets.width, 0);
+            var labelOrigin = JSPoint(rect.origin.x + this.style.labelInsets.left, 0);
             for (i = 0, l = labels.length; i < l; ++i){
                 if (labels[i] !== null && labels[i] !== undefined && labels[i] !== ""){
                     this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
-                        font: this.labelFont,
-                        textColor: this.labelTextColor
+                        font: this.style.labelFont,
+                        textColor: this.style.labelTextColor
                     });
                     labelTextFrame = this.framesetter.createFrame(maxLabelSize, JSRange(0, labels[i].length), 1);
                     labelOrigin.y = majorPositions[i] - labelTextFrame.size.height / 2;
-                    if (this.labelPosition === CHAxis.LabelPosition.betweenTickMarks){
+                    if (this.style.labelPosition === CHAxisStyle.LabelPosition.betweenTickMarks){
                         labelOrigin.y += (majorPositions[i + 1] - majorPositions[i]) / 2;
                     }
                     labelTextFrame.drawInContextAtPoint(context, labelOrigin);
@@ -368,20 +346,20 @@ JSClass("CHAxis", JSObject, {
         var halfLength = tickMarkLength / 2;
         if (this.edge === CHAxis.Edge.trailing){
             switch (tickMarkStyle){
-                case CHAxis.TickMarkStyle.inside:
+                case CHAxisStyle.TickMarkStyle.inside:
                     return JSRange(x - halfLength, halfLength);
-                case CHAxis.TickMarkStyle.outside:
+                case CHAxisStyle.TickMarkStyle.outside:
                     return JSRange(x, halfLength);
-                case CHAxis.TickMarkStyle.centered:
+                case CHAxisStyle.TickMarkStyle.centered:
                     return JSRange(x - halfLength, tickMarkLength);
             }
         }else{
             switch (tickMarkStyle){
-                case CHAxis.TickMarkStyle.inside:
+                case CHAxisStyle.TickMarkStyle.inside:
                     return JSRange(x, halfLength);
-                case CHAxis.TickMarkStyle.outside:
+                case CHAxisStyle.TickMarkStyle.outside:
                     return JSRange(x - halfLength, halfLength);
-                case CHAxis.TickMarkStyle.centered:
+                case CHAxisStyle.TickMarkStyle.centered:
                     return JSRange(x - halfLength, tickMarkLength);
             }
         }
@@ -398,16 +376,4 @@ CHAxis.Direction = {
 CHAxis.Edge = {
     leading: 0,
     trailing: 1
-};
-
-CHAxis.TickMarkStyle = {
-    none: 0,
-    inside: 1,
-    outside: 2,
-    centered: 3
-};
-
-CHAxis.LabelPosition = {
-    onTickMarks: 0,
-    betweenTickMarks: 1
 };

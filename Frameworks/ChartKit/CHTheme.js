@@ -15,25 +15,31 @@
 
 // #import Foundation
 // #import "CHSeriesStyle.js"
+// #import "CHAxisStyle.js"
+// #import "CHLegendStyle.js"
 "use strict";
 
 JSClass("CHTheme", JSObject, {
 
     initWithColors: function(colors){
         this.colors = JSCopy(colors);
+        this.legendStyle = CHLegendStyle.init();
+        this.valueAxisStyle = CHAxisStyle.init();
+        this.categoryAxisStyle = CHAxisStyle.init();
         this.barStyle = CHSeriesBarStyle.initWithColor(null);
         this.lineStyle = CHSeriesLineStyle.initWithColor(null);
         this.areaStyle = CHSeriesAreaStyle.initWithColor(null);
+        this.wedgeStyle = CHSeriesWedgeStyle.initWithColor(null);
     },
 
     colors: null,
-    valueAxisLineWidth: 0,
-    valueAxisMajorGridlineWidth: 0,
-    valueAxisMajorGridlineColor: null,
-    categoryAxisLineWidth: 0,
+    legendStyle: null,
+    valueAxisStyle: null,
+    categoryAxisStyle: null,
     barStyle: null,
     lineStyle: null,
-    areaStyle: null
+    areaStyle: null,
+    wedgeStyle: null,
 
 });
 
@@ -53,9 +59,10 @@ Object.defineProperties(CHTheme, {
             theme.lineStyle.symbolPath = JSPath.init();
             theme.lineStyle.symbolPath.addEllipseInRect(JSRect(-6, -6, 12, 12));
             theme.lineStyle.symbolFillColor = JSColor.white;
-            theme.valueAxisMajorGridlineWidth = 0.5;
-            theme.valueAxisGridlineColor = JSColor.initWithWhite(0.6);
-            theme.categoryAxisLineWidth = 1;
+            theme.valueAxisStyle.lineWidth = 0;
+            theme.valueAxisStyle.majorGridlineWidth = 0.5;
+            theme.valueAxisStyle.majorGridlineColor = JSColor.initWithWhite(0.6);
+            theme.categoryAxisStyle.lineWidth = 1;
             Object.defineProperty(this, "default", {value: theme});
             return theme;
         }

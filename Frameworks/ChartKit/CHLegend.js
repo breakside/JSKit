@@ -14,23 +14,34 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "CHLegendStyle.js"
 "use strict";
+
+JSProtocol("CHLegendDelegate", JSProtocol, {
+
+    numberOfNamesInLegend: function(legend){},
+    nameInLegendAtIndex: function(legend, index){},
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){}
+
+});
 
 JSClass("CHLegend", JSObject, {
 
-    font: JSDynamicProperty("_font", null),
-    textColor: JSColor.black,
-    series: null,
-    indicatorPath: null,
+    style: null,
+    placement: 0,
+
     indicatorSize: null,
     indicatorSpacing: 0,
     seriesSpacing: 0,
-    placement: 0,
     chartSpacing: 0,
 
-    initWithSeries: function(series){
-        this.series = series;
-        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+    init: function(){
+        var style = CHLegendStyle.init();
+        this.initWithStyle(style);
+    },
+
+    initWithStyle: function(style){
+        this.style = style;
         this.indicatorPath = JSPath.init();
         this.indicatorPath.addRect(JSRect(0, 0, 1, 1));
         this.framesetter = JSTextFramesetter.init();
@@ -42,13 +53,18 @@ JSClass("CHLegend", JSObject, {
     },
 
     recalculateFontDerivedSizes: function(){
-        this.indicatorSize = JSSize(Math.floor(this.font.ascender), Math.floor(this.font.ascender));
-        this.indicatorSpacing = Math.floor(this.font.lineHeight / 3);
-        this.seriesSpacing = this.font.lineHeight;
-        this.chartSpacing = Math.floor(this.font.lineHeight * 1.2);
+        this.indicatorSize = JSSize(Math.floor(this.style.font.ascender), Math.floor(this.style.font.ascender));
+        this.indicatorSpacing = Math.floor(this.style.font.lineHeight / 3);
+        this.seriesSpacing = this.style.font.lineHeight;
+        if (this.placement === CHLegend.Placement.above){
+            this.chartSpacing = 0;
+        }else{
+            this.chartSpacing = Math.floor(this.style.font.lineHeight * 1.2);
+        }
     },
 
     sizeThatFitsSize: function(maxSize){
+        this.recalculateFontDerivedSizes();
         switch (this.placement){
             case CHLegend.Placement.above:
             case CHLegend.Placement.below:
@@ -66,11 +82,14 @@ JSClass("CHLegend", JSObject, {
         var origin = JSPoint.Zero;
         var width;
         var largestWidth = 0;
-        var i, l;
-        for (i = 0, l = this.series.length; i < l; ++i){
-            width = this.indicatorSize.width + this.indicatorSpacing + this.font.widthOfString(this.series[i].name);
+        var i;
+        var l = this.delegate.numberOfNamesInLegend(this);
+        var name;
+        for (i = 0; i < l; ++i){
+            name = this.delegate.nameInLegendAtIndex(this, i);
+            width = this.indicatorSize.width + this.indicatorSpacing + this.style.font.widthOfString(name);
             if (origin.x > 0 && origin.x + this.seriesSpacing + width > maxSize.width){
-                origin.y += this.font.lineHeight;
+                origin.y += this.style.font.lineHeight;
                 origin.x = 0;
             }else{
                 width += this.seriesSpacing;
@@ -80,7 +99,7 @@ JSClass("CHLegend", JSObject, {
                 largestWidth = origin.x;
             }
         }
-        var size = JSSize(largestWidth, origin.y + this.font.lineHeight + this.chartSpacing);
+        var size = JSSize(largestWidth, origin.y + this.style.font.lineHeight + this.chartSpacing);
         if (size.width > maxSize.width){
             size.width = maxSize.width;
         }
@@ -93,16 +112,19 @@ JSClass("CHLegend", JSObject, {
     verticalSizeThatFitsSize: function(maxSize){
         var width;
         var largestWidth = 0;
-        var i, l;
-        for (i = 0, l = this.series.length; i < l; ++i){
-            width = this.font.widthOfString(this.series[i].name);
+        var i;
+        var l = this.delegate.numberOfNamesInLegend(this);
+        var name;
+        for (i = 0; i < l; ++i){
+            name = this.delegate.nameInLegendAtIndex(this, i);
+            width = this.style.font.widthOfString(name);
             if (width > largestWidth){
                 largestWidth = width;
             }
         }
         var size = JSSize(
             this.chartSpacing + this.indicatorSize.width + this.indicatorSpacing + largestWidth,
-            this.font.lineHeight * this.series.length
+            this.style.font.lineHeight * l
         );
         if (size.width > maxSize.width){
             size.width = maxSize.width;
@@ -114,6 +136,7 @@ JSClass("CHLegend", JSObject, {
     },
 
     drawInContext: function(context, rect){
+        this.recalculateFontDerivedSizes();
         switch (this.placement){
             case CHLegend.Placement.above:
                 this.drawHorizontallyInContext(context, rect.rectWithInsets(0, 0, this.chartSpacing, 0));
@@ -134,39 +157,35 @@ JSClass("CHLegend", JSObject, {
     },
 
     drawHorizontallyInContext: function(context, rect){
-        var series;
-        var indicatorPathSize = this.indicatorPath.boundingRect.size;
-        var indicatorScale = JSPoint(this.indicatorSize.width / indicatorPathSize.width, this.indicatorSize.height / indicatorPathSize.height);
         var textFrame;
         var width;
         var origin = JSPoint.Zero;
         context.save();
         context.translateBy(rect.origin.x, rect.origin.y);
-        for (var i = 0, l = this.series.length; i < l; ++i){
-            series = this.series[i];
-            width = this.indicatorSize.width + this.indicatorSpacing + this.font.widthOfString(series.name);
+        var i;
+        var l = this.delegate.numberOfNamesInLegend(this);
+        var name;
+        var indicatorOffset = (this.style.font.lineHeight - this.indicatorSize.height) / 2;
+        for (i = 0; i < l; ++i){
+            name = this.delegate.nameInLegendAtIndex(this, i);
+            width = this.indicatorSize.width + this.indicatorSpacing + this.style.font.widthOfString(name);
             if (origin.x > 0){
                 if (origin.x + this.seriesSpacing + width > rect.size.width){
-                    origin.y += this.font.lineHeight;
+                    origin.y += this.style.font.lineHeight;
                     origin.x = 0;
                 }else{
                     origin.x += this.seriesSpacing;  
                 }
             }
             context.save();
-            context.translateBy(origin.x, origin.y);
-            context.setFillColor(series.color);
-            context.translateBy(0, (this.font.lineHeight - this.indicatorSize.height) / 2);
-            context.scaleBy(indicatorScale.x, indicatorScale.y);
-            context.addPath(this.indicatorPath);
-            context.fillPath();
+            this.delegate.drawSymbolForNameInLegendAtIndex(this, i, context, JSRect(origin.adding(JSPoint(0, indicatorOffset)), this.indicatorSize));
             context.restore();
             origin.x += this.indicatorSize.width + this.indicatorSpacing;
-            this.framesetter.attributedString = JSAttributedString.initWithString(series.name, {
-                font: this.font,
-                textColor: this.textColor
+            this.framesetter.attributedString = JSAttributedString.initWithString(name, {
+                font: this.style.font,
+                textColor: this.style.textColor
             });
-            textFrame = this.framesetter.createFrame(JSSize(rect.size.width - origin.x, 0), JSRange(0, series.name.length), 1);
+            textFrame = this.framesetter.createFrame(JSSize(rect.size.width - origin.x, 0), JSRange(0, name.length), 1);
             textFrame.drawInContextAtPoint(context, origin);
             origin.x += textFrame.usedSize.width;
         }
@@ -175,29 +194,28 @@ JSClass("CHLegend", JSObject, {
     },
 
     drawVerticallyInContext: function(context, rect){
-        var series;
         var indicatorPathSize = this.indicatorPath.boundingRect.size;
         var indicatorScale = JSPoint(this.indicatorSize.width / indicatorPathSize.width, this.indicatorSize.height / indicatorPathSize.height);
         var textFrame;
         var textRect = JSRect(this.indicatorSize.width + this.indicatorSpacing, 0, rect.size.width - this.indicatorSize.width - this.indicatorSpacing, 0);
+        var indicatorOffset = (this.style.font.lineHeight - this.indicatorSize.height) / 2;
         context.save();
         context.translateBy(rect.origin.x, rect.origin.y);
-        for (var i = 0, l = this.series.length; i < l; ++i){
-            series = this.series[i];
+        var i;
+        var l = this.delegate.numberOfNamesInLegend(this);
+        var name;
+        for (i = 0; i < l; ++i){
+            name = this.delegate.nameInLegendAtIndex(this, i);
             context.save();
-            context.setFillColor(series.color);
-            context.translateBy(0, (this.font.lineHeight - this.indicatorSize.height) / 2);
-            context.scaleBy(indicatorScale.x, indicatorScale.y);
-            context.addPath(this.indicatorPath);
-            context.fillPath();
+            this.delegate.drawSymbolForNameInLegendAtIndex(this, i, context, JSRect(0, indicatorOffset, this.indicatorSize.width, this.indicatorSize.height));
             context.restore();
-            this.framesetter.attributedString = JSAttributedString.initWithString(series.name, {
-                font: this.font,
-                textColor: this.textColor
+            this.framesetter.attributedString = JSAttributedString.initWithString(name, {
+                font: this.style.font,
+                textColor: this.style.textColor
             });
-            textFrame = this.framesetter.createFrame(textRect.size, JSRange(0, series.name.length), 1);
+            textFrame = this.framesetter.createFrame(textRect.size, JSRange(0, name.length), 1);
             textFrame.drawInContextAtPoint(context, textRect.origin);
-            context.translateBy(0, this.font.lineHeight);
+            context.translateBy(0, this.style.font.lineHeight);
         }
         context.restore();
     },

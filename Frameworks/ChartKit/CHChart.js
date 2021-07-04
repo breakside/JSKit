@@ -39,6 +39,17 @@ JSClass("CHChart", JSObject, {
     },
 
     drawInContext: function(context, size){
+    },
+
+    numberOfNamesInLegend: function(legend){
+        return this.series.length;
+    },
+    
+    nameInLegendAtIndex: function(legend, index){
+        return this.series[index].name;
+    },
+
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){
     }
 
 });

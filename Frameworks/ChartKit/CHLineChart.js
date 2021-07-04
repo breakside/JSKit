@@ -21,7 +21,7 @@ JSClass("CHLineChart", CHCategoryChart, {
     
     initWithTheme: function(theme){
         CHLineChart.$super.initWithTheme.call(this, theme);
-        this.defaultSeriesStyle = theme.lineStyle;
+        this.defaultSeriesStyle = theme.lineStyle.styleWithColor(null);
     },
 
     drawValuesInContext: function(context, rect){
@@ -110,5 +110,44 @@ JSClass("CHLineChart", CHCategoryChart, {
             }
         }
     },
+
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){
+        var series = this.series[index];
+        context.save();
+        context.setStrokeColor(series.style.color);
+        context.setLineWidth(series.style.lineWidth);
+        context.setLineCap(series.style.lineCap);
+        if (series.style.lineDashLengths !== null){
+            context.setLineDash(0, series.style.lineDashLengths);
+        }
+        context.moveToPoint(rect.origin.x, rect.origin.y + rect.size.height / 2);
+        context.addLineToPoint(rect.origin.x + rect.size.width, rect.origin.y + rect.size.height / 2);
+        context.strokePath();
+        context.restore();
+        if (series.style.symbolPath !== null){
+            var drawingMode = JSContext.DrawingMode.stroke;
+            context.save();
+            if (series.style.symbolFillColor !== null){
+                drawingMode = JSContext.DrawingMode.fillStroke;
+                context.setFillColor(series.style.symbolFillColor);
+            }
+            if (series.style.symbolStrokeColor !== null){
+                context.setStrokeColor(series.style.symbolStrokeColor);
+            }else if (series.style.lineColor !== null){
+                context.setStrokeColor(series.style.lineColor);
+            }else{
+                context.setStrokeColor(series.color);
+            }
+            if (series.style.symbolLineWidth !== null){
+                context.setLineWidth(series.style.symbolLineWidth);
+            }else{
+                context.setLineWidth(series.style.lineWidth);
+            }
+            context.translateBy(rect.origin.x + rect.size.width / 2, rect.origin.y + rect.size.height / 2);
+            context.addPath(series.style.symbolPath);
+            context.drawPath(drawingMode);
+            context.restore();
+        }
+    }
 
 });
