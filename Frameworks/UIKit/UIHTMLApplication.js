@@ -101,9 +101,11 @@ JSClass("UIHTMLApplication", UIApplication, {
         if (state.path !== "/"){
             url.fragment = state.path;
         }
-        var href = url.encodedString;
-        if (href != this.domWindow.location.href){
-            this.domWindow.history.pushState(null, null, url.encodedString);
+        if (!this._isHandlingHashChange){
+            var href = url.encodedString;
+            if (href != this.domWindow.location.href){
+                this.domWindow.history.pushState(null, null, url.encodedString);
+            }
         }
     },
 
@@ -158,28 +160,33 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _event_hashchange: function(e){
-        var requestedURL = JSURL.initWithString(this.domWindow.location.href);
-        var requestedFragment = requestedURL.fragment;
-        var requestedPath = null;
-        if (requestedFragment !== null && requestedFragment.length > 0){
-            if (requestedFragment[0] == "/"){
-                var queryIndex = requestedFragment.indexOf('?');
-                if (queryIndex >= 0){
-                    requestedPath = requestedFragment.substr(0, queryIndex);
-                }else{
-                    requestedPath = requestedFragment;
+        this._isHandlingHashChange = true;
+        try{
+            var requestedURL = JSURL.initWithString(this.domWindow.location.href);
+            var requestedFragment = requestedURL.fragment;
+            var requestedPath = null;
+            if (requestedFragment !== null && requestedFragment.length > 0){
+                if (requestedFragment[0] == "/"){
+                    var queryIndex = requestedFragment.indexOf('?');
+                    if (queryIndex >= 0){
+                        requestedPath = requestedFragment.substr(0, queryIndex);
+                    }else{
+                        requestedPath = requestedFragment;
+                    }
                 }
             }
+            var requestedState = UIState.initWithPath(requestedPath);
+            var state = null;
+            if (this.delegate && this.delegate.applicationDidRequestState){
+                state = this.delegate.applicationDidRequestState(this, requestedState);
+            }
+            if (state === null || state === undefined){
+                state = this.state;
+            }
+            this.setStateReplacingHTMLState(state);
+        }finally{
+            this._isHandlingHashChange = false;
         }
-        var requestedState = UIState.initWithPath(requestedPath);
-        var state = null;
-        if (this.delegate && this.delegate.applicationDidRequestState){
-            state = this.delegate.applicationDidRequestState(this, requestedState);
-        }
-        if (state === null || state === undefined){
-            state = this.state;
-        }
-        this.setStateReplacingHTMLState(state);
     },
 
     _crash: function(error){
