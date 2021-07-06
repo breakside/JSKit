@@ -359,7 +359,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     updateHTMLProperty_shadow: function(layer){
         if (layer.presentation.shadowColor){
-            this.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(layer.shadowOffset.x, layer.shadowOffset.y, layer.shadowRadius, layer.presentation.shadowColor.cssString());
+            this.style.boxShadow = '%fpx %fpx %fpx %s'.sprintf(layer.presentation.shadowOffset.x, layer.presentation.shadowOffset.y, layer.presentation.shadowRadius, layer.presentation.shadowColor.cssString());
         }else{
             this.style.boxShadow = '';
         }
