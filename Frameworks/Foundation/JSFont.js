@@ -213,13 +213,19 @@ JSFont.registerSystemFontResource = function(name){
     var ext;
     var extIndex = name.lastIndexOf('.');
     var i, l;
+    var extGuessed = false;
     if (extIndex > 0 && extIndex < name.length - 1){
         ext = name.substr(extIndex + 1);
         name = name.substr(0, extIndex);
     }else{
+        extGuessed = true;
         ext = "ttf";
     }
     var metadata = JSBundle.mainBundle.metadataForResourceName(name, ext);
+    if (extGuessed && metadata === null){
+        ext = "otf";
+        metadata = JSBundle.mainBundle.metadataForResourceName(name, ext);
+    }
     this._systemFontDescriptor = JSResourceFontDescriptor.descriptorsByName[metadata.font.unique_identifier];
 };
 
