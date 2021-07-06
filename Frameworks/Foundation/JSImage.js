@@ -250,6 +250,30 @@ JSClass("_JSDataImage", JSImage, {
             return null;
         }
         this.data = data;
+        if (size === undefined){
+            if (data.length >= 24 &&
+                // magic
+                data[0] == 0x89 &&
+                data[1] == 0x50 &&
+                data[2] == 0x4E &&
+                data[3] == 0x47 &&
+                data[4] == 0x0D &&
+                data[5] == 0x0A &&
+                data[6] == 0x1A &&
+                data[7] == 0x0A && 
+
+                // IHDR
+                data[12] == 0x49 &&
+                data[13] == 0x48 &&
+                data[14] == 0x44 &&
+                data[15] == 0x52)
+            {
+                var dataView = data.dataView();
+                size = JSSize(dataView.getUint32(16), dataView.getUint32(20));
+            }else if (data.length > 2 && data[0] == 0xFF && data[1] == 0xD8){
+                size = JSImage.sizeOfJPEGData(data);
+            }
+        }
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
     },
 
@@ -322,6 +346,53 @@ JSImage.resourceCache = function(names, bundle){
         definePropertyFromName(names[i]);
     }
     return cache;
+};
+
+JSImage.sizeOfJPEGData = function(data){
+    var dataView = data.dataView();
+    var i = 0;
+    var b;
+    var l = data.length;
+    var blockLength;
+    var blockdata;
+    while (i < l){
+        b = data[i++];
+        if (b != 0xFF){
+            // TODO: Error, not at a maker
+            return JSSize.Zero;
+        }
+        if (i == l){
+            // TODO: Error, not enough room for marker
+            return JSSize.Zero;
+        }
+        b = data[i++];
+        if (b == 0x00){
+            // TODO: Error, invalid marker
+            return JSSize.Zero;
+        }
+        // D0-D9 are standalone markers...make sure not to look for a length
+        if (b < 0xD0 || b > 0xD9){
+            if (i >= l - 2){
+                // TODO: Error, not enough room for block header
+                return JSSize.Zero;
+            }
+            blockLength = dataView.getUint16(i);
+            if (i + blockLength > l){
+                // TODO: Error, not enough room for block data
+                return JSSize.Zero;
+            }
+            // C0-CF are start of frame blocks, expect for C4 and CC
+            // start of frame blocks have image sizes
+            if (b >= 0xC0 && b <= 0xCF && b != 0xC4 && b != 0xCC){
+                if (blockLength >= 7){
+                    return JSSize(dataView.getUint16(i + 5), dataView.getUint16(i + 3));
+                }
+                return JSSize.Zero;
+            }
+            i += blockLength;
+        }
+    }
+    return JSSize.Zero;
 };
 
 JSImage.RenderMode = {
