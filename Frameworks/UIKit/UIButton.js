@@ -675,6 +675,12 @@ JSClass("UIButtonImageStyler", UIButtonStyler, {
         if (spec.containsKey("color")){
             this.color = spec.valueForKey("color", JSColor);
         }
+        if (spec.containsKey("activeColor")){
+            this.activeColor = spec.valueForKey("activeColor", JSColor);
+        }
+        if (spec.containsKey("disabledColor")){
+            this.disabledColor = spec.valueForKey("disabledColor", JSColor);
+        }
     },
 
     setColor: function(color){

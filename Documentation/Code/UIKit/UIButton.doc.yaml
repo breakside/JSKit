@@ -686,6 +686,22 @@ topics:
 
                           The disabled state color will be created by making the
                           normal color 50% transparent.
+                      -
+                        name: activeColor
+                        introduced: 2021.27.1
+                        type: JSColor
+                        summary: The color for the image when the button is active
+                        description: |
+                          If not provided, the active state color will be created
+                          by darkening the normal color by 20%.
+                      -
+                        name: disabledColor
+                        introduced: 2021.27.1
+                        type: JSColor
+                        summary: The color for the image button when not enabled
+                        description: |
+                          If not provided, the disabled state color will be
+                          created by making the normal color 50% transparent.
           -
             name: State Colors
             members:
