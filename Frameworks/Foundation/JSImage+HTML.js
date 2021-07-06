@@ -30,6 +30,6 @@ _JSDataImage.definePropertiesFromExtensions({
 
 _JSURLImage.definePropertiesFromExtensions({
     htmlURLString: function(){
-        return this.url;
+        return this.url.encodedString;
     }
 });
