@@ -86,6 +86,14 @@ Object.defineProperty(JSRect.prototype, 'center', {
 
 });
 
+Object.defineProperty(JSRect.prototype, 'pointOppositeOrigin', {
+
+    get: function JSRect_getPointOppositeOrigin(){
+        return JSPoint(this.origin.x + this.size.width, this.origin.y + this.size.height);
+    }
+
+});
+
 Object.defineProperty(JSRect, 'Zero', {
     get: function(){
         return new JSRect(0, 0, 0, 0);
