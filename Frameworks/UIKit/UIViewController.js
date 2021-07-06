@@ -132,6 +132,7 @@ JSClass("UIViewController", UIResponder, {
     },
 
     viewWillAppear: function(){
+        this._loadViewIfNeeded();
     },
 
     viewDidAppear: function(){
