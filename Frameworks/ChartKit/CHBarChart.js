@@ -21,7 +21,7 @@ JSClass("CHBarChart", CHCategoryChart, {
     
     initWithTheme: function(theme){
         CHBarChart.$super.initWithTheme.call(this, theme);
-        this.categoryAxis.labelPosition = CHAxis.LabelPosition.betweenTickMarks;
+        this.categoryAxis.labelPosition = CHAxisStyle.LabelPosition.betweenTickMarks;
         this.defaultSeriesStyle = theme.barStyle.styleWithColor(null);
     },
 
@@ -129,7 +129,8 @@ JSClass("CHBarChart", CHCategoryChart, {
             context.setStrokeColor(series.style.borderColor);
             context.setLineWidth(series.style.borderWidth);
             var borderInsets = JSInsets(series.style.borderWidth / 2);
-            var maskedBorders = CHSeriesBarStyle.Sides.pathSidesForPositiveBarSides(series.style.maskedBorders);
+            // using negative bars because are coordinates are flipped from when drawing actual bars
+            var maskedBorders = CHSeriesBarStyle.Sides.pathSidesForNegativeBarSides(series.style.maskedBorders);
             if ((maskedBorders & JSPath.Sides.minX) === 0){
                 borderInsets.left = 0;
             }

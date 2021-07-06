@@ -21,7 +21,8 @@ JSProtocol("CHLegendDelegate", JSProtocol, {
 
     numberOfNamesInLegend: function(legend){},
     nameInLegendAtIndex: function(legend, index){},
-    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){}
+    drawSymbolForNameInLegendAtIndex: function(legend, index, context, rect){},
+    widthOfSymbolsInLegend: function(legend, height){}
 
 });
 
@@ -54,6 +55,9 @@ JSClass("CHLegend", JSObject, {
 
     recalculateFontDerivedSizes: function(){
         this.indicatorSize = JSSize(Math.floor(this.style.font.ascender), Math.floor(this.style.font.ascender));
+        if (this.delegate && this.delegate.widthOfSymbolsInLegend){
+            this.indicatorSize.width = this.delegate.widthOfSymbolsInLegend(this, this.indicatorSize.height);
+        }
         this.indicatorSpacing = Math.floor(this.style.font.lineHeight / 3);
         this.seriesSpacing = this.style.font.lineHeight;
         if (this.placement === CHLegend.Placement.above){

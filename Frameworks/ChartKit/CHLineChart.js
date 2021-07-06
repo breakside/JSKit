@@ -133,10 +133,8 @@ JSClass("CHLineChart", CHCategoryChart, {
             }
             if (series.style.symbolStrokeColor !== null){
                 context.setStrokeColor(series.style.symbolStrokeColor);
-            }else if (series.style.lineColor !== null){
-                context.setStrokeColor(series.style.lineColor);
             }else{
-                context.setStrokeColor(series.color);
+                context.setStrokeColor(series.style.color);
             }
             if (series.style.symbolLineWidth !== null){
                 context.setLineWidth(series.style.symbolLineWidth);
@@ -148,6 +146,10 @@ JSClass("CHLineChart", CHCategoryChart, {
             context.drawPath(drawingMode);
             context.restore();
         }
+    },
+
+    widthOfSymbolsInLegend: function(legend, height){
+        return height * 2;
     }
 
 });
