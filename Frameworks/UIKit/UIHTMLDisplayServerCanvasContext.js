@@ -504,8 +504,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     setCursor: function(cursor){
+        this.element.style.cursor = '';
         if (cursor === null){
-            this.element.style.cursor = '';
             return;
         }
         var cssCursorStrings = cursor.cssStrings();
