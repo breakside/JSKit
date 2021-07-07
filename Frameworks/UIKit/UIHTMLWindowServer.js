@@ -351,7 +351,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // use CSS user-select: none to prevent text selection, and all modern browsers support that,
         // so there's no side-effect of keeping the default move behavior.
         this._updateMouseLocation(e);
-        this.mouseDidMove(e.timeStamp / 1000.0);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.mouseDidMove(e.timeStamp / 1000.0, modifiers);
     },
 
     mouseleave: function(e){
@@ -384,10 +385,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _createMouseTrackingEventFromDOMEvent: function(e, type, view){
         this._updateMouseLocation(e);
         var timestamp = e.timeStamp / 1000.0;
-        if (type === UIEvent.Type.mouseMoved){
-            this.mouseDidMove(timestamp);
-        }
         var modifiers = this._modifiersFromDOMEvent(e);
+        if (type === UIEvent.Type.mouseMoved){
+            this.mouseDidMove(timestamp, modifiers);
+        }
         this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, modifiers, view);
     },
 
@@ -571,7 +572,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
         }
         this._updateMouseLocation(e);
-        this.mouseDidMove(e.timeStamp / 1000.0);
+        this.mouseDidMove(e.timeStamp / 1000.0, 0);
         e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
     },
 

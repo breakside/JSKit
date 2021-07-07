@@ -665,7 +665,7 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    mouseDidMove: function(timestamp){
+    mouseDidMove: function(timestamp, modifiers){
         this._mouseIdleTimer.invalidate();
         this._leftClickCount = 0;
         this._rightClickCount = 0;
@@ -680,10 +680,10 @@ JSClass("UIWindowServer", JSObject, {
                 }
             }else{
                 if (this.isLeftMouseDown){
-                    this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation);
+                    this.createMouseEvent(UIEvent.Type.leftMouseDragged, timestamp, this.mouseLocation, modifiers);
                 }
                 if (this.isRightMouseDown){
-                    this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation);
+                    this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation, modifiers);
                 }
             }
         }
