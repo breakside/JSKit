@@ -84,6 +84,7 @@
 // #import "UITabView.js"
 // #import "UIScroller.js"
 // #import "UISegmentedControl.js"
+// #import "UISlider.js"
 
 // Lists
 // #import "UIListView.js"
