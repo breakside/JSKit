@@ -23,5 +23,4 @@
 // #import "DOMComment.js"
 // #import "DOMCDATASection.js"
 // #import "DOMParser.js"
-// #import "XMLParser.js"
 // #import "XMLSerializer.js"

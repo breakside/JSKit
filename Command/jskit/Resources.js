@@ -366,7 +366,7 @@ var addMetadata = {
         metadata.image = {
             vector: true
         };
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         parser.parse(xml, {
             beginElement: function(name, prefix, namespace, attributes, isClosed){
                 var multiple = {

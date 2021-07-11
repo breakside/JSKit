@@ -14,15 +14,15 @@
 // limitations under the License.
 
 // #import TestKit
-// #import DOM
+// #import Foundation
 'use strict';
 
 (function(){
 
-JSClass('XMLParserTests', TKTestSuite, {
+JSClass('JSXMLParserTests', TKTestSuite, {
 
     testBasicXML: function(){
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<abc>',
@@ -72,7 +72,7 @@ JSClass('XMLParserTests', TKTestSuite, {
     },
 
     testNamespaces: function(){
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<abc:root xmlns:abc="http://breakside.io/test">',
@@ -121,7 +121,7 @@ JSClass('XMLParserTests', TKTestSuite, {
         TKAssertArrayEquals(listener.output, expected);
 
 
-        parser = new XMLParser();
+        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<root xmlns="http://breakside.io/test">',
@@ -169,7 +169,7 @@ JSClass('XMLParserTests', TKTestSuite, {
         ];
         TKAssertArrayEquals(listener.output, expected);
 
-        parser = new XMLParser();
+        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<root xmlns="http://breakside.io/test">',
@@ -218,7 +218,7 @@ JSClass('XMLParserTests', TKTestSuite, {
         ];
         TKAssertArrayEquals(listener.output, expected);
 
-        parser = new XMLParser();
+        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<a:root xmlns:a="http://breakside.io/test">',
@@ -277,7 +277,7 @@ JSClass('XMLParserTests', TKTestSuite, {
     },
 
     testCommentsAndCData: function(){
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!-- Start of document -->',
@@ -320,7 +320,7 @@ JSClass('XMLParserTests', TKTestSuite, {
     },
 
     testHTML: function(){
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         parser.isHTML = true;
         var xml = [
             '<!DOCTYPE html>',

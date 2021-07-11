@@ -13,8 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import Foundation
 // #import "DOMDocument.js"
-// #import "XMLParser.js"
 'use strict';
 
 JSGlobalObject.DOMParser = function DOMParser(){
@@ -23,7 +23,7 @@ JSGlobalObject.DOMParser = function DOMParser(){
 DOMParser.prototype = {
 
     parseFromString: function(str, mimetype){
-        var parser = new XMLParser();
+        var parser = JSXMLParser.init();
         var isHTML = mimetype == "text/html";
         parser.isHTML = isHTML;
         var document = null;
