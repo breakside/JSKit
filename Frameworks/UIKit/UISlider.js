@@ -64,14 +64,14 @@ JSClass("UISlider", UIControl, {
         return this._styler.maximumPointForSlider(this);
     },
 
-    knobHitTest: function(point){
-        return this._styler.knobHitTestSlider(this, point);
+    knobContainsPoint: function(point){
+        return this._styler.sliderKnobContainsPoint(this, point);
     },
 
     _drag: null,
 
     _beginSlideAtLocation: function(location, event){
-        var isOnKnob = this.knobHitTest(location);
+        var isOnKnob = this.knobContainsPoint(location);
         this._drag = {
             initialLocation: JSPoint(location),
             initialValue: this._value,
@@ -222,7 +222,7 @@ JSClass("UISliderStyler", UIControlStyler, {
     maximumPointForSlider: function(slider){
     },
 
-    knobHitTestSlider: function(slider, point){
+    sliderKnobContainsPoint: function(slider, point){
     }
 
 });
@@ -281,10 +281,10 @@ JSClass("UISliderLayerBasedStyler", UIControlStyler, {
         return JSPoint(slider.bounds.size.width - Math.max(this.knobSize.width / 2, this.trackRadius), slider.bounds.size.height / 2);
     },
 
-    knobHitTestSlider: function(slider, point){
+    sliderKnobContainsPoint: function(slider, point){
         var knobLayer = slider.stylerProperties.knobLayer;
         point = slider.layer.convertPointToLayer(point, knobLayer);
-        return knobLayer.hitTest(point) !== null;
+        return knobLayer.containsPoint(point);
     },
 
     intrinsicSizeOfControl: function(styler){
