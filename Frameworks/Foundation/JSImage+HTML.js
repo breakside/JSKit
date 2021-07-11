@@ -24,7 +24,7 @@ _JSResourceImage.definePropertiesFromExtensions({
 
 _JSDataImage.definePropertiesFromExtensions({
     htmlURLString: function(){
-        return this.data.htmlURLString();
+        return this.data.htmlURLString(this.contentType);
     }
 });
 

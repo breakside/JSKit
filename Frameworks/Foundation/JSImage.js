@@ -245,87 +245,25 @@ JSClass("_JSResourceImage", JSImage, {
 JSClass("_JSDataImage", JSImage, {
 
     data: null,
+    contentType: null,
 
     initWithData: function(data, size, scale){
         if (data === null){
             return null;
         }
         this.data = data;
-        if (size === undefined){
-            if (data.length >= 24 &&
-                // magic
-                data[0] == 0x89 &&
-                data[1] == 0x50 &&
-                data[2] == 0x4E &&
-                data[3] == 0x47 &&
-                data[4] == 0x0D &&
-                data[5] == 0x0A &&
-                data[6] == 0x1A &&
-                data[7] == 0x0A && 
-
-                // IHDR
-                data[12] == 0x49 &&
-                data[13] == 0x48 &&
-                data[14] == 0x44 &&
-                data[15] == 0x52)
-            {
-                var dataView = data.dataView();
-                size = JSSize(dataView.getUint32(16), dataView.getUint32(20));
-            }else if (data.length > 2 && data[0] == 0xFF && data[1] == 0xD8){
-                size = JSImage.sizeOfJPEGData(data);
-            }else if (data.length > 5 && data[0] == 0x3C && data[1] == 0x3F && data[2] == 0x78 && data[3] == 0x6D && data[4] == 0x6C){
-                var parser = JSXMLParser.init();
-                size = JSSize(1, 1);
-                parser.parse(data.stringByDecodingUTF8(), {
-                    beginElement: function(name, prefix, namespace, attributes, isClosed){
-                        var multiple = {
-                            'em': 12,
-                            'ex': 24,
-                            'px': 1,
-                            'in': 72,
-                            'cm': 72/2.54,
-                            'mm': 72/25.4,
-                            'pt': 1,
-                            'pc': 12
-                        };
-                        var px = function(length){
-                            if (length === undefined || length === null){
-                                return undefined;
-                            }
-                            var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
-                            if (!matches){
-                                return undefined;
-                            }
-                            var n = parseInt(matches[1]);
-                            if (!matches[2]){
-                                return n;
-                            }
-                            var unit = matches[2];
-                            if (unit == '%'){
-                                return undefined;
-                            }
-                            return multiple[unit] * n;
-                        };
-                        if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                            var attrs = {};
-                            for (var i = 0, l = attributes.length; i < l; ++i){
-                                var attr = attributes[i];
-                                if (attr.namespace === null){
-                                    attrs[attr.name] = attr.value;
-                                }
-                            }
-                            if (attrs.width && attrs.height){
-                                size.width = px(attrs.width);
-                                size.height = px(attrs.height);
-                            }else if (attrs.viewBox){
-                                var box = attrs.viewBox.split(/\s+/).map(function(n){ parseInt(n); });
-                                size.width = box[2];
-                                size.height = box[3];
-                            }
-                        }
-                        parser.stop();
-                    }
-                });
+        this.contentType = _JSDataImage.contentTypeOfData(data);
+        if (size === undefined && this.contentType !== null){
+            switch (this.contentType.subtype){
+                case "png":
+                    size = _JSDataImage.sizeFromPNGData(data);
+                    break;
+                case "jpeg":
+                    size = _JSDataImage.sizeFromJPEGData(data);
+                    break;
+                case "svg+xml":
+                    size = _JSDataImage.sizeFromSVGData(data);
+                    break;
             }
         }
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
@@ -347,6 +285,141 @@ JSClass("_JSDataImage", JSImage, {
     }
 
 });
+
+_JSDataImage.contentTypeOfData = function(data){
+    if (data.length >= 24 &&
+        // magic
+        data[0] == 0x89 &&
+        data[1] == 0x50 &&
+        data[2] == 0x4E &&
+        data[3] == 0x47 &&
+        data[4] == 0x0D &&
+        data[5] == 0x0A &&
+        data[6] == 0x1A &&
+        data[7] == 0x0A && 
+
+        // IHDR
+        data[12] == 0x49 &&
+        data[13] == 0x48 &&
+        data[14] == 0x44 &&
+        data[15] == 0x52)
+    {
+        return JSMediaType("image/png");
+    }else if (data.length > 2 && data[0] == 0xFF && data[1] == 0xD8){
+        return JSMediaType("image/jpeg");
+    }else if (data.length > 5 && data[0] == 0x3C && data[1] == 0x3F && data[2] == 0x78 && data[3] == 0x6D && data[4] == 0x6C){
+        return JSMediaType("image/svg+xml");
+    }
+    return null;
+};
+
+_JSDataImage.sizeFromPNGData = function(data){
+    var dataView = data.dataView();
+    return JSSize(dataView.getUint32(16), dataView.getUint32(20));
+};
+
+_JSDataImage.sizeFromJPEGData = function(data){
+    var dataView = data.dataView();
+    var i = 0;
+    var b;
+    var l = data.length;
+    var blockLength;
+    var blockdata;
+    while (i < l){
+        b = data[i++];
+        if (b != 0xFF){
+            // TODO: Error, not at a maker
+            return JSSize.Zero;
+        }
+        if (i == l){
+            // TODO: Error, not enough room for marker
+            return JSSize.Zero;
+        }
+        b = data[i++];
+        if (b == 0x00){
+            // TODO: Error, invalid marker
+            return JSSize.Zero;
+        }
+        // D0-D9 are standalone markers...make sure not to look for a length
+        if (b < 0xD0 || b > 0xD9){
+            if (i >= l - 2){
+                // TODO: Error, not enough room for block header
+                return JSSize.Zero;
+            }
+            blockLength = dataView.getUint16(i);
+            if (i + blockLength > l){
+                // TODO: Error, not enough room for block data
+                return JSSize.Zero;
+            }
+            // C0-CF are start of frame blocks, expect for C4 and CC
+            // start of frame blocks have image sizes
+            if (b >= 0xC0 && b <= 0xCF && b != 0xC4 && b != 0xCC){
+                if (blockLength >= 7){
+                    return JSSize(dataView.getUint16(i + 5), dataView.getUint16(i + 3));
+                }
+                return JSSize.Zero;
+            }
+            i += blockLength;
+        }
+    }
+    return JSSize.Zero;
+};
+
+_JSDataImage.sizeFromSVGData = function(data){
+    var parser = JSXMLParser.init();
+    var size = JSSize(1, 1);
+    parser.parse(data.stringByDecodingUTF8(), {
+        beginElement: function(name, prefix, namespace, attributes, isClosed){
+            var multiple = {
+                'em': 12,
+                'ex': 24,
+                'px': 1,
+                'in': 72,
+                'cm': 72/2.54,
+                'mm': 72/25.4,
+                'pt': 1,
+                'pc': 12
+            };
+            var px = function(length){
+                if (length === undefined || length === null){
+                    return undefined;
+                }
+                var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
+                if (!matches){
+                    return undefined;
+                }
+                var n = parseInt(matches[1]);
+                if (!matches[2]){
+                    return n;
+                }
+                var unit = matches[2];
+                if (unit == '%'){
+                    return undefined;
+                }
+                return multiple[unit] * n;
+            };
+            if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
+                var attrs = {};
+                for (var i = 0, l = attributes.length; i < l; ++i){
+                    var attr = attributes[i];
+                    if (attr.namespace === null){
+                        attrs[attr.name] = attr.value;
+                    }
+                }
+                if (attrs.width && attrs.height){
+                    size.width = px(attrs.width);
+                    size.height = px(attrs.height);
+                }else if (attrs.viewBox){
+                    var box = attrs.viewBox.split(/\s+/).map(function(n){ parseInt(n); });
+                    size.width = box[2];
+                    size.height = box[3];
+                }
+            }
+            parser.stop();
+        }
+    });
+    return size;
+};
 
 JSClass("_JSURLImage", JSImage, {
 
@@ -400,53 +473,6 @@ JSImage.resourceCache = function(names, bundle){
         definePropertyFromName(names[i]);
     }
     return cache;
-};
-
-JSImage.sizeOfJPEGData = function(data){
-    var dataView = data.dataView();
-    var i = 0;
-    var b;
-    var l = data.length;
-    var blockLength;
-    var blockdata;
-    while (i < l){
-        b = data[i++];
-        if (b != 0xFF){
-            // TODO: Error, not at a maker
-            return JSSize.Zero;
-        }
-        if (i == l){
-            // TODO: Error, not enough room for marker
-            return JSSize.Zero;
-        }
-        b = data[i++];
-        if (b == 0x00){
-            // TODO: Error, invalid marker
-            return JSSize.Zero;
-        }
-        // D0-D9 are standalone markers...make sure not to look for a length
-        if (b < 0xD0 || b > 0xD9){
-            if (i >= l - 2){
-                // TODO: Error, not enough room for block header
-                return JSSize.Zero;
-            }
-            blockLength = dataView.getUint16(i);
-            if (i + blockLength > l){
-                // TODO: Error, not enough room for block data
-                return JSSize.Zero;
-            }
-            // C0-CF are start of frame blocks, expect for C4 and CC
-            // start of frame blocks have image sizes
-            if (b >= 0xC0 && b <= 0xCF && b != 0xC4 && b != 0xCC){
-                if (blockLength >= 7){
-                    return JSSize(dataView.getUint16(i + 5), dataView.getUint16(i + 3));
-                }
-                return JSSize.Zero;
-            }
-            i += blockLength;
-        }
-    }
-    return JSSize.Zero;
 };
 
 JSImage.RenderMode = {
