@@ -74,6 +74,10 @@ JSClass('JSColor', JSObject, {
         this._components = components;
     },
 
+    initFromDictionary: function(dictionary){
+        this.initWithSpaceAndComponents(dictionary.colorSpace, JSCopy(dictionary.components));
+    },
+
     initWithRGBA: function(r, g, b, a){
         this._colorSpace = JSColor.SpaceIdentifier.rgba;
         if (r === undefined) r = 0;
@@ -235,7 +239,26 @@ JSClass('JSColor', JSObject, {
             default:
                 return null;
         }
-    }
+    },
+
+    rgbaHexStringRepresentation: function(){
+        var color = this.rgbaColor();
+        var r = Math.round(color.red * 255);
+        var g = Math.round(color.green * 255);
+        var b = Math.round(color.blue * 255);
+        var str = "%02x%02x%02x".sprintf(r, g, b);
+        if (color.alpha < 1){
+            str += "%02x".sprintf(Math.round(color.alpha * 255));
+        }
+        return str;
+    },
+
+    dictionaryRepresentation: function(){
+        return {
+            colorSpace: this._colorSpace,
+            components: JSCopy(this.components)
+        };
+    },
 
 });
 
@@ -380,5 +403,7 @@ Object.defineProperties(JSColor, {
     },
 
 });
+
+JSColor.contentType = "x-jskit/jscolor";
 
 })();
