@@ -85,6 +85,7 @@
 // #import "UIScroller.js"
 // #import "UISegmentedControl.js"
 // #import "UISlider.js"
+// #import "UIColorWell.js"
 
 // Lists
 // #import "UIListView.js"
