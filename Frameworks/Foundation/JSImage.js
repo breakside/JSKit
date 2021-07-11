@@ -20,6 +20,7 @@
 // #import "JSBundle.js"
 // #import "JSURLSession.js"
 // #import "JSURLResponse.js"
+// #import "JSXMLParser.js"
 'use strict';
 
 (function(){
@@ -272,6 +273,59 @@ JSClass("_JSDataImage", JSImage, {
                 size = JSSize(dataView.getUint32(16), dataView.getUint32(20));
             }else if (data.length > 2 && data[0] == 0xFF && data[1] == 0xD8){
                 size = JSImage.sizeOfJPEGData(data);
+            }else if (data.length > 5 && data[0] == 0x3C && data[1] == 0x3F && data[2] == 0x78 && data[3] == 0x6D && data[4] == 0x6C){
+                var parser = JSXMLParser.init();
+                size = JSSize(1, 1);
+                parser.parse(data.stringByDecodingUTF8(), {
+                    beginElement: function(name, prefix, namespace, attributes, isClosed){
+                        var multiple = {
+                            'em': 12,
+                            'ex': 24,
+                            'px': 1,
+                            'in': 72,
+                            'cm': 72/2.54,
+                            'mm': 72/25.4,
+                            'pt': 1,
+                            'pc': 12
+                        };
+                        var px = function(length){
+                            if (length === undefined || length === null){
+                                return undefined;
+                            }
+                            var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
+                            if (!matches){
+                                return undefined;
+                            }
+                            var n = parseInt(matches[1]);
+                            if (!matches[2]){
+                                return n;
+                            }
+                            var unit = matches[2];
+                            if (unit == '%'){
+                                return undefined;
+                            }
+                            return multiple[unit] * n;
+                        };
+                        if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
+                            var attrs = {};
+                            for (var i = 0, l = attributes.length; i < l; ++i){
+                                var attr = attributes[i];
+                                if (attr.namespace === null){
+                                    attrs[attr.name] = attr.value;
+                                }
+                            }
+                            if (attrs.width && attrs.height){
+                                size.width = px(attrs.width);
+                                size.height = px(attrs.height);
+                            }else if (attrs.viewBox){
+                                var box = attrs.viewBox.split(/\s+/).map(function(n){ parseInt(n); });
+                                size.width = box[2];
+                                size.height = box[3];
+                            }
+                        }
+                        parser.stop();
+                    }
+                });
             }
         }
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
