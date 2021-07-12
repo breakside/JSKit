@@ -99,6 +99,9 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithRGBAHexString: function(hexString){
+        if (hexString === null || hexString === undefined){
+            return null;
+        }
         var components = JSColor.componentsFromHexString(hexString);
         if (components === null){
             return null;
@@ -219,6 +222,25 @@ JSClass('JSColor', JSObject, {
         }
     },
 
+    hslaColor: function(){
+        switch (this.colorSpace){
+            case JSColor.SpaceIdentifier.rgb:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsl, JSColor.RGBToHSL(this.red, this.green, this.blue)).colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.rgba:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsl, JSColor.RGBToHSL(this.red, this.green, this.blue)).colorWithAlpha(this.alpha);
+            case JSColor.SpaceIdentifier.hsl:
+                return this.colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.hsla:
+                return this;
+            case JSColor.SpaceIdentifier.gray:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsl, JSColor.GrayToHSL(this.white)).colorWithAlpha(1.0);
+            case JSColor.SpaceIdentifier.graya:
+                return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsl, JSColor.GrayToHSL(this.white)).colorWithAlpha(this.alpha);
+            default:
+                return null;
+        }
+    },
+
     grayColor: function(){
         var rgba;
         switch (this.colorSpace){
@@ -294,13 +316,62 @@ JSColor._HueToRGB = function(m1, m2, h){
     return m1;
 };
 
+JSColor.RGBToHSL = function(r, g, b){
+    var max = Math.max(r, g, b);
+    var min = Math.min(r, g, b);
+    var d = max - min;
+    var l = (max + min) / 2;
+    if (d === 0){
+        return [0, 0, l];
+    }
+    var s = d / (1 - Math.abs(2 * l - 1));
+    var h;
+    if (max === r){
+        h = 60 * (((g - b) / d) % 6);
+    }else if (max == g){
+        h = 60 * (((b - r) / d) + 2);
+    }else{
+        h = 60 * (((r - g) / d) + 4);
+    }
+    if (h > 360){
+        h -= 360;
+    }
+    if (h < 0){
+        h += 360;
+    }
+    h /= 360;
+    return [h, s, l];
+};
+
 JSColor.GrayToRGB = function(white){
     // FIXME: could get fancier here with gray coversion
     return [white, white, white];
 };
 
+JSColor.GrayToHSL = function(white){
+    return [0, 0, white];
+};
+
 JSColor.RGBToGray = function(r, g, b){
     return [(r + g + b) / 3.0];
+};
+
+JSColor.HSBToHSL = function(h, s, b){
+    var l = b * (1 - s / 2);
+    if (l > 0 && l < 1){
+        s = (b - l) / Math.min(l, 1 - l);
+    }
+    return [h, s, l];
+};
+
+JSColor.HSLToHSB = function(h, s, l){
+    var b = l + s * Math.min(l, 1 - l);
+    if (b === 0){
+        s = 0;
+    }else{
+        s = 2 * (1 - l / b);
+    }
+    return [h, s, b];
 };
 
 JSColor.componentsFromHexString = function(hexString){
