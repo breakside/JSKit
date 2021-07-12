@@ -354,7 +354,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
                     this._saturationBrightnessChanged(textField);
                     break;
                 case UIColorPanel.Model.hsv:
-                    this._hsvComponents[1] = Math.max(0, Math.min(1, value / 100.0));
+                    this._hsvComponents[2] = Math.max(0, Math.min(1, value / 100.0));
                     this._recalculateColorFromHSV();
                     this._saturationBrightnessChanged(textField);
                     break;
@@ -554,6 +554,48 @@ JSClass("UIColorPanelViewController", UIViewController, {
     notifyDelegateOfColor: function(){
         if (this.delegate && this.delegate.colorPanelDidChangeColor){
             this.delegate.colorPanelDidChangeColor(this, this._color);
+        }
+    },
+
+    keyDown: function(event){
+        if (event.key === UIEvent.Key.down){
+            this.decrementComponent(event.hasModifier(UIEvent.Modifier.shift) ? 10 : 1);
+        }else if (event.key === UIEvent.Key.up){
+            this.incrementComponent(event.hasModifier(UIEvent.Modifier.shift) ? 10 : 1);
+        }else{
+            UIColorPanelViewController.$super.keyDown.call(this, event);
+        }
+    },
+
+    decrementComponent: function(amount){
+        if (this.component1Field.isFirstResponder()){
+            this.component1Field.integerValue = this.component1Field.integerValue - amount;
+            this.component1FieldChanged(this.component1Field);
+        }else if (this.component2Field.isFirstResponder()){
+            this.component2Field.integerValue = this.component2Field.integerValue - amount;
+            this.component2FieldChanged(this.component2Field);
+        }else if (this.component3Field.isFirstResponder()){
+            this.component3Field.integerValue = this.component3Field.integerValue - amount;
+            this.component3FieldChanged(this.component3Field);
+        }else if (this.component4Field.isFirstResponder()){
+            this.component4Field.integerValue = this.component4Field.integerValue - amount;
+            this.component4FieldChanged(this.component4Field);
+        }
+    },
+
+    incrementComponent: function(amount){
+        if (this.component1Field.isFirstResponder()){
+            this.component1Field.integerValue = this.component1Field.integerValue + amount;
+            this.component1FieldChanged(this.component1Field);
+        }else if (this.component2Field.isFirstResponder()){
+            this.component2Field.integerValue = this.component2Field.integerValue + amount;
+            this.component2FieldChanged(this.component2Field);
+        }else if (this.component3Field.isFirstResponder()){
+            this.component3Field.integerValue = this.component3Field.integerValue + amount;
+            this.component3FieldChanged(this.component3Field);
+        }else if (this.component4Field.isFirstResponder()){
+            this.component4Field.integerValue = this.component4Field.integerValue + amount;
+            this.component4FieldChanged(this.component4Field);
         }
     },
 
