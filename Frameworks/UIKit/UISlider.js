@@ -562,13 +562,13 @@ JSClass("UISliderColorStyler", UISliderLayerBasedStyler, {
 
     init: function(){
         this.initWithColors([
-            JSColor.initWithHSLA(0, 1, 0.5),
-            JSColor.initWithHSLA(1/6, 1, 0.5),
-            JSColor.initWithHSLA(2/6, 1, 0.5),
-            JSColor.initWithHSLA(3/6, 1, 0.5),
-            JSColor.initWithHSLA(4/6, 1, 0.5),
-            JSColor.initWithHSLA(5/6, 1, 0.5),
-            JSColor.initWithHSLA(1, 1, 0.5)
+            JSColor.initWithHSVA(0, 1, 1),
+            JSColor.initWithHSVA(1/6, 1, 1),
+            JSColor.initWithHSVA(2/6, 1, 1),
+            JSColor.initWithHSVA(3/6, 1, 1),
+            JSColor.initWithHSVA(4/6, 1, 1),
+            JSColor.initWithHSVA(5/6, 1, 1),
+            JSColor.initWithHSVA(1, 1, 1)
         ]);
     },
 

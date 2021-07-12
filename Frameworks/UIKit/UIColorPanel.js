@@ -54,11 +54,18 @@ JSClass("UIColorPanel", UIPopupWindow, {
 
 });
 
+UIColorPanel.Model = {
+    rgb: "rgb",
+    hsl: "hsl",
+    hsv: "hsv"
+};
+
 JSClass("UIColorPanelViewController", UIViewController, {
 
     delegate: null,
     color: JSDynamicProperty("_color", null),
     showsAlpha: JSDynamicProperty("_showsAlpha", true),
+    componentModel: JSDynamicProperty("_componentModel", UIColorPanel.Model.hsv),
 
     init: function(){
         this.color = JSColor.black;
@@ -66,11 +73,12 @@ JSClass("UIColorPanelViewController", UIViewController, {
     },
 
     setColor: function(color){
-        this._color = color;
+        this._color = color.rgbaColor();
+        this._hsvComponents = JSColorSpace.rgb.hsvFromComponents(this._color.components);
         if (this.isViewLoaded){
-            this.updateSlidersWithHSLAColor(this.color.hslaColor());
-            this.updateComponentFieldsWithRGBAColor(this.color.rgbaColor());
-            this.updateColorDependentViews();
+            this._hueChanged();
+            this._saturationBrightnessChanged();
+            this._alphaChanged();
         }
     },
 
@@ -81,22 +89,30 @@ JSClass("UIColorPanelViewController", UIViewController, {
         }
     },
 
+    setComponentModel: function(componentModel){
+        this._componentModel = componentModel;
+        this._updateComponentLabels();
+        this._updateComponent1Field();
+        this._updateComponent2Field();
+        this._updateComponent3Field();
+    },
+
     // MARK: - View Lifecycle
 
     viewDidLoad: function(){
         UIColorPanelViewController.$super.viewDidLoad.call(this);
         var hueStyler = UISliderColorStyler.initWithColors([
-            JSColor.initWithHSLA(0, 1, 0.5),
-            JSColor.initWithHSLA(1/6, 1, 0.5),
-            JSColor.initWithHSLA(2/6, 1, 0.5),
-            JSColor.initWithHSLA(3/6, 1, 0.5),
-            JSColor.initWithHSLA(4/6, 1, 0.5),
-            JSColor.initWithHSLA(5/6, 1, 0.5),
-            JSColor.initWithHSLA(1, 1, 0.5)
+            JSColor.initWithHSVA(0, 1, 1),
+            JSColor.initWithHSVA(1/6, 1, 1),
+            JSColor.initWithHSVA(2/6, 1, 1),
+            JSColor.initWithHSVA(3/6, 1, 1),
+            JSColor.initWithHSVA(4/6, 1, 1),
+            JSColor.initWithHSVA(5/6, 1, 1),
+            JSColor.initWithHSVA(1, 1, 1)
         ]);
         var alphaStyler = UISliderColorStyler.initWithColors([
-            JSColor.initWithHSLA(0, 0, 0, 0),
-            JSColor.initWithHSLA(0, 0, 0, 1)
+            JSColor.initWithHSVA(0, 0, 0, 0),
+            JSColor.initWithHSVA(0, 0, 0, 1)
         ]);
         var wellStyler = UIColorWellDefaultStyler.init();
         wellStyler.disabledBorderWidth = 0;
@@ -150,9 +166,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.component4Field.nextKeyView = this.hexField;
 
         this.hexLabel.text = "Hex";
-        this.component1Label.text = "R";
-        this.component2Label.text = "G";
-        this.component3Label.text = "B";
+        this._updateComponentLabels();
         this.component4Label.text = "Alpha";
         this.hexLabel.textColor = JSColor.initWithWhite(0.5);
         this.component1Label.textColor = this.hexLabel.textColor;
@@ -176,15 +190,16 @@ JSClass("UIColorPanelViewController", UIViewController, {
 
         this.saturationBrightnessControl.addAction(this.saturationBrightnessChanged, this);
         this.hueSlider.addAction(this.hueSliderChanged, this);
-        this.alphaSlider.addAction(this.hueSliderChanged, this);
+        this.alphaSlider.addAction(this.alphaSliderChanged, this);
         this.hexField.addAction(this.hexFieldChanged, this);
         this.component1Field.addAction(this.component1FieldChanged, this);
         this.component2Field.addAction(this.component2FieldChanged, this);
         this.component3Field.addAction(this.component3FieldChanged, this);
         this.component4Field.addAction(this.component4FieldChanged, this);
 
-        this.updateSlidersWithHSLAColor(this.color.hslaColor());
-        this.updateComponentFieldsWithRGBAColor(this.color.rgbaColor());
+        this._hueChanged();
+        this._saturationBrightnessChanged();
+        this._alphaChanged();
     },
 
     viewWillAppear: function(animated){
@@ -193,6 +208,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
 
     viewDidAppear: function(animated){
         UIColorPanelViewController.$super.viewDidAppear.call(this, animated);
+        this.view.window.firstResponder = this.hexField;
     },
 
     viewWillDisappear: function(animated){
@@ -225,32 +241,204 @@ JSClass("UIColorPanelViewController", UIViewController, {
 
     // MARK: - Actions
 
-    saturationBrightnessChanged: function(sender){
-        this.updateColorFromSliders();
+    _hsvComponents: null,
+
+    saturationBrightnessChanged: function(slider){
+        this._hsvComponents[1] = slider.value.x;
+        this._hsvComponents[2] = slider.value.y;
+        this._color = JSColor.initWithHSVA(
+            this._hsvComponents[0],
+            this._hsvComponents[1],
+            this._hsvComponents[2],
+            this._color.alpha
+        );
+        this._saturationBrightnessChanged(slider);
+        this.notifyDelegateOfColor();
     },
 
-    hueSliderChanged: function(sender){
-        this.updateColorFromSliders();
+    hueSliderChanged: function(slider){
+        this._hsvComponents[0] = slider.value;
+        this._recalculateColorFromHSV();
+        this._hueChanged(slider);
+        this.notifyDelegateOfColor();
     },
 
     alphaSliderChanged: function(slider){
-        this.updateColorFromSliders();
+        this._color = this._color.colorWithAlpha(slider.value);
+        this._alphaChanged(slider);
+        this.notifyDelegateOfColor();
     },
 
     component1FieldChanged: function(textField){
-        this.updateColorFromComponentFields();
+        var value = textField.integerValue;
+        if (isNaN(value)){
+            this._updateComponent1Field();
+        }else{
+            switch (this._componentModel){
+                case UIColorPanel.Model.rgb:
+                    this._color = JSColor.initWithRGBA(
+                        Math.max(0, Math.min(1, value / 255.0)),
+                        this._color.green,
+                        this._color.blue,
+                        this._color.alpha
+                    );
+                    this._recalculateHSVFromColor();
+                    break;
+                case UIColorPanel.Model.hsl:
+                case UIColorPanel.Model.hsv:
+                    this._hsvComponents[0] = Math.max(0, Math.min(1, value / 360.0));
+                    this._recalculateColorFromHSV();
+                    this._hueChanged(textField);
+                    break;
+            }
+            this.notifyDelegateOfColor();
+        }
     },
 
     component2FieldChanged: function(textField){
-        this.updateColorFromComponentFields();
+        var value = textField.integerValue;
+        if (isNaN(value)){
+            this._updateComponent2Field();
+        }else{
+            switch (this._componentModel){
+                case UIColorPanel.Model.rgb:
+                    this._color = JSColor.initWithRGBA(
+                        this._color.red,
+                        Math.max(0, Math.min(1, value / 255.0)),
+                        this._color.blue,
+                        this._color.alpha
+                    );
+                    this._recalculateHSVFromColor();
+                    break;
+                case UIColorPanel.Model.hsl:
+                    this._hsvComponents = JSColorSpace.rgb.hsvFromHSL(
+                        this._hsvComponents[0],
+                        Math.max(0, Math.min(1, value / 100.0)),
+                        JSColorSpace.rgb.hslFromHSV(this._hsvComponents)[2]
+                    );
+                    this._recalculateColorFromHSV();
+                    this._saturationBrightnessChanged(textField);
+                    break;
+                case UIColorPanel.Model.hsv:
+                    this._hsvComponents[1] = Math.max(0, Math.min(1, value / 100.0));
+                    this._recalculateColorFromHSV();
+                    this._saturationBrightnessChanged(textField);
+                    break;
+            }
+            this.notifyDelegateOfColor();
+        }
     },
 
     component3FieldChanged: function(textField){
-        this.updateColorFromComponentFields();
+        var value = textField.integerValue;
+        if (isNaN(value)){
+            this._updateComponent2Field();
+        }else{
+            switch (this._componentModel){
+                case UIColorPanel.Model.rgb:
+                    this._color = JSColor.initWithRGBA(
+                        this._color.red,
+                        this._color.green,
+                        Math.max(0, Math.min(1, value / 255.0)),
+                        this._color.alpha
+                    );
+                    this._recalculateHSVFromColor();
+                    break;
+                case UIColorPanel.Model.hsl:
+                    this._hsvComponents = JSColorSpace.rgb.hsvFromHSL(
+                        this._hsvComponents[0],
+                        JSColorSpace.rgb.hslFromHSV(this._hsvComponents)[1],
+                        Math.max(0, Math.min(1, value / 100.0))
+                    );
+                    this._recalculateColorFromHSV();
+                    this._saturationBrightnessChanged(textField);
+                    break;
+                case UIColorPanel.Model.hsv:
+                    this._hsvComponents[1] = Math.max(0, Math.min(1, value / 100.0));
+                    this._recalculateColorFromHSV();
+                    this._saturationBrightnessChanged(textField);
+                    break;
+            }
+            this.notifyDelegateOfColor();
+        }
     },
 
     component4FieldChanged: function(textField){
-        this.updateColorFromComponentFields();
+        var alpha = textField.integerValue;
+        if (isNaN(alpha)){
+            this._updateComponent4Field();
+        }else{
+            this._color = this._color.colorWithAlpha(Math.max(0, Math.min(1, alpha / 100.0)));
+            this._alphaChanged(textField);
+            this.notifyDelegateOfColor();
+        }
+    },
+
+    _recalculateHSVFromColor: function(){
+        var originalComponents = this._hsvComponents;
+        this._hsvComponents = JSColorSpace.rgb.hsvFromComponents(this._color.components);
+        if (this._hsvComponents[1] === 0 || this._hsvComponents[2] === 0){
+            this._hsvComponents[0] = originalComponents[0];
+        }
+        if (this._hsvComponents[0] !== originalComponents[0]){
+            this._hueChanged();
+        }
+        if (this._hsvComponents[1] !== originalComponents[1] || this._hsvComponents[2] !== originalComponents[2]){
+            this._saturationBrightnessChanged();
+        }
+    },
+
+    _recalculateColorFromHSV: function(){
+        this._color = JSColor.initWithHSVA(
+            this._hsvComponents[0],
+            this._hsvComponents[1],
+            this._hsvComponents[2],
+            this._color.alpha
+        );
+    },
+
+    _updateComponent1Field: function(){
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this.component1Field.integerValue = Math.round(this._color.red * 255);
+                break;
+            case UIColorPanel.Model.hsl:
+            case UIColorPanel.Model.hsv:
+                this.component1Field.integerValue = Math.round(this._hsvComponents[0] * 360);
+                break;
+        }
+    },
+
+    _updateComponent2Field: function(){
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this.component2Field.integerValue = Math.round(this._color.green * 255);
+                break;
+            case UIColorPanel.Model.hsl:
+                this.component2Field.integerValue = Math.round(JSColorSpace.rgb.hslFromHSV(this._hsvComponents)[1] * 100);
+                break;
+            case UIColorPanel.Model.hsv:
+                this.component2Field.integerValue = Math.round(this._hsvComponents[1] * 100);
+                break;
+        }
+    },
+
+    _updateComponent3Field: function(){
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this.component3Field.integerValue = Math.round(this._color.blue * 255);
+                break;
+            case UIColorPanel.Model.hsl:
+                this.component3Field.integerValue = Math.round(JSColorSpace.rgb.hslFromHSV(this._hsvComponents)[2] * 100);
+                break;
+            case UIColorPanel.Model.hsv:
+                this.component3Field.integerValue = Math.round(this._hsvComponents[2] * 100);
+                break;
+        }
+    },
+
+    _updateComponent4Field: function(){
+        this.component4Field.integerValue = Math.round(this._color.alpha * 100);
     },
 
     hexFieldChanged: function(textField){
@@ -262,69 +450,104 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.notifyDelegateOfColor();
     },
 
-    updateColorFromSliders: function(){
-        var hsl = JSColor.HSBToHSL(
-            this.hueSlider.value,
-            this.saturationBrightnessControl.value.x,
-            this.saturationBrightnessControl.value.y
-        );
-        var a = this.showsAlpha ? this.alphaSlider.value : 1;
-        this._color = JSColor.initWithHSLA(hsl[0], hsl[1], hsl[2], a);
-        this.updateComponentFieldsWithRGBAColor(this.color.rgbaColor());
-        this.updateColorDependentViews();
-        this.notifyDelegateOfColor();
+    _hueChanged: function(sender){
+        if (sender !== this.hueSlider){
+            this.hueSlider.value = this._hsvComponents[0];
+        }
+
+        this._updateSaturationBrightnessColor();
+        this._updateAlphaSliderColor();
+        this._updateHexField();
+        this._updatePreview();
+
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this._updateComponent1Field();
+                this._updateComponent2Field();
+                this._updateComponent3Field();
+                break;
+            case UIColorPanel.Model.hsl:
+            case UIColorPanel.Model.hsv:
+                this._updateComponent1Field();
+                break;
+        }
     },
 
-    updateColorFromComponentFields: function(){
-        var currentRGBAColor = this._color.rgbaColor();
-        var r = this.component1Field.integerValue / 255.0;
-        var g = this.component2Field.integerValue / 255.0;
-        var b = this.component3Field.integerValue / 255.0;
-        var a = this.showsAlpha ? this.component4Field.integerValue / 100.0 : 1;
-        if (isNaN(r)) r = currentRGBAColor.red;
-        if (isNaN(g)) g = currentRGBAColor.green;
-        if (isNaN(b)) b = currentRGBAColor.blue;
-        if (isNaN(a)) a = currentRGBAColor.alpha;
-        this._color = JSColor.initWithRGBA(r, g, b, a);
-        this.updateComponentFieldsWithRGBAColor(this._color);
-        this.updateSlidersWithHSLAColor(this.color.hslaColor());
-        this.updateColorDependentViews();
-        this.notifyDelegateOfColor();
+    _saturationBrightnessChanged: function(sender){
+        if (sender !== this.saturationBrightnessControl){
+            this.saturationBrightnessControl.value = JSPoint(
+                this._hsvComponents[1],
+                this._hsvComponents[2]
+            );
+        }
+        this._updateAlphaSliderColor();
+        this._updateHexField();
+        this._updatePreview();
+
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this._updateComponent1Field();
+                this._updateComponent2Field();
+                this._updateComponent3Field();
+                break;
+            case UIColorPanel.Model.hsl:
+            case UIColorPanel.Model.hsv:
+                this._updateComponent2Field();
+                this._updateComponent3Field();
+                break;
+        }
     },
 
-    updateSlidersWithHSLAColor: function(hslaColor){
-        var hsb = JSColor.HSLToHSB(
-            hslaColor.hue,
-            hslaColor.saturation,
-            hslaColor.lightness
-        );
-        this.hueSlider.value = hslaColor.hue;
-        this.saturationBrightnessControl.value = JSPoint(hsb[1], hsb[2]);
-        this.alphaSlider.value = hslaColor.alpha;
+    _alphaChanged: function(sender){
+        if (sender !== this.alphaSlider){
+            this.alphaSlider.value = this._color.alpha;
+        }
+        this._updateComponent4Field();
+        this._updatePreview();
     },
 
-    updateComponentFieldsWithRGBAColor: function(rgbaColor){
-        this.component1Field.integerValue = Math.round(rgbaColor.red * 255);
-        this.component2Field.integerValue = Math.round(rgbaColor.green * 255);
-        this.component3Field.integerValue = Math.round(rgbaColor.blue * 255);
-        this.component4Field.integerValue = Math.round(rgbaColor.alpha * 100);
-    },
-
-    updateColorDependentViews: function(){
-        this.hexField.text = this._color.rgbaHexStringRepresentation();
-        this.previewWell.color = this._color;
+    _updateAlphaSliderColor: function(){
         this.alphaSlider.styler.setColors([
             this._color.colorWithAlpha(0),
             this._color.colorWithAlpha(1),
         ]);
         this.alphaSlider.styler.updateControl(this.alphaSlider);
+    },
+
+    _updateSaturationBrightnessColor: function(){
         var xLayer = this.saturationBrightnessControl.xLayer;
-        var hslaColor = this._color.hslaColor();
-        if (xLayer.backgroundGradient === null || xLayer.backgroundGradient.stops[1].color.hue != hslaColor.hue){
-            var gradient = JSGradient.initWithColors([JSColor.white, JSColor.initWithHSLA(hslaColor.hue, 1, 0.5, 1)]);
-            gradient.start = JSPoint(0, 0);
-            gradient.end = JSPoint(1, 0);
-            this.saturationBrightnessControl.xLayer.backgroundGradient = gradient;
+        var pureColor = JSColor.initWithHSVA(this._hsvComponents[0], 1, 1, 1);
+        var gradient = JSGradient.initWithColors([JSColor.white, pureColor]);
+        gradient.start = JSPoint(0, 0);
+        gradient.end = JSPoint(1, 0);
+        this.saturationBrightnessControl.xLayer.backgroundGradient = gradient;
+    },
+
+    _updateHexField: function(){
+        this.hexField.text = this._color.rgbaHexStringRepresentation().substr(0, 6);
+    },
+
+    _updatePreview: function(){
+        this.previewWell.color = this._color;
+    },
+
+    _updateComponentLabels: function(){
+        switch (this._componentModel){
+            case UIColorPanel.Model.rgb:
+                this.component1Label.text = "R";
+                this.component2Label.text = "G";
+                this.component3Label.text = "B";
+                break;
+            case UIColorPanel.Model.hsl:
+                this.component1Label.text = "H";
+                this.component2Label.text = "S";
+                this.component3Label.text = "L";
+                break;
+            case UIColorPanel.Model.hsv:
+                this.component1Label.text = "H";
+                this.component2Label.text = "S";
+                this.component3Label.text = "B";
+                break;
         }
     },
 
@@ -366,8 +589,10 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.component4Field.hidden = !this._showsAlpha;
         this.component4Label.hidden = this.component4Field.hidden;
         var rect = this.view.bounds.rectWithInsets(this.contentInsets);
-        this.saturationBrightnessControl.frame = JSRect(rect.origin, JSSize(rect.size.width, rect.size.width));
-        rect.origin.y += this.saturationBrightnessControl.frame.size.height;
+        this.saturationBrightnessControl.bounds = JSRect(JSPoint.Zero, JSSize(rect.size.width + 16, rect.size.width + 16));
+        this.saturationBrightnessControl.position = rect.origin.adding(JSPoint(rect.size.width / 2, rect.size.width / 2));
+        this.saturationBrightnessControl.transform = JSAffineTransform.Scaled(1, -1);
+        rect.origin.y += rect.size.width;
         rect.origin.y += this.viewSpacing;
         var slidersHeight = this.hueSlider.intrinsicSize.height + this.sliderSpacing + this.alphaSlider.intrinsicSize.height;
         this.previewWell.frame = JSRect(rect.origin.x + rect.size.width - slidersHeight, rect.origin.y, slidersHeight, slidersHeight);
