@@ -159,20 +159,20 @@ UIAnimation.interpolateAffineTransform = function(from, to, progress){
 };
 
 UIAnimation.interpolate1Color = function(from, to, progress){
-    return JSColor.initWithSpaceAndComponents(from.colorSpace, [
+    return JSColor.initWithSpaceAndComponents(from.space, [
         from.components[0] + (to.components[0] - from.components[0]) * progress
     ]);
 };
 
 UIAnimation.interpolate2Color = function(from, to, progress){
-    return JSColor.initWithSpaceAndComponents(from.colorSpace, [
+    return JSColor.initWithSpaceAndComponents(from.space, [
         from.components[0] + (to.components[0] - from.components[0]) * progress,
         from.components[1] + (to.components[1] - from.components[1]) * progress
     ]);
 };
 
 UIAnimation.interpolate3Color = function(from, to, progress){
-    return JSColor.initWithSpaceAndComponents(from.colorSpace, [
+    return JSColor.initWithSpaceAndComponents(from.space, [
         from.components[0] + (to.components[0] - from.components[0]) * progress,
         from.components[1] + (to.components[1] - from.components[1]) * progress,
         from.components[2] + (to.components[2] - from.components[2]) * progress
@@ -180,7 +180,7 @@ UIAnimation.interpolate3Color = function(from, to, progress){
 };
 
 UIAnimation.interpolate4Color = function(from, to, progress){
-    return JSColor.initWithSpaceAndComponents(from.colorSpace, [
+    return JSColor.initWithSpaceAndComponents(from.space, [
         from.components[0] + (to.components[0] - from.components[0]) * progress,
         from.components[1] + (to.components[1] - from.components[1]) * progress,
         from.components[2] + (to.components[2] - from.components[2]) * progress,

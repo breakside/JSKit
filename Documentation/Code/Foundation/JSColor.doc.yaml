@@ -80,6 +80,8 @@ topics:
         name: initWithSpaceAndComponents
         kind: init
         summary: Create a color using the given color space and components
+        note: The component list should include an alpha component as its
+          final element
         arguments:
           -
             name: colorSpace
@@ -287,26 +289,29 @@ topics:
                 name: rgb
                 summary: The red, green, and blue color space without an alpha channel
               -
+                name: gray
+                summary: The grayscale color space without an alpha channel
+          -
+            name: Deprecated Options
+            members:
+              -
                 name: rgba
+                deprecated: 2021.28.0
                 summary: The red, green, and blue color space with an alpha channel
               -
                 name: hsl
+                deprecated: 2021.28.0
                 summary: The hue, saturation, and lightness color space without an
                   alpha channel
               -
                 name: hsla
+                deprecated: 2021.28.0
                 summary: The hue, saturation, and lightness color space with an
                   alpha channel
               -
-                name: gray
-                summary: The grayscale color space without an alpha channel
-              -
                 name: graya
+                deprecated: 2021.28.0
                 summary: The grayscale color space with an alpha channel
-      -
-        name: colorSpace
-        type: SpaceIdentifier
-        summary: The color space for this color
   -
     name: Color Components
     members:
@@ -339,21 +344,6 @@ topics:
         type: Number
         summary: The blue color percentage from `0.0` to `1.0` for colors that are
           in an RGB color space
-      -
-        name: hue
-        type: Number
-        summary: The hue color percentage from `0.0` to `1.0` for colors that are
-          in an HSL color space
-      -
-        name: saturation
-        type: Number
-        summary: The saturation color percentage from `0.0` to `1.0` for colors that are
-          in an HSL color space
-      -
-        name: lightness
-        type: Number
-        summary: The lightness color percentage from `0.0` to `1.0` for colors that are
-          in an HSL color space
       -
         name: white
         type: Number
@@ -444,3 +434,29 @@ topics:
             name: blendPercentage
             type: Number
             summary: The amount to blend in the other color
+  -
+    name: Deprecated
+    members:
+      -
+        name: colorSpace
+        deprecated: 2021.28.0
+        type: SpaceIdentifier
+        summary: The identifier of the color space for this color
+      -
+        name: hue
+        deprecated: 2021.28.0
+        type: Number
+        summary: The hue color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
+      -
+        name: saturation
+        deprecated: 2021.28.0
+        type: Number
+        summary: The saturation color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
+      -
+        name: lightness
+        deprecated: 2021.28.0
+        type: Number
+        summary: The lightness color percentage from `0.0` to `1.0` for colors that are
+          in an HSL color space
