@@ -1,5 +1,6 @@
 // #import "UIControl.js"
 // #import "UIPasteboard.js"
+// #import "UIColorPanel.js"
 "use strict";
 
 JSClass("UIColorWell", UIControl, {
@@ -140,7 +141,12 @@ JSClass("UIColorWell", UIControl, {
         if (this.hasActionForEvent(UIControl.Event.primaryAction)){
             this.sendActionsForEvents(UIControl.Event.primaryAction, event);
         }else{
-            // TODO: panel
+            var panel = UIColorPanel.init();
+            panel.color = this._color;
+            panel.showsAlpha = this.allowsAlpha;
+            panel.delegate = this;
+            panel.openAdjacentToView(this, UIPopupWindow.Placement.right);
+            this.window.modal = panel;
         }
     },
 
