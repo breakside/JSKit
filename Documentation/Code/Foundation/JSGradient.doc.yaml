@@ -40,6 +40,21 @@ topics:
             name: color1
             type: JSColor
             summary: The color at the first position
+            variable: true
+      -
+        name: initWithColors
+        introduced: 2021.28.0
+        kind: init
+        summary: Create a gradient with colors at evenly spaced positions
+        arguments:
+          -
+            name: colors
+            type: JSColor[]
+            summary: The list of colors
+        description: |
+          The positions are automatically determined by placing the first
+          color at `0`(), the last color at `1`, and any remaining colors
+          equally distributed between `0` and `1`.
       -
         name: gradientBetweenColors
         kind: method

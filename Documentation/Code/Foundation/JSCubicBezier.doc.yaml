@@ -1,0 +1,73 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.30.3
+summary: Represents a cubic Bézier curve, often used in `JSPath` construction
+description: |
+  A [Bézier curve](https://en.wikipedia.org/wiki/Bezier_curve) is a mathematically
+  defined curve from a starting point to and ending point with two control points
+  that affect the curve's shape.
+topics:
+  - name: Creating a curve
+    members:
+      - kind: constructor
+        summary: Create curve using four points
+        arguments:
+          - name: p1
+            type: JSPoint
+            summary: The starting point of the curve
+          - name: cp1
+            type: JSPoint
+            summary: The first control point
+          - name: cp2
+            type: JSPoint
+            summary: The second control point
+          - name: p2
+            type: JSPoint
+            summary: The ending point of the curve
+      - kind: constructor
+        prefix: copy
+        summary: Create curve by copying another curve
+        arguments:
+          - name: other
+            type: JSCubicBezier
+            summary: The curve to copy
+  - name: Points
+    members:
+      - name: p1
+        type: JSPoint
+        summary: The starting point of the curve
+      - name: cp1
+        type: JSPoint
+        summary: The first control point
+      - name: cp2
+        type: JSPoint
+        summary: The second control point
+      - name: p2
+        type: JSPoint
+        summary: The ending point of the curve
+  - name: Curve Inspection
+    members:
+      - name: boundingPoints
+        kind: method
+        type: JSPoint[]
+        summary: A list of points that define the limits of the curve's shape
+        note: The list always includes `p1` and `p1`, which may not be true
+          bounding points.  Callers are expected to analyze all points to
+          determine the ones that define a bounding rectangle.
+      - name: pointAtInterval
+        kind: method
+        type: JSPoint
+        summary: The point corresponding to the given interval
+        arguments:
+          - name: interval
+            type: Number
+            summary: A value from 0 to 1, representing a percentage of the
+              path from `p1` to `p2`
+      - name: intervalsForX
+        kind: method
+        type: Number[]
+        summary: The intervals at which the curve intersects the given `x` coordinate
+        arguments:
+          - name: x
+            type: Number
+            summary: The x coordinate

@@ -328,7 +328,7 @@ topics:
     name: Gesture Events
     members:
       -
-        name: magify
+        name: magnify
         kind: method
         summary: Handle an event when a magnfication is requested
         arguments:

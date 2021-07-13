@@ -1,0 +1,102 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2020.1.0
+inherits: JSObject
+summary: A asynchronous file enumerator object for use with drag and drop or system open/save panels
+description: |
+  Designed use with a `UIOpenPanel`, `JSFileEnumerator` defines
+  a common API for interacting with a list of files.
+topics:
+  - name: Iteration
+    members:
+      - name: next
+        kind: method
+        summary: Get the next file in the list
+        arguments:
+          - name: callback
+            type:
+              arguments:
+                - name: directory
+                  type: String
+                  summary: The directory prefix for the file, relative to the
+                    common ancestor directory among all the files
+                - name: file
+                  type: JSFile
+                  nullable: true
+                  summary: The file, or `null`() when there are no more files
+            summary: The function to call when the next file is ready
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `callback`()
+      - name: enumerate
+        kind: method
+        summary: Iterate through every file in the list
+        arguments:
+          - name: itemCallback
+            type:
+              arguments:
+                - name: directory
+                  type: String
+                  summary: The directory prefix for the file, relative to the
+                    common ancestor directory among all the files
+                - name: file
+                  type: JSFile
+                  summary: The file
+            summary: The function to call when the next file is ready
+          - name: doneCallback
+            type:
+              arguments: []
+            summary: The funcation to call when all the files have been read
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `callback`()
+      - name: single
+        kind: method
+        summary: Get a single file, only if the enumerator contains one file
+        arguments:
+          - name: callback
+            type:
+              arguments:
+                - name: directory
+                  type: String
+                  summary: The directory prefix for the file, relative to the
+                    common ancestor directory among all the files
+                - name: file
+                  type: JSFile
+                  nullable: true
+                  summary: The file, or `null`() if the enumerator has 0 or 2+ files
+            summary: The function to call when the file is ready
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `callback`()
+      - name: all
+        kind: method
+        summary: Get a list of all the files, only if the enumerator contains one file
+        arguments:
+          - name: callback
+            type:
+              arguments:
+                - name: directory
+                  type: Entry[]
+                  summary: The list of files
+            summary: The function to call when the list is ready
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `callback`()
+      - name: Entry
+        kind: class
+        anonymous: true
+        topics:
+          - name: Properties
+            members:
+              - name: directory
+                type: String
+                summary: The directory prefix for the file, relative to the
+                  common ancestor directory among all the files
+              - name: file
+                type: JSFile
+                summary: The file for this entry

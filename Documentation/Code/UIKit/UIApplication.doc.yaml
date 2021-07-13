@@ -114,6 +114,27 @@ topics:
                     summary: The recent logs from the application's loggers
                       leading up to the crash
           -
+            name: Application State
+            members:
+              -
+                name: applicationDidRequestState
+                introduced: 2021.28.0
+                beta: true
+                kind: method
+                type: UIState
+                nullable: true
+                summary: Called when an external action requests a new
+                  application state
+                description: |
+                  For HTML applications, this will be called when a user edits
+                  the page's URL.
+
+                  If the requested state is valid, the delegate must return it
+                  to indicate the request is granted.
+
+                  If the state is invalid, the delegate can return any other
+                  state, or `null` to indicate that that the request is denied.
+          -
             name: Application Updates
             members:
               -
@@ -181,6 +202,28 @@ topics:
           The user never sees this menu, but any shortcut key combinations that
           the menu's items define will be processed just like those for a
           visible `mainMenu`
+  -
+    name: Application State
+    members:
+      -
+        name: state
+        introduced: 2021.28.0
+        type: UIState
+        beta: true
+        summary: The current state of the application
+        description: |
+          The application's intial state is set before calling
+          `applicationDidFinishLaunching()`, allowing the application `delegate`
+          to inspect the state and show the approprate screen for that state.
+
+          If the state changes, for example by chaning the URL in an HTML
+          application, `applicationDidRequestState()` is called on the
+          `delegate`, giving the delegate an opportunity to change screens
+          based on the newly requested state.
+
+          As the user navigates through an application, you can set a new
+          value to this state, which will result in an updated URL in an HTML
+          application.
   -
     name: Opening URLs
     members:

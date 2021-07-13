@@ -538,6 +538,32 @@ topics:
             type: String
             summary: The name of the binding used during the `bind()` call
       -
+        name: didChangeValueForBinding
+        kind: method
+        summary: Notifies a binding of a change to an underlying value
+        arguments:
+          -
+            name: binding
+            type: String
+            summary: The name of the binding, matching whatever was passed
+              passed to `bind()`
+        description: |
+          Used by controls to notify bindings that a value has changed.
+
+          Bindings just work in the direction of a control listening for a
+          model change.  But to complete the loop, the model needs to know
+          when a control changes.
+
+          So a control like a `UICheckbox` calls `this.didChangeValueForBinding()`
+          when the user checks or unchecks the box.
+
+          This extra step is required to avoid a message loop where the model
+          notifies the control, causing the control to notify the model, and so on.
+
+          `didChangeValueForBinding()` messages the model without creating an
+          infinite loop, with the tradeoff that control authors must remember to
+          call it.
+      -
         name: addObserverForKeyPath
         kind: method
         summary: Register the given observer object to receive notifications

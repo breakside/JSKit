@@ -63,7 +63,8 @@ topics:
       - JSInsets
       - JSAffineTransform
       - JSColor
-      #- JSCubicBezier
+      - JSColorSpace
+      - JSCubicBezier
       - JSGradient
       - JSImage
       - JSPath
@@ -73,6 +74,7 @@ topics:
     members:
       - JSFileManager
       - JSFile
+      - JSFileEnumerator
   -
     name: Application
     summary: Common functionality shared across GUI and command line applications

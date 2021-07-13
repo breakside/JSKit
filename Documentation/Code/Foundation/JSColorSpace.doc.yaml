@@ -1,0 +1,28 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2021.28.0
+summary: A color space that gives meanings to the components of a `JSColor`
+description: |
+  `JSColor.space` is the most common use of a color space, but you can also
+  use color spaces on their own to convert color components from data sources
+  other than `JSColor`.
+topics:
+  - name: Standard Spaces
+    members:
+      - name: rgb
+        static: true
+        type: JSColorSpace
+        summary: The sRGB color space
+      - name: gray
+        static: true
+        type: JSColorSpace
+        summary: The standard grayscale color space
+  - name: Component Info
+    members:
+      - name: numberOfComponents
+        type: Number
+        summary: The number of components for colors in this space.
+        note: When creating a `JSColor`, you'll always use `numberOfComponents + 1`
+          components, where the final component represents the color's `alpha`(JSColor.alpha)
+          value.

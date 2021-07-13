@@ -9,6 +9,22 @@ topics:
     name: Creating a Color
     members:
       -
+        name: initWithSpaceAndComponents
+        introduced: 2021.28.0
+        kind: init
+        summary: Create a color using the given color space and components
+        note: The component list should include an alpha component as its
+          final element
+        arguments:
+          -
+            name: space
+            type: JSColorSpace
+            summary: The color space to use
+          -
+            name: components
+            type: Number[]
+            summary: The ordered components applicable to the given space
+      -
         name: initWithRGBA
         kind: init
         summary: Create a color using RGB components
@@ -23,9 +39,6 @@ topics:
           ````
           // Say you're given rgb components in 8-bit form like 128,204,64...
           var color = JSColor.initWithRGBA(128/255, 204/255, 64/255);
-
-          // or perhaps you have components in hex form like #12ABFE
-          var color = JSColor.initWithRGBA(0x12/255, 0xAB/255, 0xFE/255);
           ````
         arguments:
           -
@@ -40,6 +53,108 @@ topics:
             name: blue
             type: Number
             summary: The percentage of blue, from `0.0` to `1.0`
+          -
+            name: alpha
+            type: Number
+            default: "1.0"
+            summary: The percentage of opaqueness, from `0.0` to `1.0`
+      -
+        name: initWithRGBAHexString
+        introduced: 2021.28.0
+        kind: init
+        summary: Create a color using an RGB hex string with or without a
+          leading `"#"`
+        description: |
+          Hex strings are commonly found in design and web work.
+
+          ````
+          // Say you have a color in hex form like #12ABFE, the following
+          // are all equal...
+          var color = JSColor.initWithRGBAHexString("12ABFE");
+          var color = JSColor.initWithRGBAHexString("12abfe");
+          var color = JSColor.initWithRGBAHexString("#12abfe");
+          ````
+
+          You can even include another hex byte for the alpha component:
+
+          ````
+          var color = JSColor.initWithRGBAHexString("12ABFECC");
+          ````
+        arguments:
+          -
+            name: red
+            type: Number
+            summary: The percentage of red, from `0.0` to `1.0`
+          -
+            name: green
+            type: Number
+            summary: The percentage of green, from `0.0` to `1.0`
+          -
+            name: blue
+            type: Number
+            summary: The percentage of blue, from `0.0` to `1.0`
+          -
+            name: alpha
+            type: Number
+            default: "1.0"
+            summary: The percentage of opaqueness, from `0.0` to `1.0`
+      -
+        name: initWithHSVA
+        introduced: 2021.28.0
+        kind: init
+        summary: Create a color using HSV components
+        description: |
+          Components are specified as percentages from `0.0` to `1.1`, including
+          the `hue`() component, which is a percentage of 360°.
+
+          ````
+          // Say you're given HSV components like 240deg, 95%, 50%
+          var color = JSColor.initWithHSVA(240/360, 95/100, 50/100);
+          ````
+        arguments:
+          -
+            name: hue
+            type: Number
+            summary: The percentage of hue, from `0.0` to `1.0`, where `1`() represents 360°
+          -
+            name: saturation
+            type: Number
+            summary: The percentage of saturation, from `0.0` to `1.0`
+          -
+            name: value
+            type: Number
+            summary: The percentage of value, from `0.0` to `1.0`
+          -
+            name: alpha
+            type: Number
+            default: "1.0"
+            summary: The percentage of opaqueness, from `0.0` to `1.0`
+      -
+        name: initWithHSLA
+        introduced: 2021.28.0
+        kind: init
+        summary: Create a color using HSL components
+        description: |
+          Components are specified as percentages from `0.0` to `1.1`, including
+          the `hue`() component, which is a percentage of 360°.
+
+          ````
+          // Say you're given HSL components like 240deg, 95%, 50%
+          var color = JSColor.initWithHSVA(240/360, 95/100, 50/100);
+          ````
+        arguments:
+          -
+            name: hue
+            type: Number
+            summary: The percentage of hue, from `0.0` to `1.0`, where `1`() represents 360°
+          -
+            name: saturation
+            type: Number
+            summary: The percentage of saturation, from `0.0` to `1.0`
+          -
+            name: lightness
+            type: Number
+            summary: The percentage of lightness, from `0.0` to `1.0`
           -
             name: alpha
             type: Number
@@ -77,21 +192,18 @@ topics:
             type: Number
             summary: The amount to blend, from `0.0` to `1.0`
       -
-        name: initWithSpaceAndComponents
+        name: initFromDictionary
         introduced: 2021.28.0
         kind: init
-        summary: Create a color using the given color space and components
-        note: The component list should include an alpha component as its
-          final element
+        summary: Create a color from a serialized dictionary representation
         arguments:
           -
-            name: space
-            type: JSColorSpace
-            summary: The color space to use
-          -
-            name: components
-            type: Number[]
-            summary: The ordered components applicable to the given space
+            name: dictionary
+            type: dictionary
+            summary: The color dictionary serialized by `dictionaryRepresentation()`
+        description: |
+          Useful for situations like writing and then reading a color dictionary
+          to a `UIPasteboard`.
       -
         name: clear
         static: true
@@ -400,6 +512,41 @@ topics:
             name: blendPercentage
             type: Number
             summary: The amount to blend in the other color
+  -
+    name: Alternate Representations
+    members:
+      -
+        name: rgbaHexStringRepresentation
+        introduced: 2021.28.0
+        kind: method
+        type: String
+        summary: The RGB hex string representation of this color, excluding
+          the leading `"#"`
+        description: |
+          The color is first converted to RGB if necessary.
+
+          If the alpha component is `1.0`(), the hex string is 6 characters
+          long, representing the R, G, and B components.  Otherwise, the
+          string is 8 charaters long and includes the alpha component.
+      -
+        name: dictionaryRepresentation
+        introduced: 2021.28.0
+        kind: method
+        type: dictionary
+        summary: Creates a dictionary that includes the color space and
+          component information
+        description: |
+          When writing a color to a `UIPasteboard`, the pasteboard requires
+          a plain dictionary rather than an `JSColor` instance.
+
+          When reading from the pasteboard, you can use `initFromDictionary()`
+          to construct a `JSColor` instance.
+      -
+        name: contentType
+        introduced: 2021.28.0
+        static: true
+        type: String
+        summary: The mime type string that can be used with `UIPasteboard`
   -
     name: Deprecated
     members:

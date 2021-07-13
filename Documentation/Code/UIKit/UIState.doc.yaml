@@ -1,0 +1,109 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.28.0
+beta: true
+inherits: JSObject
+summary: An application state identifier, similar to a URL
+description: |
+  A `UIState` is a URL-like object that corresponds to a particular screen
+  within an application.
+
+  Unlike an actual URL, `UIState` only includes a path.
+
+  Typically, you'll inspect the `state`(UIApplication.state) of the application
+  during `applicationDidFinishLaunching()` to set the inital screen, then
+  listen for external updates via `applicationDidRequestState()`.
+
+  You'll also set `UIApplication.state` as your screens change.
+
+  In an HTML based application, the current application state is reflected in
+  the fragment part of the page's URL.
+topics:
+  - name: Creating a State
+    members:
+      - name: initWithPath
+        kind: init
+        summary: Create a state with the given path
+        arguments:
+          - name: path
+            type: String
+            nullable: true
+            summary: The path of the state
+        description: |
+          If the given path does not start with `/`, one will be prepended.
+      - name: initWithPathComponents
+        kind: init
+        summary: Create a state with the given path components
+        arguments:
+          - name: pathComponents
+            type: String[]
+            nullable: true
+            summary: The components of the state's path, to be joined with `/`
+        description: |
+          If the first component is not `/`, it will be prepended as the first compoent
+  - name: Path
+    members:
+      - name: path
+        type: String
+        summary: The path of the state, used to uniquely identify this state
+        description: |
+          State paths always start with `/`
+        see:
+          - pathComponents
+          - lastPathComponent
+      - name: pathComponents
+        type: String[]
+        summary: The components of the path split by `/`
+        description: |
+          It can often be helpful to inspect the path components one by one,
+          using each component to show the next screen in a view hierarchy.
+
+          The first component is always `/`.
+        see:
+          - path
+          - lastPathComponent
+      - name: lastPathComponent
+        type: String
+        summary: The final component of the path
+        see:
+          - pathComponents
+      - name: fileExtension
+        type: String
+        summary: The file extension, if any, of the last path component
+        see:
+          - pathComponents
+          - lastPathComponent
+  - name: Creating Related States
+    members:
+      - name: appendingPathComponent
+        kind: method
+        type: UIState
+        summary: Create a new state by appending the given path component
+        arguments:
+          - name: component
+            type: String
+            summary: The path component to append
+      - name: appendingPathComponents
+        kind: method
+        type: UIState
+        summary: Create a new state by appending the given path components
+        arguments:
+          - name: components
+            type: String[]
+            summary: The path components to append
+      - name: appendingFileExtension
+        kind: method
+        type: UIState
+        summary: Create a new state by appending the given file extension
+        arguments:
+          - name: ext
+            type: String
+            summary: The file extension to append
+      - name: removingLastPathComponent
+        kind: method
+        type: UIState
+        summary: Create a new state by removing the last path component
+      - name: removingFileExtension
+        kind: method
+        type: UIState
+        summary: Create a new state by removing file extension from the last path component

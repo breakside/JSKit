@@ -107,6 +107,10 @@ topics:
             name: session
             type: UIDraggingSession
             summary: The session related to this drag
+          -
+            name: operation
+            type: UIDragOperation
+            summary: The operation to perform
         description: |
           Only called on destinations that previously responded to
           `draggingEntered()` and `draggingUpdated()` with an allowed operation.
