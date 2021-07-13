@@ -22,9 +22,13 @@
 Object.defineProperties(JSData.prototype, {
 
     htmlURLString: {
-        value: function JSData_htmlURLString(){
+        value: function JSData_htmlURLString(contentType){
             if (!this._blobURL){
-                this._blob = new Blob([this]);
+                var options = {};
+                if (contentType){
+                    options.type = contentType.mime;
+                }
+                this._blob = new Blob([this], options);
                 this._blobURL = URL.createObjectURL(this._blob);
             }
             return this._blobURL;

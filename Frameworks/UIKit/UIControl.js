@@ -196,6 +196,11 @@ JSClass("UIControl", UIView, {
         }
     },
 
+    hasActionForEvent: function(event){
+        var actions = this._actionsByEvent[event];
+        return actions && actions.length > 0;
+    },
+
     // MARK: - State
 
     state: JSReadOnlyProperty('_state', null),

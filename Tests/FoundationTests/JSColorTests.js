@@ -19,9 +19,97 @@
 
 JSClass('JSColorTests', TKTestSuite, {
 
+    testInitWithSpaceAndComponents: function(){
+        var color = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.3, 0.4, 0.5, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.4);
+        TKAssertFloatEquals(color.components[2], 0.5);
+        TKAssertFloatEquals(color.components[3], 0.6);
+
+        TKAssertThrows(function(){
+            JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.3, 0.4, 0.5]);
+        });
+
+        TKAssertThrows(function(){
+            JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.3, 0.4, 0.5, 0.6, 0.7]);
+        });
+
+        color = JSColor.initWithSpaceAndComponents(JSColorSpace.gray, [0.3, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.gray);
+        TKAssertEquals(color.components.length, 2);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.6);
+
+        TKAssertThrows(function(){
+            JSColor.initWithSpaceAndComponents(JSColorSpace.gray, [0.3]);
+        });
+
+        TKAssertThrows(function(){
+            JSColor.initWithSpaceAndComponents(JSColorSpace.gray, [0.3, 0.6, 0.9]);
+        });
+
+        color = JSColor.initWithSpaceAndComponents("rgb", [0.3, 0.4, 0.5, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.4);
+        TKAssertFloatEquals(color.components[2], 0.5);
+        TKAssertFloatEquals(color.components[3], 0.6);
+
+        color = JSColor.initWithSpaceAndComponents("rgb", [0.3, 0.4, 0.5]);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.4);
+        TKAssertFloatEquals(color.components[2], 0.5);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        color = JSColor.initWithSpaceAndComponents("rgba", [0.3, 0.4, 0.5, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.4);
+        TKAssertFloatEquals(color.components[2], 0.5);
+        TKAssertFloatEquals(color.components[3], 0.6);
+
+        color = JSColor.initWithSpaceAndComponents("rgba", [0.3, 0.4, 0.5]);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertEquals(color.components.length, 4);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.4);
+        TKAssertFloatEquals(color.components[2], 0.5);
+        TKAssertFloatEquals(color.components[3], 1);
+
+        color = JSColor.initWithSpaceAndComponents("gray", [0.3, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.gray);
+        TKAssertEquals(color.components.length, 2);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.6);
+
+        color = JSColor.initWithSpaceAndComponents("gray", [0.3]);
+        TKAssertExactEquals(color.space, JSColorSpace.gray);
+        TKAssertEquals(color.components.length, 2);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 1);
+
+        color = JSColor.initWithSpaceAndComponents("graya", [0.3, 0.6]);
+        TKAssertExactEquals(color.space, JSColorSpace.gray);
+        TKAssertEquals(color.components.length, 2);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 0.6);
+
+        color = JSColor.initWithSpaceAndComponents("graya", [0.3]);
+        TKAssertExactEquals(color.space, JSColorSpace.gray);
+        TKAssertEquals(color.components.length, 2);
+        TKAssertFloatEquals(color.components[0], 0.3);
+        TKAssertFloatEquals(color.components[1], 1);
+    },
+
     testRGBA: function(){
         var color = JSColor.initWithRGBA();
-        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
         TKAssertEquals(color.components.length, 4);
         TKAssertEquals(color.components[0], 0);
         TKAssertEquals(color.components[1], 0);
@@ -51,7 +139,7 @@ JSClass('JSColorTests', TKTestSuite, {
     testSpec: function(){
         var spec = JSSpec.initWithDictionary({rgba: "204,102,51"});
         var color = JSColor.initWithSpec(spec);
-        TKAssertEquals(color.colorSpace, JSColor.SpaceIdentifier.rgba);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
         TKAssertEquals(color.components.length, 4);
         TKAssertEquals(color.components[0], 0.8);
         TKAssertEquals(color.components[1], 0.4);
@@ -99,50 +187,44 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertFloatEquals(color.components[3], 0xce/255.0);
     },
 
+    testInitFromDictionary: function(){
+        var color = JSColor.initFromDictionary({space: "rgb", components: [0.1, 0.2, 0.3, 0.4]});
+        TKAssertNotNull(color);
+        TKAssertExactEquals(color.space, JSColorSpace.rgb);
+        TKAssertFloatEquals(color.red, 0.1);
+        TKAssertFloatEquals(color.green, 0.2);
+        TKAssertFloatEquals(color.blue, 0.3);
+        TKAssertFloatEquals(color.alpha, 0.4);
+    },
+
     testColorWithAlpha: function(){
-        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.3, 0.4, 0.5]);
+        var color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.3, 0.4, 0.5, 1]);
         var color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.rgba);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.4);
-        TKAssertEquals(color2.components[2], 0.5);
-        TKAssertEquals(color2.components[3], 0.6);
+        TKAssertExactEquals(color2.space, JSColorSpace.rgb);
+        TKAssertFloatEquals(color2.components[0], 0.3);
+        TKAssertFloatEquals(color2.components[1], 0.4);
+        TKAssertFloatEquals(color2.components[2], 0.5);
+        TKAssertFloatEquals(color2.components[3], 0.6);
 
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.3, 0.4, 0.5, 0.8]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.3, 0.4, 0.5, 0.8]);
         color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.rgba);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.4);
-        TKAssertEquals(color2.components[2], 0.5);
-        TKAssertEquals(color2.components[3], 0.6);
+        TKAssertExactEquals(color2.space, JSColorSpace.rgb);
+        TKAssertFloatEquals(color2.components[0], 0.3);
+        TKAssertFloatEquals(color2.components[1], 0.4);
+        TKAssertFloatEquals(color2.components[2], 0.5);
+        TKAssertFloatEquals(color2.components[3], 0.6);
 
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsl, [0.3, 0.4, 0.5]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.gray, [0.3, 1]);
         color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.hsla);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.4);
-        TKAssertEquals(color2.components[2], 0.5);
-        TKAssertEquals(color2.components[3], 0.6);
+        TKAssertExactEquals(color2.space, JSColorSpace.gray);
+        TKAssertFloatEquals(color2.components[0], 0.3);
+        TKAssertFloatEquals(color2.components[1], 0.6);
 
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.hsla, [0.3, 0.4, 0.5, 0.8]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.gray, [0.3, 0.8]);
         color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.hsla);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.4);
-        TKAssertEquals(color2.components[2], 0.5);
-        TKAssertEquals(color2.components[3], 0.6);
-
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.gray, [0.3]);
-        color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.graya);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.6);
-
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.graya, [0.3, 0.8]);
-        color2 = color1.colorWithAlpha(0.6);
-        TKAssertEquals(color2.colorSpace, JSColor.SpaceIdentifier.graya);
-        TKAssertEquals(color2.components[0], 0.3);
-        TKAssertEquals(color2.components[1], 0.6);
+        TKAssertEquals(color2.space, JSColorSpace.gray);
+        TKAssertFloatEquals(color2.components[0], 0.3);
+        TKAssertFloatEquals(color2.components[1], 0.6);
     },
 
     testCssString: function(){
@@ -156,15 +238,26 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertEquals(color.cssString(), "rgba(64, 128, 191, 0.3)");
     },
 
+    testDictionaryRepresentation: function(){
+        var color = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
+        var dictionary = color.dictionaryRepresentation();
+        TKAssertExactEquals(dictionary.space, "rgb");
+        TKAssertEquals(dictionary.components.length, 4);
+        TKAssertFloatEquals(dictionary.components[0], 0.1);
+        TKAssertFloatEquals(dictionary.components[1], 0.2);
+        TKAssertFloatEquals(dictionary.components[2], 0.3);
+        TKAssertFloatEquals(dictionary.components[3], 0.4);
+    },
+
     testIsEqual: function(){
-        var color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.2, 0.4, 0.6, 0.8]);
-        var color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.2, 0.4, 0.6, 0.8]);
+        var color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.2, 0.4, 0.6, 0.8]);
+        var color2 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.2, 0.4, 0.6, 0.8]);
         TKAssertObjectEquals(color1, color2);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.2, 0.4, 0.6, 1.0]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.4, 0.6]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.2, 0.4, 0.6, 1.0]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.2, 0.4, 0.61, 1.0]);
         TKAssertObjectNotEquals(color1, color2);
-        color1 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.202, 0.4, 0.6, 1.0]);
-        color2 = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, [0.203, 0.4, 0.6, 0.999]);
+        color1 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.202, 0.4, 0.6, 1.0]);
+        color2 = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, [0.203, 0.4, 0.6, 0.999]);
         TKAssertObjectEquals(color1, color2);
     },
 

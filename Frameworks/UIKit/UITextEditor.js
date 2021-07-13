@@ -356,6 +356,9 @@ JSClass("UITextEditor", JSObject, {
     // MARK: - Selection Highlights
 
     _positionSelectionHighlights: function(){
+        if (!this._isFirstResponder || !this._isWindowKey){
+            return;
+        }
         // TODO: show paragraph marks when highlighting
         var selectionsWithLengths = [];
         var selection;

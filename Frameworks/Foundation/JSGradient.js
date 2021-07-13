@@ -49,12 +49,13 @@ JSClass('JSGradient', JSObject, {
             }else{
                 this.end = JSPoint(0, 1);
             }
+            var i, l;
+            var color;
+            var position;
             if (spec.containsKey("stops")){
                 var stops = spec.valueForKey("stops");
                 var stop;
-                var position;
-                var color;
-                for (var i = 0, l = stops.length; i < l - 1; i += 2){
+                for (i = 0, l = stops.length; i < l - 1; i += 2){
                     position = stops.valueForKey(i);
                     if (typeof(position) === "string" && position.endsWith("%")){
                         position = parseFloat(position.substr(0, position.length - 1)) / 100;
@@ -65,6 +66,22 @@ JSClass('JSGradient', JSObject, {
                     color = stops.valueForKey(i + 1, JSColor);
                     this.addStop(position, color);
                 }
+            }else if (spec.containsKey("colors")){
+                var colors = spec.valueForKey("colors");
+                if (colors.length > 0){
+                    if (colors.length == 1){
+                        color = colors.valueForKey(i, JSColor);
+                        this.addStop(0, color);
+                        this.addStop(1, color);
+                    }else{
+                        position = 0;
+                        var step = 1 / (colors.length - 1);
+                        for (i = 0, l = colors.length; i < l; ++i, position += step){
+                            color = colors.valueForKey(i, JSColor);
+                            this.addStop(position, color);
+                        }
+                    }
+                }
             }
         }
     },
@@ -74,6 +91,28 @@ JSClass('JSGradient', JSObject, {
         var args = Array.prototype.slice.call(arguments, 0);
         for (var i = 0, l = args.length; i + 1 < l; i += 2){
             this.addStop(args[i], args[i + 1]);
+        }
+    },
+
+    initWithColors: function(colors, start, end){
+        this.init();
+        if (start !== undefined){
+            this.start = JSPoint(start);
+        }
+        if (end !== undefined){
+            this.end = JSPoint(end);
+        }
+        if (colors.length > 0){
+            if (colors.length < 2){
+                this.addStop(0, colors[0]);
+                this.addStop(1, colors[0]);
+            }else{
+                var step = 1 / (colors.length - 1);
+                var position = 0;
+                for (var i = 0, l = colors.length; i < l; ++i, position += step){
+                    this.addStop(position, colors[i]);
+                }
+            }
         }
     },
 

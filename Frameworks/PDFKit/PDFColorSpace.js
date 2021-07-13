@@ -595,7 +595,7 @@ var colorFromXYZ = function(x, y, z){
         components[i] = parametricCurve3(2.4, 1.0 / 1.055, 0.055 / 1.055, 1.0 / 12.92, 0.04045, components[i]);
     }
     components.push(1);
-    return JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgba, components);
+    return JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, components);
 };
 
 var parametricCurve3 = function(g, a, b, c, d, y){

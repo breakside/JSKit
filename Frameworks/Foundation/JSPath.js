@@ -836,6 +836,39 @@ JSClass("JSPath", JSObject, {
             return null;
         }
         return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
+    },
+
+    svgPathData: function(){
+        var subpath;
+        var segment;
+        var i, l;
+        var j, k;
+        var data = "";
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath = this.subpaths[i];
+            if (subpath.segments.length > 0){
+                data += "M %f %f ".sprintf(subpath.firstPoint.x, subpath.firstPoint.y);
+                for (j = 0, k = subpath.segments.length; j < k; ++j){
+                    segment = subpath.segments[j];
+                    if (segment.type == JSPath.SegmentType.line){
+                        data += "L %f %f ".sprintf(segment.end.x, segment.end.y);
+                    }else if (segment.type == JSPath.SegmentType.curve){
+                        data += "C %f %f %f %f %f %f ".sprintf(
+                            segment.curve.cp1.x,
+                            segment.curve.cp1.y,
+                            segment.curve.cp2.x,
+                            segment.curve.cp2.y,
+                            segment.curve.p2.x,
+                            segment.curve.p2.y
+                        );
+                    }
+                }
+            }
+            if (subpath.closed){
+                data += "Z ";
+            }
+        }
+        return data;
     }
 
 });

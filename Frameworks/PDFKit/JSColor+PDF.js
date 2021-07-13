@@ -19,17 +19,11 @@
 JSColor.definePropertiesFromExtensions({
 
     pdfFillColorCommand: function(){
-        switch (this.colorSpace){
-            case JSColor.SpaceIdentifier.rgb:
-            case JSColor.SpaceIdentifier.rgba:
-                return "%f %f %f rg ".sprintf(this.red, this.green, this.blue);
-            case JSColor.SpaceIdentifier.hsl:
-            case JSColor.SpaceIdentifier.hsla:
-                return this.rgbaColor().pdfFillColorCommand();
-            case JSColor.SpaceIdentifier.gray:
-            case JSColor.SpaceIdentifier.graya:
-                return "%f g ".sprintf(this.white);
+        if (this._space === JSColorSpace.gray){
+            return "%f g ".sprintf(this.white);
         }
+        var rgbColor = this.rgbaColor();
+        return "%f %f %f rg ".sprintf(rgbColor.red, rgbColor.green, rgbColor.blue);
     },
 
     pdfStrokeColorCommand: function(){

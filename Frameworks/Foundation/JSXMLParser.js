@@ -13,12 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import "JSObject.js"
 'use strict';
 
-JSGlobalObject.XMLParser = function XMLParser(){
-};
+(function(){
 
-XMLParser.prototype = {
+JSClass("JSXMLParser", JSObject, {
 
     isHTML: false,
 
@@ -359,7 +359,7 @@ XMLParser.prototype = {
         }
     }
 
-};
+});
 
 var textByDecodingEntities = function(text){
     var index = text.indexOf('&');
@@ -444,3 +444,5 @@ var htmlElements = {
     closed: new Set(['script', 'style', 'title', 'body']),
     raw: new Set(['script', 'style'])
 };
+
+})();
