@@ -74,7 +74,7 @@ article.doc > header > p.type{
     font-size: 87.5%;
 }
 
-article.doc > header, article.doc > section.description, article.doc > section.declaration, article.doc > section.invocation, article.doc > section.parameters, article.doc > section.options, article.doc > section.note, article.doc > section.important{
+article.doc > header, article.doc > section.description, article.doc > section.declaration, article.doc > section.invocation, article.doc > section.parameters, article.doc > section.options, article.doc > section.note, article.doc > section.important, article.doc > section.beta{
     grid-column: 1;
 }
 
@@ -138,6 +138,15 @@ article.doc > aside.availability > table.environments > tbody > tr > td.name{
 
 article.doc > aside.availability > table.environments > tbody > tr > td.status{
     padding: 2px;
+}
+
+article.doc > aside.availability > table.environments > tbody > tr > td.beta > div{
+    border: 1px solid rgb(180,111,51);
+    border-radius: 2px;
+    text-align: center;
+    padding: 0 5px;
+    font-size: 80%;
+    color: rgb(180,111,51);
 }
 
 article.doc > aside.availability > table.environments > tbody > tr > td.available > div{
@@ -233,6 +242,20 @@ article.doc > section.important > header{
 }
 
 article.doc > section.important > div{
+    flex: 1;
+}
+
+article.doc > section.beta{
+    display: flex;
+    flex-direction: row;
+}
+
+article.doc > section.beta > header{
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+article.doc > section.beta > div{
     flex: 1;
 }
 

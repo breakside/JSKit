@@ -62,7 +62,15 @@ JSClass("DocComponent", JSObject, {
     sourceURL: null,
     outputURL: JSDynamicProperty('_outputURL'),
     copyright: null,
-    beta: false,
+    beta: null,
+
+    inheritedBeta: function(){
+        var component = this;
+        while (component !== null && component.beta === null){
+            component = component.parent;
+        }
+        return component ? component.beta : false;
+    },
 
     setOutputURL: function(outputURL){
         this._outputURL = outputURL;
@@ -458,6 +466,23 @@ JSClass("DocComponent", JSObject, {
             }
         }
 
+        var beta = this.inheritedBeta();
+
+        if (beta){
+            let important = document.createElement("section");
+            elements.push(important);
+            important.setAttribute("class", "beta");
+            let header = important.appendChild(document.createElement("header"));
+            let p = header.appendChild(document.createElement("p"));
+            p.appendChild(document.createTextNode("Beta API:"));
+            let div = important.appendChild(document.createElement("div"));
+            let markdown = this.createMarkdownWithString("This API is a preview under development and is subject to change in future releases.");
+            let children = markdown.htmlElementsForDocument(document);
+            for (let i = 0, l = children.length; i < l; ++i){
+                div.appendChild(children[i]);
+            }
+        }
+
         let aside = document.createElement("aside");
         aside.setAttribute("class", "availability");
         elements.push(aside);
@@ -497,8 +522,13 @@ JSClass("DocComponent", JSObject, {
                         div.appendChild(document.createTextNode('deprecated'));
                         cell.setAttribute('class', 'status deprecated');
                     }else{
-                        div.appendChild(document.createTextNode('available'));
-                        cell.setAttribute('class', 'status available');
+                        if (beta){
+                            div.appendChild(document.createTextNode('beta'));
+                            cell.setAttribute('class', 'status beta');
+                        }else{
+                            div.appendChild(document.createTextNode('available'));
+                            cell.setAttribute('class', 'status available');
+                        }
                     }
                 }
             }
@@ -844,7 +874,7 @@ JSClass("DocComponent", JSObject, {
         if (codeURL){
             obj.codeURL = codeURL.encodedString;
         }
-        if (this.beta){
+        if (this.beta === true){
             obj.beta = true;
         }
         return obj;
