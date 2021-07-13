@@ -20,26 +20,158 @@
 (function(){
 
 JSClass("JSColorSpace", JSObject, {
-    initWithIdentifier: function(identifier){
-        switch (identifier){
-            case JSColorSpace.Identifier.rgb:
-                return JSColorSpace.rgb;
-            case JSColorSpace.Identifier.gray:
-                return JSColorSpace.gray;
-        }
-        return null;
+
+    numberOfComponents: 0,
+
+    rgbFromComponents: function(components){
+        return JSColorSpace.rgb.componentsFromSpace(this, components);
     },
+
+    grayFromComponents: function(components){
+        return JSColorSpace.gray.componentsFromSpace(this, components);
+    },
+
+    xyzFromComponents: function(components){
+    },
+
+    componentsFromXYZ: function(xyz){
+    },
+
+    componentsFromSpace: function(space, components){
+        if (space === this){
+            // slice to create a copy and to always return the expected number of
+            // components regardless of whether an alpha component was passed in
+            return components.slice(0, this.numberOfComponents);
+        }
+        var xyz = space.xyzFromComponents(components);
+        return this.componentsFromXYZ(xyz);
+    }
+
 });
 
-JSColorSpace.Identifier = {
-    rgb: 'rgb',
-    gray: 'gray'
-};
+JSClass("JSXYZColorSpace", JSColorSpace, {
+
+    name: "xyz",
+
+    whitepoint: null,
+    illuminant: null,
+
+    init: function(){
+        this.initWithWhitepoint(D50, D50);
+    },
+
+    initWithWhitepoint: function(whitepoint, illuminant){
+        this.whitepoint = whitepoint;
+        this.illuminant = illuminant;
+        if (whitepoint[0] == illuminant[0] && whitepoint[1] == illuminant[1] && whitepoint[2] == illuminant[2]){
+            Object.defineProperty(this, "xyzFromComponents", {configurable: true, value: this._xyzFromComponentsIdentity});
+            Object.defineProperty(this, "componentsFromXYZ", {configurable: true, value: this._componentsFromXYZIdentity});
+        }else{
+            Object.defineProperty(this, "xyzFromComponents", {configurable: true, value: this._xyzFromComponentsScaled});
+            Object.defineProperty(this, "componentsFromXYZ", {configurable: true, value: this._componentsFromXYZScaled});
+        }
+    },
+
+    _xyzFromComponentsIdentity: function(components){
+        return components;
+    },
+
+    _componentsFromXYZIdentity: function(xyz){
+        return xyz;
+    },
+
+    _xyzFromComponentsScaled: function(components){
+        return [
+            components[0] * this.whitepoint[0] / this.illuminant[0],
+            components[1] * this.whitepoint[1] / this.illuminant[1],
+            components[2] * this.whitepoint[2] / this.illuminant[2]
+        ];
+    },
+
+    _componentsFromXYZScaled: function(xyz){
+        return [
+            xyz[0] * this.illuminant[0] / this.whitepoint[0],
+            xyz[1] * this.illuminant[1] / this.whitepoint[1],
+            xyz[2] * this.illuminant[2] / this.whitepoint[2]
+        ];
+    },
+
+});
+
+JSClass("JSLabColorSpace", JSColorSpace, {
+
+    name: "lab",
+
+    whitepoint: null,
+
+    init: function(){
+        this.initWithWhitepoint(D50);
+    },
+
+    initWithWhitepoint: function(whitepoint){
+        this.whitepoint = whitepoint;
+    },
+
+    xyzFromComponents: function(components){
+        var f = function(x){
+            if (x > JSLabColorSpace.C1){
+                return x * x * x;
+            }
+            return JSLabColorSpace.C6 * (x - JSLabColorSpace.C5);
+        };
+        var q = (components[0] + 16.0) / 116.0;
+        return [
+            this.whitepoint[0] * f(q + components[1] / 500.0),
+            this.whitepoint[1] * f(q),
+            this.whitepoint[2] * f(q - components[2] / 200.0)
+        ];
+    },
+
+    componentsFromXYZ: function(xyz){
+        var f = function(x){
+            if (x > JSLabColorSpace.C1){
+                return Math.pow(x, 1 / 3);
+            }
+            return JSLabColorSpace.C4 * (x + JSLabColorSpace.C5);
+        };
+        return [
+            116.0 * f(xyz[1] / this.whitepoint[1]) - 16.0,
+            500.0 * (f(xyz[0] / this.whitepoint[0]) - f(xyz[1] / this.whitepoint[1])),
+            200.0 * (f(xyz[1] / this.whitepoint[1]) - f(xyz[2] / this.whitepoint[2]))
+        ];
+    },
+
+});
+
+JSLabColorSpace.C1 = 6.0 / 29.0;
+JSLabColorSpace.C2 = JSLabColorSpace.C1 * JSLabColorSpace.C1 * JSLabColorSpace.C1;
+JSLabColorSpace.C3 = 29.0 / 6.0;
+JSLabColorSpace.C4 = (JSLabColorSpace.C3 * JSLabColorSpace.C3) / 3.0;
+JSLabColorSpace.C5 = 4.0 / 29.0;
+JSLabColorSpace.C6 = 3.0 * JSLabColorSpace.C1 * JSLabColorSpace.C1;
 
 JSClass("JSRGBColorSpace", JSColorSpace, {
 
-    identifier: JSColorSpace.Identifier.rgb,
+    numberOfComponents: 3,
+
+    name: "rgb",
     componentNames: { 'red': 0, 'green': 1, 'blue': 2 },
+
+    rgbFromComponents: function(components){
+        return [components[0], components[1], components[2]];
+    },
+
+    grayFromComponents: function(components){
+        return [(components[0] + components[1] + components[2]) / 3];
+    },
+
+    // MARK: - Lab conversions
+
+    xyzFromComponents: function(components){
+    },
+
+    componentsFromXYZ: function(xyz){
+    },
 
     // MARK: - rgb <-> hsl
 
@@ -179,8 +311,53 @@ JSClass("JSRGBColorSpace", JSColorSpace, {
 
 JSClass("JSGrayColorSpace", JSColorSpace, {
 
-    identifier: JSColorSpace.Identifier.gray,
-    componentNames: { 'white': 0 }
+    numberOfComponents: 1,
+
+    name: "gray",
+    componentNames: { 'white': 0 },
+
+    rgbFromComponents: function(components){
+        var white = components[0];
+        return [white, white, white];
+    },
+
+    grayFromComponents: function(components){
+        return [components[0]];
+    },
+
+});
+
+JSClass("JSDerivedColorSpace", JSColorSpace, {
+
+    initWithBaseSpace: function(baseSpace){
+        this.baseSpace = baseSpace;
+    },
+
+    baseFromComponents: function(components){
+    },
+
+    componentsFromBase: function(base){
+    },
+
+    xyzFromComponents: function(components){
+        var base = this.baseFromComponents(components);
+        return this.baseSpace.xyzFromComponents(base);
+    },
+
+    componentsFromXYZ: function(xyz){
+        var base = this.baseSpace.componentsFromXYZ(xyz);
+        return this.componentsFromBase(base);
+    },
+
+    rgbFromComponents: function(components){
+        var base = this.baseFromComponents(components);
+        return JSColorSpace.rgb.componentsFromSpace(this.baseSpace, base);
+    },
+
+    grayFromComponents: function(components){
+        var base = this.baseFromComponents(components);
+        return JSColorSpace.gray.componentsFromSpace(this.baseSpace, base);
+    }
 
 });
 
@@ -202,8 +379,29 @@ Object.defineProperties(JSColorSpace, {
             Object.defineProperty(this, "gray", {value: space});
             return space;
         }
+    },
+
+    xyz: {
+        configurable: true,
+        get: function(){
+            var space = JSXYZColorSpace.init();
+            Object.defineProperty(this, "xyz", {value: space});
+            return space;
+        }
+    },
+
+    lab: {
+        configurable: true,
+        get: function(){
+            var space = JSLabColorSpace.init();
+            Object.defineProperty(this, "lab", {value: space});
+            return space;
+        }
     }
 
 });
+
+var D50 = [0.9642, 1.0, 0.82491];
+var D65 = [0.9505, 1.0, 1.08883];
 
 })();

@@ -78,14 +78,15 @@ topics:
             summary: The amount to blend, from `0.0` to `1.0`
       -
         name: initWithSpaceAndComponents
+        introduced: 2021.28.0
         kind: init
         summary: Create a color using the given color space and components
         note: The component list should include an alpha component as its
           final element
         arguments:
           -
-            name: colorSpace
-            type: SpaceIdentifier
+            name: space
+            type: JSColorSpace
             summary: The color space to use
           -
             name: components
@@ -275,43 +276,12 @@ topics:
                   - blendBase
                   - with
   -
-    name: Color Spaces
+    name: Color Space
     members:
       -
-        name: SpaceIdentifier
-        kind: enum
-        summary: The supported color spaces
-        topics:
-          -
-            name: Options
-            members:
-              -
-                name: rgb
-                summary: The red, green, and blue color space without an alpha channel
-              -
-                name: gray
-                summary: The grayscale color space without an alpha channel
-          -
-            name: Deprecated Options
-            members:
-              -
-                name: rgba
-                deprecated: 2021.28.0
-                summary: The red, green, and blue color space with an alpha channel
-              -
-                name: hsl
-                deprecated: 2021.28.0
-                summary: The hue, saturation, and lightness color space without an
-                  alpha channel
-              -
-                name: hsla
-                deprecated: 2021.28.0
-                summary: The hue, saturation, and lightness color space with an
-                  alpha channel
-              -
-                name: graya
-                deprecated: 2021.28.0
-                summary: The grayscale color space with an alpha channel
+        name: space
+        type: JSColorSpace
+        summary: The color space for this color's components
   -
     name: Color Components
     members:
@@ -323,11 +293,7 @@ topics:
           The number and meaning of components depend on the `colorSpace` in
           use:
 
-          - `rgb` - `[red, green, blue]`
-          - `rgba` - `[red, green, blue, alpha]`
-          - `hsl` - `[hue, saturation, lightness]`
-          - `hsla` - `[hue, saturation, lightness, alpha]`
-          - `gray` - `[white]`
+          - `rgb` - `[red, green, blue, alpha]`
           - `graya` - `[white, alpha]`
       -
         name: red
@@ -438,6 +404,23 @@ topics:
     name: Deprecated
     members:
       -
+        name: initWithSpaceAndComponents
+        deprecated: 2021.28.0
+        suffix: spacename
+        kind: init
+        summary: Create a color using the given color space and components
+        note: The component list should include an alpha component as its
+          final element
+        arguments:
+          -
+            name: colorSpace
+            type: SpaceIdentifier
+            summary: The color space to use
+          -
+            name: components
+            type: Number[]
+            summary: The ordered components applicable to the given space
+      -
         name: colorSpace
         deprecated: 2021.28.0
         type: SpaceIdentifier
@@ -460,3 +443,38 @@ topics:
         type: Number
         summary: The lightness color percentage from `0.0` to `1.0` for colors that are
           in an HSL color space
+      -
+        name: SpaceIdentifier
+        deprecated: 2021.28.0
+        kind: enum
+        summary: The supported color spaces
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: rgb
+                deprecated: 2021.28.0
+                summary: The red, green, and blue color space without an alpha channel
+              -
+                name: gray
+                deprecated: 2021.28.0
+                summary: The grayscale color space without an alpha channel
+              -
+                name: rgba
+                deprecated: 2021.28.0
+                summary: The red, green, and blue color space with an alpha channel
+              -
+                name: hsl
+                deprecated: 2021.28.0
+                summary: The hue, saturation, and lightness color space without an
+                  alpha channel
+              -
+                name: hsla
+                deprecated: 2021.28.0
+                summary: The hue, saturation, and lightness color space with an
+                  alpha channel
+              -
+                name: graya
+                deprecated: 2021.28.0
+                summary: The grayscale color space with an alpha channel

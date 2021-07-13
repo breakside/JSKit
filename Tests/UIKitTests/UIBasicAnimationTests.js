@@ -344,7 +344,7 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         TKAssertFloatEquals(layer.transform.ty, 20);
     },
 
-    testInterpolate1Color: function(){
+    testInterpolate2Color: function(){
         var layer = UILayer.init();
         layer.backgroundColor = JSColor.black;
         var animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
@@ -376,40 +376,6 @@ JSClass("UIBasicAnimationTests", TKTestSuite, {
         TKAssertExactEquals(layer.animationCount, 0);
         TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithWhite(1.0));
         TKAssertObjectEquals(layer.backgroundColor, JSColor.white);
-    },
-
-    testInterpolate3Color: function(){
-        var layer = UILayer.init();
-        layer.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.0, 0.2, 0.4]);
-        var animation = UIBasicAnimation.initWithKeyPath('backgroundColor');
-        animation.layer = layer;
-        animation.duration = 1;
-        animation.fromValue = layer.backgroundColor;
-        layer.addAnimationForKey(animation, 'backgroundColor');
-        layer.backgroundColor = JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]);
-        animation.updateForTime(0);
-        TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.0, 0.2, 0.4]));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
-        animation.updateForTime(0.100);
-        TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.02, 0.24, 0.46]));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
-        animation.updateForTime(0.200);
-        TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.04, 0.28, 0.52]));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
-        animation.updateForTime(0.900);
-        TKAssert(!animation.isComplete);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.18, 0.56, 0.94]));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
-        animation.updateForTime(1.00);
-        
-        TKAssert(animation.isComplete);
-        layer.removeAnimation(animation);
-        TKAssertExactEquals(layer.animationCount, 0);
-        TKAssertObjectEquals(layer.presentation.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
-        TKAssertObjectEquals(layer.backgroundColor, JSColor.initWithSpaceAndComponents(JSColor.SpaceIdentifier.rgb, [0.2, 0.6, 1.0]));
     },
 
     testInterpolate4Color: function(){

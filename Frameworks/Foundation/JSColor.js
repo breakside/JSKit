@@ -57,37 +57,57 @@ JSClass('JSColor', JSObject, {
     },
 
     initWithSpaceAndComponents: function(colorSpace, components){
-        if (colorSpace instanceof JSColorSpace){
-            this._space = colorSpace;
-            this._components = components;
-        }else if (colorSpace === JSColor.SpaceIdentifier.hsl || colorSpace === JSColor.SpaceIdentifier.hsla){
-            // the hsl and hsla identifiers are depreicated, so if we see one,
-            // we'll use initWithHSLA init method to convert to rgb
-            this.initWithHSLA.apply(this, components);
-        }else{
-            // the rgba and graya identifiers are deprecated, so if we see one,
-            // we'll convert it to rgb or gray.
-            // NOTE: the identifier values changed to just "rgb" and "gray" so .colorSpace
-            // comparisons will still function as expected, but that means we
-            // have to check for the old values, which no longer are in the enum.
-            if (colorSpace === "rgba"){
-                colorSpace = JSColor.SpaceIdentifier.rgb;
-            }else if (colorSpace === "graya"){
-                colorSpace = JSColor.SpaceIdentifier.gray;
+        var space = null;
+        if (typeof(colorSpace) === "string"){
+            // The deprecated initWithSpaceAndComponents constructor took a
+            // SpaceIdentifier (string enum) identifier for the color space. 
+            // We can't break that, so we'll convert the string to an appropriate
+            // JSColorSpace.
+            // NOTE: since SpaceIdentifier is also deprecated, and since some
+            // of the values changed for comparison purposes, we'll used hard-coded
+            // values as they were before deprecation.
+            if (colorSpace === "hsl" || colorSpace === "hsla"){
+                // hsl and hsla aren't really their own color spaces, they're
+                // just different ways to express rgb, so we'll convert the
+                // components to rgb values.
+                space = JSColorSpace.rgb;
+                var rgbComponents = space.componentsFromHSL(components);
+                rgbComponents.push(components.length === 4 ? components[3] : 1);
+                components = rgbComponents;
+            }else if (colorSpace === "rgb" || colorSpace == "rgba"){
+                space = JSColorSpace.rgb;
+            }else if (colorSpace === "gray" || colorSpace === "graya"){
+                space = JSColorSpace.gray;
+            }else{
+                throw new Error("Unknown color space identifier: %s".sprintf(colorSpace));
             }
             // Deprecated behavior allowed components without alpha, but the
-            // new behavior requires alpha, so add an alpha value if needed 
-            if ((colorSpace === JSColor.SpaceIdentifier.rgb && components.length === 3) || (colorSpace === JSColor.SpaceIdentifier.gray && components.length === 1)){
+            // new behavior requires alpha, so add an alpha value if needed
+            if (components.length === space.numberOfComponents){
                 components = JSCopy(components);
                 components.push(1);
             }
-            this._space = JSColorSpace.initWithIdentifier(colorSpace);
-            this._components = components;   
+        }else{
+            space = colorSpace;
         }
+        if (components.length !== space.numberOfComponents + 1){
+            throw new Error("%d components required for %s color space, %d given".sprintf(space.numberOfComponents + 1, space.name, components.length));
+        }
+        this._space = space;
+        this._components = components;
     },
 
     initFromDictionary: function(dictionary){
-        this.initWithSpaceAndComponents(dictionary.space, JSCopy(dictionary.components));
+        var space = null;
+        if (dictionary.space === "rgb"){
+            space = JSColorSpace.rgb;
+        }else if (dictionary.space === "gray"){
+            space = JSColorSpace.gray;
+        }
+        if (space === null){
+            return null;
+        }
+        this.initWithSpaceAndComponents(space, JSCopy(dictionary.components));
     },
 
     initWithRGBA: function(r, g, b, a){
@@ -185,7 +205,7 @@ JSClass('JSColor', JSObject, {
     },
 
     toString: function(){
-        return "%s(%s)".sprintf(this._space.identifier, this._components.join(','));
+        return "%s(%s)".sprintf(this._space.name, this._components.join(','));
     },
 
     getAlpha: function(){
@@ -212,25 +232,22 @@ JSClass('JSColor', JSObject, {
 
     rgbaColor: function(){
         var components;
-        switch (this._space.identifier){
-            case JSColor.SpaceIdentifier.rgb:
-                return this;
-            case JSColor.SpaceIdentifier.gray:
-                return JSColor.initWithRGBA(this.white, this.white, this.white, this.alpha);
-            default:
-                return null;
+        if (this._space === JSColorSpace.rgb){
+            return this;
         }
+        var rgb = this._space.rgbFromComponents(this._components);
+        rgb.push(this.alpha);
+        return JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, rgb);
     },
 
     grayColor: function(){
-        switch (this._space.identifier){
-            case JSColor.SpaceIdentifier.rgb:
-                return JSColor.initWithWhite((this.red + this.green + this.blue) / 3, this.alpha);
-            case JSColor.SpaceIdentifier.gray:
-                return this;
-            default:
-                return null;
+        var components;
+        if (this._space === JSColorSpace.gray){
+            return this;
         }
+        var gray = this._space.grayFromComponents(this._components);
+        gray.push(this.alpha);
+        return JSColor.initWithSpaceAndComponents(JSColorSpace.gray, gray);
     },
 
     rgbaHexStringRepresentation: function(){
@@ -246,8 +263,11 @@ JSClass('JSColor', JSObject, {
     },
 
     dictionaryRepresentation: function(){
+        if (this._space !== JSColorSpace.rgb && this._space !== JSColorSpace.gray){
+            return this.rgbaColor().dictionaryRepresentation();
+        }
         return {
-            space: this._space.identifier,
+            space: this._space.name,
             components: JSCopy(this.components)
         };
     },
@@ -259,7 +279,7 @@ JSClass('JSColor', JSObject, {
     lightness: JSReadOnlyProperty(),
 
     getColorSpace: function(){
-        return this._space.identifier;
+        return this._space.name;
     },
 
     getHue: function(){
@@ -308,13 +328,15 @@ JSColor.componentsFromHexString = function(hexString){
     return null;
 };
 
-JSColor.SpaceIdentifier = Object.create(JSColorSpace.Identifier, {
-    // deprecated
+// deprecated
+JSColor.SpaceIdentifier = {
+    rgb: 'rgb',
+    gray: 'gray',
     rgba: {value: 'rgb'}, // value changed from rgba
     graya: {value: 'gray'}, // value changed from graya
     hsla: {value: 'hsla'},
     hsl: {value: 'hsl'},
-});
+};
 
 Object.defineProperties(JSColor, {
 
