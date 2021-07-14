@@ -45,7 +45,9 @@ JSClass("HTMLBuilder", Builder, {
         'docker-image': {default: null, help: "The name to use when building a docker image"},
         'docker-tag': {default: null, help: "An optional docker tag for the built image"},
         'no-docker': {kind: "flag", help: "Don't build the docker image"},
-        'env': {default: null, help: "A file with environmental variables for this build"}
+        'env': {default: null, help: "A file with environmental variables for this build"},
+        'tls-cert': {default: null, help: "The SSL cert to use for the debug build"},
+        'tls-key': {default: null, help: "The SSL key to use for the debug build"},
     },
 
     needsDockerBuild: true,
@@ -731,11 +733,24 @@ JSClass("HTMLBuilder", Builder, {
 
     bundleConf: async function(){
         this.printer.setStatus("Copying nginx conf...");
+        if (this.arguments['tls-cert']){
+            let fromURL = JSURL.initWithString(this.arguments['tls-cert'], this.workingDirectoryURL);
+            let toURL = this.confURL.appendingPathComponent("tls.crt");
+            await this.fileManager.copyItemAtURL(fromURL, toURL);
+            if (this.arguments['tls-key']){
+                let fromURL = JSURL.initWithString(this.arguments['tls-key'], this.workingDirectoryURL);
+                let toURL = this.confURL.appendingPathComponent("tls.key");
+                await this.fileManager.copyItemAtURL(fromURL, toURL);
+            }
+        }
         var params = {
             BUILD_ID: this.buildId,
             WORKER_PROCESSES: this.arguments.workers,
             WORKER_CONNECTIONS: this.arguments.connections,
-            HTTP_PORT: this.arguments['http-port']
+            HTTP_PORT: this.arguments['http-port'],
+            SSL_LISTEN: this.arguments['tls-cert'] ? " ssl" : "",
+            SSL_CERT: this.arguments['tls-cert'] ? "ssl_certificate tls.crt;" : "",
+            SSL_KEY: this.arguments['tls-key'] ? "ssl_certificate_key tls.key;" : ""
         };
         var projectConfURL = this.project.url.appendingPathComponents(["conf", this.debug ? "debug" : "release"], true);
         var entries = await this.fileManager.contentsOfDirectoryAtURL(projectConfURL);
