@@ -53,46 +53,73 @@ JSClass("JSXYZColorSpace", JSColorSpace, {
 
     name: "xyz",
 
-    whitepoint: null,
-    illuminant: null,
-
-    init: function(){
-        this.initWithWhitepoint(D50, D50);
-    },
-
-    initWithWhitepoint: function(whitepoint, illuminant){
-        this.whitepoint = whitepoint;
-        this.illuminant = illuminant;
-        if (whitepoint[0] == illuminant[0] && whitepoint[1] == illuminant[1] && whitepoint[2] == illuminant[2]){
-            Object.defineProperty(this, "xyzFromComponents", {configurable: true, value: this._xyzFromComponentsIdentity});
-            Object.defineProperty(this, "componentsFromXYZ", {configurable: true, value: this._componentsFromXYZIdentity});
-        }else{
-            Object.defineProperty(this, "xyzFromComponents", {configurable: true, value: this._xyzFromComponentsScaled});
-            Object.defineProperty(this, "componentsFromXYZ", {configurable: true, value: this._componentsFromXYZScaled});
+    initWithWhitepoint: function(mediaWhitepoint, connectionWhitepoint){
+        if (mediaWhitepoint === connectionWhitepoint){
+            return JSColorSpace.xyz;
         }
+        if (mediaWhitepoint[0] === connectionWhitepoint[0] && mediaWhitepoint[1] === connectionWhitepoint[1] && mediaWhitepoint[2] === connectionWhitepoint[2]){
+            return JSColorSpace.xyz;
+        }
+        return JSXYZScaledColorSpace.initWithWhitepoint(mediaWhitepoint, connectionWhitepoint);
     },
 
-    _xyzFromComponentsIdentity: function(components){
-        return components;
+    initWithScale: function(scale){
+        return JSXYZScaledColorSpace.initWithScale(scale);
     },
 
-    _componentsFromXYZIdentity: function(xyz){
-        return xyz;
-    },
-
-    _xyzFromComponentsScaled: function(components){
+    xyzFromComponents: function(components){
         return [
-            components[0] * this.whitepoint[0] / this.illuminant[0],
-            components[1] * this.whitepoint[1] / this.illuminant[1],
-            components[2] * this.whitepoint[2] / this.illuminant[2]
+            components[0],
+            components[1],
+            components[2]
         ];
     },
 
-    _componentsFromXYZScaled: function(xyz){
+    componentsFromXYZ: function(xyz){
         return [
-            xyz[0] * this.illuminant[0] / this.whitepoint[0],
-            xyz[1] * this.illuminant[1] / this.whitepoint[1],
-            xyz[2] * this.illuminant[2] / this.whitepoint[2]
+            xyz[0],
+            xyz[1],
+            xyz[2]
+        ];
+    },
+
+});
+
+JSClass("JSXYZScaledColorSpace", JSXYZColorSpace, {
+
+    _scale: null,
+    _inverseScale: null,
+
+    initWithWhitepoint: function(mediaWhitepoint, connectionWhitepoint){
+        this.initWithScale([
+            mediaWhitepoint[0] / connectionWhitepoint[0],
+            mediaWhitepoint[1] / connectionWhitepoint[1],
+            mediaWhitepoint[2] / connectionWhitepoint[2]
+        ]);
+    },
+
+    initWithScale: function(scale){
+        this._scale = scale;
+        this._inverseScale = [
+            1 / this._scale[0],
+            1 / this._scale[1],
+            1 / this._scale[2]
+        ];
+    },
+
+    xyzFromComponents: function(components){
+        return [
+            components[0] * this._scale[0],
+            components[1] * this._scale[1],
+            components[2] * this._scale[2]
+        ];
+    },
+
+    componentsFromXYZ: function(xyz){
+        return [
+            xyz[0] * this._inverseScale[0],
+            xyz[1] * this._inverseScale[1],
+            xyz[2] * this._inverseScale[2]
         ];
     },
 
@@ -102,53 +129,47 @@ JSClass("JSLabColorSpace", JSColorSpace, {
 
     name: "lab",
 
-    whitepoint: null,
+    mediaWhitepoint: null,
 
-    init: function(){
-        this.initWithWhitepoint(D50);
-    },
-
-    initWithWhitepoint: function(whitepoint){
-        this.whitepoint = whitepoint;
+    initWithWhitepoint: function(mediaWhitepoint){
+        this.mediaWhitepoint = mediaWhitepoint;
     },
 
     xyzFromComponents: function(components){
-        var f = function(x){
-            if (x > JSLabColorSpace.C1){
+        var fi = function(x){
+            if (x > 6.0 / 29.0){
                 return x * x * x;
             }
-            return JSLabColorSpace.C6 * (x - JSLabColorSpace.C5);
+            return (x - 4.0 / 20.0) * (108.0 / 841.0);
         };
-        var q = (components[0] + 16.0) / 116.0;
+        var fy = (components[0] + 16.0) / 116.0;
+        var fx = components[1] / 500.0 + fy;
+        var fz = fy - components[2] / 200.0;
         return [
-            this.whitepoint[0] * f(q + components[1] / 500.0),
-            this.whitepoint[1] * f(q),
-            this.whitepoint[2] * f(q - components[2] / 200.0)
+            this.mediaWhitepoint[0] * fi(fx),
+            this.mediaWhitepoint[1] * fi(fy),
+            this.mediaWhitepoint[2] * fi(fz)
         ];
     },
 
     componentsFromXYZ: function(xyz){
         var f = function(x){
-            if (x > JSLabColorSpace.C1){
-                return Math.pow(x, 1 / 3);
+            if (x > 216.0 / 24389.0){
+                return Math.pow(x, 1.0 / 3.0);
             }
-            return JSLabColorSpace.C4 * (x + JSLabColorSpace.C5);
-        };
+            return (841.0 / 108.0) * x + 4.0 / 29.0;
+        }; 
+        var fx = f(xyz[0] / this.mediaWhitepoint[0]);
+        var fy = f(xyz[1] / this.mediaWhitepoint[1]);
+        var fz = f(xyz[2] / this.mediaWhitepoint[2]);
         return [
-            116.0 * f(xyz[1] / this.whitepoint[1]) - 16.0,
-            500.0 * (f(xyz[0] / this.whitepoint[0]) - f(xyz[1] / this.whitepoint[1])),
-            200.0 * (f(xyz[1] / this.whitepoint[1]) - f(xyz[2] / this.whitepoint[2]))
+            116.0 * fy - 16.0,
+            500.0 * (fx - fy),
+            200.0 * (fy - fz)
         ];
     },
 
 });
-
-JSLabColorSpace.C1 = 6.0 / 29.0;
-JSLabColorSpace.C2 = JSLabColorSpace.C1 * JSLabColorSpace.C1 * JSLabColorSpace.C1;
-JSLabColorSpace.C3 = 29.0 / 6.0;
-JSLabColorSpace.C4 = (JSLabColorSpace.C3 * JSLabColorSpace.C3) / 3.0;
-JSLabColorSpace.C5 = 4.0 / 29.0;
-JSLabColorSpace.C6 = 3.0 * JSLabColorSpace.C1 * JSLabColorSpace.C1;
 
 JSClass("JSRGBColorSpace", JSColorSpace, {
 
@@ -393,7 +414,7 @@ Object.defineProperties(JSColorSpace, {
     lab: {
         configurable: true,
         get: function(){
-            var space = JSLabColorSpace.init();
+            var space = JSLabColorSpace.initWithWhitepoint(JSColorSpace.Whitepoint.D50);
             Object.defineProperty(this, "lab", {value: space});
             return space;
         }
@@ -401,7 +422,9 @@ Object.defineProperties(JSColorSpace, {
 
 });
 
-var D50 = [0.9642, 1.0, 0.82491];
-var D65 = [0.9505, 1.0, 1.08883];
+JSColorSpace.Whitepoint = {
+    D50: [0.9642, 1.0, 0.82491],
+    D65: [0.9505, 1.0, 1.08883]
+};
 
 })();
