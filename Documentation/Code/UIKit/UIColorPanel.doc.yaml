@@ -1,0 +1,71 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.28.1
+inherits: UIPopupWindow
+summary: A color picker panel
+description: |
+  A `UIColorPanel` is a color picker popup window, typically opened by a
+  `UIColorWell`.
+
+  The standard color panel uses a `UIColorPanelViewController` for its window
+  contents.  You can use `UIColorPanelViewController` independently from
+  `UIColorPanel` if you require a custom window or embedding.
+topics:
+  - name: Delegate
+    members:
+      - name: delegate
+        type: UIColorPanelDelegate
+        summary: The delegate that receives calls from the panel when its
+          color changes or it closes
+      - name: UIColorPanelDelegate
+        kind: protocol
+        summary: The color panel delegate protocol
+        topics:
+          - name: Color Changes
+            members:
+              - name: colorPanelDidChangeColor
+                kind: method
+                summary: Called continuously as the user adjusts the color controls
+                arguments:
+                  - name: panel
+                    type: UIColorPanel
+                    summary: The panel making the call
+                  - name: color
+                    type: JSColor
+                    summary: The newly selected color
+          - name: Panel Lifetime
+            members:
+              - name: colorPanelDidClose
+                kind: method
+                summary: Called when the panel closes
+                arguments:
+                  - name: panel
+                    type: UIColorPanel
+                    summary: The panel making the call
+  - name: Color
+    members:
+      - name: color
+        type: JSColor
+        summary: The selected color
+  - name: Options
+    members:
+      - name: showsAlpha
+        type: boolean
+        summary: Whether to show the control for changing a color's `alpha`(JSColor)
+          value.
+      - name: componentModel
+        type: Model
+        summary: The color model to use for component fields (RGB, HSV, etc.)
+      - name: Model
+        kind: enum
+        summary: The supported color component models
+        topics:
+          - name: Options
+            members:
+              - name: rgb
+                summary: The RGB (red, green, blue) color model
+              - name: hsl
+                summary: The HSL (hue, saturation, lightness) color model
+              - name: hsv
+                summary: The HSV (hue, saturation, value) color model, also
+                  known as HSB (hue, saturation, brightness)

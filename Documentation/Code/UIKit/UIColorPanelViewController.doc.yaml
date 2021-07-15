@@ -1,0 +1,60 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.28.1
+inherits: UIViewController
+summary: A color picker view controller
+description: |
+  `UIColorPanelViewController` is the same view used by `UIColorPanel`, but
+  without the window so you can embed it in your own window or view.
+topics:
+  - name: Creating a Color Panel View Controller
+    members:
+      - name: Spec File Properties
+        kind: spec
+        summary: The properties available in a spec file when creatin a
+          color panel view controller
+        topics:
+          - name: Color
+            members:
+              - name: color
+                type: JSColor
+                summary: The intially selected color
+          - name: Options
+            members:
+              - name: showsAlpha
+                type: boolean
+                summary: Whether to show the control for changing a color's `alpha`(JSColor)
+                  value.
+              - name: componentModel
+                type: UIColorPanel.Model
+                summary: The color model to use for component fields (RGB, HSV, etc.)
+          - name: Layout
+            members:
+              - name: contentInsets
+                type: JSInsets
+                summary: Padding to include around the color picker view
+  - name: Delegate
+    members:
+      - name: delegate
+        type: UIColorPanelDelegate
+        summary: The delegate that receives calls from the panel when its
+          color changes or it closes
+  - name: Color
+    members:
+      - name: color
+        type: JSColor
+        summary: The selected color
+  - name: Options
+    members:
+      - name: showsAlpha
+        type: boolean
+        summary: Whether to show the control for changing a color's `alpha`(JSColor)
+          value.
+      - name: componentModel
+        type: Model
+        summary: The color model to use for component fields (RGB, HSV, etc.)
+  - name: Layout
+    members:
+      - name: contentInsets
+        type: JSInsets
+        summary: Padding to include around the color picker view

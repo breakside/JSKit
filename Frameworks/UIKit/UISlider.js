@@ -217,12 +217,15 @@ UISlider.Styler = Object.create({}, {
 JSClass("UISliderStyler", UIControlStyler, {
 
     minimumPointForSlider: function(slider){
+        return JSPoint(0, slider.bounds.size.height / 2);
     },
 
     maximumPointForSlider: function(slider){
+        return JSPoint(slider.bounds.size.width, slider.bounds.size.height / 2);
     },
 
     sliderKnobContainsPoint: function(slider, point){
+        return false;
     }
 
 });

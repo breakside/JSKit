@@ -1,0 +1,323 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.28.0
+inherits: UIControl
+summary: A color indicator control for showing and picking colors
+description: |
+  A `UIColorWell` is a button-like control that shows a color and, upon
+  activating, either shows the standard `UIColorPanel` or calls a custom-provided
+  action.
+
+  Color wells support drag and drop between controls.
+topics:
+  - name: Creating a Color Well
+    members:
+      - name: Spec File Properties
+        kind: spec
+        summary: The properties availble when describing a color well in a
+          spec file
+        topics:
+          - name: Color Value
+            members:
+              - name: color
+                type: JSColor
+                summary: The initial color value for the well
+          - name: Options
+            members:
+              - name: allowsAlpha
+                type: boolean
+                summary: Whether colors with alpha values other than `1`() are
+                  allowed.
+  - name: Color Value
+    members:
+      - name: color
+        type: JSColor
+        summary: The color value for the well
+  - name: Options
+    members:
+      - name: allowsAlpha
+        type: boolean
+        summary: Whether colors with alpha values other than `1`() are
+          allowed.
+  - name: Styling
+    members:
+      - name: Styler
+        kind: enum
+        summary: The predefined stylers for color wells
+        topics:
+          - name: Options
+            members:
+              - name: default
+                type: UIColorWellStyler
+                summary: The default color well styler for UIKit
+      - name: UIColorWellStyler
+        kind: class
+        inherits: UIControlStyler
+        summary: The abstract base class for color well stylers
+        description: |
+          The base color well styler currently adds no extra behavior beyond
+          `UIControlStyler`.
+      - name: UIColorWellDefaultStyler
+        kind: class
+        inherits: UIColorWellStyler
+        summary: The default color well styler class, with customizable options
+        description: |
+          The default styler shows a rectacle (or rounded rectangle or circle
+          with `cornerRadius`) of the selected color.  It appears slightly inset
+          due to the `wellInnerShadowColor`.
+
+          If a color has an alpha value of < `1`(), the well is divided in half
+          diagonally with one half showing the opaque color and the other half
+          showing the chosen translucent color.
+        topics:
+          - name: Creating a Default Styler
+            members:
+              - name: Spec File Properties
+                kind: spec
+                summary: The properies available when creating a color well in
+                  a spec file
+                topics:
+                  - name: Shape & Background
+                    members:
+                      - name: size
+                        type: JSSize
+                        summary: The intrinsic size of the well
+                        description: |
+                          Most controls can determine their intrinsic size by their
+                          contents.  For example, a `UIButton` has a title or image
+                          that determines its intrinsic size.
+
+                          A color well has no content, so a set size is needed.
+                      - name: cornerRadius
+                        type: Number
+                        summary: The amount to round the corners of the control
+                      - name: wellInsets
+                        type: JSInsets
+                        summary: The amount to inset the well from the edge of the
+                          control
+                        description: |
+                          Adding insets allows the background color to appear around
+                          the well area.
+                      - name: normalBackgroundColor
+                        type: JSColor
+                        summary: The background color for the well in a normal state
+                        description: |
+                          The background color of a well can be seen around the selected
+                          color if the `wellInsets` are non-zero.  Additionally, the
+                          background color can be seen through the translucent half
+                          of a well with a selected color that has an alpha value < `1`().
+                      - name: activeBackgroundColor
+                        type: JSColor
+                        summary: The background color for the well in an active state
+                      - name: dropTargetBackgroundColor
+                        type: JSColor
+                        summary: The background color for the well when it is a drag
+                          and drop target
+                      - name: disabledBackgroundColor
+                        type: JSColor
+                        summary: The background color for the well in a disabled state
+                  - name: Border
+                    members:
+                      - name: normalBorderWidth
+                        type: Number
+                        summary: The border width for the well in a normal state
+                        description: |
+                          Unlike a `UIButtonDefaultStyler`, this color well styler
+                          supports different border widths for different states.
+
+                          The default behavior has a translucent black border that
+                          changes widths when the well is active or a drop target.
+
+                          Such styling preseves the color preview (compared to a style
+                          that darkens the whole control, for example) while still
+                          indicating state changes.
+                      - name: activeBorderWidth
+                        type: Number
+                        summary: The border width for the well in an active state
+                        description: |
+                          Unlike a `UIButtonDefaultStyler`, this color well styler
+                          supports different border widths for different states.
+
+                          The default behavior has a translucent black border that
+                          changes widths when the well is active or a drop target.
+
+                          Such styling preseves the color preview (compared to a style
+                          that darkens the whole control, for example) while still
+                          indicating state changes.
+                      - name: dropTargetBorderWidth
+                        type: Number
+                        summary: The border width for the well in a drag and drop
+                          target state
+                        description: |
+                          Unlike a `UIButtonDefaultStyler`, this color well styler
+                          supports different border widths for different states.
+
+                          The default behavior has a translucent black border that
+                          changes widths when the well is active or a drop target.
+
+                          Such styling preseves the color preview (compared to a style
+                          that darkens the whole control, for example) while still
+                          indicating state changes.
+                      - name: disabledBorderWidth
+                        type: Number
+                        summary: The border width for the well in a disabled state
+                        description: |
+                          Unlike a `UIButtonDefaultStyler`, this color well styler
+                          supports different border widths for different states.
+
+                          The default behavior has a translucent black border that
+                          changes widths when the well is active or a drop target.
+
+                          Such styling preseves the color preview (compared to a style
+                          that darkens the whole control, for example) while still
+                          indicating state changes.
+                      - name: normalBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color for the well in a normal state
+                      - name: activeBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color for the well in an active state
+                      - name: dropTargetBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color for the well in a drag and drop
+                          target state
+                      - name: disabledBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color for the well in a disabled state
+                  - name: Well
+                    members:
+                      - name: wellInnerShadowColor
+                        type: JSColor
+                        summary: The color of an inner shadow in the well
+                      - name: wellInnerShadowOffset
+                        type: JSPoint
+                        summary: The offset of the well's inner shadow
+                      - name: wellInnerShadowRadius
+                        type: Number
+                        summary: The blur radius of the well's inner shadow
+          - name: Shape & Background
+            members:
+              - name: size
+                type: JSSize
+                summary: The intrinsic size of the well
+                description: |
+                  Most controls can determine their intrinsic size by their
+                  contents.  For example, a `UIButton` has a title or image
+                  that determines its intrinsic size.
+
+                  A color well has no content, so a set size is needed.
+              - name: cornerRadius
+                type: Number
+                summary: The amount to round the corners of the control
+              - name: wellInsets
+                type: JSInsets
+                summary: The amount to inset the well from the edge of the
+                  control
+                description: |
+                  Adding insets allows the background color to appear around
+                  the well area.
+              - name: normalBackgroundColor
+                type: JSColor
+                summary: The background color for the well in a normal state
+                description: |
+                  The background color of a well can be seen around the selected
+                  color if the `wellInsets` are non-zero.  Additionally, the
+                  background color can be seen through the translucent half
+                  of a well with a selected color that has an alpha value < `1`().
+              - name: activeBackgroundColor
+                type: JSColor
+                summary: The background color for the well in an active state
+              - name: dropTargetBackgroundColor
+                type: JSColor
+                summary: The background color for the well when it is a drag
+                  and drop target
+              - name: disabledBackgroundColor
+                type: JSColor
+                summary: The background color for the well in a disabled state
+          - name: Border
+            members:
+              - name: normalBorderWidth
+                type: Number
+                summary: The border width for the well in a normal state
+                description: |
+                  Unlike a `UIButtonDefaultStyler`, this color well styler
+                  supports different border widths for different states.
+
+                  The default behavior has a translucent black border that
+                  changes widths when the well is active or a drop target.
+
+                  Such styling preseves the color preview (compared to a style
+                  that darkens the whole control, for example) while still
+                  indicating state changes.
+              - name: activeBorderWidth
+                type: Number
+                summary: The border width for the well in an active state
+                description: |
+                  Unlike a `UIButtonDefaultStyler`, this color well styler
+                  supports different border widths for different states.
+
+                  The default behavior has a translucent black border that
+                  changes widths when the well is active or a drop target.
+
+                  Such styling preseves the color preview (compared to a style
+                  that darkens the whole control, for example) while still
+                  indicating state changes.
+              - name: dropTargetBorderWidth
+                type: Number
+                summary: The border width for the well in a drag and drop
+                  target state
+                description: |
+                  Unlike a `UIButtonDefaultStyler`, this color well styler
+                  supports different border widths for different states.
+
+                  The default behavior has a translucent black border that
+                  changes widths when the well is active or a drop target.
+
+                  Such styling preseves the color preview (compared to a style
+                  that darkens the whole control, for example) while still
+                  indicating state changes.
+              - name: disabledBorderWidth
+                type: Number
+                summary: The border width for the well in a disabled state
+                description: |
+                  Unlike a `UIButtonDefaultStyler`, this color well styler
+                  supports different border widths for different states.
+
+                  The default behavior has a translucent black border that
+                  changes widths when the well is active or a drop target.
+
+                  Such styling preseves the color preview (compared to a style
+                  that darkens the whole control, for example) while still
+                  indicating state changes.
+              - name: normalBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color for the well in a normal state
+              - name: activeBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color for the well in an active state
+              - name: dropTargetBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color for the well in a drag and drop
+                  target state
+              - name: disabledBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color for the well in a disabled state
+          - name: Well
+            members:
+              - name: wellInnerShadowColor
+                type: JSColor
+                summary: The color of an inner shadow in the well
+              - name: wellInnerShadowOffset
+                type: JSPoint
+                summary: The offset of the well's inner shadow
+              - name: wellInnerShadowRadius
+                type: Number
+                summary: The blur radius of the well's inner shadow

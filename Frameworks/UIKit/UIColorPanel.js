@@ -48,6 +48,16 @@ JSClass("UIColorPanel", UIPopupWindow, {
         this.contentViewController.showsAlpha = showsAlpha;
     },
 
+    componentModel: JSDynamicProperty(),
+
+    getComponentModel: function(){
+        return this.contentViewController.componentModel;
+    },
+
+    setComponentModel: function(componentModel){
+        this.contentViewController.componentModel = componentModel;
+    },
+
     indicateModalStatus: function(){
         this.close();
     }
@@ -72,9 +82,34 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.contentInsets = JSInsets(0);
     },
 
+    initWithSpec: function(spec){
+        UIColorPanelViewController.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("delegate")){
+            this.delegate = spec.valueForKey("delegate");
+        }
+        // before color because setColor checks this._showsAlpha
+        if (spec.containsKey("showsAlpha")){
+            this._showsAlpha = spec.valueForKey("showsAlpha");
+        }
+        if (spec.containsKey("color")){
+            // use setter so we set _hsvComponents and adjust color according
+            // to _showsAlpha.
+            this.color = spec.valueForKey("color", JSColor);
+        }
+        if (spec.containsKey("componentModel")){
+            this._componentModel = spec.valueForKey("componentModel", UIColorPanel.Model);
+        }
+        if (spec.containsKey("contentInsets")){
+            this.contentInsets = spec.valueForKey("contentInsets", JSInsets);
+        }
+    },
+
     setColor: function(color){
         this._color = color.rgbaColor();
         this._hsvComponents = JSColorSpace.rgb.hsvFromComponents(this._color.components);
+        if (!this._showsAlpha){
+            this._color = this._color.colorWithAlpha(1);
+        }
         if (this.isViewLoaded){
             this._hueChanged();
             this._saturationBrightnessChanged();

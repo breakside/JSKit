@@ -1,0 +1,518 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.28.0
+inherits: UIControl
+summary: A slider control for user actions
+description: |
+  `UISlider` is the standard control for setting a value within a range
+  of allowed values, like a volume control.
+topics:
+  - name: Creating a Slider
+    members:
+      - name: Spec File Properties
+        kind: spec
+        summary: Properties allowed when describing a `UISlider` in a spec file
+        topics:
+          - name: Value
+            members:
+              - name: minimumValue
+                type: Number
+                summary: The minimum value allowed
+                description: |
+                  If not provided, will default to `0`().
+              - name: maximumValue
+                type: Number
+                summary: The maximum value allowed
+                description: |
+                  If not provided, will default to `1`().
+              - name: value
+                type: Number
+                summary: The initial value of the slider
+                description: |
+                  If not provided, will default to `minimumValue`.
+  - name: Value Range
+    members:
+      - name: minimumValue
+        type: Number
+        summary: The minimum value allowed
+        description: |
+          Defaults to `0`().
+      - name: maximumValue
+        type: Number
+        summary: The maximum value allowed
+        description: |
+          Defaults to `1`().
+      - name: value
+        type: Number
+        summary: The current value of the control
+        description: |
+          Defaults to `minimumValue`.
+  - name: Styling
+    members:
+      - name: Styler
+        kind: enum
+        summary: The predefined stylers for `UISlider` controls
+        topics:
+          - name: Options
+            members:
+              - name: default
+                type: UISliderStyler
+                summary: The default styler for sliders in `UIKit`
+      - name: UISliderStyler
+        kind: class
+        summary: The abstract base class for all slider stylers
+        topics:
+          - name: Layout
+            members:
+              - name: minimumPointForSlider
+                kind: method
+                type: JSPoint
+                summary: The point for the slider's minimum value
+                arguments:
+                  - name: slider
+                    type: UISlider
+                    summary: The slider to style
+                description: |
+                  Defaults to the midpoint of the slider's left edge 
+              - name: maximumPointForSlider
+                kind: method
+                type: JSPoint
+                summary: The point for the slider's maximum value
+                arguments:
+                  - name: slider
+                    type: UISlider
+                    summary: The slider to style
+                description: |
+                  Defaults to the midpoint of the slider's right edge 
+              - name: sliderKnobContainsPoint
+                kind: method
+                type: boolean
+                summary: Test for whether the given point is within the knob
+                  part of the slider
+                arguments:
+                  - name: slider
+                    type: UISlider
+                    summary: The slider to style
+                  - name: point
+                    type: JSPoint
+                    summary: The point to test
+                description: |
+                  Defaults to `false`()
+      - name: UISliderLayerBasedStyler
+        kind: class
+        inherits: UISliderStyler
+        summary: An abstract class for styling a slider with layers for a track
+          and knob
+        topics:
+          - name: Creating a Layer-based slider
+            members:
+              - name: Spec File Properties
+                kind: spec
+                summary: The properties available when creating a layer-based
+                  styler in a spec file
+                topics:
+                  - name: Sizing
+                    members:
+                      - name: knobSize
+                        type: JSSize
+                        summary: The size of the knob
+                      - name: trackWidth
+                        type: Number
+                        summary: The width of the track
+                        note: For a horizontal styler, the word width actually
+                          corresponds to the height of the track.  Essentially,
+                          it's the thickness of the track in the direction
+                          perpendicular to line from minimum value to maximum
+                          value.
+                      - name: trackRadius
+                        type: Number
+                        summary: The corner radius of the track
+          - name: Sizing
+            members:
+              - name: knobSize
+                type: JSSize
+                summary: The size of the knob
+              - name: trackWidth
+                type: Number
+                summary: The width of the track
+                note: For a horizontal styler, the word width actually
+                  corresponds to the height of the track.  Essentially,
+                  it's the thickness of the track in the direction
+                  perpendicular to line from minimum value to maximum
+                  value.
+              - name: trackRadius
+                type: Number
+                summary: The corner radius of the track
+      - name: UISliderDefaultStyler
+        kind: class
+        inherits: UISliderLayerBasedStyler
+        summary: The default slider styler class, providing a customizable
+          track and knob
+        topics:
+          - name: Creating a Default Styler
+            members:
+              - name: Spec File Properties
+                kind: spec
+                summary: The properties available when describing a slider styler
+                   in a spec file
+                topics:
+                  - name: Track
+                    members:
+                      - name: normalTrackColor
+                        type: JSColor
+                        summary: The color of the track when the slider is in its
+                          normal state
+                      - name: activeTrackColor
+                        type: JSColor
+                        summary: The color of the track when the slider is in its
+                          active state
+                      - name: disabledTrackColor
+                        type: JSColor
+                        summary: The color of the track when the slider is in its
+                          disabled state
+                      - name: normalTrackGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The gradient of the track when the slider is in its
+                          normal state
+                      - name: activeTrackGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The gradient of the track when the slider is in its
+                          active state
+                      - name: disabledTrackGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The gradient of the track when the slider is in its
+                          disabled state
+                      - name: trackBorderWidth
+                        type: Number
+                        summary: The border width of the track for all states
+                      - name: normalTrackBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color of the track when the slider is in its
+                          normal state
+                      - name: activeTrackBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color of the track when the slider is in its
+                          active state
+                      - name: disabledTrackBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The border color of the track when the slider is in its
+                          disabled state
+                      - name: trackInnerShadowColor
+                        type: JSColor
+                        nullable: true
+                        summary: The inner shadow color of the track
+                      - name: trackInnerShadowRadius
+                        type: Number
+                        summary: The blur radis of the track's inner shadow
+                      - name: trackInnerShadowOffset
+                        type: JSPoint
+                        summary: The offset of the track's inner shadow
+                      - name: trackFillColor
+                        type: JSColor
+                        nullable: true
+                        summary: The color to fill the track from minimum value
+                          to the current value
+                  - name: Knob
+                    members:
+                      - name: normalKnobBackgroundColor
+                        type: JSColor
+                        summary: The color of the knob when the slider is in its
+                          normal state
+                      - name: activeKnobBackgroundColor
+                        type: JSColor
+                        summary: The color of the knob when the slider is in its
+                          active state
+                      - name: disabledKnobBackgroundColor
+                        type: JSColor
+                        summary: The color of the knob when the slider is in its
+                          disabled state
+                      - name: normalKnobBackgroundGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The gradient of the knob when the slider is in its
+                          normal state
+                      - name: activeKnobBackgroundGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The color of the knob when the slider is in its
+                          active state
+                      - name: disabledKnobBackgroundGradient
+                        type: JSGradient
+                        nullable: true
+                        summary: The gradient of the knob when the slider is in its
+                          disabled state
+                      - name: knobBorderWidth
+                        type: Number
+                        summary: The width of the knob's border in all states
+                      - name: normalKnobBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The color of the knob's border in the slider's
+                          normal state
+                      - name: activeKnobBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The color of the knob's border in the slider's
+                          active state
+                      - name: disabledKnobBorderColor
+                        type: JSColor
+                        nullable: true
+                        summary: The color of the knob's border in the slider's
+                          disabled state 
+                      - name: knobShadowColor
+                        type: JSColor
+                        nullable: true
+                        summary: The color of the knob's drop shadow
+                      - name: knobShadowRadius
+                        type: Number
+                        summary: The blur radius of the knob's drop shadow
+                      - name: knobShadowOffset
+                        type: JSPoint
+                        summary: The offset of the knob's drop shadow
+          - name: Track
+            members:
+              - name: normalTrackColor
+                type: JSColor
+                summary: The color of the track when the slider is in its
+                  normal state
+              - name: activeTrackColor
+                type: JSColor
+                summary: The color of the track when the slider is in its
+                  active state
+              - name: disabledTrackColor
+                type: JSColor
+                summary: The color of the track when the slider is in its
+                  disabled state
+              - name: normalTrackGradient
+                type: JSGradient
+                nullable: true
+                summary: The gradient of the track when the slider is in its
+                  normal state
+              - name: activeTrackGradient
+                type: JSGradient
+                nullable: true
+                summary: The gradient of the track when the slider is in its
+                  active state
+              - name: disabledTrackGradient
+                type: JSGradient
+                nullable: true
+                summary: The gradient of the track when the slider is in its
+                  disabled state
+              - name: trackBorderWidth
+                type: Number
+                summary: The border width of the track for all states
+              - name: normalTrackBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color of the track when the slider is in its
+                  normal state
+              - name: activeTrackBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color of the track when the slider is in its
+                  active state
+              - name: disabledTrackBorderColor
+                type: JSColor
+                nullable: true
+                summary: The border color of the track when the slider is in its
+                  disabled state
+              - name: trackInnerShadowColor
+                type: JSColor
+                nullable: true
+                summary: The inner shadow color of the track
+              - name: trackInnerShadowRadius
+                type: Number
+                summary: The blur radis of the track's inner shadow
+              - name: trackInnerShadowOffset
+                type: JSPoint
+                summary: The offset of the track's inner shadow
+              - name: trackFillColor
+                type: JSColor
+                nullable: true
+                summary: The color to fill the track from minimum value
+                  to the current value
+          - name: Knob
+            members:
+              - name: normalKnobBackgroundColor
+                type: JSColor
+                summary: The color of the knob when the slider is in its
+                  normal state
+              - name: activeKnobBackgroundColor
+                type: JSColor
+                summary: The color of the knob when the slider is in its
+                  active state
+              - name: disabledKnobBackgroundColor
+                type: JSColor
+                summary: The color of the knob when the slider is in its
+                  disabled state
+              - name: normalKnobBackgroundGradient
+                type: JSGradient
+                nullable: true
+                summary: The gradient of the knob when the slider is in its
+                  normal state
+              - name: activeKnobBackgroundGradient
+                type: JSGradient
+                nullable: true
+                summary: The color of the knob when the slider is in its
+                  active state
+              - name: disabledKnobBackgroundGradient
+                type: JSGradient
+                nullable: true
+                summary: The gradient of the knob when the slider is in its
+                  disabled state
+              - name: knobBorderWidth
+                type: Number
+                summary: The width of the knob's border in all states
+              - name: normalKnobBorderColor
+                type: JSColor
+                nullable: true
+                summary: The color of the knob's border in the slider's
+                  normal state
+              - name: activeKnobBorderColor
+                type: JSColor
+                nullable: true
+                summary: The color of the knob's border in the slider's
+                  active state
+              - name: disabledKnobBorderColor
+                type: JSColor
+                nullable: true
+                summary: The color of the knob's border in the slider's
+                  disabled state 
+              - name: knobShadowColor
+                type: JSColor
+                nullable: true
+                summary: The color of the knob's drop shadow
+              - name: knobShadowRadius
+                type: Number
+                summary: The blur radius of the knob's drop shadow
+              - name: knobShadowOffset
+                type: JSPoint
+                summary: The offset of the knob's drop shadow
+      - name: UISliderColorStyler
+        kind: class
+        inherits: UISliderLayerBasedStyler
+        summary: A slider styler that shows a color gradient along its
+          track in the value direction, a commonly used visual in color pickers
+        topics:
+          - name: Creating a Color Styler
+            members:
+              - name: initWithColors
+                kind: init
+                summary: Create a color slider styler by making a gradient
+                  that evenly spaces the given colors
+                arguments:
+                  - name: colors
+                    type: JSColor[]
+                    summary: The colors to use
+                description: |
+                  For example, if you wanted to color the slider for a alpha
+                  selector, you might create it with something like
+
+                  ````
+                  var color = JSColor.red;
+                  var styler = UISliderColorStyler.initWithColors([
+                    color.colorWithAlpha(0),
+                    color
+                  ]);
+                  ````
+              - name: Spec File Properties
+                kind: spec
+                summary: The properties available when describing a slider styler
+                   in a spec file
+                topics:
+                  - name: Colors
+                    members:
+                      - name: gradient
+                        type: JSGradient
+                        summary: The gradient to use along the track to
+                          visualize values
+          - name: Track Gradient
+            members:
+              - name: setColors
+                kind: method
+                summary: Change the color gradient of the track
+                arguments:
+                  - name: colors
+                    type: JSColor[]
+                    summary: The colors to use
+                description: |
+                  After calling this method, you must call `updateControl()` on
+                  all associated `UISlider` instances.
+
+                  In general, `UIControlStyler`s don't keep track of the controls
+                  currently being displayed.  Instead, the stylers rely on the
+                  controls themselves to request updates for events like user
+                  interaction.
+
+                  In addition, stylers are designed to be static, containing
+                  instructions on how to change a control as its state changes.
+
+                  But with this color styler, which is often used in color
+                  picker views, it's typically necessary to update the gradient
+                  as the user changes *other* sliders.  For exmple, an alpha
+                  slider always goes from clear to some hue, but that hue
+                  changes as the user adjusts other controls.
+
+                  ````
+                  JSClass("ColorPickerViewController", UIViewController, {
+
+                    color: null,
+
+                    // Just to make the context clear, here's how all the
+                    // relevant views and actions get created:
+
+                    viewDidLoad: function(){
+                      ColorPickerViewController.$super.viewDidLoad.call(this);
+
+                      this.hueSlider = UISlider.initWithStyler(UISliderColorStyler.initWithColors([
+                        JSColor.initWithHSVA(0, 1, 1),
+                        JSColor.initWithHSVA(1/6, 1, 1),
+                        JSColor.initWithHSVA(2/6, 1, 1),
+                        JSColor.initWithHSVA(3/6, 1, 1),
+                        JSColor.initWithHSVA(4/6, 1, 1),
+                        JSColor.initWithHSVA(5/6, 1, 1),
+                        JSColor.initWithHSVA(1, 1, 1)
+                      ]));
+                      this.hueSlider.value = this.hue;
+                      this.hueSlider.addAction(this.hueChanged, this);
+
+                      this.color = JSColor.initWithHSVA(this.hueSlider.value, 1, 1);
+
+                      this.alphaStyler = UISliderColorStyler.initWithColors([
+                        this.color.colorWithAlpha(0),
+                        this.color.colorWithAlpha(1)
+                      ]);
+                      this.alphaSlider = UISlider.initWithStyler(this.alphaStyler);
+                      this.alphaSlider.addAction(this.alphaChanged, this);
+                    },
+
+                    hueSlider: null,
+                    alphaSlider: null,
+                    alphaStyler: null,
+
+                    // When we handle a hue change action, we want to updated
+                    // the hue of the gradient in the alpha slider
+
+                    hueChanged: function(sender){
+                      this.color = JSColor.initWithHSVA(this.hue, 1, 1, this.alphaSlider.value);
+
+                      // We've updated the hue of our color, so we need to update
+                      // the styler for the alpha slider.
+                      this.alphaStyler.setColors([
+                        this.color.colorWithAlpha(0),
+                        this.color.colorWithAlpha(1)
+                      ]);
+
+                      // But since updating the styler doesn't automatically
+                      // update the slider, we need to call updateCotrol:
+                      this.alphaStyler.updateControl(this.alphaSlider);
+                    }
+
+                  });
+                  ````

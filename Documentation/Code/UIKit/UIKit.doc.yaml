@@ -190,6 +190,10 @@ topics:
       - UIRadioGroup
       - UIRadioButton
       - UISegmentedControl
+      - UISlider
+      - UIColorWell
+      - UIColorPanel
+      - UIColorPanelViewController
   -
     name: Text Controls
     members:
