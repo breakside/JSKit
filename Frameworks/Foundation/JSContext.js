@@ -206,10 +206,10 @@ JSClass("JSContext", JSObject, {
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
+    drawLinearGradient: function(gradient, rect){
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
+    drawRadialGradient: function(gradient, rect, r0, r1){
     },
 
     // ----------------------------------------------------------------------

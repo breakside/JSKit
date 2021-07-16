@@ -33,7 +33,7 @@ JSClass("IKNodeBitmapContext", IKBitmapContext, {
         this.data = JSData.initWithLength(pixelSize.width * pixelSize.height * 4);
     },
 
-    bitmap: function(){
+    bitmap: function(completion, target){
         var bitmap = IKBitmap.initWithData(this.data, this.size);
         return bitmap;
     },
@@ -204,11 +204,11 @@ JSClass("IKNodeBitmapContext", IKBitmapContext, {
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
+    drawLinearGradient: function(gradient, rect){
         // TODO:
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
+    drawRadialGradient: function(gradient, rect, r0, r1){
         // TODO:
     },
 

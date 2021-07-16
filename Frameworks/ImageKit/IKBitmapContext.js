@@ -19,21 +19,30 @@
 
 JSClass("IKBitmapContext", JSContext, {
 
-    initWithPixelSize: function(size){
+    initWithSize: function(size){
         IKBitmap.$super.init.call(this);
         this.size = JSSize(Math.ceil(size.width), Math.ceil(size.height));
     },
 
     size: null,
 
-    bitmap: function(){
+    bitmap: function(completion, target){
     },
 
-    image: function(scale){
-        var bitmap = this.bitmap();
-        var png = bitmap.encodedData(IKBitmap.Format.png);
-        var image = JSImage.initWithData(png, this.size, scale);
-        return image;
+    image: function(scale, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.bitmap(function(bitmap){
+            if (bitmap === null){
+                completion.call(target, null);
+                return;
+            }
+            var png = bitmap.encodedData(IKBitmap.Format.png);
+            var image = JSImage.initWithData(png, bitmap.size, scale);
+            return completion.call(target, image);
+        }, this);
+        return completion.promise;
     },
 
 });

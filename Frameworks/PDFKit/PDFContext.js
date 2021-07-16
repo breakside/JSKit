@@ -429,11 +429,11 @@ JSClass("PDFContext", JSContext, {
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
+    drawLinearGradient: function(gradient, rect){
         // TODO: (Section 8.7.4, Shading)
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
+    drawRadialGradient: function(gradient, rect, r0, r1){
         // TODO: (Section 8.7.4, Shading)
     },
 

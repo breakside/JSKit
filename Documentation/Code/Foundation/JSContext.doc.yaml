@@ -558,38 +558,38 @@ topics:
             type: JSGradient
             summary: The gradient colors and positioning
           -
-            name: start
-            type: JSPoint
-            summary: The starting point
-          -
-            name: end
-            type: JSPoint
-            summary: The ending point
-      -
-        name: drawRadialGradient
-        kind: method
-        summary: Draw a radial gradient
-        arguments:
-          -
-            name: gradient
-            type: JSGradient
-            summary: The gradient colors and positioning
-          -
-            name: startCenter
-            type: JSPoint
-            summary: The starting center point
-          -
-            name: startRadius
-            type: Number
-            summary: The starting radius
-          -
-            name: endCenter
-            type: JSPoint
-            summary: The ending center point
-          -
-            name: endRadius
-            type: Number
-            summary: The ending radius
+            name: rect
+            type: JSRect
+            summary: The rectangle in which to paint the gradient
+        description: |
+          The gradient's `start`(JSGradient.start) and `end`(JSGradient.end)
+          properties should include coordinate values ranging from 0 to 1, which
+          will be scaled to the extents of the `rect`() argument.
+      # -
+      #   name: drawRadialGradient
+      #   kind: method
+      #   summary: Draw a radial gradient
+      #   arguments:
+      #     -
+      #       name: gradient
+      #       type: JSGradient
+      #       summary: The gradient colors and positioning
+      #     -
+      #       name: startCenter
+      #       type: JSPoint
+      #       summary: The starting center point
+      #     -
+      #       name: startRadius
+      #       type: Number
+      #       summary: The starting radius
+      #     -
+      #       name: endCenter
+      #       type: JSPoint
+      #       summary: The ending center point
+      #     -
+      #       name: endRadius
+      #       type: Number
+      #       summary: The ending radius
   -
     name: State Management
     members:

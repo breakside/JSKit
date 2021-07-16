@@ -891,12 +891,10 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
-        // TODO
+    drawLinearGradient: function(gradient, rect){
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
-        // TODO
+    drawRadialGradient: function(gradient, rect, r0, r1){
     },
 
     // ----------------------------------------------------------------------
