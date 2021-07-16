@@ -1,6 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
-introduced: 2021.28.0
+introduced: 2021.28.1
 inherits: UIControl
 summary: A color indicator control for showing and picking colors
 description: |
