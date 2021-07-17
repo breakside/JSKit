@@ -705,14 +705,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.canvasContext.save();
         this.canvasContext.translate(rect.origin.x, rect.origin.y);
         this.canvasContext.scale(rect.size.width, rect.size.height);
-        var canvasGradient = this.canvasContext.createLineralGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
+        var canvasGradient = this.canvasContext.createLinearGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
         var stop;
         for (var i = 0, l = gradient.stops.length; i < l; ++i){
             stop = gradient.stops[i];
             canvasGradient.addColorStop(stop.position, stop.color.cssString());
         }
         this.canvasContext.fillStyle = canvasGradient;
-        this.canvasContext.fillRect(JSRect(0, 0, 1, 1));
+        this.canvasContext.fillRect(0, 0, 1, 1);
         this.canvasContext.restore();
     },
 
@@ -727,7 +727,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             canvasGradient.addColorStop(stop.position, stop.color.cssString());
         }
         this.canvasContext.fillStyle = canvasGradient;
-        this.canvasContext.fillRect(JSRect(0, 0, 1, 1));
+        this.canvasContext.fillRect(0, 0, 1, 1);
         this.canvasContext.restore();
     },
 

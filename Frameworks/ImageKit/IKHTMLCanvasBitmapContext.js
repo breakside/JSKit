@@ -19,6 +19,8 @@
 
 (function(){
 
+var logger = JSLog("imagekit", "htmlbitmap");
+
 JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
 
     canvasElement: null,
@@ -28,7 +30,8 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // MARK: - Creating a Context
 
     initWithDocument: function(document, size){
-        IKHTMLCanvasBitmapContext.$super.initWithSize(size);
+        IKHTMLCanvasBitmapContext.$super.init.call(this);
+        this.size = JSSize(Math.ceil(size.width), Math.ceil(size.height));
         this.canvasElement = document.createElement("canvas");
         this.canvasElement.width = this.size.width;
         this.canvasElement.height = this.size.height;
@@ -37,15 +40,11 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     },
 
     bitmap: function(completion, target){
-        this.enqueueOperation({
-            canvasContext: this.canvasContext,
-            size: this.size,
-            run: function(opCompletion, opTarget){
-                var imageData = this.canvasContext.getImageData(0, 0, this.size.width, this.size.height);
-                var bitmap = IKBitmap.initWithData(imageData, this.size);
-                opCompletion.call(opTarget);
-                completion.call(target, bitmap);
-            }
+        this.enqueueOperation(function(state, opCompletion, opTarget){
+            var imageData = this.canvasContext.getImageData(0, 0, this.size.width, this.size.height);
+            var bitmap = IKBitmap.initWithData(new Uint8Array(imageData.data.buffer, 0, imageData.data.length), this.size);
+            opCompletion.call(opTarget);
+            completion.call(target, bitmap);
         });
     },
 
@@ -56,6 +55,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
 
     enqueueOperation: function(operation){
         var state = {
+            transform: this.state.transform,
             alpha: this.state.alpha,
             fillColor: this.state.fillColor,
             strokeColor: this.state.strokeColor,
@@ -83,7 +83,14 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         var operation = this.operationQueue[0];
         
         // apply state as it was when operation was created
-        this.canvasContext.setTransform(operation.state.transform);
+        this.canvasContext.setTransform(
+            operation.state.transform.a,
+            operation.state.transform.b,
+            operation.state.transform.c,
+            operation.state.transform.d,
+            operation.state.transform.tx,
+            operation.state.transform.ty
+        );
         this.canvasContext.globalAlpha = operation.state.alpha;
         if (operation.state.fillColor !== null){
             this.canvasContext.fillStyle = operation.state.fillColor.cssString();
@@ -103,7 +110,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             this.canvasContext.shadowColor = operation.state.shadowColor.cssString();
             this.canvasContext.shadowOffsetX = operation.state.shadowOffset.x;
             this.canvasContext.shadowOffsetY = operation.state.shadowOffset.y;
-            this.canvasContext.shadowBlur = operation.state.shadowBlur;
+            this.canvasContext.shadowBlur = operation.state.shadowBlur * operation.state.transform.a;
         }
         if (operation.state.font !== null){
             this.canvasContext.font = operation.state.font.cssString();
@@ -124,6 +131,8 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawPath: function(drawingMode){
         var path = this.path.copy();
         this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this.canvasContext.beginPath();
             path.addToIKHTMLCanvasContext(this.canvasContext);
             switch (drawingMode){
                 case JSContext.DrawingMode.fill:
@@ -163,14 +172,15 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     fillMaskedRect: function(rect, maskImage){
         this.enqueueOperation(function(state, completion, target){
             drawableElementForImage(maskImage, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
                 var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
-                maskCanvas.width = maskImage.size.width;
-                maskCanvas.height = maskImage.size.height;
+                maskCanvas.width = maskImage.size.width * scale;
+                maskCanvas.height = maskImage.size.height * scale;
                 var maskContext = maskCanvas.getContext('2d');
                 maskContext.fillStyle = state.fillColor.cssString();
-                maskContext.fillRect(0, 0, maskImage.size.width, maskImage.size.height);
+                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
                 maskContext.globalCompositeOperation = 'destination-in';
-                maskContext.drawImage(imgElement, 0, 0, maskImage.size.width, maskImage.size.height);
+                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
                 this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
             }, this);
@@ -182,6 +192,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawImage: function(image, rect){
         this.enqueueOperation(function(state, completion, target){
             drawableElementForImage(image, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
                 this.canvasContext.drawImage(imgElement, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
             }, this);
@@ -197,14 +208,14 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             // we'll align our transform so the unit rectangle matches rect.
             this.canvasContext.translate(rect.origin.x, rect.origin.y);
             this.canvasContext.scale(rect.size.width, rect.size.height);
-            var canvasGradient = this.canvasContext.createLineralGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
+            var canvasGradient = this.canvasContext.createLinearGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
             var stop;
             for (var i = 0, l = gradient.stops.length; i < l; ++i){
                 stop = gradient.stops[i];
                 canvasGradient.addColorStop(stop.position, stop.color.cssString());
             }
             this.canvasContext.fillStyle = canvasGradient;
-            this.canvasContext.fillRect(JSRect(0, 0, 1, 1));
+            this.canvasContext.fillRect(0, 0, 1, 1);
             completion.call(target);
         });
     },
@@ -222,7 +233,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                 canvasGradient.addColorStop(stop.position, stop.color.cssString());
             }
             this.canvasContext.fillStyle = canvasGradient;
-            this.canvasContext.fillRect(JSRect(0, 0, 1, 1));
+            this.canvasContext.fillRect(0, 0, 1, 1);
             completion.call(target);
         });
     },
@@ -231,33 +242,42 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // MARK: - Text
 
     showGlyphs: function(glyphs){
-        this.enqueueOperation(function(state, completion, target){
-            if (!state.textMatrix.isIdentity){
-                // Canvas2D doens't have a concept of a text transform, so we'll just
-                // add it to the base transform.
-                // - Be sure to adjust the lineWidth for the new scale
-                this.canvasContext.lineWidth = this.canvasContext.lineWidth / Math.abs(state.textMatrix.d);
-                this.canvasContext.transform(state.textMatrix);
-            }
-            var glyph;
-            var text;
-            var width;
-            var font = state.font;
-            for (var i = 0, l = glyphs.length; i < l; ++i){
-                glyph = glyphs[i];
-                text = font.stringForGlyphs([glyph]);
-                if (state.textDrawingMode == JSContext.TextDrawingMode.fill || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                    this.canvasContext.fillText(text, 0, 0);
-                }
-                if (state.textDrawingMode == JSContext.TextDrawingMode.stroke || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                    this.canvasContext.strokeText(text, 0, 0);
-                }
-                width = font.widthOfGlyph(glyph) + state.characterSpacing;
-                this.translateBy(width, 0);
-            }
+        var text = this.state.font.stringForGlyphs(glyphs);
+        this.showText(text);
+        // this.enqueueOperation(function(state, completion, target){
+        //     if (!state.textMatrix.isIdentity){
+        //         // Canvas2D doens't have a concept of a text transform, so we'll just
+        //         // add it to the base transform.
+        //         // - Be sure to adjust the lineWidth for the new scale
+        //         this.canvasContext.lineWidth = this.canvasContext.lineWidth / Math.abs(state.textMatrix.d);
+        //         this.canvasContext.transform(
+        //             state.textMatrix.a,
+        //             state.textMatrix.b,
+        //             state.textMatrix.c,
+        //             state.textMatrix.d,
+        //             state.textMatrix.tx,
+        //             state.textMatrix.ty
+        //         );
+        //     }
+        //     var glyph;
+        //     var text;
+        //     var width;
+        //     var font = state.font;
+        //     for (var i = 0, l = glyphs.length; i < l; ++i){
+        //         glyph = glyphs[i];
+        //         text = font.stringForGlyphs([glyph]);
+        //         if (state.textDrawingMode == JSContext.TextDrawingMode.fill || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        //             this.canvasContext.fillText(text, 0, 0);
+        //         }
+        //         if (state.textDrawingMode == JSContext.TextDrawingMode.stroke || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        //             this.canvasContext.strokeText(text, 0, 0);
+        //         }
+        //         width = font.widthOfGlyph(glyph) + state.characterSpacing;
+        //         this.canvasContext.translate(width, 0);
+        //     }
 
-            completion.call(target);
-        });
+        //     completion.call(target);
+        // });
     },
 
     showText: function(text){
@@ -267,7 +287,14 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                 // add it to the base transform.
                 // - Be sure to adjust the lineWidth for the new scale
                 this.canvasContext.lineWidth = this.canvasContext.lineWidth / Math.abs(state.textMatrix.d);
-                this.canvasContext.transform(state.textMatrix);
+                this.canvasContext.transform(
+                    state.textMatrix.a,
+                    state.textMatrix.b,
+                    state.textMatrix.c,
+                    state.textMatrix.d,
+                    state.textMatrix.tx,
+                    state.textMatrix.ty
+                );
             }
             if (state.characterSpacing === 0){
                 // If character spacing is zero, then it's far more effient to just paint
@@ -308,6 +335,8 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     clip: function(fillRule){
         var path = this.path.copy();
         this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this.canvasContext.beginPath();
             path.addToIKHTMLCanvasContext(this.canvasContext);
             if (fillRule == JSContext.FillRule.evenOdd){
                 this.canvasContext.clip('evenodd');
@@ -318,6 +347,32 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         });
         this.beginPath();
     },
+
+    // ----------------------------------------------------------------------
+    // MARK: - State
+
+    // Because of our operation queue design, the only reason we need to
+    // handle save/restore is to have the canvas context keep track of the
+    // current clipping path(s).
+    // Alternatively, we could keep track ourself, and apply a stack of clips
+    // when we set the rest of the state before operation.run, but this seems
+    // easier and unlikely to have a major impact on performance.
+
+    save: function(){
+        IKHTMLCanvasBitmapContext.$super.save.call(this);
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.save();
+            completion.call(target);
+        });
+    },
+
+    restore: function(){
+        IKHTMLCanvasBitmapContext.$super.restore.call(this);
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.restore();
+            completion.call(target);
+        });
+    }
 
 });
 
@@ -376,5 +431,13 @@ var drawableElementForImage = function(image, domDocument, completion, target){
         imgElement.addEventListener("error", listener);
     }
 };
+
+IKBitmapContext.definePropertiesFromExtensions({
+    initWithSize: function(size){
+        return IKHTMLCanvasBitmapContext.initWithDocument(document, size);
+    },
+});
+
+IKBitmapContext.defineInitMethod("initWithSize");
 
 })();
