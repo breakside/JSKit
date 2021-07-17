@@ -104,6 +104,10 @@ JSAffineTransform.prototype = {
 
     isEqual: function(other){
         return this.a == other.a && this.b == other.b && this.c == other.c && this.d == other.d && this.tx == other.tx && this.ty == other.ty;
+    },
+
+    toString: function(){
+        return "m[%f, %f, %f, %f, %f, %f]".sprintf(this.a, this.b, this.c, this.d, this.tx, this.ty);
     }
 };
 
