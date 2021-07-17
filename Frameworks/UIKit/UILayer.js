@@ -795,9 +795,9 @@ JSContext.definePropertiesFromExtensions({
                 backgroundInset = properties.borderWidth / 2;
             }
             path = layer.createPath(UILayer.Sides.all, backgroundInset);
-            this.addPath(path);
             if (properties.backgroundColor !== null){
                 this.save();
+                this.addPath(path);
                 this.setFillColor(properties.backgroundColor);
                 if (properties.shadowColor){
                     this.setShadow(properties.shadowOffset, properties.shadowRadius, properties.shadowColor);
@@ -807,6 +807,9 @@ JSContext.definePropertiesFromExtensions({
             }
             if (properties.backgroundGradient){
                 this.save();
+                this.beginPath();
+                this.addPath(path);
+                this.clip();
                 this.drawLinearGradient(properties.backgroundGradient, properties.bounds);
                 this.restore();
             }
