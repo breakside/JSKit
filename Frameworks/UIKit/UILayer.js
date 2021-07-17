@@ -784,9 +784,6 @@ JSContext.definePropertiesFromExtensions({
 
         // Global drawing options
         this.setAlpha(properties.alpha);
-        if (properties.shadowColor){
-            this.setShadow(properties.shadowOffset, properties.shadowBlur, properties.shadowColor);
-        }
 
         var path;
 
@@ -802,13 +799,15 @@ JSContext.definePropertiesFromExtensions({
             if (properties.backgroundColor !== null){
                 this.save();
                 this.setFillColor(properties.backgroundColor);
+                if (properties.shadowColor){
+                    this.setShadow(properties.shadowOffset, properties.shadowRadius, properties.shadowColor);
+                }
                 this.fillPath();
                 this.restore();
             }
             if (properties.backgroundGradient){
                 this.save();
-                this.clip();
-                this.drawLinearGradient(properties.backgroundGradient, 0, properties.bounds.size.height);
+                this.drawLinearGradient(properties.backgroundGradient, properties.bounds);
                 this.restore();
             }
         }
