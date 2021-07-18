@@ -238,18 +238,11 @@ JSClass("UILayer", JSObject, {
     },
 
     borderPath: function(transform){
-        return this.createPath(this.presentation.maskedBorders, this.presentation.borderWidth / 2, transform);
-    },
-
-    backgroundPath: function(transform){
-        return this.createPath(UILayer.Sides.all, 0, transform);
-    },
-
-    createPath: function(maskedBorders, inset, transform){
-        var properties = this.presentation;
         var path = JSPath.init();
-        var rect = JSRect(0, 0, properties.bounds.size.width, properties.bounds.size.height);
-        var cornerRadius = properties.cornerRadius;
+        var rect = this.bounds;
+        var cornerRadius = this.cornerRadius;
+        var maskedBorders = this.maskedBorders;
+        var inset = this.borderWidth / 2;
         if (inset > 0){
             cornerRadius -= inset;
             var insets = JSInsets(inset);
@@ -267,7 +260,13 @@ JSClass("UILayer", JSObject, {
             }
             rect = rect.rectWithInsets(insets);
         }
-        path.addRectWithSidesAndCorners(rect, maskedBorders, properties.maskedCorners, properties.cornerRadius, transform);
+        path.addRectWithSidesAndCorners(rect, maskedBorders, this.maskedCorners, this.cornerRadius, transform);
+        return path;
+    },
+
+    backgroundPath: function(transform){
+        var path = JSPath.init();
+        path.addRectWithSidesAndCorners(this.bounds, UILayer.Sides.all, this.maskedCorners, this.cornerRadius, transform);
         return path;
     },
 
@@ -785,41 +784,41 @@ JSContext.definePropertiesFromExtensions({
         // Global drawing options
         this.setAlpha(properties.alpha);
 
-        var path;
+        var backgroundPath = JSPath.init();
+        backgroundPath.addRectWithSidesAndCorners(layer.bounds, UILayer.Sides.all, properties.maskedCorners, properties.cornerRadius);
+
+        // Shadow
+        if (properties.shadowColor !== null && (properties.shadowRadius > 0 || properties.shadowOffset.x != 0 || properties.shadowOffset.y !== 0)){
+            this.save();
+            this.beginPath();
+            this.addPath(backgroundPath);
+            this.setFillColor(properties.shadowColor);
+            this.setShadow(properties.shadowOffset, properties.shadowRadius, properties.shadowColor.colorWithAlpha(1));
+            this.fillPath();
+            this.restore();
+        }
 
         // Background
         if (properties.backgroundColor !== null || properties.backgroundGradient !== null){
+            this.save();
             this.beginPath();
-            var backgroundInset = 0;
-            if (properties.borderWidth > 0 && properties.borderColor !== null && properties.borderColor.alpha === 1){
-                backgroundInset = properties.borderWidth / 2;
-            }
-            path = layer.createPath(UILayer.Sides.all, backgroundInset);
+            this.addPath(backgroundPath);
+            this.clip();
             if (properties.backgroundColor !== null){
-                this.save();
-                this.addPath(path);
                 this.setFillColor(properties.backgroundColor);
-                if (properties.shadowColor){
-                    this.setShadow(properties.shadowOffset, properties.shadowRadius, properties.shadowColor);
-                }
-                this.fillPath();
-                this.restore();
+                this.fillRect(properties.bounds);
             }
             if (properties.backgroundGradient){
-                this.save();
-                this.beginPath();
-                this.addPath(path);
-                this.clip();
                 this.drawLinearGradient(properties.backgroundGradient, properties.bounds);
-                this.restore();
             }
+            this.restore();
         }
 
         // Custom Drawing
         this.save();
         if (layer._clipsToBounds){
             this.beginPath();
-            this.addRect(layer.bounds);
+            this.addPath(backgroundPath);
             this.clip();
         }
         layer._drawInContext(this);
@@ -827,12 +826,16 @@ JSContext.definePropertiesFromExtensions({
 
         // Border
         if (properties.borderWidth > 0 && properties.borderColor !== null){
-            this.beginPath();
-            path = layer.borderPath();
-            this.addPath(path);
             this.save();
+            this.beginPath();
+            this.addPath(backgroundPath);
+            this.clip();
+            this.beginPath();
+            var borderPath = JSPath.init();
+            borderPath.addRectWithSidesAndCorners(layer.bounds, properties.maskedBorders, properties.maskedCorners, properties.cornerRadius);
+            this.addPath(borderPath);
             this.setStrokeColor(properties.borderColor);
-            this.setLineWidth(properties.borderWidth);
+            this.setLineWidth(properties.borderWidth * 2);
             this.strokePath();
             this.restore();
         }
