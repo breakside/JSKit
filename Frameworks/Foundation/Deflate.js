@@ -36,7 +36,7 @@ JSGlobalObject.DeflateStream = function(level, info){
     }
     this.info = info;
     this.level = level;
-    this._window = new DeflateBuffer(JSData.initWithLength(1 << (this.info + 8)));
+    this._window = new DeflateRingBuffer(JSData.initWithLength(1 << (this.info + 8)));
 };
 
 DeflateStream.prototype = Object.create({}, {
@@ -65,6 +65,9 @@ DeflateStream.prototype = Object.create({}, {
 
     input: {
         get: function DeflateStream_getInput(){
+            if (this._input === null){
+                return null;
+            }
             return this._input.bytes;
         },
 
@@ -72,7 +75,7 @@ DeflateStream.prototype = Object.create({}, {
             if (this._state != DeflateStream.State.needInput){
                 throw new Error("Cannot set stream input, not finished processing previous input");
             }
-            this._input = new DeflateBuffer(input, input.length);
+            this._input = new DeflateBitStream(input);
             if (input.length > 0){
                 this._state = DeflateStream.State.processing;
             }
@@ -92,26 +95,34 @@ DeflateStream.prototype = Object.create({}, {
     // MARK: - Managing the Output Buffer
 
     _output: {writable: true, value: null},
-    _outputOffset: {writable: true, value: 0},
 
     output: {
         get: function DeflateStream_getOutputBuffer(){
-            return this._output;
+            if (this._output === null){
+                return null;
+            }
+            return this._output.bytes;
         },
 
         set: function DeflateStream_setOutputBuffer(output){
-            this._output = output;
-            this._outputOffset = 0;
+            this._output = new DeflateBitStream(output);
         }
     },
 
     outputOffset: {
         get: function DeflateStream_getOutputOffset(){
-            return this._outputOffset;
+            if (this._output === null){
+                return 0;
+            }
+            return this._output.offset;
         },
 
         set: function DeflateStream_setOutputOffset(outputOffset){
-            this._outputOffset = outputOffset;
+            if (this._output === null){
+                throw new DeflateError("cannot set outputOffset before setting output");
+            }
+            this._output.offset = outputOffset;
+            this._output.bitOffset = 0;
         }
     },
 
@@ -129,23 +140,23 @@ DeflateStream.prototype = Object.create({}, {
             if (this._output === null){
                 throw Error("inflate() called without an output buffer");
             }
-            if (this._outputOffset >= this._output.length){
+            if (this._output.offset >= this._output.bytes.length){
                 throw Error("inflate() called with no room in the output buffer");
             }
-            var startingOffset = this._outputOffset;
+            var startingOffset = this._output.offset;
             this._outputRemainingFromWindow();
             var isDone = false;
-            while (!isDone && this._input.offset < this._input.length && this._outputOffset < this._output.length){
-                if (this._block === null || this._block.isDone){
+            while (!isDone && this._input.offset < this._input.bytes.length && this._output.offset < this._output.bytes.length){
+                if (this._currentInflateBlock === null || this._currentInflateBlock.isDone){
                     isDone = false;
-                    this._block = DeflateStreamBlock(this._readBits(3));
-                    if (this._block instanceof UncompressedBlock && this._input.bitOffset > 0){
+                    this._currentInflateBlock = DeflateStreamBlock(this._readBits(3));
+                    if (this._currentInflateBlock instanceof UncompressedBlock && this._input.bitOffset > 0){
                         this._input.offset += 1;
                         this._input.bitOffset = 0;
                     }
                 }else{
-                    this._block.inflate(this);
-                    isDone = this._block.isFinal && this._block.isDone;
+                    this._currentInflateBlock.inflate(this);
+                    isDone = this._currentInflateBlock.isFinal && this._currentInflateBlock.isDone;
                 }
             }
             if (isDone){
@@ -154,32 +165,32 @@ DeflateStream.prototype = Object.create({}, {
                     this._input.bitOffset = 0;
                 }
                 this._state = DeflateStream.State.done;
-            }else if (this._input.offset == this._input.length){
+            }else if (this._input.offset == this._input.bytes.length){
                 this._state = DeflateStream.State.needInput;
             }
-            return this._output.subdataInRange(JSRange(startingOffset, this._outputOffset - startingOffset));
+            return this._output.offset - startingOffset;
         }
     },
 
-    _block: {writable: true, value: null},
-    _leftoverBitCount: {writable: true, value: 0},
-    _leftoverBits: {writable: true, value: 0},
+    _currentInflateBlock: {writable: true, value: null},
+    _leftoverReadBitCount: {writable: true, value: 0},
+    _leftoverReadBits: {writable: true, value: 0},
 
     _readBits: {
         value: function DeflateStream__readBits(n){
             if (this._input.offset == this._input.bytes.length){
                 return null;
             }
-            if (this._leftoverBitCount > 0){
-                n -= this._leftoverBitCount;
-                var shift = this._leftoverBitCount;
-                this._leftoverBitCount = 0;
-                return (this._input._readBits(n) << shift) | this._leftoverBits;
+            if (this._leftoverReadBitCount > 0){
+                n -= this._leftoverReadBitCount;
+                var shift = this._leftoverReadBitCount;
+                this._leftoverReadBitCount = 0;
+                return (this._input._readBits(n) << shift) | this._leftoverReadBits;
             }
             var bits = this._input._readBits(n);
             if (bits === null){
-                this._leftoverBitCount = 8 - this._input.bitOffset;
-                this._leftoverBits = this._input._readBits(this._leftoverBitCount);
+                this._leftoverReadBitCount = 8 - this._input.bitOffset;
+                this._leftoverReadBits = this._input._readBits(this._leftoverReadBitCount);
                 return null;
             }
             return bits;
@@ -203,62 +214,236 @@ DeflateStream.prototype = Object.create({}, {
             if (this._output === null){
                 throw Error("deflate() called without an output buffer");
             }
-            if (this._outputOffset >= this._output.length){
+            if (this._output.offset >= this._output.bytes.length){
                 throw Error("deflate() called with no room in the output buffer");
             }
-            if (this._uncompressedBlockBuffer === null){
-                this._uncompressedBlockBuffer = new DeflateBuffer(JSData.initWithLength(0xFFFF + 5));
-                this._uncompressedBlockBuffer.length = 5;
+
+            // Deflate algorithm suggested by https://tools.ietf.org/html/rfc1951
+            // - for every three bytes of input, lookup in a hash table for previous instances
+            // - find the longest matching instance within the allowable window size
+            // - if no match, output the byte literal
+            // - if match, repeat for the next input byte
+            // - if the next input byte has a longer match, output the current input byte
+            //   and then the <length,distance> for the next input byte to its match
+            // - if the current input byte has a longer match, output the <length,distance> to its match
+            if (this._deflateTable === null){
+                this._deflateTable = {};
+                this._deflateLocation = 0;
+                // We'll never make another block, so declare this one as final
+                // We're using the predefined standard huffman trees, type 0b01
+                this._writeBits(0x3, 3);
             }
+            var startingOffset = this._output.offset;
+            var key1, key2;
+            var hits;
+            var hit, hit2;
+            var hitLength;
+            var i, l;
+            var j, k;
+            this._flushLeftoverWriteBits();
+            while (this._output.offset < this._output.bytes.length && this._input.offset < this._input.bytes.length - 3){
+                key1 = (this._input.bytes[this._input.offset] << 16) | (this._input.bytes[this._input.offset + 1] << 8) | (this._input.bytes[this._input.offset + 2]);
+                hits = this._deflateTable[key1];
+                hit = null;
+                if (hits !== undefined){
+                    for (i = 0, l = hits.length; i < l; ++i){
+                        if (hits[i] > this._deflateLocation - this._window.bytes.length){
+                            j = 0;
+                            // FIXME:
+                            // - if !isFinal and we reach the end of input, wait for more input
+                            while (j < 258 && this._input.offset + j < this._input.bytes.length && this._window.peek(j) == this._input.bytes[this._input.offset + j]){
 
-            var startingOffset = this._outputOffset;
-
-            do {
-                // Copy everything we can to the level 0 buffer.
-                // We want to make the output block as long as possible, so we buffer input, which may come in
-                // small pieces at a time.
-                // If we can't buffer the entire input, that's no problem because we'll output everything, clear the
-                // level 0 buffer, and continue looping
-                while (this._input.offset < this._input.length && this._uncompressedBlockBuffer.length < this._uncompressedBlockBuffer.bytes.length){
-                    this._uncompressedBlockBuffer.bytes[this._uncompressedBlockBuffer.length++] = this._input.bytes[this._input.offset++];
-                }
-                if (isFinal || (this._uncompressedBlockBuffer.length == this._uncompressedBlockBuffer.bytes.length)){
-                    var length = this._uncompressedBlockBuffer.length - 5;
-                    this._uncompressedBlockBuffer.bytes[0] = (isFinal && this._input.offset == this._input.length) ? 1 : 0;
-                    this._uncompressedBlockBuffer.bytes[1] = length & 0xFF;
-                    this._uncompressedBlockBuffer.bytes[2] = (length >> 8) & 0xFF;
-                    this._uncompressedBlockBuffer.bytes[3] = ~length & 0xFF;
-                    this._uncompressedBlockBuffer.bytes[4] = (~length >> 8) & 0xFF;
-                    while (this._uncompressedBlockBuffer.offset < this._uncompressedBlockBuffer.length && this._outputOffset < this._output.length){
-                        this._output[this._outputOffset++] = this._uncompressedBlockBuffer.bytes[this._uncompressedBlockBuffer.offset++];
-                    }
-                    if (this._uncompressedBlockBuffer.offset == this._uncompressedBlockBuffer.length){
-                        if (this._uncompressedBlockBuffer.bytes[0] & 0x01){
-                            this._uncompressedBlockBuffer = null;
-                            this._state = DeflateStream.State.done;
-                        }else{
-                            this._uncompressedBlockBuffer.offset = 0;
-                            this._uncompressedBlockBuffer.length = 5;
-                        }
-                    }else{
-                        if (isFinal){
-                            break;
-                        }
-                        if (this._input.offset == this._input.length){
-                            this._state = DeflateStream.State.needInput;
-                        }else{
-                            break;
+                            }
+                            if (hit === null || j > hitLength){
+                                hit = hits[i];
+                                hitLength = j;
+                            }
                         }
                     }
                 }else{
-                    this._state = DeflateStream.State.needInput;
+                    this._deflateTable[key1] = hits = [];
                 }
-            }while (this._state == DeflateStream.State.processing);
-            return this._output.subdataInRange(JSRange(startingOffset, this._outputOffset - startingOffset));
+                hits.push(this._deflateLocation);
+                if (hit !== null){
+                    key2 = (this._input.bytes[this._input.offset + 1] << 16) | (this._input.bytes[this._input.offset + 2] << 8) | (this._input.bytes[this._input.offset + 3]);
+                    hits = this._deflateTable[key2];
+                    if (hits !== undefined){
+                        for (i = 0, l = hits.length; i < l; ++i){
+                            if (hits[i] > this._deflateLocation + 1 - this._window.bytes.length){
+                                j = 0;
+                                // FIXME:
+                                // - if !isFinal and we reach the end of input, wait for more input
+                                while (j < 258 && this._input.offset + j < this._input.bytes.length && this._window.peek(j) == this._input.bytes[this._input.offset + j]){
+
+                                }
+                                if (hit2 === null || j > hitLength){
+                                    if (hit2 === null){
+                                        // the hit from the second position is longer than the first,
+                                        // so write the first byte as a literal and then write out the second
+                                        this._writeStandardLiteralCode(this._input.bytes[this._input.offset]);
+                                        this._window.overwrite(this._input.bytes[this._input.offset++]);
+                                        ++this._deflateLocation;
+                                        hits.push(this._deflateLocation);
+                                    }
+                                    hit2 = hits[i];
+                                    hit = hit2;
+                                    hitLength = j;
+                                }
+                            }
+                        }
+                    }
+                    this._writeStandardLengthCode(hitLength);
+                    this._writeStandardDistanceCode(this._deflateLocation - hit); // FIXME: could be hit or hit2
+                    for (j = 0; j < hitLength; ++j){
+                        this._window.overwrite(this._input.bytes[this._input.offset++]);
+                    }
+                }else{
+                    this._writeStandardLiteralCode(this._input.bytes[this._input.offset]);
+                    this._window.overwrite(this._input.bytes[this._input.offset++]);
+                }
+                ++this._deflateLocation;
+            }
+
+            if (isFinal){
+                while (this._input.offset < this._input.bytes.length){
+
+                }
+                if (this._input.offset === this._input.bytes.length){
+                    this._writeBits(0, 7); // end of block   
+                }
+            }else{
+                // TODO: buffer remaining input?
+                if (this._input.offset === this._input.bytes.length){
+                    this._state = this._state = DeflateStream.State.needInput;
+                }
+            }
+
+            // === Uncompressed blocks ===
+            // if (this._deflateBlockBuffer === null){
+            //     this._deflateBlockBuffer = new DeflateRingBuffer(JSData.initWithLength(0xFFFF + 5));
+            //     this._deflateBlockBuffer.length = 5;
+            // }
+            // do {
+            //     // Copy everything we can to the level 0 buffer.
+            //     // We want to make the output block as long as possible, so we buffer input, which may come in
+            //     // small pieces at a time.
+            //     // If we can't buffer the entire input, that's no problem because we'll output everything, clear the
+            //     // level 0 buffer, and continue looping
+            //     while (this._input.offset < this._input.bytes.length && this._deflateBlockBuffer.length < this._deflateBlockBuffer.bytes.length){
+            //         this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.length++] = this._input.bytes[this._input.offset++];
+            //     }
+            //     if (isFinal || (this._deflateBlockBuffer.length == this._deflateBlockBuffer.bytes.length)){
+            //         var length = this._deflateBlockBuffer.length - 5;
+            //         this._deflateBlockBuffer.bytes[0] = (isFinal && this._input.offset == this._input.bytes.length) ? 1 : 0;
+            //         this._deflateBlockBuffer.bytes[1] = length & 0xFF;
+            //         this._deflateBlockBuffer.bytes[2] = (length >> 8) & 0xFF;
+            //         this._deflateBlockBuffer.bytes[3] = ~length & 0xFF;
+            //         this._deflateBlockBuffer.bytes[4] = (~length >> 8) & 0xFF;
+            //         while (this._deflateBlockBuffer.offset < this._deflateBlockBuffer.length && this._output.offset < this._output.bytes.length){
+            //             // this._writeBits(this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.offset++], 8);
+            //             this._output.bytes[this._output.offset++] = this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.offset++];
+            //         }
+            //         if (this._deflateBlockBuffer.offset == this._deflateBlockBuffer.length){
+            //             if (this._deflateBlockBuffer.bytes[0] & 0x01){
+            //                 this._deflateBlockBuffer = null;
+            //                 this._state = DeflateStream.State.done;
+            //             }else{
+            //                 this._deflateBlockBuffer.offset = 0;
+            //                 this._deflateBlockBuffer.length = 5;
+            //             }
+            //         }else{
+            //             if (isFinal){
+            //                 break;
+            //             }
+            //             if (this._input.offset == this._input.bytes.length){
+            //                 this._state = DeflateStream.State.needInput;
+            //             }else{
+            //                 break;
+            //             }
+            //         }
+            //     }else{
+            //         this._state = DeflateStream.State.needInput;
+            //     }
+            // }while (this._state == DeflateStream.State.processing);
+
+
+            return this._output.offset - startingOffset;
         }
     },
 
-    _uncompressedBlockBuffer: {writable: true, value: null},
+    _deflateLocation: {writable: true, value: 0},
+    _deflateTable: {writable: true, value: null},
+    _deflateBlockBuffer: {writable: true, value: null},
+
+    _writeBits: {
+        value: function DeflateStream_writeBits(bits, n){
+            if (this._output.offset == this._output.bytes.length){
+                this._leftoverWriteBits |= (bits << this._leftoverWriteBitCount);
+                this._leftoverWriteBitCount += n;
+                if (this._leftoverWriteBitCount > 31){
+                    throw new DeflateError("Write overflow (too many leftover bits");
+                }
+            }else{
+                var success = this._output._writeBits(bits, n);
+                if (!success){
+                    var m = 8 - this._output.bitOffset;
+                    this._output._writeBits(bits, m);
+                    this._leftoverWriteBits |= ((bits >> m) << this._leftoverWriteBitCount);
+                    this._leftoverWriteBitCount += n - m;
+                }else{
+                    this._leftoverWriteBitCount = 0;
+                    this._leftoverWriteBits = 0;
+                }
+            }
+        }
+    },
+
+    _leftoverWriteBits: {writable: true, value: 0},
+    _leftoverWriteBitCount: {writable: true, value: 0},
+
+    _flushLeftoverWriteBits: {
+        value: function DeflateStream_flushLeftoverWriteBits(){
+            if (this._leftoverWriteBitCount > 0){
+                var bits = this._leftoverWriteBits;
+                var count = this._leftoverWriteBitCount;
+                this._leftoverWriteBitCount = 0;
+                this._leftoverWriteBits = 0;
+                while (count > 0){
+                    this._writeBits(bits & 0xFF, Math.min(count, 8));
+                    bits >>= 8;
+                    count -= 8;
+                }
+            }
+        }
+    },
+
+    _writeStandardLiteralCode: {
+        value: function DeflateStream_writeStandardLiteralCode(literal){
+            if (literal <= 143){
+                this._writeBits(48 + 143 - literal, 8);
+            }else if (literal <= 255){
+                var bits = 400 + 255 - literal;
+                this._writeBits(bits , 8);
+                this._writeBits(bits & 0x1, 1);
+            }
+        }
+    },
+
+    _writeStandardLengthCode: {
+        value: function DeflateStream_writeStandardLengthCode(length){
+            // max 13 bits, what if we have leftover?
+            if (length <= 10){
+
+            }
+
+        }
+    },
+
+    _writeStandardDistanceCode: {
+        value: function DeflateStream_writeStandardDistanceCode(distance){
+            // max 18 bits, what if we have leftover?
+        }
+    },
 
     // -----------------------------------------------------------------------
     // MARK: - Data window management
@@ -278,9 +463,9 @@ DeflateStream.prototype = Object.create({}, {
     _outputRemainingFromWindow: {
         value: function DeflateStream_outputRemainingFromWindow(){
             var b;
-            while (this._windowCopyLength > 0 && this._outputOffset < this._output.length){
+            while (this._windowCopyLength > 0 && this._output.offset < this._output.bytes.length){
                 b = this._window.bytes[this._windowCopyOffset++];
-                this._output[this._outputOffset++] = b;
+                this._output.bytes[this._output.offset++] = b;
                 this._window.overwrite(b);
                 --this._windowCopyLength;
                 if (this._windowCopyOffset == this._window.bytes.length){
@@ -311,20 +496,19 @@ DeflateStream.WindowSize = {
 // -----------------------------------------------------------------------
 // MARK: - Private Buffer class for reading/writing
 
-var DeflateBuffer = function(bytes, length){
+var DeflateBitStream = function(bytes){
     if (this === undefined){
-        return new DeflateBuffer(bytes);
+        return new DeflateBitStream(bytes);
     }
     this.bytes = bytes;
-    this.length = length || 0;
     this.offset = 0;
     this.bitOffset = 0;
 };
 
-DeflateBuffer.prototype = Object.create({}, {
+DeflateBitStream.prototype = Object.create({}, {
 
     _readBits: {
-        value: function DeflateBuffer_readBits(n){
+        value: function DeflateBitStream_readBits(n){
             if (n > 8){
                 throw new DeflateError("Can only read up to 8 bits at a time");
             }
@@ -336,7 +520,7 @@ DeflateBuffer.prototype = Object.create({}, {
                     this.offset += 1;
                     this.bitOffset = 0;
                 }
-            }else if (this.offset < this.length - 1){
+            }else if (this.offset < this.bytes.length - 1){
                 n = (this.bitOffset + n) % 8;
                 x = ((this.bytes[this.offset + 1] & (0xFF >> (8 - n))) << (8 - this.bitOffset)) | (this.bytes[this.offset] >> this.bitOffset);
                 this.offset += 1;
@@ -348,8 +532,52 @@ DeflateBuffer.prototype = Object.create({}, {
         }
     },
 
+    _writeBits: {
+        value: function DeflateBitStream_writeBits(bits, n){
+            if (n > 8){
+                throw new DeflateError("Can only write up to 8 bits at a time");
+            }
+            if (this.bitOffset + n <= 8){
+                this.bytes[this.offset] |= (bits) << this.bitOffset;
+                this.bitOffset += n;
+                if (this.bitOffset === 8){
+                    this.offset += 1;
+                    this.bitOffset = 0;
+                }
+                return true;
+            }
+            if (this.offset < this.bytes.length - 1){
+                this.bytes[this.offset] |= (bits) << this.bitOffset;
+                this.offset += 1;
+                this.bitOffset = (this.bitOffset + n) % 8;
+                this.bytes[this.offset] = (bits >> (n - this.bitOffset));
+                return true;
+            }
+            return false;
+        }
+    }
+
+});
+
+var DeflateRingBuffer = function(bytes, length){
+    if (this === undefined){
+        return new DeflateRingBuffer(bytes);
+    }
+    this.bytes = bytes;
+    this.length = length || 0;
+    this.offset = 0;
+};
+
+DeflateRingBuffer.prototype = Object.create({}, {
+
+    peek: {
+        value: function DeflateRingBuffer_peek(i){
+            return this.bytes[(this.offset + i) % this.bytes.length];
+        }
+    },
+
     overwrite: {
-        value: function DeflateBuffer_write(byte){
+        value: function DeflateRingStream_write(byte){
             this.bytes[(this.offset + this.length) % this.bytes.length] = byte;
             ++this.length;
             if (this.length > this.bytes.length){
@@ -376,7 +604,6 @@ var DeflateStreamBlock = function(headerBits){
     }
     var type = (headerBits & 0x06) >> 1;
     var isFinal = headerBits & 0x01;
-    resusableBlockBuffer.length = 0;
     switch (type){
         case 0:
             return new UncompressedBlock(isFinal);
@@ -388,7 +615,7 @@ var DeflateStreamBlock = function(headerBits){
     return null;
 };
 
-var resusableBlockBuffer = new DeflateBuffer(JSData.initWithLength(4));
+var uncompressedHeader = JSData.initWithLength(4);
 
 var UncompressedBlock = function(isFinal){
     this.isFinal = isFinal;
@@ -401,18 +628,18 @@ UncompressedBlock.prototype = {
     inflate: function(stream){
         if (this.headerRemaining > 0){
             do{
-                resusableBlockBuffer.bytes[resusableBlockBuffer.length++] = stream._input.bytes[stream._input.offset++];
+                uncompressedHeader[4 - this.headerRemaining] = stream._input.bytes[stream._input.offset++];
                 --this.headerRemaining;
-            }while (this.headerRemaining > 0 && stream._input.offset < stream._input.length);
+            }while (this.headerRemaining > 0 && stream._input.offset < stream._input.bytes.length);
             if (this.headerRemaining === 0){
-                this.remaining = (resusableBlockBuffer.bytes[1] << 8) | resusableBlockBuffer.bytes[0];
+                this.remaining = (uncompressedHeader[1] << 8) | uncompressedHeader[0];
             }else{
                 return;
             }
         }
-        while (this.remaining > 0 && stream._input.offset < stream._input.length && stream._outputOffset < stream._output.length){
-            stream._output[stream._outputOffset++] = stream._input.bytes[stream._input.offset++];
-            stream._window.overwrite(stream._output[stream._outputOffset]);
+        while (this.remaining > 0 && stream._input.offset < stream._input.bytes.length && stream._output.offset < stream._output.bytes.length){
+            stream._output.bytes[stream._output.offset++] = stream._input.bytes[stream._input.offset++];
+            stream._window.overwrite(stream._output.bytes[stream._output.offset]);
             --this.remaining;
         }
         this.isDone = this.remaining === 0;
@@ -461,13 +688,13 @@ HuffmanBlock.prototype = {
                 this.node = null;
             }
             if (this.code < 256){
-                if (stream._outputOffset == stream._output.length){
+                if (stream._output.offset == stream._output.bytes.length){
                     break;
                 }
-                stream._output[stream._outputOffset++] = this.code;
+                stream._output.bytes[stream._output.offset++] = this.code;
                 stream._window.overwrite(this.code);
             }else if (this.code > 256 && this.code <= 287){
-                if (stream._outputOffset == stream._output.length){
+                if (stream._output.offset == stream._output.bytes.length){
                     break;
                 }
                 if (this.extra === null){
@@ -720,7 +947,7 @@ JSGlobalObject.Deflate = {
             }
             stream.output = output;
             stream.outputOffset = length;
-            length += stream.inflate().length;
+            length += stream.inflate();
         } while (length == output.length);
         return output.truncatedToLength(length);
     },
@@ -737,7 +964,7 @@ JSGlobalObject.Deflate = {
             }
             stream.output = output;
             stream.outputOffset = length;
-            length += stream.deflate(true).length;
+            length += stream.deflate(true);
         } while (length == output.length);
         return output.truncatedToLength(length);
     }

@@ -85,7 +85,7 @@ JSClass("IKEncoderPNG", IKEncoder, {
                 }
                 stream.output = output;
                 stream.outputOffset = outputLength;
-                length = stream.compress(range.location + scanLineLength >= l).length;
+                length = stream.compress(range.location + scanLineLength >= l);
                 outputLength += length;
                 totalOutputLength += length;
             }while (outputLength == output.length);

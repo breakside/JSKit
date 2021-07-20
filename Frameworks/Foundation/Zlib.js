@@ -43,7 +43,7 @@ JSGlobalObject.Zlib = {
             }
             stream.output = output;
             stream.outputOffset = length;
-            length += stream.uncompress().length;
+            length += stream.uncompress();
         } while (length == output.length);
         return output.truncatedToLength(length);
     },
@@ -60,7 +60,7 @@ JSGlobalObject.Zlib = {
             }
             stream.output = output;
             stream.outputOffset = length;
-            length += stream.compress(true).length;
+            length += stream.compress(true);
         } while (length == output.length);
         return output.truncatedToLength(length);
     }
@@ -175,14 +175,15 @@ ZlibStream.prototype = Object.create({}, {
                 this._adler = new Adler32();
                 this._deflateStream.input = this._input.subdataInRange(JSRange(this._inputOffset, this._input.length - this._inputOffset));
             }
-            var output;
+            var length;
             if (this._deflateStream.state != DeflateStream.State.done){
-                var startingOffset = this._deflateStream.inputOffset;
-                output = this._deflateStream.inflate();
-                this._adler.includeBytes(output);
-                this._inputOffset += this._deflateStream.inputOffset - startingOffset;
+                var startingInputOffset = this._deflateStream.inputOffset;
+                var startingOutputOffset = this._deflateStream.outputOffset;
+                length = this._deflateStream.inflate();
+                this._adler.includeBytes(this._deflateStream.output.subdataInRange(JSRange(startingOutputOffset, length)));
+                this._inputOffset += this._deflateStream.inputOffset - startingInputOffset;
             }else{
-                output = this._deflateStream.output.subdataInRange(JSRange(this._deflateStream.outputOffset, 0));
+                length = 0;
             }
             if (this._deflateStream.state == DeflateStream.State.done){
                 while (this._checksumOffset < this._checksum.length && this._inputOffset < this._input.length){
@@ -193,7 +194,7 @@ ZlibStream.prototype = Object.create({}, {
                     this._state = ZlibStream.State.done;
                 }
             }
-            return output;
+            return length;
         }
     },
 
@@ -242,7 +243,7 @@ ZlibStream.prototype = Object.create({}, {
                     this._state = ZlibStream.State.done;
                 }
             }
-            return this._deflateStream.output.subdataInRange(JSRange(startingOffset, this._deflateStream.outputOffset - startingOffset));
+            return this._deflateStream.outputOffset - startingOffset;
         }
     },
 
