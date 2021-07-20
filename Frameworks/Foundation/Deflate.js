@@ -226,6 +226,20 @@ DeflateStream.prototype = Object.create({}, {
             // - if the next input byte has a longer match, output the current input byte
             //   and then the <length,distance> for the next input byte to its match
             // - if the current input byte has a longer match, output the <length,distance> to its match
+            var startingOffset = this._output.offset;
+            var a, b, c;
+            var key;
+            var hits;
+            var hit;
+            var hitLength;
+            var longestHitLength;
+            var hitIndex;
+            var windowIndex;
+            var minimumHit;
+            var longEnoughHitLength = 10;
+            if (this._deflateInputBuffer === null){
+                this._deflateInputBuffer = DeflateRingBuffer(JSData.initWithLength(258));
+            }
             if (this._deflateTable === null){
                 this._deflateTable = {};
                 this._deflateLocation = 0;
@@ -233,95 +247,144 @@ DeflateStream.prototype = Object.create({}, {
                 // We're using the predefined standard huffman trees, type 0b01
                 this._writeBits(0x3, 3);
             }
-            var startingOffset = this._output.offset;
-            var key1, key2;
-            var hits;
-            var hit, hit2;
-            var hitLength;
-            var i, l;
-            var j, k;
             this._flushLeftoverWriteBits();
-            while (this._output.offset < this._output.bytes.length && this._input.offset < this._input.bytes.length - 3){
-                key1 = (this._input.bytes[this._input.offset] << 16) | (this._input.bytes[this._input.offset + 1] << 8) | (this._input.bytes[this._input.offset + 2]);
-                hits = this._deflateTable[key1];
-                hit = null;
-                if (hits !== undefined){
-                    for (i = 0, l = hits.length; i < l; ++i){
-                        if (hits[i] > this._deflateLocation - this._window.bytes.length){
-                            j = 0;
-                            // FIXME:
-                            // - if !isFinal and we reach the end of input, wait for more input
-                            while (j < 258 && this._input.offset + j < this._input.bytes.length && this._window.peek(j) == this._input.bytes[this._input.offset + j]){
-
-                            }
-                            if (hit === null || j > hitLength){
-                                hit = hits[i];
-                                hitLength = j;
-                            }
-                        }
-                    }
-                }else{
-                    this._deflateTable[key1] = hits = [];
+            // Loop while we're processing input and can output some bits
+            while (this._state === DeflateStream.State.processing && this._output.offset < this._output.bytes.length){
+                // Fill the input buffer as much as we can
+                while (this._deflateInputBuffer.length < this._deflateInputBuffer.bytes.length && this._input.offset < this._input.bytes.length){
+                    this._deflateInputBuffer.writeByte(this._input.bytes[this._input.offset++]);
                 }
-                hits.push(this._deflateLocation);
-                if (hit !== null){
-                    key2 = (this._input.bytes[this._input.offset + 1] << 16) | (this._input.bytes[this._input.offset + 2] << 8) | (this._input.bytes[this._input.offset + 3]);
-                    hits = this._deflateTable[key2];
-                    if (hits !== undefined){
-                        for (i = 0, l = hits.length; i < l; ++i){
-                            if (hits[i] > this._deflateLocation + 1 - this._window.bytes.length){
-                                j = 0;
-                                // FIXME:
-                                // - if !isFinal and we reach the end of input, wait for more input
-                                while (j < 258 && this._input.offset + j < this._input.bytes.length && this._window.peek(j) == this._input.bytes[this._input.offset + j]){
-
-                                }
-                                if (hit2 === null || j > hitLength){
-                                    if (hit2 === null){
-                                        // the hit from the second position is longer than the first,
-                                        // so write the first byte as a literal and then write out the second
-                                        this._writeStandardLiteralCode(this._input.bytes[this._input.offset]);
-                                        this._window.overwrite(this._input.bytes[this._input.offset++]);
-                                        ++this._deflateLocation;
-                                        hits.push(this._deflateLocation);
+                // Proceed only if we have a full input buffer (or are handling the final input)
+                if (isFinal || this._deflateInputBuffer.length === this._deflateInputBuffer.bytes.length){
+                    if (this._deflateInputBuffer.length > 0){
+                        hit = null;
+                        minimumHit = this._deflateLocation - this._window.bytes.length;
+                        a = this._deflateInputBuffer.peekByte(0);
+                        if (this._deflateInputBuffer.length > 2){
+                            // if we have at least three bytes of input, see if
+                            // there's a hit in our hash table
+                            b = this._deflateInputBuffer.peekByte(1);
+                            c = this._deflateInputBuffer.peekByte(2);
+                            key = (a << 16) | (b << 8) | (c);
+                            hits = this._deflateTable[key];
+                            if (hits !== undefined){
+                                // If there's a list of hits, find the longest one
+                                // starting with the most recent and stopping when
+                                // we're out of the window's range
+                                longestHitLength = 0;
+                                for (hitIndex = hits.length - 1; hitIndex >= 0 && hits[hitIndex] > minimumHit; --hitIndex){
+                                    hitLength = 3;
+                                    windowIndex = this._window.length - (this._deflateLocation - hits[hitIndex]) + hitLength;
+                                    while (hitLength < this._deflateInputBuffer.length){
+                                        if (windowIndex < this._window.length){
+                                            if (this._window.peekByte(windowIndex) === this._deflateInputBuffer.peekByte(hitLength)){
+                                                ++windowIndex;
+                                                ++hitLength;
+                                            }else{
+                                                break;
+                                            }
+                                        }else if (windowIndex - this._window.length < this._deflateInputBuffer.length){
+                                            // If we've reached the end of the window, we can continue into the very input we're processing
+                                            if (this._deflateInputBuffer.peekByte(windowIndex - this._window.length) === this._deflateInputBuffer.peekByte(hitLength)){
+                                                ++windowIndex;
+                                                ++hitLength;
+                                            }else{
+                                                break;
+                                            }
+                                        }else{
+                                            break;
+                                        }
                                     }
-                                    hit2 = hits[i];
-                                    hit = hit2;
-                                    hitLength = j;
+                                    if (hitLength > longestHitLength){
+                                        longestHitLength = hitLength;
+                                        hit = hits[hitIndex];
+                                    }
+                                }
+                            }else{
+                                this._deflateTable[key] = hits = [];
+                            }
+                            hits.push(this._deflateLocation);
+                        }
+                        // check to see if the next input byte will have a longer hit
+                        if (hit !== null && longestHitLength < longEnoughHitLength && this._deflateInputBuffer.length > 3){
+                            minimumHit = this._deflateLocation + 1 - this._window.bytes.length;
+                            a = this._deflateInputBuffer.peekByte(1);
+                            b = this._deflateInputBuffer.peekByte(2);
+                            c = this._deflateInputBuffer.peekByte(3);
+                            key = (a << 16) | (b << 8) | (c);
+                            hits = this._deflateTable[key];
+                            if (hits !== undefined){
+                                for (hitIndex = hits.length - 1; hitIndex >= 0 && hits[hitIndex] > minimumHit; ++hitIndex){
+                                    hitLength = 3;
+                                    windowIndex = this._window.length - (this._deflateLocation + 1 - hits[hitIndex]) + hitLength;
+                                    while (hitLength < this._deflateInputBuffer.length - 1){
+                                        if (windowIndex < this._window.length){
+                                            if (this._window.peekByte(windowIndex) === this._deflateInputBuffer.peekByte(hitLength + 1)){
+                                                ++windowIndex;
+                                                ++hitLength;
+                                            }else{
+                                                break;
+                                            }
+                                        }else if (windowIndex - this._window.length < this._deflateInputBuffer.length){
+                                            // If we've hit the end of the window, we can continue into the very input we're processing
+                                            if (this._deflateInputBuffer.peekByte(windowIndex - this._window.length) === this._deflateInputBuffer.peekByte(hitLength + 1)){
+                                                ++windowIndex;
+                                                ++hitLength;
+                                            }else{
+                                                break;
+                                            }
+                                        }else{
+                                            break;
+                                        }
+                                    }
+                                    if (hitLength > longestHitLength){
+                                        // If the next input byte has a longer
+                                        // hit, clear the hit for the current
+                                        // input byte in order to force a literal
+                                        // byte output.  We'll output the next
+                                        // byte on the next interation through
+                                        // the loop.
+                                        hit = null;
+                                        break;
+                                    }
                                 }
                             }
                         }
+                        if (hit !== null){
+                            this._writeStandardLengthCode(longestHitLength);
+                            this._writeStandardDistanceCode(this._deflateLocation - hit);
+                            for (a = 0; a < longestHitLength; ++a){
+                                this._window.writeByte(this._deflateInputBuffer.readByte());
+                                ++this._deflateLocation;
+                            }
+                        }else{
+                            a = this._deflateInputBuffer.readByte();
+                            this._writeStandardLiteralCode(a);
+                            this._window.writeByte(a);
+                            ++this._deflateLocation;
+                        }
                     }
-                    this._writeStandardLengthCode(hitLength);
-                    this._writeStandardDistanceCode(this._deflateLocation - hit); // FIXME: could be hit or hit2
-                    for (j = 0; j < hitLength; ++j){
-                        this._window.overwrite(this._input.bytes[this._input.offset++]);
+                    if (isFinal && this._deflateInputBuffer.length === 0){
+                        if (this._output.offset < this._output.bytes.length){
+                            this._writeHuffmanCode(0, 7); // end of block
+                            this._state = DeflateStream.State.done;
+                        }
                     }
                 }else{
-                    this._writeStandardLiteralCode(this._input.bytes[this._input.offset]);
-                    this._window.overwrite(this._input.bytes[this._input.offset++]);
+                    this._state = DeflateStream.State.needInput;
                 }
-                ++this._deflateLocation;
             }
 
-            if (isFinal){
-                while (this._input.offset < this._input.bytes.length){
-
-                }
-                if (this._input.offset === this._input.bytes.length){
-                    this._writeBits(0, 7); // end of block   
-                }
-            }else{
-                // TODO: buffer remaining input?
-                if (this._input.offset === this._input.bytes.length){
-                    this._state = this._state = DeflateStream.State.needInput;
-                }
+            // Round up to the final full byte if we're all done writing
+            if (this._state == DeflateStream.State.done && this._leftoverWriteBitCount === 0 && this._output.bitOffset > 0){
+                ++this._output.offset;
+                this._output.bitOffset = 0;
             }
 
             // === Uncompressed blocks ===
-            // if (this._deflateBlockBuffer === null){
-            //     this._deflateBlockBuffer = new DeflateRingBuffer(JSData.initWithLength(0xFFFF + 5));
-            //     this._deflateBlockBuffer.length = 5;
+            // if (this._deflateOutputBuffer === null){
+            //     this._deflateOutputBuffer = new DeflateRingBuffer(JSData.initWithLength(0xFFFF + 5));
+            //     this._deflateOutputBuffer.length = 5;
             // }
             // do {
             //     // Copy everything we can to the level 0 buffer.
@@ -329,27 +392,27 @@ DeflateStream.prototype = Object.create({}, {
             //     // small pieces at a time.
             //     // If we can't buffer the entire input, that's no problem because we'll output everything, clear the
             //     // level 0 buffer, and continue looping
-            //     while (this._input.offset < this._input.bytes.length && this._deflateBlockBuffer.length < this._deflateBlockBuffer.bytes.length){
-            //         this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.length++] = this._input.bytes[this._input.offset++];
+            //     while (this._input.offset < this._input.bytes.length && this._deflateOutputBuffer.length < this._deflateOutputBuffer.bytes.length){
+            //         this._deflateOutputBuffer.bytes[this._deflateOutputBuffer.length++] = this._input.bytes[this._input.offset++];
             //     }
-            //     if (isFinal || (this._deflateBlockBuffer.length == this._deflateBlockBuffer.bytes.length)){
-            //         var length = this._deflateBlockBuffer.length - 5;
-            //         this._deflateBlockBuffer.bytes[0] = (isFinal && this._input.offset == this._input.bytes.length) ? 1 : 0;
-            //         this._deflateBlockBuffer.bytes[1] = length & 0xFF;
-            //         this._deflateBlockBuffer.bytes[2] = (length >> 8) & 0xFF;
-            //         this._deflateBlockBuffer.bytes[3] = ~length & 0xFF;
-            //         this._deflateBlockBuffer.bytes[4] = (~length >> 8) & 0xFF;
-            //         while (this._deflateBlockBuffer.offset < this._deflateBlockBuffer.length && this._output.offset < this._output.bytes.length){
-            //             // this._writeBits(this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.offset++], 8);
-            //             this._output.bytes[this._output.offset++] = this._deflateBlockBuffer.bytes[this._deflateBlockBuffer.offset++];
+            //     if (isFinal || (this._deflateOutputBuffer.length == this._deflateOutputBuffer.bytes.length)){
+            //         var length = this._deflateOutputBuffer.length - 5;
+            //         this._deflateOutputBuffer.bytes[0] = (isFinal && this._input.offset == this._input.bytes.length) ? 1 : 0;
+            //         this._deflateOutputBuffer.bytes[1] = length & 0xFF;
+            //         this._deflateOutputBuffer.bytes[2] = (length >> 8) & 0xFF;
+            //         this._deflateOutputBuffer.bytes[3] = ~length & 0xFF;
+            //         this._deflateOutputBuffer.bytes[4] = (~length >> 8) & 0xFF;
+            //         while (this._deflateOutputBuffer.offset < this._deflateOutputBuffer.length && this._output.offset < this._output.bytes.length){
+            //             // this._writeBits(this._deflateOutputBuffer.bytes[this._deflateOutputBuffer.offset++], 8);
+            //             this._output.bytes[this._output.offset++] = this._deflateOutputBuffer.bytes[this._deflateOutputBuffer.offset++];
             //         }
-            //         if (this._deflateBlockBuffer.offset == this._deflateBlockBuffer.length){
-            //             if (this._deflateBlockBuffer.bytes[0] & 0x01){
-            //                 this._deflateBlockBuffer = null;
+            //         if (this._deflateOutputBuffer.offset == this._deflateOutputBuffer.length){
+            //             if (this._deflateOutputBuffer.bytes[0] & 0x01){
+            //                 this._deflateOutputBuffer = null;
             //                 this._state = DeflateStream.State.done;
             //             }else{
-            //                 this._deflateBlockBuffer.offset = 0;
-            //                 this._deflateBlockBuffer.length = 5;
+            //                 this._deflateOutputBuffer.offset = 0;
+            //                 this._deflateOutputBuffer.length = 5;
             //             }
             //         }else{
             //             if (isFinal){
@@ -373,7 +436,8 @@ DeflateStream.prototype = Object.create({}, {
 
     _deflateLocation: {writable: true, value: 0},
     _deflateTable: {writable: true, value: null},
-    _deflateBlockBuffer: {writable: true, value: null},
+    _deflateOutputBuffer: {writable: true, value: null},
+    _deflateInputBuffer: {writable: true, value: null},
 
     _writeBits: {
         value: function DeflateStream_writeBits(bits, n){
@@ -420,28 +484,261 @@ DeflateStream.prototype = Object.create({}, {
     _writeStandardLiteralCode: {
         value: function DeflateStream_writeStandardLiteralCode(literal){
             if (literal <= 143){
-                this._writeBits(48 + 143 - literal, 8);
+                this._writeHuffmanCode(48 + literal, 8);
             }else if (literal <= 255){
-                var bits = 400 + 255 - literal;
-                this._writeBits(bits , 8);
-                this._writeBits(bits & 0x1, 1);
+                this._writeHuffmanCode(400 + literal - 144, 9);
+            }else{
+                throw new Error("Cannot write literal > 255");
             }
         }
     },
 
     _writeStandardLengthCode: {
         value: function DeflateStream_writeStandardLengthCode(length){
-            // max 13 bits, what if we have leftover?
-            if (length <= 10){
-
+            if (length < 3){
+                throw new Error("Cannot write length < 3");
             }
-
+            var code;
+            var extra;
+            var extraCount;
+            if (length <= 114){
+                if (length <= 10){
+                    code = 254 + length;
+                    extraCount = 0;
+                }else if (length <= 12){
+                    code = 265;
+                    extraCount = 1;
+                    extra = length - 11;
+                }else if (length <= 14){
+                    code = 266;
+                    extraCount = 1;
+                    extra = length - 13;
+                }else if (length <= 16){
+                    code = 267;
+                    extraCount = 1;
+                    extra = length - 15;
+                }else if (length <= 18){
+                    code = 268;
+                    extraCount = 1;
+                    extra = length - 17;
+                }else if (length <= 22){
+                    code = 269;
+                    extraCount = 2;
+                    extra = length - 19;
+                }else if (length <= 26){
+                    code = 270;
+                    extraCount = 2;
+                    extra = length - 23;
+                }else if (length <= 30){
+                    code = 271;
+                    extraCount = 2;
+                    extra = length - 27;
+                }else if (length <= 34){
+                    code = 272;
+                    extraCount = 2;
+                    extra = length - 31;
+                }else if (length <= 42){
+                    code = 273;
+                    extraCount = 3;
+                    extra = length - 35;
+                }else if (length <= 50){
+                    code = 274;
+                    extraCount = 3;
+                    extra = length - 43;
+                }else if (length <= 58){
+                    code = 275;
+                    extraCount = 3;
+                    extra = length - 51;
+                }else if (length <= 66){
+                    code = 276;
+                    extraCount = 3;
+                    extra = length - 59;
+                }else if (length <= 82){
+                    code = 277;
+                    extraCount = 4;
+                    extra = length - 67;
+                }else if (length <= 98){
+                    code = 278;
+                    extraCount = 4;
+                    extra = length - 83;
+                }else{
+                    code = 279;
+                    extraCount = 4;
+                    extra = length - 99;
+                }
+                this._writeHuffmanCode(0 + code - 256, 7);
+                if (extraCount > 0){
+                    this._writeBits(extra, extraCount);
+                }
+            }else if (length <= 258){
+                if (length <= 130){
+                    code = 280;
+                    extraCount = 4;
+                    extra = length - 115;
+                }else if (length <= 162){
+                    code = 281;
+                    extraCount = 5;
+                    extra = length - 131;
+                }else if (length <= 194){
+                    code = 282;
+                    extraCount = 5;
+                    extra = length - 163;
+                }else if (length <= 226){
+                    code = 283;
+                    extraCount = 5;
+                    extra = length - 195;
+                }else if (length <= 257){
+                    code = 284;
+                    extraCount = 5;
+                    extra = length - 227;
+                }else{
+                    code = 258;
+                    extraCount = 0;
+                }
+                this._writeHuffmanCode(192 + code - 280, 8);
+                if (extraCount > 0){
+                    this._writeBits(extra, extraCount);
+                }
+            }else{
+                throw new DeflateError("Cannot write length > 258");
+            }
         }
     },
 
     _writeStandardDistanceCode: {
         value: function DeflateStream_writeStandardDistanceCode(distance){
-            // max 18 bits, what if we have leftover?
+            var code;
+            var extra;
+            var extraCount;
+            if (distance <= 4){
+                code = distance - 1;
+                extraCount = 0;
+            }else if (distance <= 6){
+                code = 4;
+                extraCount = 1;
+                extra = distance - 5;
+            }else if (distance <= 8){
+                code = 5;
+                extraCount = 1;
+                extra = distance - 7;
+            }else if (distance <= 12){
+                code = 6;
+                extraCount = 2;
+                extra = distance - 9;
+            }else if (distance <= 16){
+                code = 7;
+                extraCount = 2;
+                extra = distance - 13;
+            }else if (distance <= 24){
+                code = 8;
+                extraCount = 3;
+                extra = distance - 17;
+            }else if (distance <= 32){
+                code = 9;
+                extraCount = 3;
+                extra = distance - 25;
+            }else if (distance <= 48){
+                code = 10;
+                extraCount = 4;
+                extra = distance - 33;
+            }else if (distance <= 64){
+                code = 11;
+                extraCount = 4;
+                extra = distance - 49;
+            }else if (distance <= 96){
+                code = 12;
+                extraCount = 5;
+                extra = distance - 65;
+            }else if (distance <= 128){
+                code = 13;
+                extraCount = 5;
+                extra = distance - 97;
+            }else if (distance <= 192){
+                code = 14;
+                extraCount = 6;
+                extra = distance - 129;
+            }else if (distance <= 256){
+                code = 15;
+                extraCount = 6;
+                extra = distance - 193;
+            }else if (distance <= 384){
+                code = 16;
+                extraCount = 7;
+                extra = distance - 257;
+            }else if (distance <= 512){
+                code = 17;
+                extraCount = 7;
+                extra = distance - 385;
+            }else if (distance <= 768){
+                code = 18;
+                extraCount = 8;
+                extra = distance - 513;
+            }else if (distance <= 1024){
+                code = 19;
+                extraCount = 8;
+                extra = distance - 769;
+            }else if (distance <= 1536){
+                code = 20;
+                extraCount = 9;
+                extra = distance - 1025;
+            }else if (distance <= 2048){
+                code = 21;
+                extraCount = 9;
+                extra = distance - 1537;
+            }else if (distance <= 3072){
+                code = 22;
+                extraCount = 10;
+                extra = distance - 2049;
+            }else if (distance <= 4096){
+                code = 23;
+                extraCount = 10;
+                extra = distance - 3073;
+            }else if (distance <= 6144){
+                code = 24;
+                extraCount = 11;
+                extra = distance - 4097;
+            }else if (distance <= 8192){
+                code = 25;
+                extraCount = 11;
+                extra = distance - 6145;
+            }else if (distance <= 12288){
+                code = 26;
+                extraCount = 12;
+                extra = distance - 8193;
+            }else if (distance <= 16384){
+                code = 27;
+                extraCount = 12;
+                extra = distance - 12289;
+            }else if (distance <= 24576){
+                code = 28;
+                extraCount = 13;
+                extra = distance - 16385;
+            }else if (distance <= 32768){
+                code = 29;
+                extraCount = 13;
+                extra = distance - 24577;
+            }else{
+                throw new DeflateError("Cannot write distance > 32K");
+            }
+            this._writeHuffmanCode(0 + code - 256, 5);
+            if (extraCount > 8){
+                this._writeBits(extra & 0xFF, 8);
+                extra >>= 8;
+                extraCount -= 8;
+            }
+            if (extraCount > 0){
+                this._writeBits(extra, extraCount);
+            }
+        }
+    },
+
+    _writeHuffmanCode: {
+        value: function DeflateStream_writeHuffmanCode(bits, n){
+            n -= 1;
+            while (n >= 0){
+                this._writeBits((bits >> n) & 0x01, 1);
+                --n;
+            }
         }
     },
 
@@ -466,7 +763,7 @@ DeflateStream.prototype = Object.create({}, {
             while (this._windowCopyLength > 0 && this._output.offset < this._output.bytes.length){
                 b = this._window.bytes[this._windowCopyOffset++];
                 this._output.bytes[this._output.offset++] = b;
-                this._window.overwrite(b);
+                this._window.writeByte(b);
                 --this._windowCopyLength;
                 if (this._windowCopyOffset == this._window.bytes.length){
                     this._windowCopyOffset = 0;
@@ -570,14 +867,29 @@ var DeflateRingBuffer = function(bytes, length){
 
 DeflateRingBuffer.prototype = Object.create({}, {
 
-    peek: {
-        value: function DeflateRingBuffer_peek(i){
+    peekByte: {
+        value: function DeflateRingBuffer_peekByte(i){
             return this.bytes[(this.offset + i) % this.bytes.length];
         }
     },
 
-    overwrite: {
-        value: function DeflateRingStream_write(byte){
+    readByte: {
+        value: function DeflateRingBuffer_readByte(){
+            if (this.length === 0){
+                throw new DeflateError("Cannot read from empty buffer");
+            }
+            var b = this.bytes[this.offset % this.bytes.length];
+            --this.length;
+            ++this.offset;
+            if (this.offset === this.bytes.length){
+                this.offset = 0;
+            }
+            return b;
+        }
+    },
+
+    writeByte: {
+        value: function DeflateRingStream_writeByte(byte){
             this.bytes[(this.offset + this.length) % this.bytes.length] = byte;
             ++this.length;
             if (this.length > this.bytes.length){
@@ -639,7 +951,7 @@ UncompressedBlock.prototype = {
         }
         while (this.remaining > 0 && stream._input.offset < stream._input.bytes.length && stream._output.offset < stream._output.bytes.length){
             stream._output.bytes[stream._output.offset++] = stream._input.bytes[stream._input.offset++];
-            stream._window.overwrite(stream._output.bytes[stream._output.offset]);
+            stream._window.writeByte(stream._output.bytes[stream._output.offset]);
             --this.remaining;
         }
         this.isDone = this.remaining === 0;
@@ -692,7 +1004,7 @@ HuffmanBlock.prototype = {
                     break;
                 }
                 stream._output.bytes[stream._output.offset++] = this.code;
-                stream._window.overwrite(this.code);
+                stream._window.writeByte(this.code);
             }else if (this.code > 256 && this.code <= 287){
                 if (stream._output.offset == stream._output.bytes.length){
                     break;

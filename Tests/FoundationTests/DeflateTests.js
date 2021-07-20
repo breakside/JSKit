@@ -19,13 +19,111 @@
 
 JSClass("DeflateTests", TKTestSuite, {
 
-    testDeflateLevel0: function(){
+    testDeflate: function(){
+        var inflated, output;
+
+        inflated = "t".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x2B, 0x01, 0x00]);
+
+        inflated = "this is a test".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x2B,0xC9,0xC8,0x2C,0x56,0x00,0xA2,0x44,0x85,0x92,0xD4,0xE2,0x12,0x00]);
+
+        inflated = "Blah blah blah blah blah!".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x73,0xCA,0x49,0xCC,0x50,0x48,0xC2,0x24,0x14,0x01]);
+    },
+
+    testDeflateByteByByteInput: function(){
+        var inflated = "this is a test".utf8();
+        var stream = DeflateStream();
+        stream.output = JSData.initWithLength(20);
+        var length;
+        for (var i = 0; i < inflated.length - 1; ++i){
+            stream.input = inflated.subdataInRange(JSRange(i, 1));
+            length = stream.deflate();
+            TKAssertEquals(length, 0);
+            TKAssertEquals(stream.inputOffset, 1);
+        }
+        stream.input = inflated.subdataInRange(JSRange(inflated.length - 1, 1));
+        length = stream.deflate(true);
+        TKAssertEquals(length, 14);
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 14)), [0x2B,0xC9,0xC8,0x2C,0x56,0x00,0xA2,0x44,0x85,0x92,0xD4,0xE2,0x12,0x00]);
+    },
+
+    testDeflateByteByByteOutput: function(){        
+        var inflated = "this is a test".utf8();
+        var stream = DeflateStream();
+        stream.input = inflated;
+        stream.output = JSData.initWithLength(1);
+        var length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x2B);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xC9);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xC8);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x2C);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x56);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x00);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xA2);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x44);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x85);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x92);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xD4);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xE2);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x12);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x00);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertExactEquals(length, 0);
+    },
+
+    _testDeflateUncompressed: function(){
         var inflated = "this is a test".utf8();
         var output = Deflate.deflate(inflated);
         TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
 
-    testDeflateLevel0Long: function(){
+    _testDeflateUncompressedLong: function(){
         var inflated = new Uint8Array(0xFFFF + 0xFF);
         for (var i = 0; i < inflated.length; ++i){
             inflated[i] = i & 0xFF;
@@ -54,7 +152,7 @@ JSClass("DeflateTests", TKTestSuite, {
 
     },
 
-    testDeflateLevel0InChuncks: function(){
+    _testDeflateUncompressedInChuncks: function(){
         // All input, limited output
         var stream = new DeflateStream();
         stream.input = "this is a test".utf8();
