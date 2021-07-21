@@ -22,6 +22,14 @@ JSClass("IKBitmapContext", JSContext, {
     size: null,
 
     bitmap: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this._bitmap(completion, target);
+        return completion.promise;
+    },
+
+    _bitmap: function(completion, target){
     },
 
     image: function(encoding, completion, target){

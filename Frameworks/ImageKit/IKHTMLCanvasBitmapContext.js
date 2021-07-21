@@ -39,7 +39,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         this.operationQueue = [];
     },
 
-    bitmap: function(completion, target){
+    _bitmap: function(completion, target){
         this.enqueueOperation(function(state, opCompletion, opTarget){
             var imageData = this.canvasContext.getImageData(0, 0, this.size.width, this.size.height);
             var bitmap = IKBitmap.initWithData(new Uint8Array(imageData.data.buffer, 0, imageData.data.length), this.size);

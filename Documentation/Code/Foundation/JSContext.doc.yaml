@@ -10,8 +10,9 @@ description: |
   its actually drawing to.
 
   For example, `UIKit` uses a custom `JSContext` subclass to draw to HTML
-  elements, while `PDFKit` uses a custom `JSContext` subclass to generate
-  a PDF document.
+  elements, while `PDFKit` uses `PDFContext` to generate
+  a PDF document and `ImageKit` uses `IKBitmapContext` to generate bitmap
+  images like PNGs.
 
   Paths
   =====

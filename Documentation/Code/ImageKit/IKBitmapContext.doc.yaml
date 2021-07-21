@@ -1,0 +1,89 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2021.29.0
+kind: class
+inherits: JSContext
+summary: A drawing context with a bitmap backing
+description: |
+  `JSContext` is an abstract drawing API that allows the same code to generate
+  graphics in a variety of outputs.
+
+  For example, `UIKit` has its own context for display elements such as
+  `UILayer`s.  Or, `PDFKit` has `PDFContext` for drawing to PDF files.
+
+  `IKBitmapContext` is for drawing raster images to a bitmap backing, ultimately
+  generating an image such as a PNG.
+topics:
+  - name: Creating a Bitmap Context
+    members:
+      - name: initWithSize
+        kind: init
+        summary: Create a new bitmap context with the given width and height
+        arguments:
+          - name: size
+            type: JSSize
+            summary: The width and height of the bitmap
+  - name: Getting the Image
+    members:
+      - name: image
+        kind: method
+        summary: Create an image from the bitmap data using a callback
+        arguments:
+          - name: format
+            type: IKBitmap.Format
+            summary: The format for the image
+            important: Currently only the `png`(IKBitmap.Format.png) format
+              is supported
+          - name: completion
+            type:
+              arguments:
+                - name: image
+                  type: JSImage
+                  nullable: true
+                  summary: The generated image
+            summary: The function to call with the image result
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: image
+        kind: method
+        suffix: promise
+        summary: Create an image from the bitmap data using a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSImage
+            summary: The generated image
+        arguments:
+          - name: format
+            type: IKBitmap.Format
+            summary: The format for the image
+            important: Currently only the `png`(IKBitmap.Format.png) format
+              is supported
+  - name: Getting the Bitmap
+    members:
+      - name: bitmap
+        kind: method
+        summary: Get the bitmap data using a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: bitmap
+                  type: IKBitmap
+                  nullable: true
+                  summary: The bitmap data
+            summary: The function to call with the bitmap result
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this`() when calling `completion`()
+      - name: bitmap
+        kind: method
+        suffix: promise
+        summary: Get the bitmap data using a promise
+        type: Promise
+        promise:
+          resolve:
+            type: IKBitmap
+            summary: The bitmap data

@@ -3,13 +3,14 @@ kind: framework
 summary: Read and write bitmap images like PNGs and JPEGs
 codeURL: Frameworks/ImageKit/
 topics:
-  -
-    name: Bitmap Images
+  - name: Bitmap Images
     members:
       - IKBitmap
       - JSImage+IKBitmap
-  -
-    name: Encoding & Decoding
+  - name: Bitmap Drawing Context
+    members:
+      - IKBitmapContext
+  - name: Encoding & Decoding
     members:
       - IKDecoder
       - IKEncoder
