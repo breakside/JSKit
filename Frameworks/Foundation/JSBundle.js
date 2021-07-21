@@ -104,6 +104,9 @@ JSClass('JSBundle', JSObject, {
         // Make a sorted list of uer preferred languages (or fallbacks) that we have in the bundle
         for (i = 0, l = preferredLanguages.length; i < l; ++i){
             locale = JSLocale.initWithIdentifier(preferredLanguages[i]);
+            if (locale === null){
+                continue;
+            }
             localeKey = locale.identifierWithoutExtensions;
             if (localeKey in locales){
                 // We have a direct match in the bundle, which may either be an
