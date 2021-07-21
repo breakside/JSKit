@@ -869,6 +869,10 @@ JSClass("JSPath", JSObject, {
             }
         }
         return data;
+    },
+
+    toString: function(){
+        return this.svgPathData();
     }
 
 });

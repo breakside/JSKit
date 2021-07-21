@@ -701,12 +701,34 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
-        // TODO:
+    drawLinearGradient: function(gradient, rect){
+        this.canvasContext.save();
+        this.canvasContext.translate(rect.origin.x, rect.origin.y);
+        this.canvasContext.scale(rect.size.width, rect.size.height);
+        var canvasGradient = this.canvasContext.createLinearGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
+        var stop;
+        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+            stop = gradient.stops[i];
+            canvasGradient.addColorStop(stop.position, stop.color.cssString());
+        }
+        this.canvasContext.fillStyle = canvasGradient;
+        this.canvasContext.fillRect(0, 0, 1, 1);
+        this.canvasContext.restore();
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
-        // TODO:
+    drawRadialGradient: function(gradient, rect, r0, r1){
+        this.canvasContext.save();
+        this.canvasContext.translate(rect.origin.x, rect.origin.y);
+        this.canvasContext.scale(rect.size.width, rect.size.height);
+        var canvasGradient = this.canvasContext.createRadialGradient(gradient.start.x, gradient.start.y, r0, gradient.end.x, gradient.end.y, r1);
+        var stop;
+        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+            stop = gradient.stops[i];
+            canvasGradient.addColorStop(stop.position, stop.color.cssString());
+        }
+        this.canvasContext.fillStyle = canvasGradient;
+        this.canvasContext.fillRect(0, 0, 1, 1);
+        this.canvasContext.restore();
     },
 
     // ----------------------------------------------------------------------

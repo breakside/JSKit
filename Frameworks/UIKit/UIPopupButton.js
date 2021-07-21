@@ -722,12 +722,12 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonCustomStyler, {
         }
         if (this.normalTitleColor === null){
             this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
-            if (this.activeTitleColor === null){
-                this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
-            }
-            if (this.disabledTitleColor === null){
-                this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
-            }
+        }
+        if (this.activeTitleColor === null){
+            this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
+        }
+        if (this.disabledTitleColor === null){
+            this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
         }
     }
 

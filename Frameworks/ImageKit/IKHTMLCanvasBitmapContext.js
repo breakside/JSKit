@@ -19,6 +19,8 @@
 
 (function(){
 
+var logger = JSLog("imagekit", "htmlbitmap");
+
 JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
 
     canvasElement: null,
@@ -27,102 +29,132 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // ----------------------------------------------------------------------
     // MARK: - Creating a Context
 
-    initWithDocument: function(document, pixelSize){
-        IKHTMLCanvasBitmapContext.$super.initWithPixelSize(pixelSize);
+    initWithDocument: function(document, size){
+        IKHTMLCanvasBitmapContext.$super.init.call(this);
+        this.size = JSSize(Math.ceil(size.width), Math.ceil(size.height));
         this.canvasElement = document.createElement("canvas");
         this.canvasElement.width = this.size.width;
         this.canvasElement.height = this.size.height;
         this.canvasContext = this.canvasElement.getContext('2d');
+        this.operationQueue = [];
     },
 
-    bitmap: function(){
-        var imageData = this.canvasContext.getImageData(0, 0, this.size.width, this.size.height);
-        var bitmap = IKBitmap.initWithData(imageData, this.size);
-        return bitmap;
-    },
-
-    image: function(scale){
-        var bitmap = this.bitmap();
-        var png = bitmap.encodedData(IKBitmap.Format.png);
-        var image = JSImage.initWithData(png, this.size, scale);
-        return image;
+    bitmap: function(completion, target){
+        this.enqueueOperation(function(state, opCompletion, opTarget){
+            var imageData = this.canvasContext.getImageData(0, 0, this.size.width, this.size.height);
+            var bitmap = IKBitmap.initWithData(new Uint8Array(imageData.data.buffer, 0, imageData.data.length), this.size);
+            opCompletion.call(opTarget);
+            completion.call(target, bitmap);
+        });
     },
 
     // ----------------------------------------------------------------------
-    // MARK: - Constructing Paths
+    // MARK: - Operations
 
-    /// Starts a new path, discarding any previous path
-    beginPath: function(){
-        this.canvasContext.beginPath();
+    operationQueue: null,
+
+    enqueueOperation: function(operation){
+        var state = {
+            transform: this.state.transform,
+            alpha: this.state.alpha,
+            fillColor: this.state.fillColor,
+            strokeColor: this.state.strokeColor,
+            lineWidth: this.state.lineWidth,
+            lineCap: this.state.lineCap,
+            lineJoin: this.state.lineJoin,
+            miterLimit: this.state.miterLimit,
+            lineDashArray: this.state.lineDashArray,
+            lineDashPhase: this.state.lineDashPhase,
+            shadowOffset: this.state.shadowOffset,
+            shadowBlur: this.state.shadowBlur,
+            shadowColor: this.state.shadowColor,
+            font: this.state.font,
+            textMatrix: this.state.textMatrix,
+            characterSpacing: this.state.characterSpacing,
+            textDrawingMode: this.state.textDrawingMode
+        };
+        this.operationQueue.push({fn: operation, state: state});
+        if (this.operationQueue.length === 1){
+            this.runNextOperation();
+        }
     },
 
-    moveToPoint: function(x, y){
-        this.canvasContext.moveTo(x, y);
-    },
+    runNextOperation: function(){
+        var operation = this.operationQueue[0];
+        
+        // apply state as it was when operation was created
+        this.canvasContext.setTransform(
+            operation.state.transform.a,
+            operation.state.transform.b,
+            operation.state.transform.c,
+            operation.state.transform.d,
+            operation.state.transform.tx,
+            operation.state.transform.ty
+        );
+        this.canvasContext.globalAlpha = operation.state.alpha;
+        if (operation.state.fillColor !== null){
+            this.canvasContext.fillStyle = operation.state.fillColor.cssString();
+        }
+        if (operation.state.strokeColor !== null){
+            this.canvasContext.strokeStyle = operation.state.strokeColor.cssString();
+        }
+        this.canvasContext.lineWidth = operation.state.lineWidth;
+        this.canvasContext.lineCap = operation.state.lineCap;
+        this.canvasContext.lineJoin = operation.state.lineJoin;
+        this.canvasContext.miterLimit = operation.state.miterLimit;
+        if (operation.state.lineDashArray !== null && operation.state.lineDashArray.length > 0){
+            this.canvasContext.lineDashOffset = operation.state.lineDashPhase;
+            this.canvasContext.setLineDash(operation.state.lineDashArray);
+        }
+        if (operation.state.shadowColor !== null){
+            this.canvasContext.shadowColor = operation.state.shadowColor.cssString();
+            this.canvasContext.shadowOffsetX = operation.state.shadowOffset.x;
+            this.canvasContext.shadowOffsetY = operation.state.shadowOffset.y;
+            this.canvasContext.shadowBlur = operation.state.shadowBlur * operation.state.transform.a;
+        }
+        if (operation.state.font !== null){
+            this.canvasContext.font = operation.state.font.cssString();
+        }
 
-    addLineToPoint: function(x, y){
-        this.canvasContext.lineTo(x, y);
-    },
-
-    addRect: function(rect){
-        this.canvasContext.rect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-    },
-
-    addRoundedRect: function(rect, cornerRadius){
-        var path = JSPath.init();
-        path.addRoundedRect(rect, cornerRadius);
-        this.addPath(path);
-    },
-
-    addArc: function(center, radius, startAngle, endAngle, clockwise){
-        this.canvasContext.arc(center.x, center.y, radius, startAngle, endAngle, !clockwise);
-    },
-
-    addArcUsingTangents: function(tangent1End, tangent2End, radius){
-        this.canvasContext.arcTo(tangent1End.x, tangent1End.y, tangent2End.x, tangent2End.y, radius);
-    },
-
-    addCurveToPoint: function(point, control1, control2){
-        this.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
-    },
-
-    addQuadraticCurveToPoint: function(point, control){
-        this.canvasContext.quadraticCurveTo(control.x, control.y, point.x, point.y);
-    },
-
-    addEllipseInRect: function(rect){
-        var path = JSPath.init();
-        path.addEllipseInRect(rect);
-        this.addPath(path);
-    },
-
-    closePath: function(){
-        this.canvasContext.closePath();
+        // call the operation
+        operation.fn.call(this, operation.state, function(){
+            this.operationQueue.shift();
+            if (this.operationQueue.length > 0){
+                this.runNextOperation();
+            }
+        }, this);
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Drawing the Current Path
 
     drawPath: function(drawingMode){
-        switch (drawingMode){
-            case JSContext.DrawingMode.fill:
-                this.canvasContext.fill();
-                break;
-            case JSContext.DrawingMode.evenOddFill:
-                this.canvasContext.fill('evenodd');
-                break;
-            case JSContext.DrawingMode.stroke:
-                this.canvasContext.stroke();
-                break;
-            case JSContext.DrawingMode.fillStroke:
-                this.canvasContext.fill();
-                this.canvasContext.stroke();
-                break;
-            case JSContext.DrawingMode.evenOddFillStroke:
-                this.canvasContext.fill('evenodd');
-                this.canvasContext.stroke();
-                break;
-        }
+        var path = this.path.copy();
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this.canvasContext.beginPath();
+            path.addToIKHTMLCanvasContext(this.canvasContext);
+            switch (drawingMode){
+                case JSContext.DrawingMode.fill:
+                    this.canvasContext.fill();
+                    break;
+                case JSContext.DrawingMode.evenOddFill:
+                    this.canvasContext.fill('evenodd');
+                    break;
+                case JSContext.DrawingMode.stroke:
+                    this.canvasContext.stroke();
+                    break;
+                case JSContext.DrawingMode.fillStroke:
+                    this.canvasContext.fill();
+                    this.canvasContext.stroke();
+                    break;
+                case JSContext.DrawingMode.evenOddFillStroke:
+                    this.canvasContext.fill('evenodd');
+                    this.canvasContext.stroke();
+                    break;
+            }
+            completion.call(target);
+        });
         this.beginPath();
     },
 
@@ -130,274 +162,282 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     // MARK: - Drawing Shapes
 
     clearRect: function(rect){
-        this.canvasContext.clearRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-        this.beginPath();
-    },
-
-    fillRect: function(rect){
-        this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.clearRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            completion.call(target);
+        });
         this.beginPath();
     },
 
     fillMaskedRect: function(rect, maskImage){
-        var maskCanvas = this.canvasElement.ownerDocument.createElement("canvas");
-        maskCanvas.width = maskImage.size.width;
-        maskCanvas.height = maskImage.size.height;
-        var maskContext = maskCanvas.getContext('2d');
-        maskContext.fillStyle = this.canvasContext.fillStyle;
-        maskContext.fillRect(0, 0, maskImage.size.width, maskImage.size.height);
-        maskContext.globalCompositeOperation = 'destination-in';
-        this._drawImageToCanvasContext(maskImage.htmlURLString(), JSRect(JSPoint.Zero, maskImage.size), maskContext);
-        this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.enqueueOperation(function(state, completion, target){
+            drawableElementForImage(maskImage, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
+                var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
+                maskCanvas.width = maskImage.size.width * scale;
+                maskCanvas.height = maskImage.size.height * scale;
+                var maskContext = maskCanvas.getContext('2d');
+                maskContext.fillStyle = state.fillColor.cssString();
+                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.globalCompositeOperation = 'destination-in';
+                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                completion.call(target);
+            }, this);
+        });
     },
-
-    strokeRect: function(rect){
-        this.canvasContext.strokeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
-        this.beginPath();
-    },
-
     // ----------------------------------------------------------------------
     // MARK: - Images
 
     drawImage: function(image, rect){
-        this._drawImageToCanvasContext(image.htmlURLString(), rect, this.canvasContext);
-    },
-
-    drawBitmap: function(bitmap, rect){
-        var png = bitmap.encodedData(IKBitmap.Format.png);
-        this._drawImageToCanvasContext("data:image/png;base64," + png.base64StringRepresentation(), rect, this.canvasContext);
-        // this.save();
-        // this.scaleBy(bitmap.size.width / rect.size.width, bitmap.size.height  / rect.size.height);
-        // var r, g, b, a;
-        // var square = JSRect(0, 0, 1, 1);
-        // for (var i = 0; square.origin.y < bitmap.size.height; ++square.origin.y){
-        //     for (; square.origin.x < bitmap.size.width; ++square.origin.x){
-        //         r = bitmap.data[i++] / 255.0;
-        //         g = bitmap.data[i++] / 255.0;
-        //         b = bitmap.data[i++] / 255.0;
-        //         a = bitmap.data[i++] / 255.0;
-        //         this.canvasContext.setFillColor(JSColor.initWithRGBA(r, g, b, a));
-        //         this.canvasContext.fillRect(square);
-        //     }
-        // }
-        // this.restore();
-    },
-
-    _drawImageToCanvasContext: function(src, rect, canvasContext){
-        var imgElement = this.canvasElement.ownerDocument.createElement('img');
-        imgElement.src = src;
-        // FIXME: doesn't work because the image hasn't loaded yet
-        canvasContext.drawImage(imgElement, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        this.enqueueOperation(function(state, completion, target){
+            drawableElementForImage(image, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
+                this.canvasContext.drawImage(imgElement, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                completion.call(target);
+            }, this);
+        });
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Gradients
 
-    drawLinearGradient: function(gradient, start, end){
-        var canvasGradient = this.canvasContext.createLineralGradient(start.x, start.y, end.x, end.y);
-        var stop;
-        for (var i = 0, l = gradient.stops.length; i < l; ++i){
-            stop = gradient.stops[i];
-            canvasGradient.addColorStop(stop.position, stop.color.cssString());
-        }
-        this.canvasContext.save();
-        this.canvasContext.fillStyle = canvasGradient;
-        // TODO: what do we fill?
-        this.canvasContext.restore();
+    drawLinearGradient: function(gradient, rect){
+        this.enqueueOperation(function(state, completion, target){
+            // since all the gradient coordinates are in the unit rectangle,
+            // we'll align our transform so the unit rectangle matches rect.
+            this.canvasContext.translate(rect.origin.x, rect.origin.y);
+            this.canvasContext.scale(rect.size.width, rect.size.height);
+            var canvasGradient = this.canvasContext.createLinearGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
+            var stop;
+            for (var i = 0, l = gradient.stops.length; i < l; ++i){
+                stop = gradient.stops[i];
+                canvasGradient.addColorStop(stop.position, stop.color.cssString());
+            }
+            this.canvasContext.fillStyle = canvasGradient;
+            this.canvasContext.fillRect(0, 0, 1, 1);
+            completion.call(target);
+        });
     },
 
-    drawRadialGradient: function(gradient, startCenter, startRadius, endCenter, endRadius){
-        // TODO:
+    drawRadialGradient: function(gradient, rect, r0, r1){
+        this.enqueueOperation(function(state, completion, target){
+            // since all the gradient coordinates are in the unit rectangle,
+            // we'll align our transform so the unit rectangle matches rect.
+            this.canvasContext.translate(rect.origin.x, rect.origin.y);
+            this.canvasContext.scale(rect.size.width, rect.size.height);
+            var canvasGradient = this.canvasContext.createRadialGradient(gradient.start.x, gradient.start.y, r0, gradient.end.x, gradient.end.y, r1);
+            var stop;
+            for (var i = 0, l = gradient.stops.length; i < l; ++i){
+                stop = gradient.stops[i];
+                canvasGradient.addColorStop(stop.position, stop.color.cssString());
+            }
+            this.canvasContext.fillStyle = canvasGradient;
+            this.canvasContext.fillRect(0, 0, 1, 1);
+            completion.call(target);
+        });
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Text
 
-    setFont: function(font){
-        IKHTMLCanvasBitmapContext.$super.setFont.call(this, font);
-        this.canvasContext.font = font ? font.cssString() : "";
-    },
-
     showGlyphs: function(glyphs){
-        var tm = this.state.textMatrix;
-        var width;
-        var glyph;
-        var text;
-        var font = this.state.font;
-        this.save();
-        this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
-        this.concatenate(tm);
-        for (var i = 0, l = glyphs.length; i < l; ++i){
-            glyph = glyphs[i];
-            text = font.stringForGlyphs([glyph]);
-            if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                this.canvasContext.fillText(text, 0, 0);
-            }
-            if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                this.canvasContext.strokeText(text, 0, 0);
-            }
-            width = font.widthOfGlyph(glyph) + this.state.characterSpacing;
-            this.translateBy(width, 0);
-        }
-        this.restore();
+        var text = this.state.font.stringForGlyphs(glyphs);
+        this.showText(text);
+        // this.enqueueOperation(function(state, completion, target){
+        //     if (!state.textMatrix.isIdentity){
+        //         // Canvas2D doens't have a concept of a text transform, so we'll just
+        //         // add it to the base transform.
+        //         // - Be sure to adjust the lineWidth for the new scale
+        //         this.canvasContext.lineWidth = this.canvasContext.lineWidth / Math.abs(state.textMatrix.d);
+        //         this.canvasContext.transform(
+        //             state.textMatrix.a,
+        //             state.textMatrix.b,
+        //             state.textMatrix.c,
+        //             state.textMatrix.d,
+        //             state.textMatrix.tx,
+        //             state.textMatrix.ty
+        //         );
+        //     }
+        //     var glyph;
+        //     var text;
+        //     var width;
+        //     var font = state.font;
+        //     for (var i = 0, l = glyphs.length; i < l; ++i){
+        //         glyph = glyphs[i];
+        //         text = font.stringForGlyphs([glyph]);
+        //         if (state.textDrawingMode == JSContext.TextDrawingMode.fill || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        //             this.canvasContext.fillText(text, 0, 0);
+        //         }
+        //         if (state.textDrawingMode == JSContext.TextDrawingMode.stroke || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+        //             this.canvasContext.strokeText(text, 0, 0);
+        //         }
+        //         width = font.widthOfGlyph(glyph) + state.characterSpacing;
+        //         this.canvasContext.translate(width, 0);
+        //     }
+
+        //     completion.call(target);
+        // });
     },
 
     showText: function(text){
-        // If there's a non-zero character spacing specified, we can't use
-        // canvasContext.fillText, because Canvas2D has no way of specifying
-        // character spacing.  So, we'll use showGlyphs to paint glyph by
-        // glyph.
-        //
-        // Disabled until we have the font cmap stuff working correctly for pdf fonts
-        if (this.state.characterSpacing !== 0){
-            this._showSpacedText(text);
-            return;
-        }
-
-        // If character spacing is zero, then it's far more effient to just paint
-        // the text we were given all at once.
-        var tm = this.state.textMatrix;
-        var nonIdentityMatrix = !tm.isIdentity;
-        if  (nonIdentityMatrix){
-            // Canvas2D doens't have a concept of a text transform, so we'll just
-            // add it to the base transform.
-            // - Be sure to adjust the lineWidth for the new scale
-            this.save();
-            this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
-            this.concatenate(tm);
-        }
-        if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-            this.canvasContext.fillText(text, 0, 0);
-        }
-        if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-            this.canvasContext.strokeText(text, 0, 0);
-        }
-        // Debugging
-        // this.canvasContext.save();
-        // this.setFillColor(JSColor.initWithRGBA(1,0,0,0.4));
-        // this.fillRect(JSRect(0, -this.state.font.ascender, this.state.font.lineHeight, this.state.font.lineHeight));
-        // this.canvasContext.restore();
-        if (nonIdentityMatrix){
-            this.restore();
-        }
-    },
-
-    _showSpacedText: function(text){
-        var tm = this.state.textMatrix;
-        var width;
-        var font = this.state.font;
-        this.save();
-        this.setLineWidth(this.canvasContext.lineWidth / Math.abs(tm.d));
-        this.concatenate(tm);
-        var iterator = text.unicodeIterator();
-        while (iterator.character !== null){
-            if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                this.canvasContext.fillText(iterator.character.utf16, 0, 0);
+        this.enqueueOperation(function(state, completion, target){
+            if (!state.textMatrix.isIdentity){
+                // Canvas2D doens't have a concept of a text transform, so we'll just
+                // add it to the base transform.
+                // - Be sure to adjust the lineWidth for the new scale
+                this.canvasContext.lineWidth = this.canvasContext.lineWidth / Math.abs(state.textMatrix.d);
+                this.canvasContext.transform(
+                    state.textMatrix.a,
+                    state.textMatrix.b,
+                    state.textMatrix.c,
+                    state.textMatrix.d,
+                    state.textMatrix.tx,
+                    state.textMatrix.ty
+                );
             }
-            if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
-                this.canvasContext.strokeText(iterator.character.utf16, 0, 0);
+            if (state.characterSpacing === 0){
+                // If character spacing is zero, then it's far more effient to just paint
+                // the text we were given all at once.
+                if (state.textDrawingMode == JSContext.TextDrawingMode.fill || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                    this.canvasContext.fillText(text, 0, 0);
+                }
+                if (state.textDrawingMode == JSContext.TextDrawingMode.stroke || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                    this.canvasContext.strokeText(text, 0, 0);
+                }
+            }else{
+                // If there's a non-zero character spacing specified, we can't use
+                // canvasContext.fillText, because Canvas2D has no way of specifying
+                // character spacing.  So, we'll paint character by character.
+                var width;
+                var font = state.font;
+                var iterator = text.unicodeIterator();
+                while (iterator.character !== null){
+                    if (state.textDrawingMode == JSContext.TextDrawingMode.fill || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                        this.canvasContext.fillText(iterator.character.utf16, 0, 0);
+                    }
+                    if (state.textDrawingMode == JSContext.TextDrawingMode.stroke || state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
+                        this.canvasContext.strokeText(iterator.character.utf16, 0, 0);
+                    }
+                    width = font.widthOfCharacter(iterator.character) + state.characterSpacing;
+                    this.canvasContext.translate(width, 0);
+                    iterator.increment();
+                }
             }
-            width = font.widthOfCharacter(iterator.character) + this.state.characterSpacing;
-            this.translateBy(width, 0);
-            iterator.increment();
-        }
-        this.restore();
-    },
 
-    // ----------------------------------------------------------------------
-    // MARK: - Fill, Stroke, Shadow Colors
-
-    getAlpha: function(){
-        return this.canvasContext.globalAlpha;
-    },
-
-    setAlpha: function(alpha){
-        this.canvasContext.globalAlpha = alpha;
-    },
-
-    setFillColor: function(fillColor){
-        this.canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
-    },
-
-    setStrokeColor: function(strokeColor){
-        this.canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
-    },
-
-    setShadow: function(offset, blur, color){
-        this.canvasContext.shadowOffsetX = offset.x;
-        this.canvasContext.shadowOffsetY = offset.y;
-        this.canvasContext.shadowBlur = blur * this.deviceScale;
-        this.canvasContext.shadowColor = color ? color.cssString() : '';
+            completion.call(target);
+        });
     },
 
     // ----------------------------------------------------------------------
     // MARK: - Clipping
 
     clip: function(fillRule){
-        if (fillRule == JSContext.FillRule.evenOdd){
-            this.canvasContext.clip('evenodd');
-        }else{
-            this.canvasContext.clip();
-        }
+        var path = this.path.copy();
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+            this.canvasContext.beginPath();
+            path.addToIKHTMLCanvasContext(this.canvasContext);
+            if (fillRule == JSContext.FillRule.evenOdd){
+                this.canvasContext.clip('evenodd');
+            }else{
+                this.canvasContext.clip();
+            }
+            completion.call(target);
+        });
         this.beginPath();
     },
 
     // ----------------------------------------------------------------------
-    // MARK: - Transformations
+    // MARK: - State
 
-    scaleBy: function(sx, sy){
-        this.canvasContext.scale(sx, sy);
-    },
-
-    rotateBy: function(angle){
-        this.canvasContext.rotate(angle);
-    },
-
-    translateBy: function(tx, ty){
-        this.canvasContext.translate(tx, ty);
-    },
-
-    concatenate: function(transform){
-        this.canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
-    },
-
-    // ----------------------------------------------------------------------
-    // MARK: - Drawing Options
-
-    setLineWidth: function(lineWidth){
-        this.canvasContext.lineWidth = lineWidth;
-    },
-
-    setLineCap: function(lineCap){
-        this.canvasContext.lineCap = lineCap;
-    },
-
-    setLineJoin: function(lineJoin){
-        this.canvasContext.lineJoin = lineJoin;
-    },
-
-    setMiterLimit: function(miterLimit){
-        this.canvasContext.miterLimit = miterLimit;
-    },
-
-    setLineDash: function(phase, lengths){
-        this.canvasContext.lineDashOffset = phase;
-        this.canvasContext.setLineDash(lengths);
-    },
-
-    // ----------------------------------------------------------------------
-    // MARK: - Graphics State
+    // Because of our operation queue design, the only reason we need to
+    // handle save/restore is to have the canvas context keep track of the
+    // current clipping path(s).
+    // Alternatively, we could keep track ourself, and apply a stack of clips
+    // when we set the rest of the state before operation.run, but this seems
+    // easier and unlikely to have a major impact on performance.
 
     save: function(){
         IKHTMLCanvasBitmapContext.$super.save.call(this);
-        this.canvasContext.save();
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.save();
+            completion.call(target);
+        });
     },
 
     restore: function(){
         IKHTMLCanvasBitmapContext.$super.restore.call(this);
-        this.canvasContext.restore();
-    },
+        this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.restore();
+            completion.call(target);
+        });
+    }
 
 });
+
+JSPath.definePropertiesFromExtensions({
+
+    addToIKHTMLCanvasContext: function(canvasContext){
+        var i, l;
+        var j, k;
+        var subpath;
+        var segment;
+        var point;
+        var cp1;
+        var cp2;
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath = this.subpaths[i];
+            canvasContext.moveTo(subpath.firstPoint.x, subpath.firstPoint.y);
+            for (j = 0, k = subpath.segments.length; j < k; ++j){
+                segment = subpath.segments[j];
+                if (segment.type === JSPath.SegmentType.line){
+                    canvasContext.lineTo(segment.end.x, segment.end.y);
+                }else if (segment.type === JSPath.SegmentType.curve){
+                    canvasContext.bezierCurveTo(
+                        segment.curve.cp1.x,
+                        segment.curve.cp1.y,
+                        segment.curve.cp2.x,
+                        segment.curve.cp2.y,
+                        segment.curve.p2.x,
+                        segment.curve.p2.y
+                    );
+                }
+            }
+            if (subpath.closed){
+                canvasContext.closePath();
+            }
+        }
+    }
+
+});
+
+var drawableElementForImage = function(image, domDocument, completion, target){
+    var imgElement = domDocument.createElement("img");
+    imgElement.src = image.htmlURLString();
+    if (imgElement.decode){
+        imgElement.decode().finally(function(){
+            completion.call(target, imgElement);
+        });
+    }else{
+        var listener = {
+            handleEvent: function(event){
+                imgElement.removeEventListener("load", listener);
+                imgElement.removeEventListener("error", listener);
+                completion.call(target, imgElement);
+            }
+        };
+        imgElement.addEventListener("load", listener);
+        imgElement.addEventListener("error", listener);
+    }
+};
+
+IKBitmapContext.definePropertiesFromExtensions({
+    initWithSize: function(size){
+        return IKHTMLCanvasBitmapContext.initWithDocument(document, size);
+    },
+});
+
+IKBitmapContext.defineInitMethod("initWithSize");
 
 })();

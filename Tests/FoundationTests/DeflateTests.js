@@ -19,13 +19,111 @@
 
 JSClass("DeflateTests", TKTestSuite, {
 
-    testDeflateLevel0: function(){
+    testDeflate: function(){
+        var inflated, output;
+
+        inflated = "t".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x2B, 0x01, 0x00]);
+
+        inflated = "this is a test".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x2B,0xC9,0xC8,0x2C,0x56,0x00,0xA2,0x44,0x85,0x92,0xD4,0xE2,0x12,0x00]);
+
+        inflated = "Blah blah blah blah blah!".utf8();
+        output = Deflate.deflate(inflated);
+        TKAssertObjectEquals(output, [0x73,0xCA,0x49,0xCC,0x50,0x48,0xC2,0x24,0x14,0x01]);
+    },
+
+    testDeflateByteByByteInput: function(){
+        var inflated = "this is a test".utf8();
+        var stream = DeflateStream();
+        stream.output = JSData.initWithLength(20);
+        var length;
+        for (var i = 0; i < inflated.length - 1; ++i){
+            stream.input = inflated.subdataInRange(JSRange(i, 1));
+            length = stream.deflate();
+            TKAssertEquals(length, 0);
+            TKAssertEquals(stream.inputOffset, 1);
+        }
+        stream.input = inflated.subdataInRange(JSRange(inflated.length - 1, 1));
+        length = stream.deflate(true);
+        TKAssertEquals(length, 14);
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 14)), [0x2B,0xC9,0xC8,0x2C,0x56,0x00,0xA2,0x44,0x85,0x92,0xD4,0xE2,0x12,0x00]);
+    },
+
+    testDeflateByteByByteOutput: function(){        
+        var inflated = "this is a test".utf8();
+        var stream = DeflateStream();
+        stream.input = inflated;
+        stream.output = JSData.initWithLength(1);
+        var length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x2B);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xC9);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xC8);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x2C);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x56);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x00);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xA2);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x44);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x85);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x92);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xD4);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0xE2);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x12);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output[0], 0x00);
+        stream.outputOffset = 0;
+        length = stream.deflate(true);
+        TKAssertExactEquals(length, 0);
+    },
+
+    _testDeflateUncompressed: function(){
         var inflated = "this is a test".utf8();
         var output = Deflate.deflate(inflated);
         TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
 
-    testDeflateLevel0Long: function(){
+    _testDeflateUncompressedLong: function(){
         var inflated = new Uint8Array(0xFFFF + 0xFF);
         for (var i = 0; i < inflated.length; ++i){
             inflated[i] = i & 0xFF;
@@ -54,74 +152,83 @@ JSClass("DeflateTests", TKTestSuite, {
 
     },
 
-    testDeflateLevel0InChuncks: function(){
+    _testDeflateUncompressedInChuncks: function(){
         // All input, limited output
         var stream = new DeflateStream();
         stream.input = "this is a test".utf8();
         stream.output = JSData.initWithLength(4);
-        var output = stream.deflate(true);
+        var length;
+        length = stream.deflate(true);
+        TKAssertEquals(length, 4);
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, new Uint8Array([0x01,0x0e,0x00,0xf1]));
+        TKAssertObjectEquals(stream.output, new Uint8Array([0x01,0x0e,0x00,0xf1]));
         stream.outputOffset = 0;
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 4);
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, new Uint8Array([0xff,0x74,0x68,0x69]));
+        TKAssertObjectEquals(stream.output, new Uint8Array([0xff,0x74,0x68,0x69]));
         stream.outputOffset = 0;
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 4);
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, new Uint8Array([0x73,0x20,0x69,0x73]));
+        TKAssertObjectEquals(stream.output, new Uint8Array([0x73,0x20,0x69,0x73]));
         stream.outputOffset = 0;
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 4);
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, new Uint8Array([0x20,0x61,0x20,0x74]));
+        TKAssertObjectEquals(stream.output, new Uint8Array([0x20,0x61,0x20,0x74]));
         stream.outputOffset = 0;
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 3);
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, new Uint8Array([0x65,0x73,0x74]));
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 3)), new Uint8Array([0x65,0x73,0x74]));
 
         // Limited input, plenty of output
         stream = new DeflateStream();
         var fullInput = "this is a test".utf8();
         stream.input = new Uint8Array(fullInput.buffer, 0, 2);
         stream.output = JSData.initWithLength(32);
-        output = stream.deflate();
+        length = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array(fullInput.buffer, 2, 3);
-        output = stream.deflate();
+        length = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array(fullInput.buffer, 5, 4);
-        output = stream.deflate();
+        length = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array(fullInput.buffer, 9, 5);
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 19);
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 19)), [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
 
         // All input, plenty of output, final block empty
         stream = new DeflateStream();
         stream.input = "this is a test".utf8();
         stream.output = JSData.initWithLength(32);
-        output = stream.deflate();
+        length = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array();
-        output = stream.deflate(true);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 19);
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 19)), [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
 
         // All input, plenty of output, final block empty with original input
         stream = new DeflateStream();
         stream.input = "this is a test".utf8();
         stream.output = JSData.initWithLength(32);
-        output = stream.deflate();
+        length = stream.deflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
-        output = stream.deflate(true);
+        TKAssertEquals(length, 0);
+        length = stream.deflate(true);
+        TKAssertEquals(length, 19);
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertObjectEquals(output, [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
+        TKAssertObjectEquals(stream.output.subdataInRange(JSRange(0, 19)), [0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
     },
 
     testInflateLevel0: function(){
@@ -159,113 +266,132 @@ JSClass("DeflateTests", TKTestSuite, {
         var stream = DeflateStream();
         stream.input = new Uint8Array([0x00,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74,0x00,0x00,0x00,0xff,0xff,0x01,0x00,0x00,0xff,0xff]);
         stream.output = JSData.initWithLength(4);
-        var output = stream.inflate();
+        var length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'this');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), 'this');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), ' is ');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), ' is ');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'a te');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), 'a te');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'st');
+        TKAssertEquals(length, 2);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 2)).stringByDecodingUTF8(), 'st');
 
         // All input up front, limited output space, single block
         stream = DeflateStream();
         stream.input = new Uint8Array([0x01,0x0e,0x00,0xf1,0xff,0x74,0x68,0x69,0x73,0x20,0x69,0x73,0x20,0x61,0x20,0x74,0x65,0x73,0x74]);
         stream.output = JSData.initWithLength(4);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'this');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), 'this');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), ' is ');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), ' is ');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'a te');
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), 'a te');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'st');
+        TKAssertEquals(length, 2);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 2)).stringByDecodingUTF8(), 'st');
 
         // Chunked input, unlimited outputspace, single block
         stream = DeflateStream();
         stream.output = JSData.initWithLength(32);
         stream.input = new Uint8Array([0x01]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array([0x0e,0x00]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array([0xf1,0xff,0x74]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "t");
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 1)).stringByDecodingUTF8(), "t");
         stream.input = new Uint8Array([0x68,0x69,0x73,0x20,0x69,0x73,0x20]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "his is ");
+        TKAssertEquals(length, 7);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(1, 7)).stringByDecodingUTF8(), "his is ");
         stream.input = new Uint8Array([0x61,0x20,0x74]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "a t");
+        TKAssertEquals(length, 3);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(8, 3)).stringByDecodingUTF8(), "a t");
         stream.input = new Uint8Array([0x65]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "e");
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(11, 1)).stringByDecodingUTF8(), "e");
         stream.input = new Uint8Array([0x73,0x74]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "st");
+        TKAssertEquals(length, 2);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(12, 2)).stringByDecodingUTF8(), "st");
 
         // Chunked input, limited outputspace, single block
         stream = DeflateStream();
         stream.output = JSData.initWithLength(4);
         stream.input = new Uint8Array([0x01]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array([0x0e,0x00]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.length, 0);
+        TKAssertEquals(length, 0);
         stream.input = new Uint8Array([0xf1,0xff,0x74]);
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "t");
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 1)).stringByDecodingUTF8(), "t");
         stream.input = new Uint8Array([0x68,0x69,0x73,0x20,0x69,0x73,0x20]);
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "his ");
+        TKAssertEquals(length, 4);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 4)).stringByDecodingUTF8(), "his ");
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "is ");
+        TKAssertEquals(length, 3);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 3)).stringByDecodingUTF8(), "is ");
         stream.input = new Uint8Array([0x61,0x20,0x74]);
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "a t");
+        TKAssertEquals(length, 3);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 3)).stringByDecodingUTF8(), "a t");
         stream.input = new Uint8Array([0x65]);
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "e");
+        TKAssertEquals(length, 1);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 1)).stringByDecodingUTF8(), "e");
         stream.input = new Uint8Array([0x73,0x74]);
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), "st");
+        TKAssertEquals(length, 2);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 2)).stringByDecodingUTF8(), "st");
     },
 
     testChunkedInflateLevel2: function(){
@@ -273,59 +399,52 @@ JSClass("DeflateTests", TKTestSuite, {
         var stream = DeflateStream();
         stream.input = new Uint8Array([0x05,0xc1,0xb1,0x0d,0x00,0x00,0x08,0xc3,0xb0,0x57,0xfa,0x1a,0x03,0x12,0x9d,0x93,0xff,0x85,0xed,0x95,0x94,0x4c,0x5c,0xf4,0x4a,0x4a,0x26,0x2e,0x7a,0x25,0x25,0x13,0x17,0x1f]);
         stream.output = JSData.initWithLength(20);
-        var output = stream.inflate();
+        var length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'this is a testthis i');
+        TKAssertEquals(length, 20);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 20)).stringByDecodingUTF8(), 'this is a testthis i');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 's a testthis is a te');
+        TKAssertEquals(length, 20);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 20)).stringByDecodingUTF8(), 's a testthis is a te');
         stream.outputOffset = 0;
-        output = stream.inflate();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(output.stringByDecodingUTF8(), 'st');
+        TKAssertEquals(length, 2);
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 2)).stringByDecodingUTF8(), 'st');
 
         // Input in chunks
         stream = DeflateStream();
-        var str = "";
         stream.input = new Uint8Array([0x05]);
         stream.output = JSData.initWithLength(50);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0xc1]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0xb1]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0x0d,0x00]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0x00,0x08,0xc3,0xb0,0x57]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0xfa,0x1a,0x03,0x12,0x9d,0x93,0xff,0x85]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0xed,0x95,0x94,0x4c,0x5c,0xf4,0x4a,0x4a,0x26,0x2e,0x7a,0x25,0x25]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0x13,0x17]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertNotEquals(stream.state, DeflateStream.State.done);
         stream.input = new Uint8Array([0x1f]);
-        output = stream.inflate();
-        str += output.stringByDecodingUTF8();
+        length = stream.inflate();
         TKAssertEquals(stream.state, DeflateStream.State.done);
-        TKAssertEquals(str, 'this is a testthis is a testthis is a test');
+        TKAssertEquals(stream.output.subdataInRange(JSRange(0, 42)).stringByDecodingUTF8(), 'this is a testthis is a testthis is a test');
     }
 
 });

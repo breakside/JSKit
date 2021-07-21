@@ -301,16 +301,16 @@ JSClass("IKDecoderPNG", IKDecoder, {
             this.dataStream = new ZlibStream();
             this.dataStream.output = this.scanline;
         }
-        var output;
+        var length;
         this.dataStream.input = data;
         do {
             this.dataStream.outputOffset = this.scanlineLength;
-            output = this.dataStream.uncompress();
-            this.scanlineLength += output.length;
+            length = this.dataStream.uncompress();
+            this.scanlineLength += length;
             if (this.scanlineLength == this.scanline.length){
                 this.readScanline();
             }
-        }while (output.length > 0);
+        }while (length > 0);
     },
 
     read_IEND: function(data){

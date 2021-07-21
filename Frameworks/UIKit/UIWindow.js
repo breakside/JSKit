@@ -37,12 +37,12 @@ JSClass('UIWindow', UIView, {
 
     init: function(){
         UIWindow.$super.init.call(this);
-        this._commonWindowInit();
     },
 
     initWithFrame: function(frame){
         this._application = UIApplication.shared;
         UIWindow.$super.initWithFrame.call(this, frame);
+        this._commonWindowInit();
     },
 
     initWithApplication: function(application){
