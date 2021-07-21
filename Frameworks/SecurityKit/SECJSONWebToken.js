@@ -171,7 +171,7 @@ JSClass("SECJSONWebToken", JSObject, {
 
     sign: function(jwk, completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveNotNull);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
         var signatureHandler = function(signature){
             if (signature === null){
