@@ -502,6 +502,7 @@ JSClass("HTMLBuilder", Builder, {
                             environment: this.project.info.HTMLApplicationEnvironment,
                             buildId: this.buildId,
                             bundleId: this.project.info.JSBundleIdentifier,
+                            bundleVersion: this.project.info.JSBundleVersion,
                             gitRevision: this.project.info.GitRevision,
                             debug: this.debug
                         }, null, 2)
