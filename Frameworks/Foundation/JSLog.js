@@ -172,16 +172,13 @@ JSLog.formatMessage = function(message, args){
 };
 
 JSLog.formatStacktrace = function(record){
-    var stack = null;
-    for (var i = 0, l = record.args.length; i < l && stack === null; ++i){
-        if (record.args[i] instanceof Error){
-            stack = record.args[i].stack;
+    if (record.error){
+        var stack = record.error.stack;
+        if (stack){
+            var lines = stack.split("\n");
+            lines.unshift("");
+            return lines.join("\n                                                             ");
         }
-    }
-    if (stack){
-        var lines = stack.split("\n");
-        lines.unshift("");
-        return lines.join("\n                                                             ");
     }
     return "";
 };
@@ -300,8 +297,17 @@ JSLog.prototype = {
             level: level,
             message: message,
             args: args,
-            timestamp: Date.now() / 1000
+            timestamp: Date.now() / 1000,
+            error: null,
         };
+        var i, l;
+        if (level === JSLog.Level.warn || level === JSLog.Level.error){
+            for (i = 0, l = record.args.length; i < l && record.error === null; ++i){
+                if (record.args[i] instanceof Error){
+                    record.error = record.args[i];
+                }
+            }
+        }
         JSLog.write(record);
         if (config.print){
             config.console[record.level](JSLog.format(record) + JSLog.formatStacktrace(record));
@@ -309,7 +315,6 @@ JSLog.prototype = {
         if (!isCallingHandlers){
             isCallingHandlers = true;
             var handler;
-            var i, l;
             if (config.parent){
                 if (config.parent.parent){
                     if (config.parent.parent.parent){
