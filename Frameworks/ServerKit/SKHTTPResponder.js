@@ -142,6 +142,8 @@ JSClass("SKHTTPResponder", JSObject, {
 
     sendStatus: function(status){
         this._setAccessHeaders();
+        this.response.headerMap.set("Cache-Control", "no-cache");
+        this.response.headerMap.set("Expires", "Thu, 01 Jan 1970 00:00:01 GMT");
         this.response.contentLength = 0;
         this.response.statusCode = status;
         this.response.complete();
