@@ -15,7 +15,6 @@
 
 // #import Foundation
 // #import "DBFileStore.js"
-// #import "DBRemoteStore.js"
 // #import "DBMemoryStore.js"
 // #import "DBID.js"
 // #import "DBEncryptedObject.js"
@@ -49,7 +48,7 @@ JSClass("DBObjectDatabase", JSObject, {
                 throw new Error("Mongodb object database not supported for this environment");
             }
         }else{
-            store = DBRemoteStore.initWithURL(url);
+            throw new Error("%s object database not supported".sprintf(url.scheme));
         }
         this.initWithObjectStore(store);
     },
