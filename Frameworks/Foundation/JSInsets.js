@@ -68,6 +68,15 @@ Object.defineProperties(JSInsets.prototype, {
         get: function JSInsets_getHeight(){
             return this.top + this.bottom;
         }
+    },
+
+    isEqual: {
+        value: function JSInsets_isEqual(other){
+            if (other === null || other === undefined){
+                return false;
+            }
+            return this.top === other.top && this.left === other.left && this.bottom === other.bottom && this.right === other.right; 
+        }
     }
 
 });
