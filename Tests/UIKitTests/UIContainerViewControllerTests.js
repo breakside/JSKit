@@ -26,7 +26,7 @@ JSClass("UIContainerViewControllerTests", TKTestSuite, {
         this.app = UIMockApplication.initEmpty();
         var expectation = TKExpectation.init();
         expectation.call(this.app.run, this.app, function(error){
-            // TKAssertNull(error);
+            TKAssertNull(error);
         });
         this.wait(expectation, 1.0);
     },
