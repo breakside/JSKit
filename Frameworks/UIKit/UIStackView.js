@@ -24,6 +24,14 @@ JSClass("UIStackView", UIView, {
         this.updateLayoutManager();
     },
 
+    initWithArrangedSubviews: function(arrangedSubviews){
+        this.init();
+        for (var i = 0, l = arrangedSubviews.length; i < l; ++i){
+            this.addArrangedSubview(arrangedSubviews[i]);
+        }
+        this.arrangeAllSubviews = false;
+    },
+
     initWithSpec: function(spec){
         UIStackView.$super.initWithSpec.call(this, spec);
         this._commonStackViewInit();
@@ -42,11 +50,88 @@ JSClass("UIStackView", UIView, {
         if (spec.containsKey('alignment')){
             this._alignment = spec.valueForKey("alignment", UIStackView.Alignment);
         }
+        var i, l;
+        var subview;
+        if (spec.containsKey('arrangedSubviews')){
+            this.arrangeAllSubviews = false;
+            var arrangedSubviews = spec.valueForKey('arrangedSubviews');
+            for (i = 0, l = arrangedSubviews.length; i < l; ++i){
+                subview = arrangedSubviews.valueForKey(i, UIView);
+                this.addArrangedSubview(subview);
+            }
+        }else{
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
         this.updateLayoutManager();
     },
 
     _commonStackViewInit: function(){
         this._contentInsets = JSInsets.Zero;
+        this._arrangedSubviews = [];
+    },
+
+    arrangeAllSubviews: true,
+    arrangedSubviews: JSReadOnlyProperty("_arrangedSubviews", null),
+
+    addArrangedSubview: function(subview){
+        this.insertArrangedSubviewAtIndex(subview, this._arrangedSubviews.length);
+    },
+
+    insertArrangedSubviewAtIndex: function(subview, index){
+        if (this.arrangeAllSubviews){
+            this.insertSubviewAtIndex(subview, index);
+        }else{
+            this._arrangedSubviews.splice(index, 0, subview);
+            if (subview.superview !== this){
+                UIStackView.$super.addSubview.call(this, subview);
+            }
+        }
+    },
+
+    removeArrangedSubview: function(subview){
+        if (this.arrangeAllSubviews){
+            this.removeSubview(subview);
+        }else{
+            var index = this._arrangedSubviews.indexOf(subview);
+            if (index >= 0){
+                this.arrangedSubviews.splice(index, 1);
+            }
+        }
+    },
+
+    addSubview: function(subview){
+        UIStackView.$super.addSubview.call(this, subview);
+        if (this.arrangeAllSubviews){
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
+    },
+
+    insertSubviewAtIndex: function(subview, index){
+        UIStackView.$super.insertSubviewAtIndex.call(this, subview, index);
+        if (this.arrangeAllSubviews){
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
+    },
+
+    insertSubviewBelowSibling: function(subview, sibling){
+        UIStackView.$super.insertSubviewBelowSibling.call(this, subview, sibling);
+        if (this.arrangeAllSubviews){
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
+    },
+
+    insertSubviewAboveSibling: function(subview, sibling){
+        UIStackView.$super.insertSubviewAboveSibling.call(this, subview, sibling);
+        if (this.arrangeAllSubviews){
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
+    },
+
+    removeSubview: function(subview){
+        UIStackView.$super.removeSubview.call(this, subview);
+        if (this.arrangeAllSubviews){
+            this._arrangedSubviews = JSCopy(this.subviews);
+        }
     },
 
     axis: JSDynamicProperty('_axis', 0),
@@ -158,8 +243,8 @@ JSClass("UIStackViewLayoutManager", JSObject, {
     numberOfVisibleSubviewsInStackView: function(stackView){
         var numberOfVisibleSubviews = 0;
         var view;
-        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (var i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             if (!view.hidden){
                 ++numberOfVisibleSubviews;
             }
@@ -198,15 +283,15 @@ JSClass("UIStackViewVerticalLayoutManager", UIStackViewLayoutManager, {
         var leadingX = stackView._contentInsets.left;
         var trailingX = stackView.bounds.size.width - stackView._contentInsets.right;
         if (stackView._alignment === UIStackView.Alignment.center){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 frame = JSRect(view.frame);
                 frame.origin.x = leadingX + ((trailingX - leadingX) - frame.size.width) / 2;
                 view.frame = frame;
             }
         }else if (stackView._alignment === UIStackView.Alignment.trailing){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 frame = JSRect(view.frame);
                 frame.origin.x = trailingX - frame.size.width;
                 view.frame = frame;
@@ -224,8 +309,8 @@ JSClass("UIStackViewVerticalNoDistributionLayoutManager", UIStackViewVerticalLay
         var i, l;
         var view;
         var maxViewSize = JSSize(stackView.bounds.size.width - stackView._contentInsets.width, Number.MAX_VALUE);
-        for (i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, stackView._alignment !== UIStackView.Alignment.full);
             view.frame = JSRect(origin, size);
             if (!view.hidden){
@@ -244,8 +329,8 @@ JSClass("UIStackViewVerticalNoDistributionLayoutManager", UIStackViewVerticalLay
         var view;
         var size;
         var visibleViewCount = 0;
-        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (var i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 stackSize.height += view.bounds.size.height;
@@ -281,8 +366,8 @@ JSClass("UIStackViewVerticalEqualDistributionLayoutManager", UIStackViewVertical
         if (viewCount > 1){
             maxViewSize.height = Math.floor(Math.max(0, maxViewSize.height - (viewCount - 1) * stackView._viewSpacing) / viewCount);
         }
-        for (i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, stackView._alignment !== UIStackView.Alignment.full);
             size.height = maxViewSize.height;
             view.frame = JSRect(origin, size);
@@ -301,8 +386,8 @@ JSClass("UIStackViewVerticalEqualDistributionLayoutManager", UIStackViewVertical
         }
         var view;
         var size;
-        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (var i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 if (size.width > stackSize.width){
@@ -347,44 +432,44 @@ JSClass("UIStackViewHorizontalLayoutManager", UIStackViewLayoutManager, {
         var commonBaseline = 0;
         var baseline;
         if (stackView._alignment === UIStackView.Alignment.center){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 frame = JSRect(view.frame);
                 frame.origin.y = leadingY + ((trailingY - leadingY) - frame.size.height) / 2;
                 view.frame = frame;
             }
         }else if (stackView._alignment === UIStackView.Alignment.trailing){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 frame = JSRect(view.frame);
                 frame.origin.y = trailingY - frame.size.height;
                 view.frame = frame;
             }
         }else if (stackView._alignment === UIStackView.Alignment.firstBaseline){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 baseline = view.firstBaselineOffsetFromTop;
                 if (baseline > commonBaseline){
                     commonBaseline = baseline;
                 }
             }
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 baseline = view.firstBaselineOffsetFromTop;
                 frame = JSRect(view.frame);
                 frame.origin.y = leadingY + commonBaseline - baseline;
                 view.frame = frame;
             }
         }else if (stackView._alignment === UIStackView.Alignment.lastBaseline){
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 baseline = view.bounds.size.height - view.lastBaselineOffsetFromBottom;
                 if (baseline > commonBaseline){
                     commonBaseline = baseline;
                 }
             }
-            for (i = 0, l = stackView.subviews.length; i < l; ++i){
-                view = stackView.subviews[i];
+            for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                view = stackView._arrangedSubviews[i];
                 baseline = view.bounds.size.height - view.lastBaselineOffsetFromBottom;
                 frame = JSRect(view.frame);
                 frame.origin.y = leadingY + commonBaseline - baseline;
@@ -403,8 +488,8 @@ JSClass("UIStackViewHorizontalNoDistributionLayoutManager", UIStackViewHorizonta
         var i, l;
         var view;
         var maxViewSize = JSSize(Number.MAX_VALUE, stackView.bounds.size.height - stackView._contentInsets.height);
-        for (i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, stackView._alignment !== UIStackView.Alignment.full);
             view.frame = JSRect(origin, size);
             if (!view.hidden){
@@ -423,8 +508,8 @@ JSClass("UIStackViewHorizontalNoDistributionLayoutManager", UIStackViewHorizonta
         var view;
         var size;
         var visibleViewCount = 0;
-        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (var i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 stackSize.width += view.bounds.size.width;
@@ -460,8 +545,8 @@ JSClass("UIStackViewHorizontalEqualDistributionLayoutManager", UIStackViewHorizo
         if (viewCount > 1){
             maxViewSize.width = Math.floor(Math.max(0, maxViewSize.width - (viewCount - 1) * stackView._viewSpacing) / viewCount);
         }
-        for (i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, stackView._alignment !== UIStackView.Alignment.full);
             size.width = maxViewSize.width;
             view.frame = JSRect(origin, size);
@@ -480,8 +565,8 @@ JSClass("UIStackViewHorizontalEqualDistributionLayoutManager", UIStackViewHorizo
         }
         var view;
         var size;
-        for (var i = 0, l = stackView.subviews.length; i < l; ++i){
-            view = stackView.subviews[i];
+        for (var i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+            view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, true);
             if (!view.hidden){
                 if (size.height > stackSize.height){

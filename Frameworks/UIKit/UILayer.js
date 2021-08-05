@@ -647,6 +647,7 @@ JSClass("UILayer", JSObject, {
     },
 
     layout: function(){
+        this._needsLayout = false;
         if (this.delegate !== null && this.delegate.layoutSublayersOfLayer !== undefined){
             this.delegate.layoutSublayersOfLayer(this);
         }else{

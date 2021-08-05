@@ -10,126 +10,233 @@ description: |
   provides a standard way of doing the stack layout with suitable 
   customizability.
 topics:
-  -
-    name: Creating a Stack View
+  - name: Creating a Stack View
     members:
-      -
-        name: Spec File Properties
+      - name: initWithArrangedSubviews
+        introduced: 2021.31.0
+        kind: init
+        summary: Create a stack view with the subviews to be stacked
+        arguments:
+          - name: arrangedSubviews
+            type: UIView[]
+            summary: The subviews to be stacked
+        description: |
+          Sets `arrangeAllSubviews` to `false`().
+        note: |
+          If you use `init`() or `initWithFrame`() instead, `arrangeAllSubviews`
+          will be `true`().
+      - name: Spec File Properties
         kind: spec
         summary: The properties available to stack views in a spec file
         topics:
-          -
-            name: Stack Direction
+          - name: Stack Direction
             members:
-              -
-                name: axis
+              - name: axis
                 type: Axis
                 summary: The direction this view's subviews are stacked
-              -
-                name: alignment
-                introducted: 2021.10.1
+              - name: alignment
+                introduced: 2021.10.1
                 type: Alignment
                 summary: The method of alignment along the axis
-          -
-            name: View Spacing
+          - name: Views
             members:
-              -
-                name: contentInsets
+              - name: arrangedSubviews
+                introduced: 2021.31.0
+                type: UIView[]
+                summary: The subviews that should be arranged in the stack
+                description: |
+                  A stack view's `arrangedSubviews` is a subset of its `subviews`,
+                  specifying which subviews should be arranged in the stack.
+
+                  This allows other views to be added, but not arranged, a feature
+                  often used by custom `UIStackView` subclasses to have decorative
+                  subviews that aren't part of the stack.
+                note:
+                  Using the `arrangedSubviews` property automatically sets
+                  `arrangeAllSubviews` to `false`.  Legacy code that instead
+                  uses the `subviews` property will set `arrangeAllSubviews` to
+                  `true`.
+          - name: View Spacing
+            members:
+              - name: contentInsets
                 type: JSInsets
                 summary: The amount to inset all views from the edges of the
                   stack view
-              -
-                name: viewSpacing
+              - name: viewSpacing
                 type: Number
                 summary: The amount of spacing to include between each view
-              -
-                name: distribution
+              - name: distribution
                 type: Distribution
                 summary: The way subviews are sized in this view
-  -
-    name: Stack Direction
+  - name: Stack Direction
     members:
-      -
-        name: Axis
+      - name: Axis
         kind: enum
         suffix: enum
         summary: The directions in which a stack view can layout its views
         topics:
-          -
-            name: Options
+          - name: Options
             members:
-              -
-                name: vertical
+              - name: vertical
                 summary: Stack views vertically
-              -
-                name: horizontal
+              - name: horizontal
                 summary: Stack views horizontally
-      -
-        name: axis
+      - name: axis
         type: Axis
         summary: The direction this view's subviews are stacked
-      -
-        name: Alignment
-        introducted: 2021.10.1
+      - name: Alignment
+        introduced: 2021.10.1
         kind: enum
         suffix: enum
         summary: The options for aligning views along the axis
         topics:
-          -
-            name: Options
+          - name: Options
             members:
-              -
-                name: full
+              - name: full
                 summary: Size views to take up the full size of the cross-axis direction
-              -
-                name: leading
+              - name: leading
                 summary: Align views to the leading edge
-              -
-                name: center
+              - name: center
                 summary: Align views to the center
-              -
-                name: trailing
+              - name: trailing
                 summary: Align views to the trailing edge
-              -
-                name: firstBaseline
+              - name: firstBaseline
                 summary: Align views to their first baselines (only applicable to horizontal stacks)
-              -
-                name: lastBaseline
+              - name: lastBaseline
                 summary: Align views to their last baselines (only applicable to horizontal stacks)
-      -
-        name: alignment
-        introducted: 2021.10.1
+      - name: alignment
+        introduced: 2021.10.1
         type: Alignment
         summary: The method of alignment along the axis
-  -
-    name: View Spacing
+  - name: Views
     members:
-      -
-        name: contentInsets
+      - name: arrangeAllSubviews
+        introduced: 2021.31.0
+        type: boolean
+        summary: Indicates that all subviews are arranged in the stack
+        description: |
+          A stack view's `arrangedSubviews` is a subset of its `subviews`,
+          specifying which subviews should be arranged in the stack.
+
+          When `arrangeAllSubviews` is `true`(), `arrangedSubviews` will
+          always equal `subviews`.  In this case, there is no difference
+          between `addSubview()` and `addArrangedSubview()`.
+
+          This flag is necessary to preserve `UIStackView`s original
+          behavior of arranging all subviews, while allowing for newer uses that
+          opt-in to a more flexible behavior where `subviews` can contain decorative
+          views that aren't arranged in the stack.
+
+          Defaults to `true` when creating a stack view with `init()`,
+          `initWithFrame()`, or from a spec without `arrangedSubviews`(Spec File Properties.arrangedSubviews).
+
+          Defaults to `false` when creating a stack view with
+          `initWithArrangedSubviews()` or from a spec with the `arrangedSubviews`
+          property.
+        see:
+          - arrangedSubviews
+      - name: arrangedSubviews
+        introduced: 2021.31.0
+        type: UIView[]
+        summary: The subviews that should be arranged in the stack
+        description: |
+          A stack view's `arrangedSubviews` is a subset of its `subviews`,
+          specifying which subviews should be arranged in the stack.
+
+          This allows other views to be added, but not arranged, a feature
+          often used by custom `UIStackView` subclasses to have decorative
+          subviews that aren't part of the stack.
+        see:
+          - addArrangedSubview
+          - insertArrangedSubviewAtIndex
+          - removeArrangedSubview
+          - arrangeAllSubviews
+      - name: addArrangedSubview
+        introduced: 2021.31.0
+        kind: method
+        summary: Add a subview to be arranged in the stack
+        arguments:
+          - name: subview
+            type: UIView
+            summary: The view to add and arrange
+        description: |
+          A stack view's `arrangedSubviews` is a subset of its `subviews`,
+          specifying which subviews should be arranged in the stack.
+
+          Therefore, calling `addArrangedSubview()` will add the given subview
+          to the stack's `subviews` and also add it to the subset of views that
+          make up the stack.
+
+          If you only want to add a view, and not have it arranged in the stack,
+          make sure `arrangeAllSubviews` is `false`() and use `addSubview()`.
+      - name: insertArrangedSubviewAtIndex
+        introduced: 2021.31.0
+        kind: method
+        summary: Add a subview to be arranged in the stack at a specific index
+        arguments:
+          - name: subview
+            type: UIView
+            summary: The view to add and arrange
+          - name: index
+            type: Number
+            summary: The index in the arranged subviews at which to insert the
+              new subview
+        description: |
+          A stack view's `arrangedSubviews` is a subset of its `subviews`,
+          specifying which subviews should be arranged in the stack.
+
+          Therefore, calling `insertArrangedSubviewAtIndex()` will add the given
+          subview to the stack's `subviews` and also add it to the subset of
+          views that make up the stack.
+
+          If you only want to add a view, and not have it arranged in the stack,
+          make sure `arrangeAllSubviews` is `false`() and use `insertSubviewAtIndex()`.
+        important: |
+          The `index`() given only applies to the `arrangedSubviews` that make
+          up the stack.  The given subview will always be added to the end of the
+          stack view's `subviews` as if `addSubview()` was called.
+      - name: removeArrangedSubview
+        introduced: 2021.31.0
+        kind: method
+        summary: Remove the given view from the arranged subviews
+        arguments:
+          - name: subview
+            type: UIView
+            summary: The subview to remove
+        description: |
+          A stack view's `arrangedSubviews` is a subset of its `subviews`,
+          specifying which subviews should be arranged in the stack, but the
+          exact behavior depends on the `arrangeAllSubviews` property.
+
+          When `arrangeAllSubviews` is `true`(), calling `removeArrangedSubview()`
+          will behave exactly like `removeSubview()`.
+
+          When `arrangeAllSubviews` is `false`(), calling
+          `removeArrangedSubview()` will only remove the
+          view from `arrangedSubviews`, leaving it as a member of the stack
+          view's `subviews`. If you want to entirely remove the subview, call
+          `removeSubview()` or `removeFromSuperview()`.
+  - name: View Spacing
+    members:
+      - name: contentInsets
         type: JSInsets
         summary: The amount to inset all views from the edges of the
           stack view
-      -
-        name: viewSpacing
+      - name: viewSpacing
         type: Number
         summary: The amount of spacing to include between each view
-      -
-        name: Distribution
+      - name: Distribution
         kind: enum
         suffix: enum
         summary: The ways views can be sized along the `axis`
         topics:
-          -
-            name: Options
+          - name: Options
             members:
-              -
-                name: none
+              - name: none
                 summary: No special distribution, views take their instrinsic sizes
                    along the `axis`
-              -
-                name: equal
+              - name: equal
                 summary: Views all get the same size along the `axis`
-      -
-        name: distribution
+      - name: distribution
         type: Distribution
         summary: The way subviews are sized in this view

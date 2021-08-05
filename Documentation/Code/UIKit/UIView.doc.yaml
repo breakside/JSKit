@@ -343,6 +343,15 @@ topics:
                 summary: The child views of this view, in the order they
                   should be stacked'
           -
+            name: Identification
+            members:
+              -
+                name: tag
+                introduced: 2021.31.0
+                type: Number
+                summary: An optional unique tag that identifies this view among its
+                  sibling views
+          -
             name: Cursor
             members:
               -
