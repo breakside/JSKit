@@ -86,7 +86,7 @@ topics:
         summary: The alignment for the subview
         description: |
           Defaults to `full`
-      - name: alignment
+      - name: Alignment
         kind: enum
         summary: The possible alignment options for a container view
         topics:
