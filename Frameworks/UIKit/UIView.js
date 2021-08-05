@@ -127,6 +127,9 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("accessibilityHint")){
             this.accessibilityHint = spec.valueForKey("accessibilityHint");
         }
+        if (spec.containsKey("tag")){
+            this.tag = spec.valueForKey("tag");
+        }
         var i, l;
         if (spec.containsKey("gestureRecognizers")){
             var recognizers = spec.valueForKey("gestureRecognizers");
