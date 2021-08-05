@@ -55,8 +55,6 @@ JSClass("UISplitViewController", UIViewController, {
         }
     },
 
-    _isVisible: false,
-
     viewDidLoad: function(){
         UISplitViewController.$super.viewDidLoad.call(this);
         this._view.delegate = this;
@@ -73,7 +71,6 @@ JSClass("UISplitViewController", UIViewController, {
 
     viewWillAppear: function(animated){
         UISplitViewController.$super.viewWillAppear.call(this, animated);
-        this._isVisible = true;
         if (this._leadingViewController !== null && this.leadingViewOpen){
             this._leadingViewController.viewWillAppear(animated);
         }
@@ -113,7 +110,6 @@ JSClass("UISplitViewController", UIViewController, {
 
     viewDidDisappear: function(animated){
         UISplitViewController.$super.viewDidDisappear.call(this, animated);
-        this._isVisible = false;
         if (this._leadingViewController !== null && this.leadingViewOpen){
             this._leadingViewController.viewDidDisappear(animated);
         }
@@ -126,7 +122,7 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     setLeadingViewController: function(leadingViewController){
-        var callAppearanceMethods = this._isVisible && this.leadingViewOpen;
+        var callAppearanceMethods = this.isViewVisible && this.leadingViewOpen;
         var disappearingViewController = null;
         if (this._leadingViewController !== null){
             if (callAppearanceMethods){
@@ -160,7 +156,7 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     setTrailingViewController: function(trailingViewController){
-        var callAppearanceMethods = this._isVisible && this.trailingViewOpen;
+        var callAppearanceMethods = this.isViewVisible && this.trailingViewOpen;
         var disappearingViewController = null;
         if (this._trailingViewController !== null){
             if (callAppearanceMethods){
@@ -194,7 +190,7 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     setMainViewController: function(mainViewController){
-        var callAppearanceMethods = this._isVisible;
+        var callAppearanceMethods = this.isViewVisible;
         var disappearingViewController = null;
         if (this._mainViewController !== null && this._mainViewController.parentViewController === this){
             if (callAppearanceMethods){

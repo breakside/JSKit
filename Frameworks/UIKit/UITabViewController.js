@@ -56,6 +56,38 @@ JSClass("UITabViewController", UIViewController, {
         }
     },
 
+    viewWillAppear: function(animated){
+        UITabViewController.$super.viewWillAppear.call(this, animated);
+        var selectedViewController = this.selectedViewController;
+        if (selectedViewController !== null){
+            selectedViewController.viewWillAppear(animated);
+        }
+    },
+
+    viewDidAppear: function(animated){
+        UITabViewController.$super.viewDidAppear.call(this, animated);
+        var selectedViewController = this.selectedViewController;
+        if (selectedViewController !== null){
+            selectedViewController.viewDidAppear(animated);
+        }
+    },
+
+    viewWillDisappear: function(animated){
+        UITabViewController.$super.viewWillDisappear.call(this, animated);
+        var selectedViewController = this.selectedViewController;
+        if (selectedViewController !== null){
+            selectedViewController.viewWillDisappear(animated);
+        }
+    },
+
+    viewDisDisappear: function(animated){
+        UITabViewController.$super.viewDisDisappear.call(this, animated);
+        var selectedViewController = this.selectedViewController;
+        if (selectedViewController !== null){
+            selectedViewController.viewDidDisappear(animated);
+        }
+    },
+
     addViewController: function(viewController){
         this.insertViewControllerAtIndex(viewController, this._viewControllers.length);
     },
@@ -99,7 +131,7 @@ JSClass("UITabViewController", UIViewController, {
     },
 
     tabViewWillSelectItemAtIndex: function(tabView, index){
-        if (this._previouslySelectedViewController !== null){
+        if (this.isViewVisible && this._previouslySelectedViewController !== null){
             this._previouslySelectedViewController.viewWillDisappear();
         }
         var viewController = null;
@@ -110,7 +142,9 @@ JSClass("UITabViewController", UIViewController, {
             // Ensure that the view controller's view is loaded before its item
             // is selected
             viewController.tabViewItem.view = viewController.view;
-            viewController.viewWillAppear();
+            if (this.isViewVisible){
+                viewController.viewWillAppear();
+            }
         }
     },
 
@@ -119,11 +153,11 @@ JSClass("UITabViewController", UIViewController, {
         if (index < this._viewControllers.length){
             viewController = this._viewControllers[index];
         }
-        if (this._previouslySelectedViewController !== null){
+        if (this.isViewVisible && this._previouslySelectedViewController !== null){
             this._previouslySelectedViewController.viewDidDisappear();
-            this._previouslySelectedViewController = viewController;
         }
-        if (viewController !== null){
+        this._previouslySelectedViewController = viewController;
+        if (this.isViewVisible && viewController !== null){
             viewController.viewDidAppear();
         }
     }

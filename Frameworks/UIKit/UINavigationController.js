@@ -56,7 +56,6 @@ JSClass("UINavigationController", UIViewController, {
     },
 
     delegate: null,
-    _isVisible: false,
 
     // MARK: - View Lifecycle
 
@@ -69,7 +68,6 @@ JSClass("UINavigationController", UIViewController, {
 
     viewWillAppear: function(animated){
         UINavigationController.$super.viewWillAppear.call(this, animated);
-        this._isVisible = true;
         this.topViewController.viewWillAppear(animated);
     },
 
@@ -85,7 +83,6 @@ JSClass("UINavigationController", UIViewController, {
 
     viewDidDisappear: function(animated){
         UINavigationController.$super.viewDidDisappear.call(this, animated);
-        this._isVisible = false;
         this.topViewController.viewDidDisappear(animated);
     },
 
@@ -165,7 +162,7 @@ JSClass("UINavigationController", UIViewController, {
         if (this.popAnimator !== null || this.pushAnimator !== null){
             return;
         }
-        if (!this._isVisible){
+        if (!this.isViewVisible){
             animated = false;
         }
         if (animated){
@@ -173,7 +170,7 @@ JSClass("UINavigationController", UIViewController, {
         }
         var fromViewController = this.topViewController;
         var view = viewController.view;
-        if (this._isVisible){
+        if (this.isViewVisible){
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
         }
@@ -185,9 +182,9 @@ JSClass("UINavigationController", UIViewController, {
         this._navigationBar.pushItem(viewController.navigationItem, animated);
         this.view.insertSubviewBelowSibling(view, this._navigationBar);
         if (!animated){
-            if (this._isVisible){
+            if (this.isViewVisible){
                 fromViewController.enqueueDidDisappear();
-                viewController.enqueueDidAppear(animated);
+                viewController.enqueueDidAppear();
             }
             if (this.delegate && this.delegate.navigationControllerDidShowViewController){
                 this.delegate.navigationControllerDidShowViewController(this, viewController);
@@ -243,7 +240,7 @@ JSClass("UINavigationController", UIViewController, {
         if (index === this._viewControllers.length - 1){
             return;
         }
-        if (!this._isVisible){
+        if (!this.isViewVisible){
             animated = false;
         }
         if (animated){
@@ -251,7 +248,7 @@ JSClass("UINavigationController", UIViewController, {
         }
         var fromViewController = this.topViewController;
         var view = viewController.view;
-        if (this._isVisible){
+        if (this.isViewVisible){
             fromViewController.viewWillDisappear(animated);
             viewController.viewWillAppear(animated);
         }
@@ -262,7 +259,7 @@ JSClass("UINavigationController", UIViewController, {
         this._navigationBar.popToItem(viewController.navigationItem, animated);
         this.view.insertSubviewBelowSibling(view, fromViewController.view);
         if (!animated){
-            if (this._isVisible){
+            if (this.isViewVisible){
                 fromViewController.enqueueDidDisappear();
                 viewController.enqueueDidAppear();
             }

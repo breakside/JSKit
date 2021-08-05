@@ -41,11 +41,8 @@ JSClass("UIBrowserViewController", UIViewController, {
     // --------------------------------------------------------------------
     // MARK: - View Lifecycle
 
-    _isVisible: false,
-
     viewWillAppear: function(animated){
         UIBrowserViewController.$super.viewWillAppear.call(this, animated);
-        this._isVisible = true;
         var viewController;
         for (var i = 0, l = this._viewControllers.length; i < l; ++i){
             viewController = this._viewControllers[i];
@@ -78,7 +75,6 @@ JSClass("UIBrowserViewController", UIViewController, {
             viewController = this._viewControllers[i];
             viewController.viewDidDisappear(animated);
         }
-        this._isVisible = false;
     },
 
     // --------------------------------------------------------------------
@@ -90,7 +86,7 @@ JSClass("UIBrowserViewController", UIViewController, {
         this.addChildViewController(viewController);
         this._viewControllers.push(viewController);
         this.view.pushView(viewController.view);
-        if (this._isVisible){
+        if (this.isViewVisible){
             viewController.viewWillAppear(false);
             viewController.viewDidAppear(false);
         }
@@ -105,12 +101,12 @@ JSClass("UIBrowserViewController", UIViewController, {
         while (this._viewControllers.length > 0 && count > 0){
             vc = this._viewControllers.pop();
             --count;
-            if (this._isVisible){
+            if (this.isViewVisible){
                 vc.viewWillDisappear(false);
             }
             this.view.popView();
             this.removeFromParentViewController(vc);
-            if (this._isVisible){
+            if (this.isViewVisible){
                 vc.viewDidDisappear(false);
             }
         }
