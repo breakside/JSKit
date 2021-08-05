@@ -1,0 +1,42 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.31.0
+inherits: UIViewController
+summary: A view controller that embeds a single child view controller
+description: |
+  A `UIContainerViewController` is a simple view controller that manages a
+  single child view controller, embedding the child's view in a `UIContainerView`.
+
+  The primary advantage of using a `UIContainerViewController` is its management
+  of the child view controller, providing an ability to swap one child for
+  another similiar to a `UITabViewController` without a tab interface or a
+  pre-set list of possible child view controllers.
+
+  Additionally, since the `UIContainerViewController`'s view is a `UIContainerView`,
+  you can also take advantage of the layout features provided by `UIContainerView`.
+topics:
+  - name: Creating a Container View Controller
+    members:
+      - name: Spec File Properties
+        kind: spec
+        summary: The properties available to container view controllers in a spec file
+        topics:
+          - name: Content View Controller
+            members:
+              - name: contentViewController
+                type: UIViewController
+                summary: The view controller to embed
+  - name: Content View Controller
+    members:
+      - name: containerView
+        type: UIContainerView
+        summary: An alias for `view`, which is the `UIContainerView` that will
+          hold the `contentViewController`'s view.
+      - name: contentViewController
+        type: UIViewController
+        summary: The embedded view controller
+        description: |
+          `UIContainerViewController` fully manages its `contentViewController`,
+          providing an ability to swap one content for another similiar to a
+          `UITabViewController` without a tab interface or a pre-set list of
+          possible child view controllers.
