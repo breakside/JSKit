@@ -83,6 +83,7 @@ JSClass("UIContainerViewController", UIViewController, {
             if (this.isViewVisible){
                 if (previousViewController !== null){
                     previousViewController.viewWillDisappear(false);
+                    previousViewController.enqueueDidDisappear();
                 }
                 if (contentViewController !== null){
                     contentViewController.viewWillAppear(false);
@@ -97,9 +98,6 @@ JSClass("UIContainerViewController", UIViewController, {
             }
             this.view.contentView = contentView;
             if (this.isViewVisible){
-                if (previousViewController !== null){
-                    previousViewController.enqueueDidDisappear();
-                }
                 if (contentViewController !== null){
                     contentViewController.enqueueDidAppear();
                 }
