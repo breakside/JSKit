@@ -35,6 +35,242 @@ JSClass("UIStackViewTests", TKTestSuite, {
         this.app = null;
     },
 
+    testInitWithFrame: function(){
+        var stackView = UIStackView.initWithFrame(JSRect(0, 0, 100, 200));
+        TKAssertExactEquals(stackView.arrangeAllSubviews, true);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets.Zero);
+    },
+
+    testInitWithArrangedSubviews: function(){
+        var stackView = UIStackView.initWithArrangedSubviews([]);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, false);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets.Zero);
+
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView = UIStackView.initWithArrangedSubviews([view1, view2]);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, false);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[1], view2);
+    },
+
+    testInitWithSpec: function(){
+        var spec = JSSpec.initWithDictionary({});
+        var stackView = UIStackView.initWithSpec(spec);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, true);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets.Zero);
+
+        spec = JSSpec.initWithDictionary({
+            subviews: [{}, {}],
+            contentInsets: "5,10"
+        });
+        stackView = UIStackView.initWithSpec(spec);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, true);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets(5, 10));
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+
+        spec = JSSpec.initWithDictionary({
+            arrangedSubviews: [{}, {}]
+        });
+        stackView = UIStackView.initWithSpec(spec);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, false);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets.Zero);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+
+        spec = JSSpec.initWithDictionary({
+            arrangedSubviews: [{tag: 2}, {tag: 3}],
+            subviews: [{tag: 1}]
+        });
+        stackView = UIStackView.initWithSpec(spec);
+        TKAssertExactEquals(stackView.arrangeAllSubviews, false);
+        TKAssertObjectEquals(stackView.contentInsets, JSInsets.Zero);
+        TKAssertEquals(stackView.subviews.length, 3);
+        TKAssertEquals(stackView.subviews[0].tag, 1);
+        TKAssertEquals(stackView.subviews[1].tag, 2);
+        TKAssertEquals(stackView.subviews[2].tag, 3);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews[0].tag, 2);
+        TKAssertEquals(stackView.arrangedSubviews[1].tag, 3);
+    },
+
+    testAddSubview: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        stackView.addSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        stackView.addSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 0);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+    },
+
+    testInsertSubviewAtIndex: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        stackView.insertSubviewAtIndex(view1, 0);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        stackView.insertSubviewAtIndex(view1, 0);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 0);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+    },
+
+    testInsertSubviewBelowSibling: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.insertSubviewBelowSibling(view2, view1);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+        TKAssertExactEquals(stackView.subviews[1], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[1], view1);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.insertSubviewBelowSibling(view2, view1);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 0);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+        TKAssertExactEquals(stackView.subviews[1], view1);
+    },
+
+    testInsertSubviewAboveSibling: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.insertSubviewAboveSibling(view2, view1);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.subviews[1], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[1], view2);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.insertSubviewAboveSibling(view2, view1);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 0);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.subviews[1], view2);
+    },
+
+    testRemoveSubview: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.addSubview(view2);
+        stackView.removeSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        view2 = UIView.init();
+        stackView.addSubview(view1);
+        stackView.addSubview(view2);
+        stackView.removeSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 0);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+    },
+
+    testAddArrangedSubview: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        stackView.addArrangedSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        stackView.addArrangedSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view1);
+    },
+
+    testInsertArrangedSubviewAtIndex: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView.insertArrangedSubviewAtIndex(view1, 0);
+        stackView.insertArrangedSubviewAtIndex(view2, 0);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+        TKAssertExactEquals(stackView.subviews[1], view1);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[1], view1);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        view2 = UIView.init();
+        stackView.insertArrangedSubviewAtIndex(view1, 0);
+        stackView.insertArrangedSubviewAtIndex(view2, 0);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 2);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.subviews[1], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[1], view1);
+    },
+
+    testRemoveArrangedSubview: function(){
+        var stackView = UIStackView.init();
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        stackView.addArrangedSubview(view1);
+        stackView.addArrangedSubview(view2);
+        stackView.removeArrangedSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 1);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+
+        stackView = UIStackView.initWithArrangedSubviews([]);
+        view1 = UIView.init();
+        view2 = UIView.init();
+        stackView.addArrangedSubview(view1);
+        stackView.addArrangedSubview(view2);
+        stackView.removeArrangedSubview(view1);
+        TKAssertEquals(stackView.subviews.length, 2);
+        TKAssertEquals(stackView.arrangedSubviews.length, 1);
+        TKAssertExactEquals(stackView.subviews[0], view1);
+        TKAssertExactEquals(stackView.subviews[1], view2);
+        TKAssertExactEquals(stackView.arrangedSubviews[0], view2);
+    },
+
     testLayoutSubviewsVerticalNoDistributionFullAlignment: function(){
         var stackView = UIStackView.init();
         stackView.axis = UIStackView.Axis.vertical;
