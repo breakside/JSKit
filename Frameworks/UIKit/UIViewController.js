@@ -100,8 +100,9 @@ JSClass("UIViewController", UIResponder, {
 
     _needsDidAppear: false,
     _needsDidDisappear: false,
+    isViewVisible: JSReadOnlyProperty("_isViewVisible", false),
 
-    enqueueDidAppear: function(animated){
+    enqueueDidAppear: function(){
         if (!this._needsDidAppear){
             this._needsDidAppear = true;
             this.view.layer._displayServer.schedule(function(){
@@ -113,7 +114,7 @@ JSClass("UIViewController", UIResponder, {
         }
     },
 
-    enqueueDidDisappear: function(animated){
+    enqueueDidDisappear: function(){
         if (!this._needsDidDisappear){
             this._needsDidDisappear = true;
             this.view.layer._displayServer.schedule(function(){
@@ -136,6 +137,7 @@ JSClass("UIViewController", UIResponder, {
     },
 
     viewDidAppear: function(){
+        this._isViewVisible = true;
     },
 
     viewWillDisappear: function(){
@@ -157,6 +159,7 @@ JSClass("UIViewController", UIResponder, {
     },
 
     viewDidDisappear: function(){
+        this._isViewVisible = false;
     },
 
     viewDidLayoutSubviews: function(){

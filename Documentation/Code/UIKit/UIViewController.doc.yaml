@@ -162,6 +162,12 @@ topics:
         type: boolean
         summary: Indicates if the view has been loaded
       -
+        name: isViewVisible
+        introduced: 2021.31.0
+        type: boolean
+        summary: Indicates if the view controller is currently visible
+          according to `viewDidAppear()` and `viewDidDisappear()` calls.
+      -
         name: loadView
         kind: method
         summary: Called with the `view` property is accessed and `isViewLoaded`

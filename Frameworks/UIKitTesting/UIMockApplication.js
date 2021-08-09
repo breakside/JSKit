@@ -39,6 +39,9 @@ JSClass("UIMockApplication", UIApplication, {
         this.setup(completion, target);
     },
 
+    setupDelegate: function(){
+    },
+
     stop: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNull);

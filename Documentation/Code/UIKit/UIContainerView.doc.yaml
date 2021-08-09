@@ -1,0 +1,121 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2021.31.0
+inherits: UIView
+summary: A view that automatically arranges a single subview with padding insets or
+  alignment
+description: |
+  Many times a view just needs to layout one subview with some padding insets
+  or with an alignment.
+
+  Rather than implement that algorithm by hand each time, `UIContainerView`
+  provides a standard way of doing the single child layout with suitable 
+  customizability.
+topics:
+  - name: Creating a Container View
+    members:
+      - name: initWithContentView
+        kind: init
+        summary: Create a container view with the content subview
+        arguments:
+          - name: contentView
+            type: UIView
+            summary: The subview to be arranged within the container
+      - name: Spec File Properties
+        kind: spec
+        summary: The properties available to container views in a spec file
+        topics:
+          - name: Content View
+            members:
+              - name: contentView
+                type: UIView
+                summary: The subview to be arranged within the container
+          - name: Layout
+            members:
+              - name: contentInsets
+                type: JSInsets
+                summary: The amount of padding insets within the container
+                description: |
+                  For an `alignment` set to `full`, the insets represent
+                  padding from the containers edges to the subview's edges.
+
+                  For other alignments, the insets affect the area within which
+                  the subview will be aligned.
+              - name: alignment
+                type: Alignment
+                summary: The alignment for the subview
+                description: |
+                  Defaults to `full`
+              - name: maximumContentSize
+                type: JSSize
+                summary: The maximum size for the content view
+                description: |
+                  Only applicable to `alignment`s other than `full`.
+
+                  While the container view will attempt to use the content view's
+                  `intrinsicSize`, and will always size the content view no
+                  larger than the container size minus `contentInsets`, you
+                  can use `maximumContentSize` to set an additional limit on the
+                  content.
+
+                  Width or height values of `0`() indicate no limit.
+  - name: Content View
+    members:
+      - name: contentView
+        type: UIView
+        summary: The subview to be arranged within the container
+        description: |
+          A container view only has a single content view.  The content view
+          is automatically added as a subview of the container view.
+
+          Additional decorative subviews may be added via `addSubview()`, but
+          their layout will not be automatically managed by `UIContainerView`.
+  - name: Layout
+    members:
+      - name: contentInsets
+        type: JSInsets
+        summary: The amount of padding insets within the container
+        description: |
+          For an `alignment` set to `full`, the insets represent
+          padding from the containers edges to the subview's edges.
+
+          For other alignments, the insets affect the area within which
+          the subview will be aligned.
+      - name: alignment
+        type: Alignment
+        summary: The alignment for the subview
+        description: |
+          Defaults to `full`
+      - name: Alignment
+        kind: enum
+        summary: The possible alignment options for a container view
+        topics:
+          - name: Options
+            members:
+              - name: full
+                summary: The content view is always sized to the container's
+                  edges inset by `contentInsets`
+              - name: center
+                summary: The content view is centered in the container (after
+                  accounting for any `contentInsets`)
+                description: |
+                  The content view will be sized to its `intrinsicSize`, if it
+                  has one, limited to the container size subtracting insets.
+
+                  If the content view does not have an intrinsic size in a
+                  direction, the container will call `sizeToFitSize()` with 
+                  a maximum size determined by the smaller of container size
+                  minus insets and `maximumContentSize`.
+      - name: maximumContentSize
+        type: JSSize
+        summary: The maximum size for the content view
+        description: |
+          Only applicable to `alignment`s other than `full`.
+
+          While the container view will attempt to use the content view's
+          `intrinsicSize`, and will always size the content view no
+          larger than the container size minus `contentInsets`, you
+          can use `maximumContentSize` to set an additional limit on the
+          content.
+
+          Width or height values of `0`() indicate no limit.

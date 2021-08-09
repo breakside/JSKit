@@ -127,24 +127,21 @@ description: |
   All of this is possible while still maintaining compatbility with the user's
   input expectations such as keyboard shortcuts.
 topics:
-  -
-    name: Applications
+  - name: Applications
     members:
       - WebAppOrganization
       - UIApplication
       - UIState
       - UIPlatform
       - UIDevice
-  -
-    name: Events
+  - name: Events
     summary: An event system designed for applications with complex user interaction
     members:
       - WhyNotUseDOM
       - UIResponder
       - UIEvent
       - UITouch
-  -
-    name: Layers, Views, & Windows
+  - name: Layers, Views, & Windows
     members:
       - UILayer
       - UIView
@@ -156,32 +153,7 @@ topics:
       - UIScene
       - UIScreen
       - UICursor
-  -
-    name: Accessibility
-    members:
-      - UIAccessibility
-  -
-    name: Touch Interfaces
-    members:
-      - UIGestureRecognizer
-      - UITapGestureRecognizer
-      - UIPressGestureRecognizer
-  -
-    name: User Interface Traits
-    members:
-      - UIUserInterface
-      - UITraitEnvironment
-      - UITraitCollection
-  -
-    name: Animations
-    members:
-      - UIViewPropertyAnimator
-      - UIAnimationTransaction
-      - UIAnimation
-      - UIBasicAnimation
-      - UIPropertyAnimation
-  -
-    name: Controls
+  - name: Controls
     members:
       - UIControl
       - UIButton
@@ -194,8 +166,7 @@ topics:
       - UIColorWell
       - UIColorPanel
       - UIColorPanelViewController
-  -
-    name: Text Controls
+  - name: Text Controls
     members:
       - UILabel
       - UITextField
@@ -204,18 +175,30 @@ topics:
       - UITextInput
       #- UITextAttachmentView
       - UITextLayer
-  -
-    name: Image Views
+  - name: Image Views
     members:
       - UIImageView
       - UIImageLayer
-  -
-    name: Scrolling
+  - name: Layout Views
+    members:
+      - UIContainerView
+      - UIContainerViewController
+      - UIStackView
+  - name: Accessibility
+    members:
+      - UIAccessibility
+  - name: Animations
+    members:
+      - UIViewPropertyAnimator
+      - UIAnimationTransaction
+      - UIAnimation
+      - UIBasicAnimation
+      - UIPropertyAnimation
+  - name: Scrolling
     members:
       - UIScrollView
       - UIScroller
-  -
-    name: List Views
+  - name: List Views
     members:
       - UIListView
       - UIListViewCell
@@ -225,58 +208,58 @@ topics:
       - UIOutlineViewCell
       #- UIBrowserView
       #- UIBrowserViewController
-      - UIStackView
-  -
-    name: Navigation Views
+  - name: Navigation Views
     members:
       - UINavigationController
       - UINavigationItem
       - UINavigationBar
       - UINavigationBarItem
-  -
-    name: Tab Views
+  - name: Tab Views
     members:
       - UITabView
       - UITabViewItem
       - UITabViewController
-  -
-    name: Pasteboard & Dragging
+  - name: Touch Interfaces
+    members:
+      - UIGestureRecognizer
+      - UITapGestureRecognizer
+      - UIPressGestureRecognizer
+  - name: User Interface Traits
+    members:
+      - UIUserInterface
+      - UITraitEnvironment
+      - UITraitCollection
+  - name: Pasteboard & Dragging
     members:
       - UIPasteboard
       - UIDraggingSession
       - UIDraggingSource
       - UIDraggingDestination
       - UIDragItem
-  -
-    name: Alerts & Dialogs
+  - name: Alerts & Dialogs
     members:
       - UIPopupWindow
       - UIAlertController
       - UIAlertAction
       - UIOpenPanel
       - UISavePanel
-  -
-    name: Activity & Progress
+  - name: Activity & Progress
     members:
       - UIActivityIndicatorView
       - UIProgressIndicatorView
-  -
-    name: Menus
+  - name: Menus
     members:
       - UIMenu
       - UIMenuItem
       - UIMenuBar
       - UIMenuBarItem
-  -
-    name: Split Views
+  - name: Split Views
     members:
       - UISplitView
       - UISplitViewController
-  -
-    name: Web Views
+  - name: Web Views
     members:
       - UIWebView
-  -
-    name: Specialized HTML Views
+  - name: Specialized HTML Views
     members:
       - UIHTMLElementLayer
