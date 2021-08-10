@@ -157,17 +157,14 @@ description: |
   });
   ````
 topics:
-  -
-    name: Setup & Teardown
+  - name: Setup & Teardown
     members:
-      -
-        name: setup
+      - name: setup
         kind: method
         summary: Called before every test case
         description: |
           Gives the suite a chance to setup any objects the tests require
-      -
-        name: teardown
+      - name: teardown
         kind: method
         summary: Called after every test case
         description: |
@@ -175,18 +172,15 @@ topics:
   -
     name: Asynchronous
     members:
-      - 
-        name: wait
+      -  name: wait
         kind: method
         summary: Called to make the test case result wait until
           an asynchronous call completes
         arguments:
-          -
-            name: expectation
+          - name: expectation
             type: TKExpectation
             summary: The expectation that is managing the asynchronous call
-          -
-            name: timeout
+          - name: timeout
             type: Number
             summary: The time to wait, in seconds, before declaring the test
               case failed
@@ -199,25 +193,20 @@ topics:
 
           If you need to make multiple asynchronous calls, they must be
           nested, using `expectation.call()` in callback to the previous call.
-  -
-    name: Test Data
+  - name: Test Data
     members:
-      -
-        name: getResourceData
+      - name: getResourceData
         kind: method
         summary: Used to asynchronously get data for test resources included
           in the test project
         arguments:
-          -
-            name: resourceName
+          - name: resourceName
             type: String
             summary: The name of the resource in the test project bundle
-          -
-            name: ext
+          - name: ext
             type: String
             summary: The file extension of the resource
-          -
-            name: completion
+          - name: completion
             type:
               arguments:
                 -
@@ -225,8 +214,7 @@ topics:
                   type: JSData
                   summary: The test resource's data
             summary: The function to call with the test data
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
@@ -260,14 +248,22 @@ topics:
           ````
         note: Because this function is asynchronous, you must use it in
           conjunction with a `TKExpectation` and `wait()`.
-  -
-    name: Timing
+  - name: Timing
     members:
-      -
-        name: now
+      - name: now
         kind: method
         type: Number
         summary: Get the current timestamp of a high resolution timer
         description: |
           The timestamp does not correspond to any calendar date/time, but
           can be compared across successive calls.
+  - name: Environment
+    members:
+      - name: requiredEnvironment
+        type: String
+        summary: The only environment in which the test suite can run
+        description: |
+          Supported values are `html`() and `node`().
+
+          Useful when a test suite is for a coponent that uses environment-specific
+          features and is only supported in that environment.
