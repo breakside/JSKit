@@ -53,7 +53,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
     open: function(){
         var queue = this;
         if (this.openPromise === null){
-            this.openPromise = this._open.catch(function(error){
+            this.openPromise = this._open().catch(function(error){
                 queue.openPromise = null;
                 return Promise.reject(error);
             });
@@ -71,7 +71,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
             logger.info("AMQP channel created");
             let options = {
                 durable: true,
-                maxPriority: SKJobQueue.Priority.highest,
+                maxPriority: SKJob.Priority.highest,
                 deadLetterExchange: "SKJobQueue.failed"
             };
             await this.channel.assertQueue(this.identifier, options);
@@ -89,6 +89,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
                 this.channel = null;
                 this.queuesByPriority = {};
             }
+            throw e;
         }
     },
 
@@ -109,7 +110,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
     },
 
     consume: async function(consumer){
-        SKAMQPJobQueue.consume.call(this, consumer);
+        await SKAMQPJobQueue.$super.consume.call(this, consumer);
         await this.channel.consume(this.identifier, this.receiveMessage.bind(this), {noAck: false});
     },
 

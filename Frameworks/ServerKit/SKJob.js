@@ -23,8 +23,7 @@ JSClass("SKJob", JSObject, {
 
     id: null,
     context: null,
-    priority: 50,
-    errors: null,
+    priority: 3,
 
     initFromDictionary: function(dictionary){
     },

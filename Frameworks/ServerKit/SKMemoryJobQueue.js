@@ -42,6 +42,13 @@ JSClass("SKMemoryJobQueue", SKJobQueue, {
             return null;
         }
         return this.jobs.shift();
+    },
+
+    consume: async function(consumer){
+        await SKMemoryJobQueue.$super.consume.call(this, consumer);
+        if (this.jobs.length > 0){
+            JSRunLoop.main.schedule(this.consumer.jobQueueCanDequeue, this.consumer, this);
+        }
     }
 
 });

@@ -1,6 +1,6 @@
 // #import Foundation
 "use strict";
 
-JSClass("SKJobContext", {
+JSClass("SKJobContext", JSObject, {
 
 });

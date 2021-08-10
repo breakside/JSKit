@@ -38,10 +38,10 @@ JSClass("SKFileJobQueue", SKJobQueue, {
     watcher: null,
 
     consume: async function(consumer){
-        SKFileJobQueue.consume.call(this, consumer);
+        await SKFileJobQueue.$super.consume.call(this, consumer);
         var path = this.fileManager.pathForURL(this.queueURL);
         this.watcher = fs.watch(path, {recursive: true}, this.handleChange.bind(this));
-        let items = await this.fileManager.contentsOfDirectoryAtURL(this.url);
+        let items = await this.fileManager.contentsOfDirectoryAtURL(this.queueURL);
         if (items.length > 0){
             consumer.jobQueueCanDequeue(this);
         }
@@ -62,7 +62,7 @@ JSClass("SKFileJobQueue", SKJobQueue, {
     dequeueDictionary: async function(){
         let url = null;
         while (url === null){
-            let items = await this.fileManager.contentsOfDirectoryAtURL(this.url);
+            let items = await this.fileManager.contentsOfDirectoryAtURL(this.queueURL);
             // items are named with a priority prefix, so sort descending and
             // try to grab the first item
             items.sort(function(a, b){
@@ -75,13 +75,13 @@ JSClass("SKFileJobQueue", SKJobQueue, {
             // If multiple workers are running, another may have moved the item
             // before we could, indicated by moveItemAtURL failing
             try{
-                url = this.workingURL.appendingPathComponent(item.name.substr(3));
+                url = this.workingURL.appendingPathComponent(item.name.substr(2));
                 await this.fileManager.moveItemAtURL(item.url, url);
             }catch (e){
                 url = null;
             }
         }
-        let contents = this.fileManager.contentsAtURL(url);
+        let contents = await this.fileManager.contentsAtURL(url);
         return JSON.parse(contents.stringByDecodingUTF8());
     },
 

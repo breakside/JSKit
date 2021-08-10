@@ -15,7 +15,6 @@
 
 // #import Foundation
 // #import "SKJob.js"
-// #import "SKJobStore.js"
 /* global SKRedisJobQueue, SKAMQPJobQueue, SKMemoryJobQueue, SKFileJobQueue */
 // jshint esversion: 8
 "use strict";
@@ -30,21 +29,23 @@ JSProtocol("SKJobQueueConsumer", JSProtocol, {
 
 JSClass("SKJobQueue", JSObject, {
 
-    initWithURL: function(url, fileManager){
-        fileManager = fileManager || JSFileManager;
+    initWithURL: function(url, fileManager, service){
+        fileManager = fileManager || JSFileManager.shared;
         if (fileManager.isFileURL(url)){
             return SKFileJobQueue.initWithURL(url);
         }else if (url.scheme === "redis"){
-            return SKRedisJobQueue.initWithURL(url);
+            return SKRedisJobQueue.initWithURL(url, service);
         }else if (url.scheme === "amqp"){
-            return SKAMQPJobQueue.initWithURL(url);
+            return SKAMQPJobQueue.initWithURL(url, service);
         }else if (url.scheme === "memory"){
             return SKMemoryJobQueue.init();
         }
         throw new Error("SKJobQueue.initWithURL() unknown scheme: %s".sprintf(url.scheme));
     },
 
-    maximumFailureCount: 5,
+    initInMemory: function(){
+        return SKMemoryJobQueue.init();
+    },
 
     open: async function(){
     },
@@ -69,7 +70,6 @@ JSClass("SKJobQueue", JSObject, {
             id: job.id,
             priority: job.priority,
             className: job.$class.className,
-            errors: JSCopy(job.errors)
         };
         job.encodeToDictionary(dictionary);
         return dictionary;
@@ -77,7 +77,7 @@ JSClass("SKJobQueue", JSObject, {
 
     enqueue: async function(job){
         if (job.id === null){
-            job.id = "job_" + JSSHA1Hash((new UUID()).bytes);
+            job.id = "job_" + JSSHA1Hash((new UUID()).bytes).hexStringRepresentation();
         }
         var dictionary = this.dictionaryForJob(job);
         await this.enqueueDictionary(dictionary);
@@ -98,7 +98,6 @@ JSClass("SKJobQueue", JSObject, {
         job = jobClass.initFromDictionary(dictionary);
         job.id = dictionary.id;
         job.priority = dictionary.priority;
-        job.errors = JSCopy(dictionary.errors);
         logger.log("%{public} dequeued from %{public}", job.toString(), this.toString());
         return job;
     },

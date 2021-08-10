@@ -89,7 +89,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
     },
 
     consume: async function(consumer){
-        SKRedisJobQueue.$super.consume.call(this.consumer);
+        await SKRedisJobQueue.$super.consume.call(this, consumer);
         this.waitForJob();
     },
 
