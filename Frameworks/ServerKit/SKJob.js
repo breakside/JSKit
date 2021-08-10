@@ -42,11 +42,11 @@ JSClass("SKJob", JSObject, {
 });
 
 SKJob.Priority = {
-    lowest: 0,
+    lowest: 1,
     low: 2,
-    normal: 5,
-    high: 8,
-    highest: 10
+    normal: 3,
+    high: 4,
+    highest: 5
 };
 
 SKJob.subclassesByName = {};

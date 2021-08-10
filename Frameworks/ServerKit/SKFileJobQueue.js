@@ -54,7 +54,7 @@ JSClass("SKFileJobQueue", SKJobQueue, {
     },
 
     enqueueDictionary: async function(dictionary){
-        var url = this.queueURL.appendingPathComponent("%02d-%s".sprintf(dictionary.priority, dictionary.id));
+        var url = this.queueURL.appendingPathComponent("%d-%s".sprintf(dictionary.priority, dictionary.id));
         var contents = JSON.stringify(dictionary).utf8();
         await this.fileManager.createFileAtURL(url, contents);
     },

@@ -90,6 +90,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
 
     consume: async function(consumer){
         SKRedisJobQueue.$super.consume.call(this.consumer);
+        this.waitForJob();
     },
 
     handleError: function(e){
@@ -98,13 +99,38 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
 
     client: null,
 
+    waitForJob: function(){
+        if (this.client === null){
+            return;
+        }
+        var queue = this;
+        var args = [];
+        for (let priority = SKJob.Priority.highest; priority >= SKJob.Priority.lowest; --priority){
+            args.push("%s:%d".sprintf(this.identifier, priority));
+        }
+        args.push(0);
+        this.client.blpop(args, function(error, result){
+            if (error !== null){
+                logger.error("Error waiting for job: %{error}", error);
+                queue.waitForJob();
+                return;
+            }
+            if (result === null){
+                queue.waitForJob();
+                return;
+            }
+            queue._nextJobID = result[1];
+            queue.consumer.jobQueueCanDequeue(queue);
+        });
+    },
+
     enqueueDictionary: async function(dictionary){
         var client = this.client;
         var identifier = this.identifier;
         var queueKey = "%s:%d".sprintf(identifier, dictionary.priority);
         await new Promise(function(resolve, reject){
             var json = JSON.stringify(dictionary);
-            client.multi().set(dictionary.id, json).rpush(queueKey, dictionary.id).exec(function(error, results){
+            client.multi().set(dictionary.id, json).rpush(identifier, dictionary.id).rpush(queueKey, dictionary.id).exec(function(error, results){
                 if (error !== null){
                     logger.error("Failed to set+rpush: %{error}", error);
                     reject(error);
@@ -115,52 +141,33 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
         });
     },
 
-    dequeueDictionary: async function(){
-        var keys = [];
-        for (let priority = SKJob.Priority.highest; priority >= SKJob.Priority.lowest; --priority){
-            let key = "%s:%d".sprintf(this.identifier, priority);
-            let dictionary = await this.dequeueDictionaryFromKey(key);
-            if (dictionary !== null){
-                return dictionary;
-            }
-        }
-        return null;
-    },
+    _nextJobID: null,
 
-    dequeueDictionaryFromKey: async function(key){
+    dequeueDictionary: async function(){
+        if (this._nextJobID === null){
+            return null;
+        }
         var client = this.client;
-        var identifier = this.identifier;
-        var id = await new Promise(function(resolve, reject){
-            client.lmove(key, identifier + ":running", "LEFT", "RIGHT", function(error, result){
+        var id = this._nextJobID;
+        this._nextJobID = null;
+        return new Promise(function(resolve, reject){
+            client.get(id, function(error, json){
                 if (error !== null){
-                    logger.error("Failed to dequeue job: %{error}", error);
+                    logger.log("Failed to get job: %{error}", error);
                     reject(error);
                     return;
                 }
-                resolve(result);
+                var dictionary = null;
+                try{
+                    dictionary = JSON.parse(json);
+                }catch (e){
+                    logger.log("Failed to parse json: %{error}", error);
+                    reject(e);
+                    return;
+                }
+                resolve(dictionary);
             });
         });
-        if (id){
-            return await new Promise(function(resolve, reject){
-                client.get(id, function(error, json){
-                    if (error !== null){
-                        logger.log("Failed to get job: %{error}", error);
-                        reject(error);
-                        return;
-                    }
-                    var dictionary = null;
-                    try{
-                        dictionary = JSON.parse(json);
-                    }catch (e){
-                        logger.log("Failed to parse json: %{error}", error);
-                        reject(e);
-                        return;
-                    }
-                    resolve(dictionary);
-                });
-            });
-        }
-        return null;
     },
 
     complete: async function(job, error){
@@ -171,7 +178,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
             if (error !== null){
                 multi = multi.rpush(identifier + ":failed", job.id);
             }
-            multi.lrem(identifier + ":running", 0, job.id).del(job.id).exec(function(error, results){
+            multi.lrem(identifier, 0, job.id).del(job.id).exec(function(error, results){
                 if (error !== null){
                     logger.error("Failed to to remove running job: %{error}", error);
                     reject(error);
@@ -180,6 +187,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
                 resolve();
             });
         });
+        this.waitForJob();
     },
 
     toString: function(){
