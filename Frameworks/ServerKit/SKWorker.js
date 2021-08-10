@@ -14,122 +14,152 @@
 // limitations under the License.
 
 // #import Foundation
+// #feature esversion 8
+// jshint esversion: 8
 "use strict";
+
+(function(){
+
+var logger = JSLog("serverkit", "jobworker");
+
+JSProtocol("SKWorkerDelegate", JSProtocol, {
+
+    workerWillStartJob: function(worker, job){},
+    workerDidCompleteJob: function(worker, job){},
+    workerDidCreateContextForJob: function(worker, context, job){}
+
+});
 
 JSClass("SKWorker", JSObject, {
 
     initWithJobQueue: function(jobQueue){
-        this.jobQueue = jobQueue;
-        this.jobQueue.worker = this;
+        this.initWithJobQueues([jobQueue]);
     },
 
-    jobQueue: null,
-
-    start: function(completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
-        if (this.jobQueue === null){
-            JSRunLoop.main.schedule(completion, target, false);
-        }else{
-            this.jobQueue.open(function(success){
-                completion.call(target, success);
-            }, this);
-        }
-        return completion.promise;
-    },
-
-    stop: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        if (this.jobQueue === null){
-            JSRunLoop.main.schedule(completion, target);
-        }else{
-            this.jobQueue.close(function(){
-                completion.call(target);
-            }, this);
-        }
-        return completion.promise;
-    },
-
-    _needsWork: false,
-
-    setNeedsWork: function(){
-        if (!this._needsWork){
-            this._needsWork = true;
-            this.scheduleWork();
+    initWithJobQueues: function(jobQueues){
+        this._jobQueues = [];
+        this._workQueues = [];
+        for (var i = 0, l = jobQueues.length; i < l; ++i){
+            this.addJobQueue(jobQueues[i]);
         }
     },
 
-    _isWorking: false,
+    jobQueues: JSReadOnlyProperty("_jobQueues", null),
+
+    addJobQueue: function(jobQueue){
+        this._jobQueues.push(jobQueue);
+    },
+
+    state: JSReadOnlyProperty("_state", 0),
+
+    start: async function(){
+        if (this._state !== SKWorker.State.stopped){
+            throw new Error("SKWorker.start() called on worker that is already started");
+        }
+        this._state = SKWorker.State.starting;
+        for (let jobQueue of this._jobQueues){
+            await jobQueue.open();
+            await jobQueue.consume(this);
+        }
+        this._state = SKWorker.State.idle;
+        if (this._workQueues.length > 0){
+            this._scheduleWork();
+        }
+    },
+
+    stop: async function(){
+        if (this._state === SKWorker.State.stopping){
+            throw new Error("SKWorker.stop() called on worker this is already stopping");
+        }
+        if (this._state !== SKWorker.State.stopped){
+            this._state = SKWorker.State.stopping;
+            this._workQueues = [];
+            for (let jobQueue of this._jobQueues){
+                await jobQueue.close();
+            }
+            if (this._isWorkScheduled){
+                var worker = this;
+                await new Promise(function(resolve){
+                    worker._workCompletion = resolve;
+                });
+            }
+            this._state = SKWorker.State.stopped;
+        }
+    },
+
+    jobQueueCanDequeue: function(jobQueue){
+        if (this._state === SKWorker.State.stopping){
+            return;
+        }
+        this._workQueues.push(jobQueue);
+        if (this._state === SKWorker.State.idle || this._state === SKWorker.State.working){
+            this._scheduleWork();
+        }
+    },
+
     _isWorkScheduled: false,
 
-    scheduleWork: function(){
-        if (this._isWorking){
-            return;
-        }
+    _scheduleWork: function(){
         if (!this._isWorkScheduled){
             this._isWorkScheduled = true;
-            JSRunLoop.main.schedule(this.work, this);
+            JSRunLoop.main.schedule(this._work, this);
         }
     },
 
-    work: function(){
+    _workQueues: null,
+    _workCompletion: null,
+
+    _work: async function(){
+        this._state = SKWorker.State.working;
+        while (this._workQueues.length > 0){
+            let jobQueue = this._workQueues.shift();
+            try{
+                let job = await jobQueue.dequeue();
+                let error = null;
+                if (job !== null){
+                    try{
+                        if (job.contextClass !== null){
+                            job.context = job.contextClass.init();
+                            if (this.delegate && this.delegate.workerDidCreateContextForJob){
+                                this.delegate.workerDidCreateContextForJob(this, job.context, job);
+                            }
+                        }
+                        if (this.delegate && this.delegate.workerWillStartJob){
+                            this.delegate.workerWillStartJob(this, job);
+                        }
+                        await job.run();
+                    }catch (e){
+                        error = e;
+                        logger.error("Failed to run job %{public}: %{error}", job.id, e);
+                    }
+                    try{
+                        await jobQueue.complete(job, error);
+                        if (this.delegate && this.delegate.workerDidCompleteJob){
+                            this.delegate.workerDidCompleteJob(this, job);
+                        }
+                    }catch (e){
+                        logger.error("Failed to complete job: %{error}", e);
+                    }
+                }
+            }catch (e){
+                logger.error("SKWorker.work() failed: %{error}", e);
+            }
+        }
         this._isWorkScheduled = false;
-        if (this._isWorking){
-            return;
-        }
-        if (this.jobQueue === null){
-            return;
-        }
-        this._needsWork = false;
-        this._isWorking = true;
-        this.jobQueue.dequeue(function(job){
-            if (job === null){
-                this.completeJob(job, null);
-            }else{
-                try{
-                    var worker = this;
-                    var promise = job.run(function(error){
-                        worker.completeJob(job, error || null);
-                    });
-                    if (promise instanceof Promise){
-                        promise.then(function(){
-                            worker.completeJob(job, null);
-                        }, function(error){
-                            worker.completeJob(job, error);
-                        });
-                    }
-                }catch (e){
-                    this.completeJob(job, e);
-                }
-            }
-        }, this);
-    },
-
-    completeJob: function(job, error){
-        this._isWorking = false;
-        if (this._needsWork){
-            this.scheduleWork();
-        }
-        if (job !== null){
-            if (error !== null){
-                if (job.errors === null){
-                    job.errors = [];
-                }
-                job.errors.push({
-                    message: error.toString(),
-                    stack: error.stack
-                });
-                this.jobQueue.enqueue(job, function(success){
-                    if (!success){
-                        // job run failed, re-enqueue failed
-                        // what can we do to save this job?
-                    }
-                }, this);
-            }
+        this._state = SKWorker.State.idle;
+        if (this._workCompletion !== null){
+            this._workCompletion();
         }
     }
 
 });
+
+SKWorker.State = {
+    stopped: 0,
+    starting: 1,
+    idle: 2,
+    working: 3,
+    stopping: 4
+};
+
+})();

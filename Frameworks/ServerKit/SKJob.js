@@ -14,11 +14,15 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "SKJobContext.js"
 "use strict";
 
 JSClass("SKJob", JSObject, {
 
+    contextClass: SKJobContext,
+
     id: null,
+    context: null,
     priority: 50,
     errors: null,
 
@@ -38,9 +42,11 @@ JSClass("SKJob", JSObject, {
 });
 
 SKJob.Priority = {
-    low: 20,
-    normal: 50,
-    high: 80 
+    lowest: 0,
+    low: 2,
+    normal: 5,
+    high: 8,
+    highest: 10
 };
 
 SKJob.subclassesByName = {};

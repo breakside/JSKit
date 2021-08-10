@@ -16,108 +16,94 @@
 // #import Foundation
 // #import "SKJob.js"
 // #import "SKJobStore.js"
+/* global SKRedisJobQueue, SKAMQPJobQueue, SKMemoryJobQueue, SKFileJobQueue */
+// jshint esversion: 8
 "use strict";
 
 (function(){
 
 var logger = JSLog("serverkit", "jobqueue");
 
+JSProtocol("SKJobQueueConsumer", JSProtocol, {
+    jobQueueCanDequeue: function(jobQueue){}
+});
+
 JSClass("SKJobQueue", JSObject, {
 
-    initWithJobStore: function(store, name){
-        this.store = store;
-        this.name = name;
-        this.id = "jobqueue_" + JSSHA1Hash(name.utf8());
+    initWithURL: function(url, fileManager){
+        fileManager = fileManager || JSFileManager;
+        if (fileManager.isFileURL(url)){
+            return SKFileJobQueue.initWithURL(url);
+        }else if (url.scheme === "redis"){
+            return SKRedisJobQueue.initWithURL(url);
+        }else if (url.scheme === "amqp"){
+            return SKAMQPJobQueue.initWithURL(url);
+        }else if (url.scheme === "memory"){
+            return SKMemoryJobQueue.init();
+        }
+        throw new Error("SKJobQueue.initWithURL() unknown scheme: %s".sprintf(url.scheme));
     },
 
-    name: null,
-    worker: null,
-    store: null,
     maximumFailureCount: 5,
 
-    open: function(completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
-        this.store.open(function(success){
-            completion.call(target, success);
-        });
-        return completion.promise;
+    open: async function(){
     },
 
-    close: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
-        }
-        this.store.close(function(){
-            completion.call(target);
-        });
-        return completion.promise;
+    close: async function(){
     },
 
-    enqueue: function(job, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
-        }
-        if (job.id === null){
-            job.id = "job_" + JSSHA1Hash((new UUID()).bytes);
-        }
+    consumer: null,
+
+    consume: async function(consumer){
+        this.consumer = consumer;
+    },
+
+    enqueueDictionary: async function(dictionary){
+    },
+
+    dequeueDictionary: async function(){
+    },
+
+    dictionaryForJob: function(job){
         var dictionary = {
             id: job.id,
             priority: job.priority,
-            failureCount: job.failureCount,
             className: job.$class.className,
             errors: JSCopy(job.errors)
         };
         job.encodeToDictionary(dictionary);
-        this.store.enqueue(this.id, dictionary, function(success){
-            if (success){
-                logger.log("%{pubic} enqueued to %{public} (%{public})", job.toString(), this.name, this.id);
-            }else{
-                logger.log("%{pubic} failed enqueue to %{public} (%{public})", job.toString(), this.name, this.id);
-            }
-            completion.call(target, success);
-        });
-        return completion.promise;
+        return dictionary;
     },
 
-    dequeue: function(completion, target){
-        if (!completion){
-            completion = Promise.completion();
+    enqueue: async function(job){
+        if (job.id === null){
+            job.id = "job_" + JSSHA1Hash((new UUID()).bytes);
         }
-        this.store.dequeue(this.id, function(dictionary){
-            if (dictionary === null){
-                completion.call(target, null);
-                return;
-            }
-            var jobClass = SKJob.subclassesByName[dictionary.className];
-            var job = null;
-            if (jobClass){
-                job = jobClass.initFromDictionary(dictionary);
-                job.id = dictionary.id;
-                job.priority = dictionary.priority;
-                job.failureCount = dictionary.failureCount;
-                job.errors = JSCopy(dictionary.errors);
-                logger.log("%{public} dequeued from %{public} (%{public})", job.toString(), this.name, this.id);
-                completion.call(target, job);
-            }else{
-                logger.warn("Unable to create job %{public}.  Class not found: %{public}", dictionary.id, dictionary.className);
-            }
-        });
-        return completion.promise;
+        var dictionary = this.dictionaryForJob(job);
+        await this.enqueueDictionary(dictionary);
+        logger.log("%{public} enqueued to %{public}", job.toString(), this.toString());
     },
 
-    dequeueJobDictionary: function(completion){
-        completion(null);
-    },
-
-    fail: function(job, completion, target){
-    },
-
-    notifyWorker: function(){
-        if (this.worker !== null){
-            this.worker.setNeedsWork();
+    dequeue: async function(){
+        var dictionary = await this.dequeueDictionary();
+        if (dictionary === null){
+            return null;
         }
+        var jobClass = SKJob.subclassesByName[dictionary.className];
+        var job = null;
+        if (!jobClass){
+            logger.warn("Unable to create job %{public}.  Class not found: %{public}", dictionary.id, dictionary.className);
+            return null;
+        }
+        job = jobClass.initFromDictionary(dictionary);
+        job.id = dictionary.id;
+        job.priority = dictionary.priority;
+        job.errors = JSCopy(dictionary.errors);
+        logger.log("%{public} dequeued from %{public}", job.toString(), this.toString());
+        return job;
+    },
+
+    complete: async function(job, error){
     }
 
 });
