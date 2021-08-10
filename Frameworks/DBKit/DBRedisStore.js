@@ -18,7 +18,7 @@
 // jshint node: true
 'use strict';
 
-var logger = JSLog("service", "redis");
+var logger = JSLog("dbkit", "redis");
 
 JSClass("DBRedisStore", DBObjectStore, {
 

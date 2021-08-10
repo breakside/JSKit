@@ -19,4 +19,13 @@
 // #import "SKNodeHTTPResponse.js"
 // #import "SKNodeHTTPWebSocket.js"
 // #import "SKHTTPResponder+Node.js"
+
+// #import "SKJob.js"
+// #import "SKJobContext.js"
+// #import "SKJobQueue.js"
+// #import "SKRedisJobQueue.js"
+// #import "SKAMQPJobQueue.js"
+// #import "SKMemoryJobQueue.js"
+// #import "SKFileJobQueue.js"
+// #import "SKWorker.js"
 'use strict';

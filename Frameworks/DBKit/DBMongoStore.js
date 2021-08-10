@@ -19,7 +19,7 @@
 // jshint node: true
 'use strict';
 
-var logger = JSLog("service", "mongodb");
+var logger = JSLog("dbkit", "mongodb");
 
 JSClass("DBMongoStore", DBObjectStore, {
 

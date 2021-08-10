@@ -99,7 +99,7 @@ JSClass("JSAMQPNotificationCenter", JSDistributedNotificationCenter, {
                             return;
                         }
                         logger.info("AMQP queue ready");
-                        channel.consume(notificationCenter.queueName, notificationCenter.receiveMessage.bind(notificationCenter), {}, function(error){
+                        channel.consume(notificationCenter.queueName, notificationCenter.receiveMessage.bind(notificationCenter), {noAck: true}, function(error){
                             if (error){
                                 logger.error("Error creating AMQP consumer: %{error}", error);
                                 close();
