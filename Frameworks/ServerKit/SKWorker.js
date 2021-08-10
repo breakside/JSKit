@@ -50,6 +50,8 @@ JSClass("SKWorker", JSObject, {
         this._jobQueues.push(jobQueue);
     },
 
+    delegate: null,
+
     state: JSReadOnlyProperty("_state", 0),
 
     start: async function(){

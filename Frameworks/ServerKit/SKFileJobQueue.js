@@ -29,13 +29,14 @@ JSClass("SKFileJobQueue", SKJobQueue, {
         this.fileManager = fileManager;
     },
 
+    watcher: null,
+
     close: async function(){
         if (this.watcher){
             this.watcher.close();
         }
+        await SKFileJobQueue.$super.close.call(this);
     },
-
-    watcher: null,
 
     consume: async function(consumer){
         await SKFileJobQueue.$super.consume.call(this, consumer);
@@ -43,13 +44,13 @@ JSClass("SKFileJobQueue", SKJobQueue, {
         this.watcher = fs.watch(path, {recursive: true}, this.handleChange.bind(this));
         let items = await this.fileManager.contentsOfDirectoryAtURL(this.queueURL);
         if (items.length > 0){
-            consumer.jobQueueCanDequeue(this);
+            this.notifyConsumer();
         }
     },
 
     handleChange: function(eventType, filename){
         if (fs.existsSync(filename)){
-            this.consumer.jobQueueCanDequeue(this);
+            this.notifyConsumer(this);
         }
     },
 

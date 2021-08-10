@@ -107,6 +107,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
             this.channel = null;
             this.queuesByPriority = {};
         }
+        await SKAMQPJobQueue.$super.close.call(this);
     },
 
     consume: async function(consumer){
@@ -173,7 +174,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
             return;
         }
         this._receivedMessage = message;
-        this.consumer.jobQueueCanDequeue(this);
+        this.notifyConsumer();
     },
 
     complete: async function(job, error){

@@ -86,6 +86,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
             this.openPromise = null;
             this.client = null;
         }
+        await SKRedisJobQueue.$super.close.call(this);
     },
 
     consume: async function(consumer){
@@ -120,7 +121,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
                 return;
             }
             queue._nextJobID = result[1];
-            queue.consumer.jobQueueCanDequeue(queue);
+            queue.notifyConsumer();
         });
     },
 

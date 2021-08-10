@@ -51,12 +51,19 @@ JSClass("SKJobQueue", JSObject, {
     },
 
     close: async function(){
+        this._consumer = null;
     },
 
-    consumer: null,
+    consumer: JSDynamicProperty("_consumer", null),
 
     consume: async function(consumer){
-        this.consumer = consumer;
+        this._consumer = consumer;
+    },
+
+    notifyConsumer: function(){
+        if (this._consumer !== null && this._consumer.jobQueueCanDequeue){
+            this._consumer.jobQueueCanDequeue(this);
+        }
     },
 
     enqueueDictionary: async function(dictionary){

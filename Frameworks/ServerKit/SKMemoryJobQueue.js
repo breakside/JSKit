@@ -24,6 +24,17 @@ JSClass("SKMemoryJobQueue", SKJobQueue, {
         this.jobs = [];
     },
 
+    isOpen: false,
+
+    open: async function(){
+        this.isOpen = true;
+    },
+
+    close: async function(){
+        this.isOpen = false;
+        await SKMemoryJobQueue.$super.close.call(this);
+    },
+
     enqueueDictionary: async function(dictionary){
         for (let i = this.jobs.length - 1; i >= 0; --i){
             if (this.jobs[i].priority >= dictionary.priority){
@@ -32,9 +43,7 @@ JSClass("SKMemoryJobQueue", SKJobQueue, {
             }
         }
         this.jobs.splice(0, 0, dictionary);
-        if (this.consumer !== null){
-            JSRunLoop.main.schedule(this.consumer.jobQueueCanDequeue, this.consumer, this);
-        }
+        JSRunLoop.main.schedule(this.notifyConsumer, this);
     },
 
     dequeueDictionary: async function(){
@@ -47,8 +56,8 @@ JSClass("SKMemoryJobQueue", SKJobQueue, {
     consume: async function(consumer){
         await SKMemoryJobQueue.$super.consume.call(this, consumer);
         if (this.jobs.length > 0){
-            JSRunLoop.main.schedule(this.consumer.jobQueueCanDequeue, this.consumer, this);
+            JSRunLoop.main.schedule(this.notifyConsumer, this);
         }
-    }
+    },
 
 });
