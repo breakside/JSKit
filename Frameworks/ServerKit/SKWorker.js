@@ -25,7 +25,7 @@ var logger = JSLog("serverkit", "jobworker");
 JSProtocol("SKWorkerDelegate", JSProtocol, {
 
     workerWillStartJob: function(worker, job){},
-    workerDidCompleteJob: function(worker, job){},
+    workerDidCompleteJob: function(worker, job, error){},
     workerDidCreateContextForJob: function(worker, context, job){}
 
 });
@@ -137,7 +137,7 @@ JSClass("SKWorker", JSObject, {
                     try{
                         await jobQueue.complete(job, error);
                         if (this.delegate && this.delegate.workerDidCompleteJob){
-                            this.delegate.workerDidCompleteJob(this, job);
+                            this.delegate.workerDidCompleteJob(this, job, error);
                         }
                     }catch (e){
                         logger.error("Failed to complete job: %{error}", e);
