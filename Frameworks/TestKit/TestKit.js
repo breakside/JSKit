@@ -20,3 +20,4 @@
 // #import "TKTestResult.js"
 // #import "TKTestRun.js"
 // #import "TKExpectation.js"
+// #import "TKMock.js"
