@@ -59,7 +59,7 @@ JSClass("JSNodeFileManager", JSFileManager, {
                 return status;
             });
         }
-        this._rootURL = this.urlForPath(pathLib.join(process.cwd(), 'io.breakside.jskit.JSFileManager'), true);
+        this._rootURL = this.urlForPath(pathLib.join(process.cwd(), this._identifier), true);
         completion.call(target, JSFileManager.State.success);
         return completion.promise;
     },
@@ -328,7 +328,7 @@ JSClass("JSNodeFileManager", JSFileManager, {
         fs.stat(toParentPath, function(error, stat){
             var move = function(toParentExists){
                 if (toParentExists){
-                    fs.stat(url, function(error, stat){
+                    fs.stat(path, function(error, stat){
                         if (!error){
                             var itemType = JSFileManager.ItemType.fromStat(stat);
                             fs.rename(path, toPath, function(error){
@@ -675,6 +675,9 @@ JSClass("JSNodeFileManager", JSFileManager, {
     // MARK: - Destorying the File Manager
 
     destroy: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         var manager = this;
         var rootPath = this.pathForURL(this._rootURL);
         fs.stat(rootPath, function(error, stat){
@@ -686,6 +689,7 @@ JSClass("JSNodeFileManager", JSFileManager, {
                 completion.call(target, true);
             }
         });
+        return completion.promise;
     },
 
 });
