@@ -63,51 +63,51 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         var amqp = new MockAMQP();
         var connection = new MockAMQPConnection();
         var channel = new MockAMQPChannel();
-        amqp.mock.connect.results.push({value: Promise.resolve(connection)});
-        connection.mock.createChannel.results.push({value: Promise.resolve(channel)});
-        connection.mock.on.results.push({});
-        connection.mock.on.results.push({});
-        channel.mock.prefetch.results.push({value: Promise.resolve()});
-        channel.mock.assertQueue.results.push({value: Promise.resolve({queue: "queue1"})});
-        channel.mock.on.results.push({});
-        channel.mock.on.results.push({});
+        amqp.connect.addReturn(Promise.resolve(connection));
+        connection.createChannel.addReturn(Promise.resolve(channel));
+        connection.on.addReturn();
+        connection.on.addReturn();
+        channel.prefetch.addReturn(Promise.resolve());
+        channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
+        channel.on.addReturn();
+        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
-        TKAssertEquals(amqp.mock.connect.calls.length, 1);
-        TKAssertType(amqp.mock.connect.calls[0].url, "string");
-        TKAssertEquals(amqp.mock.connect.calls[0].url, "amqp://amqp.breakside.io:1234/");
-        TKAssertEquals(connection.mock.createChannel.calls.length, 1);
-        TKAssertEquals(connection.mock.on.calls.length, 2);
-        TKAssertEquals(connection.mock.on.calls[0].eventType, "error");
-        TKAssertEquals(connection.mock.on.calls[1].eventType, "close");
-        TKAssertEquals(channel.mock.prefetch.calls.length, 1);
-        TKAssertEquals(channel.mock.prefetch.calls[0].count, 1);
-        TKAssertEquals(channel.mock.assertQueue.calls.length, 1);
-        TKAssertEquals(channel.mock.assertQueue.calls[0].queue, "queue1");
-        TKAssertExactEquals(channel.mock.assertQueue.calls[0].options.durable, true);
-        TKAssertExactEquals(channel.mock.assertQueue.calls[0].options.maxPriority, 5);
-        TKAssertExactEquals(channel.mock.assertQueue.calls[0].options.deadLetterExchange, "SKJobQueue.failed");
-        TKAssertEquals(channel.mock.on.calls.length, 2);
-        TKAssertEquals(channel.mock.on.calls[0].eventType, "error");
-        TKAssertEquals(channel.mock.on.calls[1].eventType, "close");
+        TKAssertEquals(amqp.connect.calls.length, 1);
+        TKAssertType(amqp.connect.calls[0].url, "string");
+        TKAssertEquals(amqp.connect.calls[0].url, "amqp://amqp.breakside.io:1234/");
+        TKAssertEquals(connection.createChannel.calls.length, 1);
+        TKAssertEquals(connection.on.calls.length, 2);
+        TKAssertEquals(connection.on.calls[0].eventType, "error");
+        TKAssertEquals(connection.on.calls[1].eventType, "close");
+        TKAssertEquals(channel.prefetch.calls.length, 1);
+        TKAssertEquals(channel.prefetch.calls[0].count, 1);
+        TKAssertEquals(channel.assertQueue.calls.length, 1);
+        TKAssertEquals(channel.assertQueue.calls[0].queue, "queue1");
+        TKAssertExactEquals(channel.assertQueue.calls[0].options.durable, true);
+        TKAssertExactEquals(channel.assertQueue.calls[0].options.maxPriority, 5);
+        TKAssertExactEquals(channel.assertQueue.calls[0].options.deadLetterExchange, "SKJobQueue.failed");
+        TKAssertEquals(channel.on.calls.length, 2);
+        TKAssertEquals(channel.on.calls[0].eventType, "error");
+        TKAssertEquals(channel.on.calls[1].eventType, "close");
     },
 
     testEnqueue: async function(){
         var amqp = new MockAMQP();
         var connection = new MockAMQPConnection();
         var channel = new MockAMQPChannel();
-        amqp.mock.connect.results.push({value: Promise.resolve(connection)});
-        connection.mock.createChannel.results.push({value: Promise.resolve(channel)});
-        connection.mock.on.results.push({});
-        connection.mock.on.results.push({});
-        channel.mock.prefetch.results.push({value: Promise.resolve()});
-        channel.mock.assertQueue.results.push({value: Promise.resolve({queue: "queue1"})});
-        channel.mock.on.results.push({});
-        channel.mock.on.results.push({});
+        amqp.connect.addReturn(Promise.resolve(connection));
+        connection.createChannel.addReturn(Promise.resolve(channel));
+        connection.on.addReturn();
+        connection.on.addReturn();
+        channel.prefetch.addReturn(Promise.resolve());
+        channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
+        channel.on.addReturn();
+        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
 
-        channel.mock.sendToQueue.results.push({value: Promise.resolve()});
+        channel.sendToQueue.addReturn(Promise.resolve());
         var job = SKAMQPJobQueueTestsJob.initWithFields("one", 2);
         job.priority = SKJob.Priority.high;
         TKAssertNull(job.id);
@@ -115,40 +115,40 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         TKAssertType(job.id, "string");
         TKAssertEquals(job.id.substr(0, 4), "job_");
         TKAssertEquals(job.id.length, 44);
-        TKAssertEquals(channel.mock.sendToQueue.calls.length, 1);
-        TKAssertEquals(channel.mock.sendToQueue.calls[0].queue, "queue1");
-        var json = channel.mock.sendToQueue.calls[0].content.stringByDecodingUTF8();
+        TKAssertEquals(channel.sendToQueue.calls.length, 1);
+        TKAssertEquals(channel.sendToQueue.calls[0].queue, "queue1");
+        var json = channel.sendToQueue.calls[0].content.stringByDecodingUTF8();
         var dictionary = JSON.parse(json);
-        TKAssertExactEquals(channel.mock.sendToQueue.calls[0].options.persistent, true);
-        TKAssertExactEquals(channel.mock.sendToQueue.calls[0].options.priority, 4);
+        TKAssertExactEquals(channel.sendToQueue.calls[0].options.persistent, true);
+        TKAssertExactEquals(channel.sendToQueue.calls[0].options.priority, 4);
         
-        channel.mock.sendToQueue.results.push({value: Promise.reject(new Error("testing"))});
+        channel.sendToQueue.addReturn(Promise.reject(new Error("testing")));
         job = SKAMQPJobQueueTestsJob.initWithFields("one", 2);
         await TKAssertPromiseRejected(this.queue.enqueue(job));
-        TKAssertEquals(channel.mock.sendToQueue.calls.length, 2);
+        TKAssertEquals(channel.sendToQueue.calls.length, 2);
     },
 
     testConsume: async function(){
         var amqp = new MockAMQP();
         var connection = new MockAMQPConnection();
         var channel = new MockAMQPChannel();
-        amqp.mock.connect.results.push({value: Promise.resolve(connection)});
-        connection.mock.createChannel.results.push({value: Promise.resolve(channel)});
-        connection.mock.on.results.push({});
-        connection.mock.on.results.push({});
-        channel.mock.prefetch.results.push({value: Promise.resolve()});
-        channel.mock.assertQueue.results.push({value: Promise.resolve({queue: "queue1"})});
-        channel.mock.on.results.push({});
-        channel.mock.on.results.push({});
+        amqp.connect.addReturn(Promise.resolve(connection));
+        connection.createChannel.addReturn(Promise.resolve(channel));
+        connection.on.addReturn();
+        connection.on.addReturn();
+        channel.prefetch.addReturn(Promise.resolve());
+        channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
+        channel.on.addReturn();
+        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
 
-        channel.mock.sendToQueue.results.push({value: Promise.resolve()});
+        channel.sendToQueue.addReturn(Promise.resolve());
         var job = SKAMQPJobQueueTestsJob.initWithFields("one", 2);
         job.priority = SKJob.Priority.low;
         TKAssertNull(job.id);
         await this.queue.enqueue(job);
-        var content = channel.mock.sendToQueue.calls[0].content;
+        var content = channel.sendToQueue.calls[0].content;
 
         var queue = this.queue;
         var consume;
@@ -159,16 +159,16 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
             }
         };
 
-        channel.mock.consume.results.push({value: Promise.resolve()});
+        channel.consume.addReturn(Promise.resolve());
         await queue.consume(consumer);
-        TKAssertEquals(channel.mock.consume.calls.length, 1);
-        TKAssertEquals(channel.mock.consume.calls[0].queue, "queue1");
-        TKAssertExactEquals(channel.mock.consume.calls[0].options.noAck, false);
+        TKAssertEquals(channel.consume.calls.length, 1);
+        TKAssertEquals(channel.consume.calls[0].queue, "queue1");
+        TKAssertExactEquals(channel.consume.calls[0].options.noAck, false);
 
         var message = {
             content: content
         };
-        JSRunLoop.main.schedule(channel.mock.consume.calls[0].handler, undefined, message);
+        JSRunLoop.main.schedule(channel.consume.calls[0].handler, undefined, message);
 
         var ready = new Promise(function(resolve, reject){ consume = resolve; });
         var consumed = ready.then(function(){
@@ -181,11 +181,11 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
             TKAssertEquals(job2.priority, SKJob.Priority.low);
             TKAssertExactEquals(job2.field1, "one");
             TKAssertExactEquals(job2.field2, 2);
-            channel.mock.ack.results.push({vaue: Promise.resolve()});
+            channel.ack.addReturn(Promise.resolve());
             return queue.complete(job2, null);
         }).then(function(){
-            TKAssertEquals(channel.mock.ack.calls.length, 1);
-            TKAssertExactEquals(channel.mock.ack.calls[0].message, message);
+            TKAssertEquals(channel.ack.calls.length, 1);
+            TKAssertExactEquals(channel.ack.calls[0].message, message);
             return queue.dequeue();
         }).then(function(job3){
             TKAssertNull(job3);
