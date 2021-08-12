@@ -125,22 +125,22 @@ JSClass("DBMongoStore", DBObjectStore, {
             cursor.next(function(error, mongoObject){
                 if (error){
                     logger.error("Error fetching mongo object: %{error}", error);
-                    completion(null);
+                    completion(null, error);
                 }else{
                     if (mongoObject === null){
-                        completion(null);
+                        completion(null, null);
                     }else{
                         var object = JSCopy(mongoObject);
                         object.id = mongoObject._id;
                         delete object._id;
                         delete object.dbkitMongoLock;
-                        completion(object);
+                        completion(object, null);
                     }
                 }
             });
         }catch (e){
             logger.error("Failed to get mongo object: %{error}", e);
-            completion(null);
+            completion(null, e);
         }
     },
 

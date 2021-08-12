@@ -106,7 +106,11 @@ JSClass("DBRedisStore", DBObjectStore, {
             client.get(id, function(error, json){
                 if (error !== null){
                     logger.log("Failed to get redis object: %{error}", error);
-                    completion(null);
+                    completion(null, error);
+                    return;
+                }
+                if (!json){
+                    completion(null, null);
                     return;
                 }
                 var object = null;
@@ -114,14 +118,14 @@ JSClass("DBRedisStore", DBObjectStore, {
                     object = JSON.parse(json);
                 }catch (e){
                     logger.log("Failed to parse json from redis: %{error}", error);
-                    completion(null);
+                    completion(null, e);
                     return;
                 }
-                completion(object);
+                completion(object, null);
             });
         }catch (e){
             logger.error("Failure calling redis get: %{error}", e);
-            JSRunLoop.main.schedule(completion, undefined, null);
+            JSRunLoop.main.schedule(completion, undefined, null, e);
         }
     },
 
