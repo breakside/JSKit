@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2021 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,8 +13,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "DBRedisStore.js"
-// #import "DBMongoStore.js"
-// #import "DBMySQLEngine.js"
-// #import "DBPostgreSQLEngine.js"
-// #import "DBSQLiteEngine.js"
+// #import Foundation
+"use strict";
+
+(function(){
+
+JSClass("DBSQLEngine", JSObject, {
+
+    open: function(completion){
+    },
+
+    close: function(completion){
+    },
+
+    execute: function(statement, parameters, completion){
+    },
+
+    prepare: function(query, persist, completion){
+    }
+
+});
+
+})();
