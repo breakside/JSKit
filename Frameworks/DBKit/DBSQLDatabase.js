@@ -38,7 +38,7 @@ JSClass("DBSQLDatabase", JSObject, {
             }else{
                 throw new Error("mysql database not supported for this environment");
             }
-        }else if (url.scheme === "pgsql"){
+        }else if (url.scheme === "pgsql" || url.scheme == "postgresql"){
             if (JSGlobalObject.DBPostgreSQLEngine){
                 engine = DBPostgreSQLEngine.initWithURL(url);
             }else{

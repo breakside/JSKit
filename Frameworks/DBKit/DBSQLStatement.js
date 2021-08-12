@@ -20,13 +20,11 @@
 
 JSClass("DBSQLStatement", JSObject, {
 
-    initWithEngine: function(engine, persist){
+    initWithEngine: function(engine){
         this.engine = engine;
-        this.persist = persist;
     },
 
     engine: null,
-    persist: null,
 
     execute: function(parameters, completion, target){
         if (!completion){

@@ -39,31 +39,36 @@ JSClass("DBMySQLEngine", DBSQLEngine, {
     connection: null,
 
     open: function(completion){
-        logger.info("Opening msyql connection to %{public}:%d...", this.url.host, this.url.port);
+        logger.info("Opening mysql connection to %{public}:%d...", this.url.host, this.url.port);
         var creds = this.url.encodedUserInfo.stringByDecodingUTF8().split(":");
-        var connection = this.msyql.createConnection({
-            host: this.url.host,
-            port: this.url.port || 3306,
-            user: creds[0],
-            password: creds[1],
-            database: this.url.pathComponents[1]
-        });
-        var engine = this;
-        connection.connect(function(error){
-            if (error){
-                logger.error("Error opening mysql connection: %{error}", error);
-                completion(false);
-                return;
-            }
-            logger.error("mysql connection open");
-            engine.connection = connection;
-            completion(true);
-        });
+        try{
+            var connection = this.mysql.createConnection({
+                host: this.url.host,
+                port: this.url.port || 3306,
+                user: creds[0],
+                password: creds[1],
+                database: this.url.pathComponents[1]
+            });
+            var engine = this;
+            connection.connect(function(error){
+                if (error){
+                    logger.error("Error opening mysql connection: %{error}", error);
+                    completion(false);
+                    return;
+                }
+                logger.error("mysql connection open");
+                engine.connection = connection;
+                completion(true);
+            });
+        }catch (e){
+            logger.error("Error thrown calling open: %{error}", e);
+            completion(false);
+        }
     },
 
     close: function(completion){
         if (this.connection !== null){
-            logger.info("Closing msyql connection to %{public}:%d...", this.url.host, this.url.port);
+            logger.info("Closing mysql connection to %{public}:%d...", this.url.host, this.url.port);
             this.connection.end(function(error){
                 if (error){
                     logger.error("Error closing mysql connection: %{error}", error);

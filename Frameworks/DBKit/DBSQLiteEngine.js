@@ -63,7 +63,6 @@ JSClass("DBSQLiteEngine", DBSQLEngine, {
     },
 
     prepare: function(query, persist, completion){
-        var returnMode = ReturnMode.nothing;
         var command = query.substr(0, 10).trim().toUpperCase();
         command = command.substr(0, command.indexOf(" "));
         var sqliteStatement = this.sqlite.prepare(query, function(error){
