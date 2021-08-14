@@ -47,31 +47,41 @@ JSClass("DBPostgreSQLEngine", DBSQLEngine, {
             database: this.url.pathComponents[1]
         });
         var engine = this;
-        client.connect(function(error){
-            if (error){
-                logger.error("Error opening pg client: %{error}", error);
-                completion(false);
-                return;
-            }
-            logger.error("pg client open");
-            engine.client = client;
-            completion(true);
-        });
+        try{
+            client.connect(function(error){
+                if (error){
+                    logger.error("Error opening pg client: %{error}", error);
+                    completion(false);
+                    return;
+                }
+                logger.error("pg client open");
+                engine.client = client;
+                completion(true);
+            });
+        }catch (e){
+            logger.error("Error thrown opening pg client: %{error}", e);
+            JSRunLoop.main.schedule(completion, undefined, false);
+        }
     },
 
     close: function(completion){
         if (this.client !== null){
             logger.info("Closing pg client to %{public}:%d...", this.url.host, this.url.port);
-            this.client.end(function(error){
-                if (error){
-                    logger.error("Error closing pg client: %{error}", error);
-                }else{
-                    logger.error("pg client closed");   
-                }
-                completion();
-            });
+            try{
+                this.client.end(function(error){
+                    if (error){
+                        logger.error("Error closing pg client: %{error}", error);
+                    }else{
+                        logger.error("pg client closed");   
+                    }
+                    completion();
+                });
+            }catch (e){
+                logger.error("Error thrown closing pg client: %{error}", e);
+                JSRunLoop.main.schedule(completion);
+            }
         }else{
-            completion();
+            JSRunLoop.main.schedule(completion);
         }
     },
 
@@ -102,10 +112,6 @@ JSClass("DBPostgreSQLEngine", DBSQLEngine, {
             }
             if (result.command === "SELECT"){
                 completion(result.rows);
-                return;
-            }
-            if (result.command === "INSERT" || result.command === "UPDATE" || result.command === "DELETE"){
-                completion(result.rowCount);
                 return;
             }
             completion(true);

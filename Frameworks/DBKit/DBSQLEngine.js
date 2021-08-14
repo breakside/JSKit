@@ -18,6 +18,12 @@
 
 (function(){
 
+JSProtocol("DBSQLEngineDelegate", JSProtocol, {
+
+    engineDidCrash: function(engine, error){}
+
+});
+
 JSClass("DBSQLEngine", JSObject, {
 
     open: function(completion){
@@ -30,7 +36,15 @@ JSClass("DBSQLEngine", JSObject, {
     },
 
     prepare: function(query, persist, completion){
-    }
+    },
+
+    crash: function(error){
+        if (this.delegate && this.delegate.engineDidCrash){
+            this.delegate.engineDidCrash(this, error);
+        }
+    },
+
+    delegate: null,
 
 });
 

@@ -62,6 +62,7 @@ JSClass("DBMySQLEngine", DBSQLEngine, {
             });
         }catch (e){
             logger.error("Error thrown calling open: %{error}", e);
+            JSRunLoop.main.schedule(completion, undefined, false);
             completion(false);
         }
     },
@@ -69,55 +70,76 @@ JSClass("DBMySQLEngine", DBSQLEngine, {
     close: function(completion){
         if (this.connection !== null){
             logger.info("Closing mysql connection to %{public}:%d...", this.url.host, this.url.port);
-            this.connection.end(function(error){
-                if (error){
-                    logger.error("Error closing mysql connection: %{error}", error);
-                }else{
-                    logger.error("mysql connection closed");   
-                }
-                completion();
-            });
+            try{
+                this.connection.end(function(error){
+                    if (error){
+                        logger.error("Error closing mysql connection: %{error}", error);
+                    }else{
+                        logger.error("mysql connection closed");   
+                    }
+                    completion();
+                });
+            }catch (e){
+                logger.error("Error thrown calling close: %{error}", e);
+                JSRunLoop.main.schedule(completion);
+            }
         }else{
-            completion();
+            JSRunLoop.main.schedule(completion);
         }
     },
 
     prepare: function(query, persist, completion){
-        var engine = this;
-        this.connection.prepare(query, function(error, mysqlStatement){
-            if (error){
-                logger.error("Error preparing statement: %{error}", error);
-                completion(null);
-                return;
-            }
-            var statement = DBMySQLStatement.initWithMySQLStatement(mysqlStatement, persist, engine);
-            completion(statement);
-        });
+        try{
+            var engine = this;
+            this.connection.prepare(query, function(error, mysqlStatement){
+                if (error){
+                    logger.error("Error preparing statement: %{error}", error);
+                    if (error.fatal){
+                        engine.crash(error);
+                    }
+                    completion(null);
+                    return;
+                }
+                var statement = DBMySQLStatement.initWithMySQLStatement(mysqlStatement, !persist, engine);
+                completion(statement);
+            });
+        }catch (e){
+            logger.error("Error thrown calling prepare: %{error}", e);
+            JSRunLoop.main.schedule(completion, undefined, null);
+        }
     },
 
     execute: function(statement, parameters, completion){
-        statement.mysqlStatement.execute(parameters, function(error, result, fields){
-            if (error){
-                logger.error("Error executing statement: %{error}", error);
-                completion(null);
-                return;
-            }
-            if (result instanceof Array){
-                completion(result);
-                return;
-            }
-            if (result.affectedRows !== undefined && result.affectedRows !== null){
-                completion(result.affectedRows);
-                return;
-            }
-            completion(true);
-        });
-        if (statement.autoClose){
-            statement.mysqlStatement.close(function(error){
+        try{
+            var engine = this;
+            statement.mysqlStatement.execute(parameters, function(error, result, fields){
                 if (error){
-                    logger.error("Error auto-closing statement: %{error}", error);
+                    logger.error("Error executing statement: %{error}", error);
+                    if (error.fatal){
+                        engine.crash(error);
+                    }
+                    completion(null);
+                    return;
                 }
+                if (result instanceof Array){
+                    completion(result);
+                    return;
+                }
+                completion(true);
             });
+        }catch (e){
+            JSRunLoop.main.schedule(completion, undefined, null);
+        }
+        if (statement.autoClose){
+            try{
+                statement.mysqlStatement.close(function(error){
+                    if (error){
+                        logger.error("Error auto-closing statement: %{error}", error);
+                    }
+                });
+            }catch (e){
+                logger.error("Error thrown auto-closing statement: %{error}", e);
+            }
         }
     }
 

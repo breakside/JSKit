@@ -93,16 +93,8 @@ JSClass("DBSQLiteEngine", DBSQLEngine, {
                 completion(null);
                 return;
             }
-            if (statement.command == "SELECT"){
+            if (methodName === "all"){
                 completion(result);
-                return;
-            }
-            if (statement.command == "UPDATE" || statement.command == "DELETE"){
-                completion(result.changes);
-                return;
-            }
-            if (statement.command == "INSERT"){
-                completion(1);
                 return;
             }
             completion(true);
