@@ -28,11 +28,11 @@ JSGlobalObject.TKMock = function(methods){
                 for (var i = 0, l = arguments.length; i < l; ++i){
                     call[argNames[i]] = arguments[i];
                 }
-                var result = mockMethod.results[callIndex];
-                if (result === undefined){
-                    throw new Error("No expected results for call #%d to %s".sprintf(callIndex, name));
-                }
                 mockMethod.calls.push(call);
+                if (mockMethod.results.length <= callIndex){
+                    mockMethod.results[callIndex] = {value: undefined};
+                }
+                var result = mockMethod.results[callIndex];
                 if (result.exception){
                     throw result.exception;
                 }
@@ -45,9 +45,7 @@ JSGlobalObject.TKMock = function(methods){
                         fn.apply(undefined, result.callback.args);
                     });
                 }
-                if (result.value){
-                    return result.value;
-                }
+                return result.value;
             };
             mockMethod.calls = [];
             mockMethod.results = [];

@@ -65,12 +65,8 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         var channel = new MockAMQPChannel();
         amqp.connect.addReturn(Promise.resolve(connection));
         connection.createChannel.addReturn(Promise.resolve(channel));
-        connection.on.addReturn();
-        connection.on.addReturn();
         channel.prefetch.addReturn(Promise.resolve());
         channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
-        channel.on.addReturn();
-        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
         TKAssertEquals(amqp.connect.calls.length, 1);
@@ -98,12 +94,8 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         var channel = new MockAMQPChannel();
         amqp.connect.addReturn(Promise.resolve(connection));
         connection.createChannel.addReturn(Promise.resolve(channel));
-        connection.on.addReturn();
-        connection.on.addReturn();
         channel.prefetch.addReturn(Promise.resolve());
         channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
-        channel.on.addReturn();
-        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
 
@@ -134,12 +126,8 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         var channel = new MockAMQPChannel();
         amqp.connect.addReturn(Promise.resolve(connection));
         connection.createChannel.addReturn(Promise.resolve(channel));
-        connection.on.addReturn();
-        connection.on.addReturn();
         channel.prefetch.addReturn(Promise.resolve());
         channel.assertQueue.addReturn(Promise.resolve({queue: "queue1"}));
-        channel.on.addReturn();
-        channel.on.addReturn();
         this.queue = SKAMQPJobQueue.initWithURL(JSURL.initWithString("amqp://amqp.breakside.io:1234/queue1"), amqp);
         await this.queue.open();
 

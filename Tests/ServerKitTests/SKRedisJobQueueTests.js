@@ -58,11 +58,6 @@ JSClass("SKRedisJobQueueTests", TKTestSuite, {
         var redis = new MockRedis();
         var client = new MockRedisClient();
         redis.createClient.addReturn(client);
-        client.on.addReturn();
-        client.on.addReturn();
-        client.on.addReturn();
-        client.off.addReturn();
-        client.off.addReturn();
         this.queue = SKRedisJobQueue.initWithURL(JSURL.initWithString("redis://redis.breakside.io:1234/queue1"), redis);
         var openPromise = this.queue.open();
         TKAssertEquals(redis.createClient.calls.length, 1);
@@ -85,11 +80,6 @@ JSClass("SKRedisJobQueueTests", TKTestSuite, {
         var client = new MockRedisClient();
         var multi = new MockRedisClient();
         redis.createClient.addReturn(client);
-        client.on.addReturn();
-        client.on.addReturn();
-        client.on.addReturn();
-        client.off.addReturn();
-        client.off.addReturn();
         this.queue = SKRedisJobQueue.initWithURL(JSURL.initWithString("redis://redis.breakside.io:1234/queue1"), redis);
         var openPromise = this.queue.open();
         client.on.calls[1].handler();
@@ -148,11 +138,6 @@ JSClass("SKRedisJobQueueTests", TKTestSuite, {
         var client = new MockRedisClient();
         var multi = new MockRedisClient();
         redis.createClient.addReturn(client);
-        client.on.addReturn();
-        client.on.addReturn();
-        client.on.addReturn();
-        client.off.addReturn();
-        client.off.addReturn();
         this.queue = SKRedisJobQueue.initWithURL(JSURL.initWithString("redis://redis.breakside.io:1234/queue1"), redis);
         var openPromise = this.queue.open();
         client.on.calls[1].handler();
@@ -209,7 +194,6 @@ JSClass("SKRedisJobQueueTests", TKTestSuite, {
             multi.lrem.addReturn(multi);
             multi.del.addReturn(multi);
             multi.exec.addCallback([null, [1, 1]]);
-            client.blpop.addReturn();
             return queue.complete(job2, null);
         }).then(function(){
             TKAssertEquals(client.blpop.calls.length, 2);
