@@ -61,7 +61,7 @@ JSClass("Printer", JSObject, {
         }
     },
 
-    _printRawData: function(data, flush=false){
+    _printRawData: function(data, flush=true){
         this.stream.write(data);
         if (flush){
             this.stream.flush();
