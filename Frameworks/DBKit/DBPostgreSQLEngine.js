@@ -38,16 +38,16 @@ JSClass("DBPostgreSQLEngine", DBSQLEngine, {
 
     open: function(completion){
         logger.info("Opening pg client to %{public}:%d...", this.url.host, this.url.port);
-        var creds = this.url.encodedUserInfo.stringByDecodingUTF8().split(":");
-        var client = this.pg.Client({
-            host: this.url.host,
-            port: this.url.port || 5432,
-            user: creds[0],
-            password: creds[1],
-            database: this.url.pathComponents[1]
-        });
-        var engine = this;
         try{
+            var creds = this.url.encodedUserInfo.stringByDecodingUTF8().split(":");
+            var client = this.pg.Client({
+                host: this.url.host,
+                port: this.url.port || 5432,
+                user: creds[0],
+                password: creds[1],
+                database: this.url.pathComponents[1]
+            });
+            var engine = this;
             client.connect(function(error){
                 if (error){
                     logger.error("Error opening pg client: %{error}", error);
@@ -89,11 +89,11 @@ JSClass("DBPostgreSQLEngine", DBSQLEngine, {
 
     prepare: function(query, persist, completion){
         if (!persist){
-            completion(DBPostgreSQLStatement.initWithQuery(query, this));
+            JSRunLoop.main.schedule(completion, undefined, DBPostgreSQLStatement.initWithQuery(query, this));
             return;
         }
         var name = "dbkit_%04d".sprintf(this.nextStatementID++);
-        completion(DBPostgreSQLStatement.initWithName(name, query, this));
+        JSRunLoop.main.schedule(completion, undefined, DBPostgreSQLStatement.initWithName(name, query, this));
     },
 
     execute: function(statement, parameters, completion){
@@ -104,18 +104,23 @@ JSClass("DBPostgreSQLEngine", DBSQLEngine, {
         if (statement.name !== null){
             query.name = statement.name;
         }
-        this.client.query(query, function(error, result){
-            if (error){
-                logger.error("Error executing statement: %{error}", error);
-                completion(null);
-                return;
-            }
-            if (result.command === "SELECT"){
-                completion(result.rows);
-                return;
-            }
-            completion(true);
-        });
+        try{
+            this.client.query(query, function(error, result){
+                if (error){
+                    logger.error("Error executing statement: %{error}", error);
+                    completion(null);
+                    return;
+                }
+                if (result.command === "SELECT"){
+                    completion(result.rows);
+                    return;
+                }
+                completion(true);
+            });
+        }catch (e){
+            logger.error("Error thrown calling pg client query: %{error}", e);
+            JSRunLoop.main.schedule(completion, undefined, null);
+        }
     }
 
 });
