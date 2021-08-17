@@ -229,9 +229,9 @@ JSClass("DBSQLDatabaseStandalone", DBSQLDatabase, {
 
     beginTransaction: function(completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
-        this.execute("BEGIN TRASACTION", [], function(results){
+        this.execute("BEGIN TRANSACTION", [], function(results){
             if (results === null){
                 completion.call(target, null);
             }else{
@@ -261,6 +261,7 @@ JSClass("DBSQLDatabasePool", DBSQLDatabase, {
     maximumNumberOfConnections: 5,
     databases: null,
     availableDatabases: null,
+    standaloneClass: DBSQLDatabaseStandalone,
 
     open: function(completion, target){
         if (!completion){
@@ -279,7 +280,7 @@ JSClass("DBSQLDatabasePool", DBSQLDatabase, {
 
     close: function(completion, target){
         if (!completion){
-            completion = Promise.completion;
+            completion = Promise.completion();
         }
         this.availableDatabases = [];
         this.maximumNumberOfConnections = 0;
@@ -306,7 +307,7 @@ JSClass("DBSQLDatabasePool", DBSQLDatabase, {
             completion.call(target, this.availableDatabases.shift());
         }else{
             if (this.databases.length < this.maximumNumberOfConnections){
-                var database = DBSQLDatabase.initWithURL(this.url);
+                var database = this.standaloneClass.initWithURL(this.url);
                 this.databases.push(database);
                 database.open(function(success){
                     if (!success){
@@ -415,11 +416,12 @@ JSClass("DBSQLDatabasePool", DBSQLDatabase, {
                 completion.call(target, statement);
             }, this);
         }, this);
+        return completion.promise;
     },
 
     beginTransaction: function(completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
         this.dequeueDatabase(function(database){
             if (database === null){

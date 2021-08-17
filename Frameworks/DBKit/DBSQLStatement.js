@@ -30,12 +30,12 @@ JSClass("DBSQLStatement", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var promise = this.engine.execute(this, parameters, function(cursor){
-            completion.call(target, cursor);
+        var promise = this.engine.execute(this, parameters, function(results){
+            completion.call(target, results);
         });
         if (promise instanceof Promise){
-            promise.then(function(cursor){
-                completion.call(target, cursor);
+            promise.then(function(results){
+                completion.call(target, results);
             }, function(error){
                 completion.call(target, null);
             });

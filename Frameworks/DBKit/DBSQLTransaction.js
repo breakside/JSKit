@@ -32,24 +32,32 @@ JSClass("DBSQLTransaction", JSObject, {
     database: JSReadOnlyProperty("_database", null),
 
     execute: function(query, parameters, completion, target){
-        return this.database.execute(query, parameters, completion, target);
+        return this._database.execute(query, parameters, completion, target);
     },
 
     commit: function(completion, target){
-        return this.database.execute("COMMIT", function(results){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this._database.execute("COMMIT", function(results){
             this.callCompletions(results !== null);
             completion.call(target, results);
         }, this);
+        return completion.promise;
     },
 
     rollback: function(completion, target){
-        return this.database.execute("ROLLBACK", function(results){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this._database.execute("ROLLBACK", function(results){
             this.callCompletions(false);
             completion.call(target, results);
         }, this);
+        return completion.promise;
     },
 
-    completions: [],
+    completions: null,
 
     addCompletion: function(completion, target){
         this.completions.push({fn: completion, target: target});
@@ -57,8 +65,8 @@ JSClass("DBSQLTransaction", JSObject, {
 
     callCompletions: function(success){
         var completion;
-        for (var i = 0, l = this.completions.length; i < l; ++l){
-            completion = this.completion[i];
+        for (var i = 0, l = this.completions.length; i < l; ++i){
+            completion = this.completions[i];
             try {
                 completion.fn.call(completion.target, success);
             }catch (e){
