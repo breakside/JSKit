@@ -45,7 +45,7 @@ JSClass("Printer", JSObject, {
         //     reprintStatus = true;
         // }
         if (!overwriteStatus && this.statusMessage.length > 0){
-            this._printRawData("\n".utf8(), false);
+            this._printRawData("\n".utf8());
         }
         if (overwriteStatus){
             this._erase(this.statusMessage.length);
@@ -53,7 +53,7 @@ JSClass("Printer", JSObject, {
         this._printRawData(message.utf8());
         if (reprintStatus){
             if (message.length > 0 && !message.endsWith("\n")){
-                this._printRawData("\n".utf8(), false);
+                this._printRawData("\n".utf8());
             }
             this._printRawData(this.statusMessage);
         }else{
@@ -61,16 +61,13 @@ JSClass("Printer", JSObject, {
         }
     },
 
-    _printRawData: function(data, flush=false){
+    _printRawData: function(data){
         this.stream.write(data);
-        if (flush){
-            this.stream.flush();
-        }
     },
 
-    _erase: function(count, flush=false){
+    _erase: function(count){
         if (this.stream.isTTY){
-            this._printRawData("".leftPaddedString("\x08", count).utf8(), flush);
+            this._printRawData("".leftPaddedString("\x08", count).utf8());
             this._printRawData("\x1B[0K".utf8());
         }else if (count > 0){
             this._printRawData("\n".utf8());

@@ -15,6 +15,7 @@
 
 // #import "IKBitmapContext.js"
 // #import "IKBitmap.js"
+// jshint browser: true
 'use strict';
 
 (function(){
@@ -46,6 +47,41 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             opCompletion.call(opTarget);
             completion.call(target, bitmap);
         });
+    },
+
+    image: function(encoding, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var canvas = this.canvasElement;
+        this.enqueueOperation(function(state, opCompletion, opTarget){
+            var type;
+            switch (encoding){
+                default:
+                case IKBitmap.Format.png:
+                    type = "image/png";
+                    break;
+                case IKBitmap.Format.jpeg:
+                    type = "image/jpeg";
+                    break;
+            }
+            canvas.toBlob(function(blob){
+                opCompletion.call(opTarget);
+                var reader = FileReader();
+                reader.addEventListener("loadend", function(){
+                    if (reader.error){
+                        logger.error("Error reading blob: %{error}", reader.error);
+                        completion.call(target, null);
+                        return;
+                    }
+                    var data = JSData.initWithBuffer(reader.result);
+                    var image = JSImage.initWithData(data);
+                    completion.call(target, image);
+                });
+                reader.readAsArrayBuffer(blob);
+            }, type);
+        });
+        return completion.promise;
     },
 
     // ----------------------------------------------------------------------
