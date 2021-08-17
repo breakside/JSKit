@@ -36,6 +36,7 @@ JSClass("MakeCommand", Command, {
     options: {
         'debug':        {kind: "flag",                  help: "Build the project in debug mode"},
         'watch':        {kind: "flag",                  help: "Automatically rebuild when files change"},
+        'quiet':        {kind: "flag",                  help: "Print minimal status output"},
         'no-tag':       {kind: "flag",                  help: "Don't do any git tagging (debug builds never tag)"},
         'include':      {multiple: true, default: [],   help: "Extra include directory, can be specified multiple times."},
         'builds-root':  {default: null,                 help: "Root folder for builds"},
@@ -54,6 +55,7 @@ JSClass("MakeCommand", Command, {
         var projectURL = this.fileManager.urlForPath(this.arguments.project, this.workingDirectoryURL, true);
         var project = Project.initWithURL(projectURL, this.fileManager);
         this.printer = Printer.initWithLabel('make');
+        this.printer.quiet = this.arguments.quiet;
         this.printer.setStatus("Loading project...");
         try{
             await project.load();
@@ -79,19 +81,19 @@ JSClass("MakeCommand", Command, {
         await this.builder.build();
         var willWatch = this.arguments.watch && this.builder.watchlist.length > 0;
         if (!willWatch){
-            this.printer.setStatus("Done (build: %s/%s)".sprintf(this.builder.buildLabel, this.builder.buildId));
+            this.printer.setStatus("Done (build: %s/%s)".sprintf(this.builder.buildLabel, this.builder.buildId), true);
         }
-        if (this.builder.commands.length > 0){
+        if (this.builder.commands.length > 0 && !this.arguments.quiet){
             var commands = "$ " + this.builder.commands.join("\n$ ") + "\n";
             this.printer.print(commands, false, willWatch);
         }
         var error = null;
         while (this.arguments.watch && this.builder.watchlist.length > 0){
             if (error !== null){
-                this.printer.setStatus("Failed (%s).  Watching for file changes...".sprintf(error.toString()));
+                this.printer.setStatus("Failed (%s).  Watching for file changes...".sprintf(error.toString()), true);
                 error = null;
             }else{
-                this.printer.setStatus("Done (build: %s/%s).  Watching for file changes...".sprintf(this.builder.buildLabel, this.builder.buildId));
+                this.printer.setStatus("Done (build: %s/%s).  Watching for file changes...".sprintf(this.builder.buildLabel, this.builder.buildId), true);
             }
             await this.watchForChanges(this.builder.watchlist);
             try{

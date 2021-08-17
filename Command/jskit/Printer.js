@@ -30,7 +30,12 @@ JSClass("Printer", JSObject, {
 
     statusMessage: null,
 
-    setStatus: function(message){
+    quiet: false,
+
+    setStatus: function(message, always=false){
+        if (this.quiet && !always){
+            return;
+        }
         if (this.statusMessage !== null){
             this._erase(this.statusMessage.length);
         }
