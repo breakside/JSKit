@@ -38,11 +38,15 @@ JSGlobalObject.TKMock = function(methods){
                 }
                 if (result.callback){
                     var fn = arguments[result.callback.argIndex];
+                    var target;
+                    if (result.callback.targeted){
+                        target = arguments[result.callback.argIndex + 1];
+                    }
                     if (typeof(fn) !== "function"){
                         throw new Error("Callback function for call #%d to %s not found at arg #%d".sprintf(callIndex, name, result.callback.argIndex));
                     }
                     JSRunLoop.main.schedule(function(){
-                        fn.apply(undefined, result.callback.args);
+                        fn.apply(target, result.callback.args);
                     });
                 }
                 return result.value;
@@ -62,6 +66,14 @@ JSGlobalObject.TKMock = function(methods){
                     argIndex = argNames.indexOf(argIndex);
                 }
                 mockMethod.results.push({callback: {args: args, argIndex: argIndex}});
+            };
+            mockMethod.addTargetedCallback = function(args, argIndex){
+                if (argIndex === undefined){
+                    argIndex = argNames.length - 2;
+                }else if (typeof(argIndex) === "string"){
+                    argIndex = argNames.indexOf(argIndex);
+                }
+                mockMethod.results.push({callback: {args: args, argIndex: argIndex, targeted: true}});
             };
             return mockMethod;
         };
