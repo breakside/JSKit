@@ -18,38 +18,68 @@
 
 JSGlobalObject.TKMock = function(methods){
     var mockClass = function(){
-        this.mock = {};
+        if (this === undefined){
+            return new mockClass();
+        }
+        var createMethod = function(name, argNames){
+            var mockMethod = function(){
+                var callIndex = mockMethod.calls.length;
+                var call = {};
+                for (var i = 0, l = arguments.length; i < l; ++i){
+                    call[argNames[i]] = arguments[i];
+                }
+                mockMethod.calls.push(call);
+                if (mockMethod.results.length <= callIndex){
+                    mockMethod.results[callIndex] = {value: undefined};
+                }
+                var result = mockMethod.results[callIndex];
+                if (result.exception){
+                    throw result.exception;
+                }
+                if (result.callback){
+                    var fn = arguments[result.callback.argIndex];
+                    var target;
+                    if (result.callback.targeted){
+                        target = arguments[result.callback.argIndex + 1];
+                    }
+                    if (typeof(fn) !== "function"){
+                        throw new Error("Callback function for call #%d to %s not found at arg #%d".sprintf(callIndex, name, result.callback.argIndex));
+                    }
+                    JSRunLoop.main.schedule(function(){
+                        fn.apply(target, result.callback.args);
+                    });
+                }
+                return result.value;
+            };
+            mockMethod.calls = [];
+            mockMethod.results = [];
+            mockMethod.addReturn = function(value){
+                mockMethod.results.push({value: value});
+            };
+            mockMethod.addThrow = function(error){
+                mockMethod.results.push({exception: error});
+            };
+            mockMethod.addCallback = function(args, argIndex){
+                if (argIndex === undefined){
+                    argIndex = argNames.length - 1;
+                }else if (typeof(argIndex) === "string"){
+                    argIndex = argNames.indexOf(argIndex);
+                }
+                mockMethod.results.push({callback: {args: args, argIndex: argIndex}});
+            };
+            mockMethod.addTargetedCallback = function(args, argIndex){
+                if (argIndex === undefined){
+                    argIndex = argNames.length - 2;
+                }else if (typeof(argIndex) === "string"){
+                    argIndex = argNames.indexOf(argIndex);
+                }
+                mockMethod.results.push({callback: {args: args, argIndex: argIndex, targeted: true}});
+            };
+            return mockMethod;
+        };
         for (var name in methods){
-            this.mock[name] = {calls: [], results: []};
+            this[name] = createMethod(name, methods[name]);
         }
     };
-    var defineMethod = function(name, argNames){
-        mockClass.prototype[name] = function(){
-            var call = {};
-            for (var i = 0, l = arguments.length; i < l; ++i){
-                call[argNames[i]] = arguments[i];
-            }
-            var result = this.mock[name].results[this.mock[name].calls.length];
-            if (result === undefined){
-                throw new Error("Unexpected call #%d to %s".sprintf(this.mock[name].calls.length, name));
-            }
-            this.mock[name].calls.push(call);
-            if (result.execption){
-                throw result.execption;
-            }
-            if (result.callback){
-                var fn = arguments[arguments.length - 1];
-                var arg1 = result.callback.error;
-                var arg2 = result.callback.result;
-                JSRunLoop.main.schedule(fn, undefined, arg1, arg2);
-            }
-            if (result.value){
-                return result.value;
-            }
-        };
-    };
-    for (var name in methods){
-        defineMethod(name, methods[name]);
-    }
     return mockClass;
 };

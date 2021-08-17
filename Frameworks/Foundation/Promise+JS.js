@@ -320,6 +320,15 @@ Object.defineProperties(PromiseClass, {
         }
     },
 
+    rejectNonNullFirstArgument: {
+        value: function(values){
+            if (values[0] !== null && values[0] !== undefined){
+                return Promise.reject(values[0]);
+            }
+            return values[1];
+        }
+    },
+
 });
     
 })();
