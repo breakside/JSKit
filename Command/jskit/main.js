@@ -20,6 +20,7 @@
 // #import "TestCommand.js"
 // #import "DocCommand.js"
 // #import "GlobalsCommand.js"
+// #import "KeyCommand.js"
 'use strict';
 
 var options = {
