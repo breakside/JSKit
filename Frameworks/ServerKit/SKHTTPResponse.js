@@ -50,6 +50,9 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
                             value = value.substr(1, value.length - 2).replace('\\"', '"');
                         }
                         break;
+                    case HTTPHeaderValueType.contentType:
+                        value = JSMediaType(value);
+                        break;
                 }
             }
             return value;
@@ -69,6 +72,11 @@ HTTPHeaderProperty.prototype.define = function(C, publicKey, extensions){
                 case HTTPHeaderValueType.quoted:
                     value = '"' + value.replace('"', '\\"') + '"';
                     break;
+                case HTTPHeaderValueType.contentType:
+                    if (value instanceof JSMediaType){
+                        value = value.toString();
+                    }
+                    break;
             }
             this.headerMap.set(headerName, value);
         }
@@ -87,13 +95,14 @@ var HTTPHeaderValueType = {
     text: 0,
     integer: 1,
     date: 2,
-    quoted: 3
+    quoted: 3,
+    contentType: 4
 };
 
 JSClass("SKHTTPResponse", JSObject, {
 
     statusCode: JSDynamicProperty('_statusCode', JSURLResponse.StatusCode.ok),
-    contentType: HTTPHeaderProperty(SKHTTPHeaders.contentType),
+    contentType: HTTPHeaderProperty(SKHTTPHeaders.contentType, HTTPHeaderValueType.contentType),
     contentLength: HTTPHeaderProperty(SKHTTPHeaders.contentLength, HTTPHeaderValueType.integer),
     etag: HTTPHeaderProperty(SKHTTPHeaders.etag, HTTPHeaderValueType.quoted),
     lastModified: HTTPHeaderProperty(SKHTTPHeaders.lastModified, HTTPHeaderValueType.date),

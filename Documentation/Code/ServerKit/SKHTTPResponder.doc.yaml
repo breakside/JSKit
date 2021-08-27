@@ -400,6 +400,15 @@ topics:
             name: data
             type: JSData
             summary: The response body data to send
+          -
+            name: contentType
+            type: JSMediaType
+            summary: The content type of the string
+          -
+            name: status
+            type: JSURLResponse.StatusCode
+            default: 200
+            summary: The status code of the response
         description: |
           Causes all headers to be sent and closes the response when complete.
       -
@@ -411,6 +420,15 @@ topics:
             name: string
             type: String
             summary: The string to send as UTF-8 encoded data
+          -
+            name: contentType
+            type: JSMediaType
+            summary: The content type of the string
+          -
+            name: status
+            type: JSURLResponse.StatusCode
+            default: 200
+            summary: The status code of the response
         description: |
           Causes all headers to be sent and closes the response when complete.
       -
@@ -422,6 +440,11 @@ topics:
             name: object
             type: object
             summary: The object to serialize as JSON
+          -
+            name: status
+            type: JSURLResponse.StatusCode
+            default: 200
+            summary: The status code of the response
         description: |
           Causes all headers to be sent and closes the response when complete.
         important: Always sets cache control headers so the response is not

@@ -28,6 +28,7 @@ JSClass("SKHTTPRoute", JSObject, {
     _componentMatchers: null,
     _responderClass: null,
     _routesByResponderClass: null,
+    _routesByResource: null,
     _root: null,
 
     initWithComponentStrings: function(componentStrings, responderClass){
@@ -128,6 +129,15 @@ JSClass("SKHTTPRoute", JSObject, {
         return route.pathComponentsForParams(params);
     },
 
+    pathComponentsForResource: function(name, type){
+        var resourceName = name + (type || "");
+        var route = this._routesByResource[resourceName];
+        if (!route){
+            return null;
+        }
+        return route.pathComponentsForParams([]);
+    },
+
     pathComponentsForParams: function(params){
         var components = [];
         var matchers = [];
@@ -166,11 +176,17 @@ JSClass("SKHTTPRoute", JSObject, {
         this.children.push(route);
     },
 
-    updateRoutesByResponderClass: function(){
+    updateRouteLookups: function(){
         var routesByResponderClass = {};
+        var routesByResource = {};
         var visit = function(route){
             route._routesByResponderClass = routesByResponderClass;
-            routesByResponderClass[route._responderClass.className] = route;
+            route._routesByResource = routesByResource;
+            if (route.isKindOfClass(SKHTTPResourceRoute)){
+                routesByResource[route._resourceName] = route;
+            }else{
+                routesByResponderClass[route._responderClass.className] = route;
+            }
             for (var i = 0, l = route.children.length; i < l; ++i){
                 visit(route.children[i]);
             }
@@ -182,12 +198,14 @@ JSClass("SKHTTPRoute", JSObject, {
 
 JSClass("SKHTTPResourceRoute", SKHTTPRoute, {
 
+    _resourceName: null,
     _resourceMetadata: null,
     _bundle: null,
     _responderClass: SKHTTPResourceResponder,
 
     initWithResourceName: function(name, type, bundle, componentStrings){
         this.initWithComponentStrings(componentStrings);
+        this._resourceName = name + (type || "");
         this._bundle = bundle || JSBundle.mainBundle;
         this._resourceMetadata = this._bundle.metadataForResourceName(name, type);
     },
@@ -272,7 +290,7 @@ SKHTTPRoute.CreateFromMap = function(routes, bundle){
         }
     }
     var rootRoute = routeMap['/'].instantiated;
-    rootRoute.updateRoutesByResponderClass();
+    rootRoute.updateRouteLookups();
     return rootRoute;
 };
 

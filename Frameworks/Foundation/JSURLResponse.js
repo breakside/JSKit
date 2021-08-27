@@ -16,6 +16,7 @@
 // #import "JSObject.js"
 // #import "JSMIMEHeaderMap.js"
 // #import "JSMediaType.js"
+// #import "JSURL.js"
 'use strict';
 
 JSClass("JSURLResponse", JSObject, {
@@ -86,6 +87,12 @@ JSClass("JSURLResponse", JSObject, {
     getHeaders: function(){
         return this._headerMap.headers;
     },
+
+    location: JSReadOnlyProperty(),
+
+    getLocation: function(){
+        return JSURL.initWithString(this._headerMap.get("Location", null));
+    }
 
 });
 

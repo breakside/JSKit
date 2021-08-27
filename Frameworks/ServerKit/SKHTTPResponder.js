@@ -71,11 +71,28 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     urlForResponder: function(responder, params){
+        var components = this.route.pathComponentsForResponder(responder, params);
+        if (components === null){
+            return null;
+        }
         var url = JSURL.init();
         url.scheme = this.request.url.scheme;
         url.host = this.request.url.host;
         url.port = this.request.url.port;
-        url.pathComponents = this.route.pathComponentsForResponder(responder, params);
+        url.pathComponents = components;
+        return url;
+    },
+
+    urlForResource: function(name, type){
+        var components = this.route.pathComponentsForResource(name, type);
+        if (components === null){
+            return null;
+        }
+        var url = JSURL.init();
+        url.scheme = this.request.url.scheme;
+        url.host = this.request.url.host;
+        url.port = this.request.url.port;
+        url.pathComponents = components;
         return url;
     },
 
@@ -130,7 +147,11 @@ JSClass("SKHTTPResponder", JSObject, {
     },
 
     sendString: function(str, contentType, status){
-        this.sendData(str.utf8(), contentType + "; charset=utf-8", status);
+        if (typeof(contentType) === "string"){
+            contentType = JSMediaType(contentType);
+        }
+        contentType.parameters.charset = "utf-8";
+        this.sendData(str.utf8(), contentType, status);
     },
 
     sendObject: function(obj, status, indent){
