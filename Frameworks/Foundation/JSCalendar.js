@@ -240,7 +240,7 @@ JSClass("JSGregorianCalendar", JSCalendar, {
         if (addedYears !== 0 || addedMonths !== 0 || addedDays !== 0){
             // If we're adding years, months, or days, we need to work with the components in the
             // requested timezone because of special transformations done to the year and month components at edges.
-            var components = this.componentsFromDate(JSCalendar.Unit.adjustable, toDate, addedComponents.timezone);
+            var components = this.componentsFromDate(JSCalendar.Unit.adjustable | JSCalendar.Unit.timezone, toDate, addedComponents.timezone);
 
             // Note: adding eras is not supported because such an operation isn't well defined for the gregorian calendar.
             // If we have a date of 5 BC and add 1 to the era, should it be 5 CE?  Doesn't seem to make much sense as a
