@@ -172,7 +172,7 @@ topics:
   -
     name: Asynchronous
     members:
-      -  name: wait
+      - name: wait
         kind: method
         summary: Called to make the test case result wait until
           an asynchronous call completes
