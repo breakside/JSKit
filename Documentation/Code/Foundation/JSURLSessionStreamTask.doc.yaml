@@ -51,7 +51,11 @@ topics:
       -
         name: sendMessage
         kind: method
-        type: JSData
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to send as a complete message
         summary: Send a chunk of data as a WebSocket message
         description: |
           The format of the data is completely user defined.
