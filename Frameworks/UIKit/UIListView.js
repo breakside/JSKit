@@ -3169,7 +3169,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             }
         }
         if (cell.stylerProperties.separatorLayer){
-            cell.stylerProperties.separatorLayer.hidden = indexPath.length == 2 && indexPath.row === 0;
+            cell.stylerProperties.separatorLayer.hidden = cell.contextSelected || (indexPath.length == 2 && indexPath.row === 0);
         }
     },
 
@@ -3234,7 +3234,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         var separatorSize = 1;
         if (cell.stylerProperties.separatorLayer){
-            cell.stylerProperties.separatorLayer.frame = JSRect(separatorInsets.left, 0, cell.bounds.size.width - separatorInsets.left, separatorSize);
+            cell.stylerProperties.separatorLayer.frame = JSRect(separatorInsets.left, 0, cell.bounds.size.width - separatorInsets.left - separatorInsets.right, separatorSize);
         }
     },
 
