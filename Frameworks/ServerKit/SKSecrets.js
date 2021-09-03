@@ -63,10 +63,10 @@ JSClass("SKSecrets", JSObject, {
         return null;
     },
 
-    urlForName: function(name){
+    urlForName: function(name, baseURL){
         var urlString = this.stringForName(name);
         if (urlString !== null){
-            return JSURL.initWithString(urlString);
+            return JSURL.initWithString(urlString, baseURL);
         }
         return null;
     },

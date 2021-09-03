@@ -147,6 +147,7 @@ JSClass("SKSecretsTests", TKTestSuite, {
     testURLForName: function(){
         var env = {
             TEST_VAR: "https://test.breakside.io",
+            RELATIVE_VAR: "data/test",
             OTHER_VAR: "😁"
         };
         var secrets = SKSecrets.initWithNames([]);
@@ -154,6 +155,12 @@ JSClass("SKSecretsTests", TKTestSuite, {
 
         var secret = secrets.urlForName("testVar");
         TKAssertEquals(secret.encodedString, "https://test.breakside.io");
+
+        secret = secrets.urlForName("testVar", JSURL.initWithString("file:///one/two/"));
+        TKAssertEquals(secret.encodedString, "https://test.breakside.io");
+
+        secret = secrets.urlForName("relativeVar", JSURL.initWithString("file:///one/two/"));
+        TKAssertEquals(secret.encodedString, "file:///one/two/data/test");
 
         secret = secrets.urlForName("otherVar");
         TKAssertNull(secret);
