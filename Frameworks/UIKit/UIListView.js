@@ -720,7 +720,7 @@ JSClass("UIListView", UIScrollView, {
         // Finally, we can place the footer
         if (this._listFooterView !== null){
             this._listFooterView.bounds = JSRect(0, 0, fitSize.width, this._listFooterView.bounds.size.height);
-            this._listHeaderView.position = JSPoint(this._listFooterView.bounds.size.width * this._listFooterView.anchorPoint.x, origin.y + this._listHeaderView.bounds.size.height * this._listHeaderView.anchorPoint.y);
+            this._listFooterView.position = JSPoint(this._listFooterView.bounds.size.width * this._listFooterView.anchorPoint.x, origin.y + this._listFooterView.bounds.size.height * this._listFooterView.anchorPoint.y);
         }
     },
 
