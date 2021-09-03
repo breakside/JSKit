@@ -371,7 +371,19 @@ JSClass("SKValidatingObject", JSObject, {
     },
 
     optionForKey: function(key, optionSet, defaultValue){
-        var value = this.valueProvider.stringForKey(key);
+        var optionList;
+        if (optionSet instanceof Set){
+            optionList = Array.from(optionSet);
+        }else{
+            optionList = optionSet;
+            optionSet = new Set(optionList);
+        }
+        var value;
+        if (typeof(optionList[0]) == "number"){
+            value = this.valueProvider.numberForKey(key);
+        }else{
+            value = this.valueProvider.stringForKey(key);
+        }
         if (value === undefined || value === null){
             if (defaultValue === undefined){
                 throw new SKValidatingObject.Error({field: this.valueProvider.prefix + key, problem: "required"});
