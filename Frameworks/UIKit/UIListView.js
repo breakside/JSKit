@@ -557,6 +557,7 @@ JSClass("UIListView", UIScrollView, {
                 insertedSections: [],
                 insertedIndexPaths: [],
                 didDeleteSelectedItem: false,
+                selectionChanged: false,
             };
             this._needsUpdate = true;
             this.setNeedsLayout();
@@ -1371,6 +1372,10 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _updateSelectedIndexPathsForEdit: function(edit){
+        if (edit.selectionChanged){
+            this._updateVisibleCellStates();
+            return;
+        }
         var i, l;
         var section, indexPath;
         var index;
@@ -1726,6 +1731,9 @@ JSClass("UIListView", UIScrollView, {
             }
         }
         this._selectedIndexPaths = indexPaths;
+        if (this._edit !== null){
+            this._edit.selectionChanged = true;
+        }
         this._updateSelectedIndexPaths(options);
     },
 
