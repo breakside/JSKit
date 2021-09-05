@@ -828,10 +828,13 @@ JSClass("HTMLBuilder", Builder, {
         this.printer.setStatus("Building docker image %s...".sprintf(identifier));
 
         const { spawn } = require('child_process');
-        var args = ["build", "-t", identifier];
+        var args = ["build"];
         if (this.arguments["docker-tag"] !== null){
             args.push("-t");
             args.push(makeTag(this.arguments["docker-tag"]));
+        }else{
+            args.push("-t");
+            args.push(identifier);
         }
         args.push('.');
         var cwd = this.fileManager.pathForURL(this.buildURL);
