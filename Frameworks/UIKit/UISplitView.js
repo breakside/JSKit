@@ -295,7 +295,7 @@ JSClass("UISplitView", UIView, {
     mainHidden: JSReadOnlyProperty(),
 
     getCanHideMain: function(){
-        return UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch;
+        return UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch;
     },
 
     getMainHidden: function(){
