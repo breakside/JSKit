@@ -195,6 +195,7 @@ topics:
     members:
       -
         name: styler
+        introduced: 2021.36.0
         type: UIWindowStyler
         summary: The styler that will draw the window's controls
         description: |

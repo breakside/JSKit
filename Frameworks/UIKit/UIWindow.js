@@ -143,7 +143,7 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: - Styler
 
-    _styler: null,
+    styler: JSReadOnlyProperty("_styler", null),
     stylerProperties: null,
 
     // -------------------------------------------------------------------------
