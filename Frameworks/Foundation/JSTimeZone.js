@@ -17,7 +17,7 @@
 // #import "JSDate.js"
 // #import "JSBinarySearcher.js"
 // #feature Intl
-/* global JSGregorianCalendar, Intl */
+/* global JSGregorianCalendar, Intl, DataView */
 'use strict';
 
 (function(){
@@ -28,6 +28,10 @@ JSClass("JSTimeZone", JSObject, {
         var lookup = zoneinfo.map[identifier];
         if (lookup === undefined){
             return null;
+        }
+        if (zoneinfo.tzif !== undefined){
+            var tzif = zoneinfo.tzif.subdataInRange(JSRange(lookup[0], lookup[1]));
+            return this.initWithData(tzif);
         }
         var zone = zoneinfo.zones[lookup.index];
         this._transitionTimes = zone.transitions;
@@ -43,6 +47,162 @@ JSClass("JSTimeZone", JSObject, {
     initWithTimeIntervalFromUTC: function(timeInterval, abbreviation){
         this._fixedOffset = timeInterval;
         this._fixedAbbreviation = abbreviation;
+    },
+
+    initWithData: function(data){
+        // https://www.man7.org/linux/man-pages/man5/tzfile.5.html
+        if (!(data instanceof JSData)){
+            return null;
+        }
+
+        var dataLength = data.length;
+
+        // Header is 44 bytes
+        if (dataLength < 44){
+            return null;
+        }
+
+        // Must start with TZif
+        if (data[0] != 0x54 || data[1] != 0x5A || data[2] != 0x69 || data[3] != 0x66){
+            return null;
+        }
+
+        // Version is an ASCII number
+        var version = data[4];
+
+        // (next 15 bytes are ignored)
+        var offset = 20;
+
+        var dataView = data.dataView();
+        var readCounts = function(offset){
+            return {
+                universal: dataView.getUint32(offset),
+                standard: dataView.getUint32(offset + 4),
+                leap: dataView.getUint32(offset + 8),
+                transition: dataView.getUint32(offset + 12), 
+                type: dataView.getUint32(offset + 16),
+                abbreviation: dataView.getUint32(offset + 20)
+            };
+        };
+
+        var counts;
+        if (version == 0x32 || version == 0x33){ // ASCII "2" or "3"
+            // vesion 2 or 3 means skip version 1 header and data
+            counts = readCounts(offset);
+            offset += 24;
+            offset += 4 * counts.transition;
+            offset += 1 * counts.transition;
+            offset += 6 * counts.type;
+            offset += counts.abbreviation;
+            offset += 8 * counts.leap;
+            offset += 1 * counts.standard;
+            offset += 1 * counts.universal;
+            if (offset + 44 > dataLength){
+                // not enough input for expected v2/3 header
+                return null;
+            }
+            // skip to offset for v2/3 counts
+            offset += 20;
+        }else if (version == 0x6A){ // ASCII "j" for jskit
+            // custom JSKit version that omits v1 data
+            // (we're already at the correct offset)
+        }else{
+            // We only support version 2, 3, and j
+            return null;
+        }
+
+        // read v2/3 data
+        counts = readCounts(offset);
+        offset += 24;
+        var length = offset;
+        length += 8 * counts.transition;
+        length += 1 * counts.transition;
+        length += 6 * counts.type;
+        length += counts.abbreviation;
+        length += 12 * counts.leap;
+        length += 1 * counts.standard;
+        length += 1 * counts.universal;
+        if (length > dataLength){
+            // not enough input for data described by counts
+            return null;
+        }
+
+        this._transitionTimes = [];
+        this._transitionTimesToLocalTimeTypes = [];
+        this._localTimeTypes = [];
+        this._futureRules = null;
+
+        // transition times are 8-byte signed integers
+        var i;
+        for (i = 0; i < counts.transition; ++i, offset += 8){
+            this._transitionTimes.push(dataView.jskitGetInt64(offset));
+        }
+
+        // transition times map values are 1-byte integers
+        for (i = 0; i < counts.transition; ++i, ++offset){
+            if (data[offset] > counts.types - 1){
+                return null;
+            }
+            this._transitionTimesToLocalTimeTypes.push(data[offset]);
+        }
+
+        // must have at least 1 type
+        if (counts.type <= 0){
+            return null;
+        }
+
+        // types are 6-byte structs
+        // 0: 4-byte signed integer
+        // 4: 1-byte boolean
+        // 5: 1-byte offset into abbreviationsRange
+        var abbreviationsRange = JSRange(offset + 6 * counts.type, counts.abbreviation);
+        var readAbbreviation = function(offset){
+            if (!abbreviationsRange.contains(offset)){
+                return null;
+            }
+            var end = offset;
+            var l = dataLength;
+            while (end < dataLength && data[end] != 0x00){
+                ++end;
+            }
+            if (!abbreviationsRange.contains(end)){
+                return null;
+            }
+            return data.subdataInRange(JSRange(offset, end - offset)).stringByDecodingUTF8();
+        };
+        var type;
+        for (i = 0; i < counts.type; ++i, offset += 6){
+            type = {
+                off: dataView.getInt32(offset),
+                dst: data[offset + 4] !== 0,
+                abbr: readAbbreviation(abbreviationsRange.location + data[offset + 5])
+            };
+            if (type.abbr === null){
+                return null;
+            }
+            this._localTimeTypes.push(type);
+        }
+
+        // After the data comes a newline-enclosed
+        // string describing how to handle future dates
+        offset = length;
+        var tzString = null;
+        if (offset < dataLength && data[offset] == 0x0A){
+            ++offset;
+            i = offset;
+            while (i < dataLength && data[i] !== 0x0A){
+                ++i;
+            }
+            if (i == dataLength){
+                // expecting newline
+                return null;
+            }
+            tzString = data.subdataInRange(JSRange(offset, i - offset)).stringByDecodingUTF8();
+            offset = i + 1;
+            this._futureRules = JSTimeZone.rulesFromPOSIXString(tzString);
+        }
+
+        this._defaultTimeTypeIndex = this._getDefaultTimeTypeIndex();
     },
 
     _fixedOffset: null,
@@ -433,11 +593,212 @@ JSTimeZone.clearZoneInfo = function(info){
     JSTimeZone.changeLocalTimeZone(JSTimeZone.systemTimeZoneIdentifier);
 };
 
+JSTimeZone.rulesFromPOSIXString = function(str){
+    // std offset
+    // std offset dst [offset],start[/time],end[/time]
+    if (str === null || str === undefined){
+        return null;
+    }
+    if (str.length === 0){
+        return null;
+    }
+    var i = 0;
+    var l = str.length;
+    var isDigit = function(c){
+        return c >= "0" && c <= "9";
+    };
+    var isABBR = function(c){
+        if (isDigit(c)){
+            return false;
+        }
+        if (c == "-" || c == "+"){
+            return false;
+        }
+        if (c == ","){
+            return false;
+        }
+        return true;
+    };
+    var parseABBR = function(){
+        if (i >= l){
+            return null;
+        }
+        var abbr = "";
+        if (str[i] == "<"){
+            ++i;
+            while (i < l && str[i] != ">"){
+                abbr += str[i];
+                ++i;
+            }
+            if (i == l){
+                return null;
+            }
+            ++i;
+        }else{
+            while (i < l && isABBR(str[i])){
+                abbr += str[i];
+                ++i;
+            }
+        }
+        return abbr;
+    };
+    var parseInteger = function(){
+        var digits = "";
+        while (i < l && isDigit(str[i])){
+            digits += str[i];
+            ++i;
+        }
+        if (digits.length > 0){
+            return parseInt(digits);
+        }
+        return null;
+    };
+    var parseOffset = function(){
+        if (i >= l){
+            return null;
+        }
+        var h = 0;
+        var m = 0;
+        var s = 0;
+        var factor = -1;
+        if (str[i] === "-"){
+            factor = 1;
+            ++i;
+        }else if (str[i] === "+"){
+            ++i;
+        }
+        h = parseInteger();
+        if (h === null){
+            return null;
+        }
+        if (i < l && str[i] === ":"){
+            ++i;
+            m = parseInteger();
+            if (m === null){
+                return null;
+            }
+            if (i < l && str[i] === ":"){
+                ++i;
+                s = parseInteger();
+                if (s === null){
+                    return null;
+                }
+            }
+        }
+        return factor * (h * 3600 + m * 60 + s);
+    };
+    var parseRule = function(){
+        if (i >= l){
+            return null;
+        }
+        if (str[i] !== ","){
+            return null;
+        }
+        ++i;
+        if (i >= l){
+            return null;
+        }
+        var rule = {};
+        if (str[i] == "J"){
+            ++i;
+            rule.day1 = parseInteger();
+            if (rule.day1 === null){
+                return null;
+            }
+        }else if (str[i] == "M"){
+            ++i;
+            rule.month = parseInteger();
+            if (i < l && str[i] !== "."){
+                return null;
+            }
+            ++i;
+            rule.week = parseInteger();
+            if (i < l && str[i] !== "."){
+                return null;
+            }
+            ++i;
+            rule.dow = parseInteger();
+            if (rule.month === null || rule.week === null || rule.dow === null){
+                return null;
+            }
+        }else{
+            rule.day0 = parseInteger();
+            if (rule.day0 === null){
+                return null;
+            }
+        }
+        rule.time = 7200;
+        if (i < l && str[i] === "/"){
+            ++i;
+            rule.time = parseOffset();
+            if (rule.time === null){
+                return null;
+            }
+            rule.time = -rule.time;
+        }
+        return rule;
+    };
+    var rules = {
+        standard: {
+            dst: false,
+            abbr: parseABBR(),
+            off: parseOffset()
+        }
+    };
+    if (rules.standard.abbr === null || rules.standard.off === null){
+        return null;
+    }
+    if (i < l){
+        rules.daylight = {
+            dst: true,
+            abbr: parseABBR()
+        };
+        if (i < l && str[i] != ","){
+            rules.daylight.off = parseOffset();
+        }else{
+            rules.daylight.off = rules.standard.off + 3600;
+        }
+        if (rules.daylight.abbr === null || rules.daylight.off === null){
+            return null;
+        }
+        rules.fromStandard = parseRule();
+        rules.toStandard = parseRule();
+        if (rules.fromStandard === null || rules.toStandard === null){
+            return null;
+        }
+    }
+    return rules;
+};
+
 var emptyZoneInfo = {
     zones: [],
     map: {}
 };
 
 var zoneinfo = emptyZoneInfo;
+
+var buffer32 = new Uint32Array(2);
+
+DataView.prototype.jskitGetInt64 = function(offset){
+    // Using a Uint32Array buffer to do bitwise operations because
+    // with Number, JS will default to *signed* 32-bit integer operations
+    buffer32[0] = this.getUint32(offset);
+    buffer32[1] = this.getUint32(offset + 4);
+    if ((buffer32[0] & 0x80000000) === 0){
+        // we've got a positive 64-bit number
+        // JS can't shift beyond 32 bits, so we'll multiply by 2**32 instead
+        return buffer32[0] * 0x100000000 + buffer32[1];
+    }
+    // we've got a negative 64-bit number
+    // reverse the two's compliment
+    buffer32[0] = ~buffer32[0];
+    buffer32[1] = ~buffer32[1];
+    buffer32[1] += 1;
+    if (buffer32[1] === 0){
+        buffer32[0] += 1;
+    }
+    // then return a negative version of our calculation
+    return -(buffer32[0] * 0x100000000 + buffer32[1]);
+};
 
 })();

@@ -41,6 +41,8 @@ JSClass("Resources", JSObject, {
             await this._addLocalization(url);
         }else if (ext == ".imageset"){
             await this._addImageset(url, 'global');
+        }else if (ext == ".zoneinfo"){
+            await this._addZoneInfo(url);
         }else{
             await this._addResource(url, 'global');
         }
@@ -174,6 +176,19 @@ JSClass("Resources", JSObject, {
         }
     },
 
+    _addZoneInfo: async function(url){
+        var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
+        var entry;
+        var subdirectory = url.lastPathComponent;
+        for (let i = 0, l = entries.length; i < l; ++i){
+            entry = entries[i];
+            if (entry.name.startsWith(".")) continue;
+            if (entry.itemType != JSFileManager.ItemType.directory){
+                await this._addResource(entry.url, "global", subdirectory);
+            }
+        }
+    },
+
     _addResource: async function(url, lang, subdirectory){
         // name and path
         var name = url.lastPathComponent;
@@ -193,6 +208,7 @@ JSClass("Resources", JSObject, {
         var hash = JSSHA1Hash(contents);
         var metadata = {
             path: path,
+            ext: ext,
             byte_size: contents.length,
             mimetype: mimeTypesByExt[ext] || null,
             hash: hash.hexStringRepresentation()

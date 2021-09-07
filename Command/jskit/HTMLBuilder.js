@@ -48,6 +48,7 @@ JSClass("HTMLBuilder", Builder, {
         'env': {default: null, help: "A file with environmental variables for this build"},
         'tls-cert': {default: null, help: "The SSL cert to use for the debug build"},
         'tls-key': {default: null, help: "The SSL key to use for the debug build"},
+        'zoneinfo': {default: null, help: "The build host path to timezone data files"}
     },
 
     needsDockerBuild: true,
@@ -86,6 +87,7 @@ JSClass("HTMLBuilder", Builder, {
         this.wwwURL = this.bundleURL.appendingPathComponent('www', true);
         this.confURL = this.bundleURL.appendingPathComponent('conf', true);
         this.logsURL = this.bundleURL.appendingPathComponent('logs', true);
+        this.tzURL = this.bundleURL.appendingPathComponent('tz', true);
         this.cacheBustingURL = this.wwwURL.appendingPathComponent(this.debug ? 'debug' : this.buildId);
         this.sourcesURL = this.cacheBustingURL.appendingPathComponent("JS", true);
         this.frameworksURL = this.cacheBustingURL.appendingPathComponent("Frameworks");
@@ -104,6 +106,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.createDirectoryAtURL(this.confURL);
         await this.fileManager.createDirectoryAtURL(this.wwwURL);
         await this.fileManager.createDirectoryAtURL(this.logsURL);
+        await this.fileManager.createDirectoryAtURL(this.tzURL);
         await this.fileManager.createDirectoryAtURL(this.cacheBustingURL);
         await this.fileManager.createDirectoryAtURL(this.sourcesURL);
         await this.fileManager.createDirectoryAtURL(this.frameworksURL);
@@ -114,6 +117,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.setup();
         await this.populateEnvironment();
         await this.findResources();
+        await this.buildZoneInfo();
         await this.findImports();
         await this.bundleFrameworks();
         await this.bundleResources();
@@ -237,6 +241,119 @@ JSClass("HTMLBuilder", Builder, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - TimeZone Info
+
+    buildZoneInfo: async function(){
+        if (this.project.info.JSTimeZoneInfo){
+            return;
+        }
+        var url = this.tzURL.appendingPathComponent("tz.zoneinfo");
+        var contentsURL = url.appendingPathComponent("Contents.json");
+        var exists = await this.fileManager.itemExistsAtURL(contentsURL);
+        if (exists){
+            var attributes = await this.fileManager.attributesOfItemAtURL(contentsURL);
+            if (JSDate.now.timeIntervalSince1970 - attributes.created < JSTimeInterval.hours(24 * 14)){
+                // Don't bother rebuilding zone info if it's less than two weeks old
+                // (only applies to debug builds that build over the same folder)
+                await this.resources.addResourceAtURL(url);
+                return;
+            }
+        }
+        var tzifURL = url.appendingPathComponent("tzif");
+        var contents = {
+            tzif: tzifURL.lastPathComponent,
+            map: {}
+        };
+        var chunks = [];
+        var offset = 0;
+        var path = this.arguments.zoneinfo;
+        if (path === null){
+            path = "/usr/share/zoneinfo";
+        }
+        var root = JSURL.initWithString(path, this.workingDirectoryURL).settingHasDirectoryPath(true);
+        exists = await this.fileManager.itemExistsAtURL(root);
+        if (!exists){
+            if (this.arguments.zoneinfo === null){
+                return;
+            }
+            throw new Error("Unable to find zoneinfo, no such directory: %s".sprintf(path));
+        }
+        var links = {};
+        var builder = this;
+        var visit = async function(directoryURL){
+            var entries = await builder.fileManager.contentsOfDirectoryAtURL(directoryURL);
+            var entry;
+            for (let i = 0, l = entries.length; i < l; ++i){
+                entry = entries[i];
+                let name = entry.url.encodedStringRelativeTo(root);
+                if (entry.name.startsWith(".")) continue;
+                if (entry.name[0].toLowerCase() == entry.name[0]) continue;
+                if (entry.itemType === JSFileManager.ItemType.directory){
+                    await visit(entry.url);
+                }else if (entry.itemType === JSFileManager.ItemType.file){
+                    let tzif = await builder.fileManager.contentsAtURL(entry.url);
+                    if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
+                        tzif = builder._modifiedTzif(tzif);
+                        if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
+                            let zone = JSTimeZone.initWithData(tzif);
+                            if (zone !== null){
+                                chunks.push(tzif);
+                                contents.map[name] = [offset, tzif.length];
+                                offset += tzif.length;
+                            }
+                        }
+                    }
+                }else if (entry.itemType === JSFileManager.ItemType.symbolicLink){
+                    let destination = await builder.fileManager.destinationOfSymbolicLinkAtURL(entry.url);
+                    links[name] = destination.encodedStringRelativeTo(root);
+                }
+            }
+        };
+        this.printer.setStatus("Packaging time zone data");
+        await visit(root);
+        for (let name in links){
+            let destination = links[name];
+            if (destination in contents.map){
+                contents.map[name] = contents.map[destination];
+            }
+        }
+        var tzif = JSData.initWithChunks(chunks);
+        var json = JSON.stringify(contents);
+        await this.fileManager.createFileAtURL(contentsURL, json.utf8());
+        await this.fileManager.createFileAtURL(tzifURL, tzif);
+        await this.resources.addResourceAtURL(url);
+    },
+
+    _modifiedTzif: function(tzif){
+        // Strip the v1 header+data and set the version to a custom value
+        // JSTimeZone knows to look for this modified version
+        var offset = 20;
+        var dataView = tzif.dataView();
+        var counts = {
+            universal: dataView.getUint32(offset),
+            standard: dataView.getUint32(offset + 4),
+            leap: dataView.getUint32(offset + 8),
+            transition: dataView.getUint32(offset + 12), 
+            type: dataView.getUint32(offset + 16),
+            abbreviation: dataView.getUint32(offset + 20)
+        };
+        offset += 24;
+        offset += 4 * counts.transition;
+        offset += 1 * counts.transition;
+        offset += 6 * counts.type;
+        offset += counts.abbreviation;
+        offset += 8 * counts.leap;
+        offset += 1 * counts.standard;
+        offset += 1 * counts.universal;
+        if (offset + 44 > tzif.length){
+            return tzif;
+        }
+        var modified = JSData.initWithCopyOfData(tzif.subdataInRange(JSRange(offset, tzif.length - offset)));
+        modified[4] = 0x6A; // version "j" for jskit
+        return modified;
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Resources
 
     resources: null,
@@ -268,7 +385,7 @@ JSClass("HTMLBuilder", Builder, {
         if (resources){
             for (let i = 0, l = resources.metadata.length; i < l; ++i){
                 let metadata = JSCopy(resources.metadata[i]);
-                let hashedPath = metadata.hash + metadata.path.fileExtension;
+                let hashedPath = metadata.hash + metadata.ext;
                 let url = this.resourcesURL.appendingPathComponent(hashedPath);
                 let sourceURL = sourceURLs[i];
                 metadata.htmlURL = url.encodedStringRelativeTo(this.wwwURL);
@@ -557,7 +674,7 @@ JSClass("HTMLBuilder", Builder, {
         // let fontsCSSURL = this.cacheBustingURL.appendingPathComponent("fonts.css");
         // for (let i = 0, l = fonts.length; i < l; ++i){
         //     let metadata = fonts[i];
-        //     let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+        //     let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
         //     lines.push('@font-face {');
         //     lines.push('  font-family: "%s";'.sprintf(metadata.font.family));
         //     lines.push('  font-style: %s;'.sprintf(metadata.font.style));
@@ -716,7 +833,7 @@ JSClass("HTMLBuilder", Builder, {
             for (let i = 0, l = images.length; i < l; ++i){
                 let image = images[i];
                 let metadata = this.resources.getMetadata(image.filename, setName);
-                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
                 icons.push({
                     rel: image.mask ? "mask-icon" : "icon",
                     href: bundledURL.encodedStringRelativeTo(this.wwwURL),
