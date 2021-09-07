@@ -182,6 +182,9 @@ JSClass('JSBundle', JSObject, {
         if (subdirectory !== undefined && subdirectory !== null){
             lookupKey = subdirectory + '/' + lookupKey;
         }
+        if (this._dict.ResourceLookup === undefined){
+            return null;
+        }
         var lookup = this._dict.ResourceLookup.global;
         var hits = lookup[lookupKey];
         if (hits !== undefined){
