@@ -208,6 +208,7 @@ JSClass("Resources", JSObject, {
         var hash = JSSHA1Hash(contents);
         var metadata = {
             path: path,
+            ext: ext,
             byte_size: contents.length,
             mimetype: mimeTypesByExt[ext] || null,
             hash: hash.hexStringRepresentation()

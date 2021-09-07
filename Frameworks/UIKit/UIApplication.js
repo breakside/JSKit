@@ -76,7 +76,7 @@ JSClass('UIApplication', UIResponder, {
             }else{
                 completion.call(target, error);
             }
-        });
+        }, this);
     },
 
     setupLogging: function(){
@@ -86,24 +86,24 @@ JSClass('UIApplication', UIResponder, {
         }
     },
 
-    setupTimeZones: function(completion){
+    setupTimeZones: function(completion, target){
         var subdirectory = (this.bundle.info.JSTimeZoneInfo || "tz") + ".zoneinfo";
-        var metadata = this.bundle.metadataForResourceName("Contents", "json", subdirectory).value;
+        var metadata = this.bundle.metadataForResourceName("Contents", "json", subdirectory);
         if (metadata === null){
-            completion();
+            completion.call(target, null);
             return;
         }
         var contents = metadata.value;
         metadata = this.bundle.metadataForResourceName(contents.tzif, null, subdirectory);
         this.bundle.getResourceData(metadata, function(tzif){
-            if (tzif !== null){
-                completion(new Error("Cannot read timezone data resource"));
+            if (tzif === null){
+                completion.call(target, new Error("Cannot read timezone data resource"));
             }else{
                 JSTimeZone.importZoneInfo({
                     tzif: tzif,
                     map: contents.map
                 });
-                completion();
+                completion.call(target, null);
             }
         });
     },

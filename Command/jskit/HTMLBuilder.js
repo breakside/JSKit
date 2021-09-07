@@ -255,6 +255,7 @@ JSClass("HTMLBuilder", Builder, {
             if (JSDate.now.timeIntervalSince1970 - attributes.created < JSTimeInterval.hours(24 * 14)){
                 // Don't bother rebuilding zone info if it's less than two weeks old
                 // (only applies to debug builds that build over the same folder)
+                await this.resources.addResourceAtURL(url);
                 return;
             }
         }
@@ -370,7 +371,7 @@ JSClass("HTMLBuilder", Builder, {
         if (resources){
             for (let i = 0, l = resources.metadata.length; i < l; ++i){
                 let metadata = JSCopy(resources.metadata[i]);
-                let hashedPath = metadata.hash + metadata.path.fileExtension;
+                let hashedPath = metadata.hash + metadata.ext;
                 let url = this.resourcesURL.appendingPathComponent(hashedPath);
                 let sourceURL = sourceURLs[i];
                 metadata.htmlURL = url.encodedStringRelativeTo(this.wwwURL);
@@ -659,7 +660,7 @@ JSClass("HTMLBuilder", Builder, {
         // let fontsCSSURL = this.cacheBustingURL.appendingPathComponent("fonts.css");
         // for (let i = 0, l = fonts.length; i < l; ++i){
         //     let metadata = fonts[i];
-        //     let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+        //     let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
         //     lines.push('@font-face {');
         //     lines.push('  font-family: "%s";'.sprintf(metadata.font.family));
         //     lines.push('  font-style: %s;'.sprintf(metadata.font.style));
@@ -818,7 +819,7 @@ JSClass("HTMLBuilder", Builder, {
             for (let i = 0, l = images.length; i < l; ++i){
                 let image = images[i];
                 let metadata = this.resources.getMetadata(image.filename, setName);
-                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.path.fileExtension);
+                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
                 icons.push({
                     rel: image.mask ? "mask-icon" : "icon",
                     href: bundledURL.encodedStringRelativeTo(this.wwwURL),
