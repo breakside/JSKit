@@ -61,16 +61,22 @@ JSClass('UIApplication', UIResponder, {
 
     setup: function(completion, target){
         logger.info("Setup");
-        this.setupFonts(function(error){
+        this.setupTimeZones(function(error){
             if (error === null){
-                try{
-                    this.setupDelegate();
-                }catch (e){
-                    error = e;
-                }
+                this.setupFonts(function(error){
+                    if (error === null){
+                        try{
+                            this.setupDelegate();
+                        }catch (e){
+                            error = e;
+                        }
+                    }
+                    completion.call(target, error);
+                }, this);
+            }else{
+                completion.call(target, error);
             }
-            completion.call(target, error);
-        }, this);
+        });
     },
 
     setupLogging: function(){
@@ -78,6 +84,28 @@ JSClass('UIApplication', UIResponder, {
         if (!logging){
             return;
         }
+    },
+
+    setupTimeZones: function(completion){
+        var subdirectory = (this.bundle.info.JSTimeZoneInfo || "tz") + ".zoneinfo";
+        var metadata = this.bundle.metadataForResourceName("Contents", "json", subdirectory).value;
+        if (metadata === null){
+            completion();
+            return;
+        }
+        var contents = metadata.value;
+        metadata = this.bundle.metadataForResourceName(contents.tzif, null, subdirectory);
+        this.bundle.getResourceData(metadata, function(tzif){
+            if (tzif !== null){
+                completion(new Error("Cannot read timezone data resource"));
+            }else{
+                JSTimeZone.importZoneInfo({
+                    tzif: tzif,
+                    map: contents.map
+                });
+                completion();
+            }
+        });
     },
 
     setupFonts: function(completion, target){

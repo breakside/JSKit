@@ -29,6 +29,10 @@ JSClass("JSTimeZone", JSObject, {
         if (lookup === undefined){
             return null;
         }
+        if (zoneinfo.tzif !== undefined){
+            var tzif = zoneinfo.tzif.subdataInRange(JSRange(lookup[0], lookup[1]));
+            return this.initWithData(tzif);
+        }
         var zone = zoneinfo.zones[lookup.index];
         this._transitionTimes = zone.transitions;
         this._transitionTimesToLocalTimeTypes = zone.map;

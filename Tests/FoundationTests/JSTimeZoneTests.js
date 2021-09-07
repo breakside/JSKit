@@ -1021,6 +1021,49 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         TKAssertExactEquals(zone._futureRules.toStandard.week, 1);
         TKAssertExactEquals(zone._futureRules.toStandard.dow, 0);
         TKAssertExactEquals(zone._futureRules.toStandard.time, 7200);
+
+        // shortened jskit format (doesn't include v1 header+data)
+        tzif = "VFppZmoAAAAAAAAAAAAAAAAAAAAAAAAFAAAABQAAAAAAAAC6AAAABQAAABT/////XgQawP////+epkig/////5+7FZD/////oIYqoP////+hmveQ/////8uJGqD/////0iP0cP/////SYSYQ/////9b+dFz/////2ICtkP/////a/sOQ/////9vAkBD/////3N6lkP/////dqayQ/////96+h5D/////34mOkP/////gnmmQ/////+FpcJD/////4n5LkP/////jSVKQ/////+ReLZD/////5Sk0kP/////mR0oQ/////+cSURD/////6CcsEP/////o8jMQ/////+oHDhD/////6tIVEP/////r5vAQ/////+yx9xD/////7cbSEP/////ukdkQ/////++v7pD/////8HG7EP/////xj9CQ//////J/wZD/////82+ykP/////0X6OQ//////VPlJD/////9j+FkP/////3L3aQ//////goohD/////+Q9YkP/////6CIQQ//////r4gyD/////++hmEP/////82GUg//////3ISBD//////rhHIP//////qCoQAAAAAACYKSAAAAAAAYgMEAAAAAACeAsgAAAAAANxKJAAAAAABGEnoAAAAAAFUQqQAAAAAAZBCaAAAAAABzDskAAAAAAHjUOgAAAAAAkQzpAAAAAACa2/IAAAAAAK8LCQAAAAAAvgr6AAAAAADNnNEAAAAAANwJGgAAAAAA65rxAAAAAAD6muIAAAAAAQmZEQAAAAABGJkCAAAAAAEnlzEAAAAAATaXIgAAAAABRZVRAAAAAAFUlUIAAAAAAWOTcQAAAAABcpNiAAAAAAGCJTkAAAAAAZCRggAAAAABoCNZAAAAAAGvI0oAAAAAAb4heQAAAAABzSFqAAAAAAHcH5kAAAAAAesfigAAAAAB+h25AAAAAAIHYrIAAAAAAhgb2QAAAAACJWDSAAAAAAI2raEAAAAAAkNe8gAAAAACVKvBAAAAAAJhXRIAAAAAAnKp4QAAAAACf+7aAAAAAAKQqAEAAAAAAp3s+gAAAAACrqYhAAAAAAK76xoAAAAAAs036QAAAAAC2ek6AAAAAALrNgkAAAAAAvfnWgAAAAADCTQpAAAAAAMWeSIAAAAAAycySQAAAAADNHdCAAAAAANFMGkAAAAAA1J1YgAAAAADYy6JAAAAAANwc4IAAAAAA4HAUQAAAAADjnGiAAAAAAOfvnEAAAAAA6xvwgAAAAADvbyRAAAAAAPLAYoAAAAAA9u6sQAAAAAD6P+qAAAAAAP5uNEAAAAABAb9ygAAAAAEGEqZAAAAAAQk++oAAAAABDZIuQAAAAAEQvoKAAAAAARURtkAAAAABF89MgAAAAAEctihAAAAAAR9O1IAAAAABJDWwQAAAAAEmzlyAAAAAASu1OEAAAAABLnLOgAAAAAEzWapAAAAAATXyVoAAAAABOtkyQAAAAAE9cd6AAAAAAUJYukAAAAABRPFmgAAAAAFJ2EJAAAAAAUxw7oAAAAABUVfKQAAAAAFT8HaAAAAAAVjXUkAAAAABW5TogAAAAAFge8RAAAAAAWMUcIAAAAABZ/tMQAAAAAFqk/iAAAAAAW961EAAAAABchOAgAAAAAF2+lxAAAAAAXmTCIAAAAABfnnkQAAAAAGBN3qAAAAAAYYeVkAAAAABiLcCgAAAAAGNnd5AAAAAAZA2ioAAAAABlR1mQAAAAAGXthKAAAAAAZyc7kAAAAABnzWagAAAAAGkHHZAAAAAAaa1IoAAAAABq5v+QAAAAAGuWZSAAAAAAbNAcEAAAAABtdkcgAAAAAG6v/hAAAAAAb1YpIAAAAABwj+AQAAAAAHE2CyAAAAAAcm/CEAAAAABzFe0gAAAAAHRPpBAAAAAAdP8JoAAAAAB2OMCQAAAAAHbe66AAAAAAeBiikAAAAAB4vs2gAAAAAHn4hJAAAAAAep6voAAAAAB72GaQAAAAAHx+kaAAAAAAfbhIkAAAAAB+XnOgAAAAAH+YKpACAQIBAgMEAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQIBAgECAQL//5EmAAD//52QAQT//4+AAAj//52QAQz//52QARBMTVQAUERUAFBTVABQV1QAUFBUAAAAAAABAAAAAAEKUFNUOFBEVCxNMy4yLjAsTTExLjEuMAo=";
+        zone = JSTimeZone.initWithData(tzif.dataByDecodingBase64());
+        TKAssertNotNull(zone);
+        TKAssertExactEquals(zone._transitionTimes.length, 186);
+        TKAssertExactEquals(zone._transitionTimes[0], -2717640000);
+        TKAssertExactEquals(zone._transitionTimes[1], -1633269600);
+        TKAssertExactEquals(zone._transitionTimes[185], 2140678800);
+        TKAssertExactEquals(zone._transitionTimesToLocalTimeTypes.length, 186);
+        TKAssertExactEquals(zone._transitionTimesToLocalTimeTypes[0], 2);
+        TKAssertExactEquals(zone._transitionTimesToLocalTimeTypes[1], 1);
+        TKAssertExactEquals(zone._transitionTimesToLocalTimeTypes[185], 2);
+        TKAssertExactEquals(zone._localTimeTypes.length, 5);
+        TKAssertExactEquals(zone._localTimeTypes[0].dst, false);
+        TKAssertExactEquals(zone._localTimeTypes[0].off, -28378);
+        TKAssertExactEquals(zone._localTimeTypes[0].abbr, "LMT");
+        TKAssertExactEquals(zone._localTimeTypes[1].dst, true);
+        TKAssertExactEquals(zone._localTimeTypes[1].off, -25200);
+        TKAssertExactEquals(zone._localTimeTypes[1].abbr, "PDT");
+        TKAssertExactEquals(zone._localTimeTypes[2].dst, false);
+        TKAssertExactEquals(zone._localTimeTypes[2].off, -28800);
+        TKAssertExactEquals(zone._localTimeTypes[2].abbr, "PST");
+        TKAssertExactEquals(zone._localTimeTypes[3].dst, true);
+        TKAssertExactEquals(zone._localTimeTypes[3].off, -25200);
+        TKAssertExactEquals(zone._localTimeTypes[3].abbr, "PWT");
+        TKAssertExactEquals(zone._localTimeTypes[4].dst, true);
+        TKAssertExactEquals(zone._localTimeTypes[4].off, -25200);
+        TKAssertExactEquals(zone._localTimeTypes[4].abbr, "PPT");
+        TKAssertExactEquals(zone._futureRules.standard.dst, false);
+        TKAssertExactEquals(zone._futureRules.standard.off, -28800);
+        TKAssertExactEquals(zone._futureRules.standard.abbr, "PST");
+        TKAssertExactEquals(zone._futureRules.daylight.dst, true);
+        TKAssertExactEquals(zone._futureRules.daylight.off, -25200);
+        TKAssertExactEquals(zone._futureRules.daylight.abbr, "PDT");
+        TKAssertExactEquals(zone._futureRules.fromStandard.month, 3);
+        TKAssertExactEquals(zone._futureRules.fromStandard.week, 2);
+        TKAssertExactEquals(zone._futureRules.fromStandard.dow, 0);
+        TKAssertExactEquals(zone._futureRules.fromStandard.time, 7200);
+        TKAssertExactEquals(zone._futureRules.toStandard.month, 11);
+        TKAssertExactEquals(zone._futureRules.toStandard.week, 1);
+        TKAssertExactEquals(zone._futureRules.toStandard.dow, 0);
+        TKAssertExactEquals(zone._futureRules.toStandard.time, 7200);
     },
 
 });
