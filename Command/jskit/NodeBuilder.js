@@ -423,18 +423,21 @@ JSClass("NodeBuilder", Builder, {
 
         var prefix = this.arguments['docker-owner'] || this.project.info.DockerOwner;
         var image = this.arguments['docker-image'] || this.project.lastIdentifierPart;
-        var identifier = makeTag(this.debug ? 'debug' : this.project.info.JSBundleVersion);
+        var tag;
+        if (this.arguments["docker-tag"] !== null){
+            tag = this.arguments["docker-tag"];
+        }else if (this.debug){
+            tag = "debug";
+        }else{
+            tag = this.project.info.JSBundleVersion;
+        }
+        var identifier = makeTag(tag);
         var name = this.project.info.JSBundleIdentifier.replace('/\./g', '_');
 
         this.printer.setStatus("Building docker image %s...".sprintf(identifier));
 
         const { spawn } = require('child_process');
-        var args = ["build", "-t", identifier];
-        if (this.arguments["docker-tag"] !== null){
-            args.push("-t");
-            args.push(makeTag(this.arguments["docker-tag"]));
-        }
-        args.push('.');
+        var args = ["build", "-t", identifier, "."];
         var cwd = this.fileManager.pathForURL(this.buildURL);
         var docker = spawn("docker", args, {cwd: cwd});
         var err = "";
