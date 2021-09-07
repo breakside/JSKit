@@ -48,7 +48,7 @@ JSClass("HTMLBuilder", Builder, {
         'env': {default: null, help: "A file with environmental variables for this build"},
         'tls-cert': {default: null, help: "The SSL cert to use for the debug build"},
         'tls-key': {default: null, help: "The SSL key to use for the debug build"},
-        'zoneinfo': {default: "/usr/share/zoneinfo", help: "The build host path to timezone data files"}
+        'zoneinfo': {default: null, help: "The build host path to timezone data files"}
     },
 
     needsDockerBuild: true,
@@ -266,7 +266,18 @@ JSClass("HTMLBuilder", Builder, {
         };
         var chunks = [];
         var offset = 0;
-        var root = JSURL.initWithString(this.arguments.zoneinfo, this.workingDirectoryURL).settingHasDirectoryPath(true);
+        var path = this.arguments.zoneinfo;
+        if (path === null){
+            path = "/usr/share/zoneinfo";
+        }
+        var root = JSURL.initWithString(path, this.workingDirectoryURL).settingHasDirectoryPath(true);
+        exists = await this.fileManager.itemExistsAtURL(root);
+        if (!exists){
+            if (this.arguments.zoneinfo === null){
+                return;
+            }
+            throw new Error("Unable to find zoneinfo, no such directory: %s".sprintf(path));
+        }
         var links = {};
         var builder = this;
         var visit = async function(directoryURL){
