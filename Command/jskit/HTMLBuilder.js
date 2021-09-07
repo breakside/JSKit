@@ -284,9 +284,12 @@ JSClass("HTMLBuilder", Builder, {
                     if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
                         tzif = builder._modifiedTzif(tzif);
                         if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
-                            chunks.push(tzif);
-                            contents.map[name] = [offset, tzif.length];
-                            offset += tzif.length;
+                            let zone = JSTimeZone.initWithData(tzif);
+                            if (zone !== null){
+                                chunks.push(tzif);
+                                contents.map[name] = [offset, tzif.length];
+                                offset += tzif.length;
+                            }
                         }
                     }
                 }else if (entry.itemType === JSFileManager.ItemType.symbolicLink){
