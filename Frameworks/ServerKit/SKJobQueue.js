@@ -32,7 +32,7 @@ JSClass("SKJobQueue", JSObject, {
     initWithURL: function(url, fileManager, service){
         fileManager = fileManager || JSFileManager.shared;
         if (fileManager.isFileURL(url)){
-            return SKFileJobQueue.initWithURL(url);
+            return SKFileJobQueue.initWithURL(url, fileManager);
         }else if (url.scheme === "redis"){
             return SKRedisJobQueue.initWithURL(url, service);
         }else if (url.scheme === "amqp"){
