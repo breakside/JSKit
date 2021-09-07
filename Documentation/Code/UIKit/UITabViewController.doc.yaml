@@ -18,6 +18,29 @@ topics:
     name: Creating a Tab View Controller
     members:
       -
+        name: initWithViewControllers
+        kind: init
+        summary: Create a tab view controller with tabs for the given child view controllers
+        arguments:
+          -
+            name: viewControllers
+            type: UIViewController[]
+            summary: The child view controllers
+      -
+        name: initWithViewControllers
+        introduced: 2021.36.0
+        kind: init
+        summary: Create a tab view controller with tabs for the given child view controllers
+        arguments:
+          -
+            name: viewControllers
+            type: UIViewController[]
+            summary: The child view controllers
+          -
+            name: styler
+            type: UITabViewStyler
+            summary: The styler to use when creating the tab view
+      -
         name: Spec File Properties
         kind: spec
         summary: The properties available when creating a tab view controller in

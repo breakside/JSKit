@@ -43,6 +43,11 @@ JSClass("UITabView", UIView, {
         this._commonTabViewInit();
     },
 
+    initWithStyler: function(styler){
+        this._styler = styler;
+        this.init();
+    },
+
     initWithSpec: function(spec){
         UITabView.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('styler')){
@@ -620,13 +625,13 @@ JSClass("UITabViewStyler", JSObject, {
     font: null,
 
     init: function(){
-        this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
     },
 
     initWithSpec: function(spec){
         this.font = spec.valueForKey("font", JSFont);
         if (this.font === null){
-            this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
+            this.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
         }
     },
 
@@ -663,10 +668,153 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     itemsInsets: null,
     imageSpacing: 3,
 
+    normalItemColor: null,
+    activeItemColor: null,
+    selectedItemColor: null,
+    activeSelectedItemColor: null,
+
+    normalTitleColor: null,
+    activeTitleColor: null,
+    selectedTitleColor: null,
+    activeSelectedTitleColor: null,
+
+    normalBorderColor: null,
+    activeBorderColor: null,
+    selectedBorderColor: null,
+    activeSelectedBorderColor: null,
+
+    dividerColor: null,
+    dividerSize: 1,
+
+
     init: function(){
         UITabViewDefaultStyler.$super.init.call(this);
-        this.itemContentInsets = JSInsets(3, 10);
-        this.itemsInsets = JSInsets(4);
+        this.normalItemColor = JSColor.initWithRGBA(250/255,250/255,250/255);
+        this.activeItemColor = JSColor.initWithRGBA(224/255,224/255,224/255);
+        this.selectedItemColor = JSColor.initWithRGBA(70/255,153/255,254/255);
+        this.activeSelectedItemColor = JSColor.initWithRGBA(63/255,138/255,230/255);
+        this.normalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
+        this.activeBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
+        this.selectedBorderColor = JSColor.initWithRGBA(63/255,138/255,230/255);
+        this.activeSelectedBorderColor = JSColor.initWithRGBA(54/255,123/255,205/255);
+        this.normalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
+        this.activeTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
+        this.selectedTitleColor = JSColor.initWithRGBA(255/255,255/255,255/255);
+        this.selectedActiveTitleColor = JSColor.initWithRGBA(255/255,255/255,255/255);
+        this._fillInMissingStyles();
+    },
+
+    initWithSelectedItemColor: function(selectedItemColor){
+        UITabViewDefaultStyler.$super.init.call(this);
+        this.selectedItemColor = selectedItemColor;
+        this._fillInMissingStyles();
+    },
+
+    initWithSpec: function(spec){
+        UITabViewDefaultStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("cornerRadius")){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
+        }
+        if (spec.containsKey("itemContentInsets")){
+            this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
+        }
+        if (spec.containsKey("itemInsets")){
+            this.itemInsets = spec.valueForKey("itemInsets", JSInsets);
+        }
+        if (spec.containsKey("dividerColor")){
+            this.dividerColor = spec.valueForKey("dividerColor", JSColor);
+        }
+        if (spec.containsKey("dividerSize")){
+            this.dividerSize = spec.valueForKey("dividerSize");
+        }
+        if (spec.containsKey("imageSpacing")){
+            this.imageSpacing = spec.valueForKey("imageSpacing");
+        }
+        if (spec.containsKey("normalItemColor")){
+            this.normalItemColor = spec.valueForKey("normalItemColor", JSColor);
+        }
+        if (spec.containsKey("activeItemColor")){
+            this.activeItemColor = spec.valueForKey("activeItemColor", JSColor);
+        }
+        if (spec.containsKey("selectedItemColor")){
+            this.selectedItemColor = spec.valueForKey("selectedItemColor", JSColor);
+        }
+        if (spec.containsKey("activeSelectedItemColor")){
+            this.activeSelectedItemColor = spec.valueForKey("activeSelectedItemColor", JSColor);
+        }
+        if (spec.containsKey("normalBorderColor")){
+            this.normalBorderColor = spec.valueForKey("normalBorderColor", JSColor);
+        }
+        if (spec.containsKey("activeBorderColor")){
+            this.activeBorderColor = spec.valueForKey("activeBorderColor", JSColor);
+        }
+        if (spec.containsKey("selectedBorderColor")){
+            this.selectedBorderColor = spec.valueForKey("selectedBorderColor", JSColor);
+        }
+        if (spec.containsKey("activeSelectedBorderColor")){
+            this.activeSelectedBorderColor = spec.valueForKey("activeSelectedBorderColor", JSColor);
+        }
+        if (spec.containsKey("normalTitleColor")){
+            this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
+        }
+        if (spec.containsKey("activeTitleColor")){
+            this.activeTitleColor = spec.valueForKey("activeTitleColor", JSColor);
+        }
+        if (spec.containsKey("selectedTitleColor")){
+            this.selectedTitleColor = spec.valueForKey("selectedTitleColor", JSColor);
+        }
+        if (spec.containsKey("activeSelectedTitleColor")){
+            this.activeSelectedTitleColor = spec.valueForKey("activeSelectedTitleColor", JSColor);
+        }
+        this._fillInMissingStyles();
+    },
+
+    _fillInMissingStyles: function(){
+        if (this.itemContentInsets === null){
+            this.itemContentInsets = JSInsets(3, 10);
+        }
+        if (this.itemsInsets === null){
+            this.itemsInsets = JSInsets(4);
+        }
+        if (this.normalTitleColor === null){
+            this.normalTitleColor = JSColor.black;
+        }
+        if (this.activeTitleColor === null){
+            this.activeTitleColor = this.normalTitleColor;
+        }
+        if (this.selectedTitleColor === null){
+            this.selectedTitleColor = JSColor.white;
+        }
+        if (this.activeSelectedTitleColor === null){
+            this.activeSelectedTitleColor = this.selectedTitleColor;
+        }
+        if (this.normalItemColor === null){
+            this.normalItemColor = JSColor.initWithRGBA(250/255,250/255,250/255);
+        }
+        if (this.selectedItemColor === null){
+            this.selectedItemColor = JSColor.initWithRGBA(70/255,153/255,254/255);
+        }
+        if (this.activeItemColor === null){
+            this.activeItemColor = this.normalItemColor.colorDarkenedByPercentage(0.1);
+        }
+        if (this.activeSelectedItemColor === null){
+            this.activeSelectedItemColor = this.selectedItemColor.colorDarkenedByPercentage(0.1);
+        }
+        if (this.normalBorderColor === null){
+            this.normalBorderColor = this.normalItemColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.selectedBorderColor === null){
+            this.selectedBorderColor = this.selectedItemColor.colorDarkenedByPercentage(0.2);
+        }
+        if (this.activeBorderColor === null){
+            this.activeBorderColor = this.normalBorderColor.colorDarkenedByPercentage(0.05);
+        }
+        if (this.activeSelectedBorderColor === null){
+            this.activeSelectedBorderColor = this.selectedBorderColor.colorDarkenedByPercentage(0.05);
+        }
+        if (this.dividerColor === null){
+            this.dividerColor = this.normalBorderColor;
+        }
     },
 
     initializeTabView: function(tabView){
@@ -682,7 +830,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         props.itemsView.cornerRadius = this.cornerRadius;
         tabView.addSubview(props.itemsView);
         props.divider = UIView.init();
-        props.divider.backgroundColor = defaultStateBorderColors[0];
+        props.divider.backgroundColor = this.dividerColor;
         tabView.insertSubviewBelowSibling(props.divider, props.itemsView);
     },
 
@@ -705,8 +853,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
                 itemView.borderWidth = 1.0;
                 itemView.cornerRadius = this.cornerRadius;
                 itemProps.titleLabel = UILabel.init();
-                itemProps.titleLabel.text = tabView.font;
-                itemProps.titleLabel.text = tabView.font;
+                itemProps.titleLabel.font = tabView.font;
                 itemProps.imageView = UIImageView.init();
                 itemProps.imageView.automaticRenderMode = JSImage.RenderMode.template;
                 itemProps.rightSeparator = UILayer.init();
@@ -726,9 +873,9 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             }
             if (item.image){
                 itemProps.imageView.image = item.image;
-                itemProps.hidden = false;
+                itemProps.imageView.hidden = false;
             }else{
-                itemProps.hidden = true;
+                itemProps.imageView.hidden = true;
             }
             this.updateTabViewItemAtIndex(tabView, i);
         }
@@ -747,7 +894,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         props.itemsView.sizeToFit();
         var y = this.itemsInsets.top;
         props.itemsView.position = JSPoint(size.width / 2.0, y + props.itemsView.frame.size.height / 2.0);
-        tabView.stylerProperties.divider.frame = JSRect(0, props.itemsView.position.y, tabView.bounds.size.width, 1);
+        tabView.stylerProperties.divider.frame = JSRect(0, props.itemsView.position.y, tabView.bounds.size.width, this.dividerSize);
         y += props.itemsView.frame.size.height + this.itemsInsets.bottom;
         props.contentViewContainer.frame = JSRect(0, y, size.width, size.height - y);
     },
@@ -757,9 +904,13 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         var imageSize = font.displayAscender;
         var itemProps = itemView.stylerProperties;
         var size = JSSize(this.itemContentInsets.width, this.itemContentInsets.height);
+        var height = 0;
         if (itemProps.titleLabel !== null && !itemProps.titleLabel.hidden){
             itemProps.titleLabel.sizeToFit();
             size.width += Math.ceil(itemProps.titleLabel.frame.size.width);
+            if (itemProps.titleLabel.frame.size.height > height){
+                height = itemProps.titleLabel.frame.size.height;
+            }
         }
         if (itemProps.imageView !== null && !itemProps.imageView.hidden){
             itemProps.imageView.frame = JSRect(itemProps.imageView.frame.origin, JSSize(imageSize, imageSize));
@@ -767,7 +918,11 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             if (itemProps.titleLabel !== null && !itemProps.titleLabel.hidden){
                  size.width += this.imageSpacing;
             }
+            if (imageSize.height > height){
+                height = imageSize.height;
+            }
         }
+        size.height += height;
         itemView.bounds = JSRect(JSPoint.Zero, size);
     },
 
@@ -775,12 +930,14 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         var center = itemView.bounds.center;
         var imageSize = 0;
         var itemProps = itemView.stylerProperties;
+        var x = this.itemContentInsets.left;
         if (itemProps.imageView !== null && !itemProps.imageView.hidden){
             imageSize = itemProps.imageView.frame.size.width;
-            itemProps.imageView.position = JSPoint(this.contentInsets.left + imageSize / 2, center.y);
+            itemProps.imageView.position = JSPoint(x + imageSize / 2, center.y);
+            x += imageSize + this.imageSpacing;
         }
         if (itemProps.titleLabel !== null && !itemProps.titleLabel.hidden){
-            itemProps.titleLabel.position = JSPoint(center.x + imageSize / 2 + this.imageSpacing, center.y);
+            itemProps.titleLabel.position = JSPoint(x + itemProps.titleLabel.bounds.size.width / 2, center.y);
         }
         itemProps.leftSeparator.frame = JSRect(0, 0, 0.5, itemView.bounds.size.height);
         itemProps.rightSeparator.frame = JSRect(itemView.bounds.size.width - 0.5, 0, 0.5, itemView.bounds.size.height);
@@ -790,19 +947,57 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         var item = tabView.items[itemIndex];
         var itemView = tabView.stylerProperties.itemsView.itemViews[itemIndex];
         var itemProps = itemView.stylerProperties;
-        itemView.backgroundColor = defaultStateBackgroundColors[item.state];
-        itemView.borderColor = defaultStateBorderColors[item.state];
-        if (itemProps.titleLabel !== null){
-            itemProps.titleLabel.textColor = defaultStateTitleColors[item.state];
-        }
-        if (itemProps.imageView !== null){
-            itemProps.imageView.templateColor = defaultStateTitleColors[item.state];
+        if (item.active){
+            if (item.selected){
+                itemView.backgroundColor = this.activeSelectedItemColor;
+                itemView.borderColor = this.activeSelectedBorderColor;
+                if (itemProps.titleLabel !== null){
+                    itemProps.titleLabel.textColor = this.activeSelectedTitleColor;
+                }
+                if (itemProps.imageView !== null){
+                    itemProps.imageView.templateColor = this.activeSelectedTitleColor;
+                }
+            }else{
+                itemView.backgroundColor = this.activeItemColor;
+                itemView.borderColor = this.activeBorderColor;
+                if (itemProps.titleLabel !== null){
+                    itemProps.titleLabel.textColor = this.activeTitleColor;
+                }
+                if (itemProps.imageView !== null){
+                    itemProps.imageView.templateColor = this.activeTitleColor;
+                }
+            }
+        }else if (item.selected){
+            itemView.backgroundColor = this.selectedItemColor;
+            itemView.borderColor = this.selectedBorderColor;
+            if (itemProps.titleLabel !== null){
+                itemProps.titleLabel.textColor = this.selectedTitleColor;
+            }
+            if (itemProps.imageView !== null){
+                itemProps.imageView.templateColor = this.selectedTitleColor;
+            }
+        }else{
+            itemView.backgroundColor = this.normalItemColor;
+            itemView.borderColor = this.normalBorderColor;
+            if (itemProps.titleLabel !== null){
+                itemProps.titleLabel.textColor = this.normalTitleColor;
+            }
+            if (itemProps.imageView !== null){
+                itemProps.imageView.templateColor = this.normalTitleColor;
+            }
         }
         if (itemView.index === 0){
-            itemView.maskedCorners = UILayer.Corners.minX;
-            itemView.maskedBorders = UILayer.Sides.minY | UILayer.Sides.maxY | UILayer.Sides.minX;
-            itemProps.leftSeparator.hidden = true;
-            itemProps.rightSeparator.hidden = false;
+            if (itemView.index === tabView.items.length - 1){
+                itemView.maskedCorners = UILayer.Corners.all;
+                itemView.maskedBorders = UILayer.Sides.all;
+                itemProps.leftSeparator.hidden = true;
+                itemProps.rightSeparator.hidden = false;
+            }else{
+                itemView.maskedCorners = UILayer.Corners.minX;
+                itemView.maskedBorders = UILayer.Sides.minY | UILayer.Sides.maxY | UILayer.Sides.minX;
+                itemProps.leftSeparator.hidden = true;
+                itemProps.rightSeparator.hidden = false;
+            }
         }else if (itemView.index === tabView.items.length - 1){
             itemView.maskedCorners = UILayer.Corners.maxX;
             itemView.maskedBorders = UILayer.Sides.minY | UILayer.Sides.maxY | UILayer.Sides.maxX;
@@ -828,39 +1023,6 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     },
 
 });
-
-var defaultStateBackgroundColors = [
-    JSColor.initWithRGBA(250/255,250/255,250/255), // 0 normal
-    JSColor.initWithRGBA(250/255,250/255,250/255), // 1 over
-    JSColor.initWithRGBA(224/255,224/255,224/255), // 2 active
-    JSColor.initWithRGBA(224/255,224/255,224/255), // 3 active + over
-    JSColor.initWithRGBA(70/255,153/255,254/255),  // 4 selected
-    JSColor.initWithRGBA(70/255,153/255,254/255),  // 5 selected + over
-    JSColor.initWithRGBA(63/255,138/255,230/255),  // 6 selected + active
-    JSColor.initWithRGBA(63/255,138/255,230/255),  // 7 selected + active + over
-];
-
-var defaultStateBorderColors = [
-    JSColor.initWithRGBA(204/255,204/255,204/255), // 0 normal
-    JSColor.initWithRGBA(204/255,204/255,204/255), // 1 over
-    JSColor.initWithRGBA(192/255,192/255,192/255), // 2 active
-    JSColor.initWithRGBA(192/255,192/255,192/255), // 3 active + over
-    JSColor.initWithRGBA(63/255,138/255,230/255),  // 4 selected
-    JSColor.initWithRGBA(63/255,138/255,230/255),  // 5 selected + over
-    JSColor.initWithRGBA(54/255,123/255,205/255),  // 6 selected + active
-    JSColor.initWithRGBA(54/255,123/255,205/255),  // 7 selected + active + over
-];
-
-var defaultStateTitleColors = [
-    JSColor.initWithRGBA(51/255,51/255,51/255),    // 0 normal
-    JSColor.initWithRGBA(51/255,51/255,51/255),    // 1 over
-    JSColor.initWithRGBA(51/255,51/255,51/255),    // 2 active
-    JSColor.initWithRGBA(51/255,51/255,51/255),    // 3 active + over
-    JSColor.initWithRGBA(255/255,255/255,255/255), // 4 selected
-    JSColor.initWithRGBA(255/255,255/255,255/255), // 5 selected + over
-    JSColor.initWithRGBA(255/255,255/255,255/255), // 6 selected + active
-    JSColor.initWithRGBA(255/255,255/255,255/255), // 7 selected + active + over
-];
 
 UITabView.Styler = Object.defineProperties({}, {
     default: {

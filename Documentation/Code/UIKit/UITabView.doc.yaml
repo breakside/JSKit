@@ -219,6 +219,30 @@ topics:
         inherits: JSObject
         summary: An abstract base class for all tab stylers
         topics:
+          - 
+            name: Creating a Tab View Styler
+            members:
+              -
+                name: Spec File Properties
+                kind: spec
+                summary: The properties available when creating a tab view
+                  styler in a spec file
+                topics:
+                  -
+                    name: Text Style
+                    members:
+                      -
+                        name: font
+                        type: JSFont
+                        summary: The font to use for tab item titles
+
+          -
+            name: Text Style
+            members:
+              -
+                name: font
+                type: JSFont
+                summary: The font to use for tab item titles
           -
             name: Initializing Tab Views
             members:
@@ -318,8 +342,181 @@ topics:
         summary: The default tab view styler for `UIKit`
         topics:
           -
-            name: Item Styles
+            name: Creating a Default Tab View Styler
             members:
+              -
+                name: initWithSelectedItemColor
+                introduced: 2021.36.0
+                kind: init
+                summary: Create a default tab styler with the given color
+                  for selected items
+                arguments:
+                  -
+                    name: selectedItemColor
+                    type: JSColor
+                    summary: The color to use for selected items
+              -
+                name: Spec File Properties
+                introduced: 2021.36.0
+                kind: spec
+                summary: The properties available when creating a default tab
+                  view styler in a spec file
+                topics:
+                  -
+                    name: Item Backgrounds & Borders
+                    members:
+                      -
+                        name: normalItemColor
+                        type: JSColor
+                        summary: The background color for items in their normal
+                          state
+                      -
+                        name: activeItemColor
+                        type: JSColor
+                        summary: The background color for items in their active
+                          state
+                      -
+                        name: selectedItemColor
+                        type: JSColor
+                        summary: The background color for items in their selected
+                          state
+                      -
+                        name: activeSelectedItemColor
+                        type: JSColor
+                        summary: The background color for items in their active
+                          selected state
+                      -
+                        name: normalBorderColor
+                        type: JSColor
+                        summary: The border color for items in their normal
+                          state
+                      -
+                        name: activeBorderColor
+                        type: JSColor
+                        summary: The border color for items in their active
+                          state
+                      -
+                        name: selectedBorderColor
+                        type: JSColor
+                        summary: The border color for items in their selected
+                          state
+                      -
+                        name: activeSelectedBorderColor
+                        type: JSColor
+                        summary: The border color for items in their active
+                          selected state
+                      -
+                        name: cornerRadius
+                        type: Number
+                        summary: The amount to round the left edge corners of the first
+                          tab and the right edge corners of the last tab
+                        description: |
+                          Creates an effect where the tabs together make a single
+                          rounded rectangle.
+                  -
+                    name: Item Titles
+                    members:
+                      -
+                        name: normalTitleColor
+                        type: JSColor
+                        summary: The title text color for items in their normal
+                          state
+                      -
+                        name: activeTitleColor
+                        type: JSColor
+                        summary: The title text color for items in their active
+                          state
+                      -
+                        name: selectedTitleColor
+                        type: JSColor
+                        summary: The title text color for items in their selected
+                          state
+                      -
+                        name: activeSelectedTitleColor
+                        type: JSColor
+                        summary: The title text color for items in their active
+                          selected state
+                  -
+                    name: Layout
+                    members:
+                      -
+                        name: itemContentInsets
+                        type: JSInsets
+                        summary: The amount to inset the content of each tab item
+                      -
+                        name: itemsInsets
+                        type: JSInsets
+                        summary: The amount to inset the items from the edges of the
+                          overall tab view and the content view below.
+                      -
+                        name: imageSpacing
+                        type: Number
+                        summary: The amount of spacing between the tab's image and
+                          its title, if both are present
+                  -
+                    name: Decoration
+                    members:
+                      -
+                        name: dividerColor
+                        type: JSColor
+                        summary: The color of the dividing line that extends
+                          outward from the tabs
+                      -
+                        name: dividerSize
+                        type: Number
+                        summary: The size of the dividing line that extends
+                          outward from the tabs
+          -
+            name: Item Backgrounds & Borders
+            members:
+              -
+                name: normalItemColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The background color for items in their normal
+                  state
+              -
+                name: activeItemColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The background color for items in their active
+                  state
+              -
+                name: selectedItemColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The background color for items in their selected
+                  state
+              -
+                name: activeSelectedItemColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The background color for items in their active
+                  selected state
+              -
+                name: normalBorderColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The border color for items in their normal
+                  state
+              -
+                name: activeBorderColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The border color for items in their active
+                  state
+              -
+                name: selectedBorderColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The border color for items in their selected
+                  state
+              -
+                name: activeSelectedBorderColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The border color for items in their active
+                  selected state
               -
                 name: cornerRadius
                 type: Number
@@ -328,6 +525,36 @@ topics:
                 description: |
                   Creates an effect where the tabs together make a single
                   rounded rectangle.
+          -
+            name: Item Titles
+            members:
+              -
+                name: normalTitleColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The title text color for items in their normal
+                  state
+              -
+                name: activeTitleColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The title text color for items in their active
+                  state
+              -
+                name: selectedTitleColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The title text color for items in their selected
+                  state
+              -
+                name: activeSelectedTitleColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The title text color for items in their active
+                  selected state
+          -
+            name: Layout
+            members:
               -
                 name: itemContentInsets
                 type: JSInsets
@@ -342,6 +569,21 @@ topics:
                 type: Number
                 summary: The amount of spacing between the tab's image and
                   its title, if both are present
+          -
+            name: Decoration
+            members:
+              -
+                name: dividerColor
+                introduced: 2021.36.0
+                type: JSColor
+                summary: The color of the dividing line that extends
+                  outward from the tabs
+              -
+                name: dividerSize
+                introduced: 2021.36.0
+                type: Number
+                summary: The size of the dividing line that extends
+                  outward from the tabs
       -
         name: Styler
         kind: enum

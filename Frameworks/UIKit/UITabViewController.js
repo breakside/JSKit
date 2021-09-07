@@ -25,10 +25,12 @@ JSClass("UITabViewController", UIViewController, {
     selectedViewController: JSDynamicProperty(),
     _previouslySelectedViewController: null,
     _defaultViewClass: UITabView,
+    _tabViewStyler: null,
 
-    initWithViewControllers: function(viewControllers){
+    initWithViewControllers: function(viewControllers, styler){
         UITabViewController.$super.init.call(this);
         this._viewControllers = JSCopy(viewControllers);
+        this._styler = styler || null;
     },
 
     initWithSpec: function(spec){
@@ -46,6 +48,10 @@ JSClass("UITabViewController", UIViewController, {
         for (i = 0, l = this.viewControllers.length; i < l; ++i){
             this.addChildViewController(this.viewControllers[i]);
         }
+    },
+
+    loadView: function(){
+        this._view = UITabView.initWithStyler(this._styler);
     },
 
     viewDidLoad: function(){
