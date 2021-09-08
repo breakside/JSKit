@@ -147,10 +147,10 @@ JSClass("UISplitViewController", UIViewController, {
         }
         if (callAppearanceMethods){
             if (disappearingViewController !== null){
-                disappearingViewController.viewDidDisappear(false);
+                disappearingViewController.enqueueDidDisappear();
             }
             if (this._leadingViewController !== null){
-                this._leadingViewController.viewDidAppear(false);
+                this._leadingViewController.enqueueDidAppear();
             }
         }
     },
@@ -181,10 +181,10 @@ JSClass("UISplitViewController", UIViewController, {
         }
         if (callAppearanceMethods){
             if (disappearingViewController !== null){
-                disappearingViewController.viewDidDisappear(false);
+                disappearingViewController.enqueueDidDisappear();
             }
             if (this._trailingViewController !== null){
-                this._trailingViewController.viewDidAppear(false);
+                this._trailingViewController.enqueueDidAppear();
             }
         }
     },
@@ -220,10 +220,10 @@ JSClass("UISplitViewController", UIViewController, {
             }
             if (callAppearanceMethods){
                 if (disappearingViewController !== null){
-                    disappearingViewController.viewDidDisappear(false);
+                    disappearingViewController.enqueueDidDisappear();
                 }
                 if (this._mainViewController !== null){
-                    this._mainViewController.viewDidAppear(false);
+                    this._mainViewController.enqueueDidAppear();
                 }
             }
         }
