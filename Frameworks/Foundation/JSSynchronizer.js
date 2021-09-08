@@ -101,7 +101,15 @@ JSClass("JSSynchronizer", JSObject, {
             },
         };
         try{
-            this.action.call(this.target, context);
+            var promise = this.action.call(this.target, context);
+            if (promise instanceof Promise){
+                context.started();
+                promise.then(function(){
+                    context.completed();
+                }, function(error){
+                    context.completed(error);
+                });
+            }
         }catch (e){
             logger.error(e);
             this.error = e;

@@ -36,6 +36,24 @@ topics:
             default: "undefined"
             summary: The object to use as `this`() when calling `action`()
       -
+        name: initWithAction
+        introduced: 2021.36.1
+        kind: init
+        suffix: async
+        summary: Create a synchronizer that calls the given async action
+        arguments:
+          -
+            name: action
+            type:
+              type: Promise
+              return: A promise that resolves when the action is done or
+                rejects with an error.
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this`() when calling `action`()
+      -
         name: Context
         kind: class
         anonymous: true
