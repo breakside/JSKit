@@ -463,7 +463,7 @@ topics:
                 name: Spec File Properties
                 kind: spec
                 summary: The custom text styler properties that can be set in a spec
-                members:
+                topics:
                   -
                     name: Background
                     members:
@@ -486,6 +486,36 @@ topics:
                         name: disabledBackgroundColor
                         type: JSColor
                         summary: The color of the field's background when disabled
+                  -
+                    name: Border
+                    members:
+                      -
+                        name: borderWidth
+                        introduced: 2021.28.0
+                        type: Number
+                        summary: The width of the field's border
+                      -
+                        name: borderColor
+                        introduced: 2021.28.0
+                        type: JSColor
+                        summary: The color of the field's border when inactive
+                      -
+                        name: overBorderColor
+                        introduced: 2021.36.1
+                        type: JSColor
+                        summary: The color of the field's border when hovering
+                        note: |
+                          You must also set `showsOverState` to `true`
+                      -
+                        name: activeBorderColor
+                        introduced: 2021.28.0
+                        type: JSColor
+                        summary: The color of the field's border when active
+                      -
+                        name: disabledBorderColor
+                        introduced: 2021.28.0
+                        type: JSColor
+                        summary: The color of the field's border when disabled
                       -
                         name: cornerRadius
                         type: JSColor
@@ -521,6 +551,13 @@ topics:
                 type: JSColor
                 summary: The color of the field's background when inactive
               -
+                name: overBackgroundColor
+                introduced: 2021.36.1
+                type: JSColor
+                summary: The color of the field's background when hovering
+                note: |
+                  You must also set `showsOverState` to `true`
+              -
                 name: activeBackgroundColor
                 type: JSColor
                 summary: The color of the field's background when active
@@ -528,6 +565,36 @@ topics:
                 name: disabledBackgroundColor
                 type: JSColor
                 summary: The color of the field's background when disabled
+          -
+            name: Border
+            members:
+              -
+                name: borderWidth
+                introduced: 2021.28.0
+                type: Number
+                summary: The width of the field's border
+              -
+                name: borderColor
+                introduced: 2021.28.0
+                type: JSColor
+                summary: The color of the field's border when inactive
+              -
+                name: overBorderColor
+                introduced: 2021.36.1
+                type: JSColor
+                summary: The color of the field's border when hovering
+                note: |
+                  You must also set `showsOverState` to `true`
+              -
+                name: activeBorderColor
+                introduced: 2021.28.0
+                type: JSColor
+                summary: The color of the field's border when active
+              -
+                name: disabledBorderColor
+                introduced: 2021.28.0
+                type: JSColor
+                summary: The color of the field's border when disabled
               -
                 name: cornerRadius
                 type: JSColor

@@ -266,6 +266,10 @@ topics:
                         type: boolean
                         summary: Whether the styled control should show a distict
                           state when the user hovers over it
+                        important:
+                          This property is available for subclasses, but subclasses are
+                          free to ignore it.  Consult the documentation for a specific
+                          subclass to determine if it supports hover over states.
           -
             name: Initializing the Control
             members:
@@ -315,6 +319,18 @@ topics:
                 note: Many times a control can accomplish all the drawing it
                   needs simply by creating views/layers and setting properties
                   like `backgroundColor`(UIView.backgroundColor).
+          -
+            name: Supported States
+            members:
+              -
+                name: showsOverState
+                type: boolean
+                summary: Whether the styled control should show a distict
+                  state when the user hovers over it
+                important:
+                  This property is available for subclasses, but subclasses are
+                  free to ignore it.  Consult the documentation for a specific
+                  subclass to determine if it supports hover over states.
           -
             name: Layout & Sizing
             members:
