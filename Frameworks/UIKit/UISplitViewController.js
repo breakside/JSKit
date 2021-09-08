@@ -200,7 +200,7 @@ JSClass("UISplitViewController", UIViewController, {
             this._mainViewController.removeFromParentViewController();
         }
         this._mainViewController = mainViewController;
-        if (this.view.mainHidden){
+        if (this.isViewLoaded && this.view.mainHidden){
             if (this._mainViewController){
                 this._leadingViewController.show(this._mainViewController, this);
             }
