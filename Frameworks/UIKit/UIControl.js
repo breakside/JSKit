@@ -343,6 +343,13 @@ JSClass("UIControlStyler", JSObject, {
 
     showsOverState: false,
 
+    initWithSpec: function(spec){
+        UIControlStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("showsOverState")){
+            this.showsOverState = spec.valueForKey("showsOverState");
+        }
+    },
+
     initializeControl: function(control){
     },
 

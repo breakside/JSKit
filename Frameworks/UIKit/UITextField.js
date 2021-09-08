@@ -133,6 +133,7 @@ JSClass("UITextField", UIControl, {
         if (this._styler === null){
             this._styler = UITextField.Styler.default;
         }
+        this.hasOverState = this._styler.showsOverState;
         this._styler.initializeControl(this);
     },
 
@@ -1354,6 +1355,8 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     activeBackgroundColor: null,
     disabledBackgroundColor: null,
     borderColor: null,
+    overBackgroundColor: null,
+    overBorderColor: null,
     activeBorderColor: null,
     disabledBorderColor: null,
     borderWidth: 0,
@@ -1399,7 +1402,13 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
             this.textInsets = spec.valueForKey("textInsets", JSInsets);
         }
         if (spec.containsKey("showsFocusRing")){
-            this.showsFocusRing = spec.valueForKey("showsFocusRing", JSInsets);
+            this.showsFocusRing = spec.valueForKey("showsFocusRing");
+        }
+        if (spec.containsKey("overBackgroundColor")){
+            this.overBackgroundColor = spec.valueForKey("overBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("overBorderColor")){
+            this.overBorderColor = spec.valueForKey("overBorderColor", JSColor);
         }
     },
 
@@ -1422,16 +1431,19 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     updateControl: function(textField){
         UITextFieldCustomStyler.$super.updateControl.call(this, textField);
         if (textField.active){
-            if (this.activeBackgroundColor){
-                textField.backgroundColor = this.activeBackgroundColor;
-                textField.borderColor = this.activeBorderColor;
+            textField.backgroundColor = this.activeBackgroundColor || this.backgroundColor;
+            textField.borderColor = this.activeBorderColor || this.borderColor;
+        }else if (textField.enabled){
+            if (textField.over){
+                textField.backgroundColor = this.overBackgroundColor || this.backgroundColor;
+                textField.borderColor = this.overBorderColor || this.borderColor;
+            }else{
+                textField.backgroundColor = this.backgroundColor;
+                textField.borderColor = this.borderColor;
             }
-        }else if (!textField.enabled && this.disabledBackgroundColor !== null){
-            textField.backgroundColor = this.disabledBackgroundColor;
-            textField.borderColor = this.disabledBorderColor;
         }else{
-            textField.backgroundColor = this.backgroundColor;
-            textField.borderColor = this.borderColor;
+            textField.backgroundColor = this.disabledBackgroundColor || this.backgroundColor;
+            textField.borderColor = this.disabledBorderColor || this.borderColor;
         }
     },
 

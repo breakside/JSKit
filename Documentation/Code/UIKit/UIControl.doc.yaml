@@ -249,7 +249,25 @@ topics:
         summary: The abstract base class for all control stylers
         topics:
           -
-            name: Initializing
+            name: Creating a Styler
+            members:
+              -
+                name: Spec File Properties
+                introduced: 2021.36.1
+                kind: spec
+                summary: The properties available when creating a control styler
+                  from a spec file
+                topics:
+                  -
+                    name: Supported States
+                    members:
+                      -
+                        name: showsOverState
+                        type: boolean
+                        summary: Whether the styled control should show a distict
+                          state when the user hovers over it
+          -
+            name: Initializing the Control
             members:
               -
                 name: initializeControl
@@ -264,7 +282,7 @@ topics:
                   Gives the styler an opportunity to create views or layers
                   needed for styling and attach them to the control.
           -
-            name: Updating
+            name: Updating the Control
             members:
               -
                 name: updateControl

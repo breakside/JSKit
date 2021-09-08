@@ -472,6 +472,13 @@ topics:
                         type: JSColor
                         summary: The color of the field's background when inactive
                       -
+                        name: overBackgroundColor
+                        introduced: 2021.36.1
+                        type: JSColor
+                        summary: The color of the field's background when hovering
+                        note: |
+                          You must also set `showsOverState` to `true`
+                      -
                         name: activeBackgroundColor
                         type: JSColor
                         summary: The color of the field's background when active
@@ -750,8 +757,7 @@ topics:
 
             viewDidLayoutSubviews: function(){
               // 4. During layout, size the text field to fit its conents
-              this.nameField.sizeToFitText(this.view.bounds.width, Number.MAX_VALUE);
-              this.nameField.frame = JSRect(JSPoint.Zero, this.nameField.bound.size);
+              this.nameField.sizeToFitText(JSSize(this.view.bounds.width, Number.MAX_VALUE));
             }
 
           })
