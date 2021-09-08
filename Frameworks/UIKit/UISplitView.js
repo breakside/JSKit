@@ -50,6 +50,8 @@ JSClass("UISplitView", UIView, {
 
     leadingDividerColor: JSDynamicProperty(),
     trailingDividerColor: JSDynamicProperty(),
+    leadingDividerGradient: JSDynamicProperty(),
+    trailingDividerGradient: JSDynamicProperty(),
 
     delegate: null,
 
@@ -131,6 +133,12 @@ JSClass("UISplitView", UIView, {
         }
         if (spec.containsKey('trailingDividerColor')){
             this.trailingDividerColor = spec.valueForKey("trailingDividerColor", JSColor);
+        }
+        if (spec.containsKey('leadingDividerGradient')){
+            this.leadingDividerGradient = spec.valueForKey("leadingDividerGradient", JSGradient);
+        }
+        if (spec.containsKey('trailingDividerGradient')){
+            this.trailingDividerGradient = spec.valueForKey("trailingDividerGradient", JSGradient);
         }
         if (spec.containsKey('autosaveName')){
             this.autosaveName = spec.valueForKey("autosaveName");
@@ -225,6 +233,22 @@ JSClass("UISplitView", UIView, {
 
     getTrailingDividerColor: function(){
         return this._trailingDividerView.color;
+    },
+
+    setLeadingDividerGradient: function(gradient){
+        this._leadingDividerView.gradient = gradient;
+    },
+
+    getLeadingDividerGradient: function(){
+        return this._leadingDividerView.gradient;
+    },
+
+    setTrailingDividerGradient: function(gradient){
+        this._trailingDividerView.gradient = gradient;
+    },
+
+    getTrailingDividerGradient: function(){
+        return this._trailingDividerView.gradient;
     },
 
     setLeadingView: function(leadingView){

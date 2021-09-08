@@ -135,12 +135,24 @@ topics:
               -
                 name: leadingDividerColor
                 type: JSColor
-                summary: The color for the divider between the leading an main
+                summary: The color for the divider between the leading and main
+                  views
+              -
+                name: leadingDividerGradient
+                introduced: 2021.36.1
+                type: JSGradient
+                summary: The gradient for the divider between the leading and main
                   views
               -
                 name: trailingDividerColor
                 type: JSColor
-                summary: The color for the divider between the trailing an main
+                summary: The color for the divider between the trailing and main
+                  views
+              -
+                name: trailingDividerGradient
+                introduced: 2021.36.1
+                type: JSGradient
+                summary: The gradient for the divider between the trailing and main
                   views
           -
             name: Autosave
@@ -273,12 +285,24 @@ topics:
       -
         name: leadingDividerColor
         type: JSColor
-        summary: The color for the divider between the leading an main
+        summary: The color for the divider between the leading and main
+          views
+      -
+        name: leadingDividerGradient
+        introduced: 2021.36.1
+        type: JSGradient
+        summary: The gradient for the divider between the leading and main
           views
       -
         name: trailingDividerColor
         type: JSColor
-        summary: The color for the divider between the trailing an main
+        summary: The color for the divider between the trailing and main
+          views
+      -
+        name: trailingDividerGradient
+        introduced: 2021.36.1
+        type: JSGradient
+        summary: The gradient for the divider between the trailing and main
           views
   -
     name: Autosave

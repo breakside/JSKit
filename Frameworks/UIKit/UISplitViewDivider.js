@@ -25,6 +25,7 @@ JSClass("UISplitViewDivider", UIView, {
     layoutAdjustment: JSReadOnlyProperty(),
     vertical: JSDynamicProperty('_isVertical', false, 'isVertical'),
     color: JSDynamicProperty(),
+    gradient: JSDynamicProperty(),
 
     initWithSizes: function(layoutSize, hitSize, vertical){
         this.init();
@@ -41,6 +42,14 @@ JSClass("UISplitViewDivider", UIView, {
 
     getColor: function(){
         return this.lineView.backgroundColor;
+    },
+
+    setGradient: function(gradient){
+        this.lineView.backgroundGradient = gradient;
+    },
+
+    getGradient: function(){
+        return this.lineView.backgroundGradient;
     },
 
     layoutSubviews: function(){
