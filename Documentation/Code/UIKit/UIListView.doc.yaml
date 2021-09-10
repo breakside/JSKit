@@ -284,6 +284,13 @@ topics:
                 type: boolean
                 summary: Indicates that the user can select multiple rows at a
                   time
+              -
+                name: allowsEmptySelection
+                introduced: 2021.36.2
+                type: boolean
+                summary: Indicates that the user can de-select all rows
+                description: |
+                  Defaults to `true`()
   -
     name: Delegate & Data Source
     members:
@@ -2409,6 +2416,13 @@ topics:
         name: allowsMultipleSelection
         type: boolean
         summary: Indicates if the user can select mutliple items at a time
+      -
+        name: allowsEmptySelection
+        introduced: 2021.36.2
+        type: boolean
+        summary: Indicates that the user can de-select all rows
+        description: |
+          Defaults to `true`()
       -
         name: selectedIndexPaths
         type: JSIndexPath[]

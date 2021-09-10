@@ -132,6 +132,9 @@ JSClass("UIListView", UIScrollView, {
         if (spec.containsKey('allowsMultipleSelection')){
             this.allowsMultipleSelection = spec.valueForKey("allowsMultipleSelection");
         }
+        if (spec.containsKey('allowsEmptySelection')){
+            this.allowsEmptySelection = spec.valueForKey("allowsEmptySelection");
+        }
         if (spec.containsKey('headersStickToTop')){
             this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
@@ -1708,6 +1711,7 @@ JSClass("UIListView", UIScrollView, {
     // MARK: - Selecting cells
 
     allowsMultipleSelection: false,
+    allowsEmptySelection: true,
     selectedIndexPaths: JSDynamicProperty('_selectedIndexPaths', null),
     selectedIndexPath: JSDynamicProperty(),
     contextSelectedIndexPaths: JSReadOnlyProperty('_contextSelectedIndexPaths', null),
@@ -1729,6 +1733,9 @@ JSClass("UIListView", UIScrollView, {
             if (i === l){
                 return;
             }
+        }
+        if (!this.allowsEmptySelection && indexPaths.length === 0){
+            return;
         }
         this._selectedIndexPaths = indexPaths;
         if (this._edit !== null){
@@ -1814,6 +1821,9 @@ JSClass("UIListView", UIScrollView, {
         var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
         var index = searcher.indexMatchingValue(indexPath);
         if (index === null){
+            return;
+        }
+        if (!this.allowsEmptySelection && this._selectedIndexPaths.length === 1){
             return;
         }
         this._selectedIndexPaths.splice(index, 1);
