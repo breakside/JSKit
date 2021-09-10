@@ -259,8 +259,8 @@ topics:
       -
         introduced: 2020.28.0
         name: encodedPathAndQuery
-        type: JSData
-        summary: A byte array of the combined path and query string with all percent escaping in
+        type: string
+        summary: A string of the combined path and query string with all percent escaping in
           place and a user-defined string encoding.
         see:
           - path

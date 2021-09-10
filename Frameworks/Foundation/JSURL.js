@@ -361,9 +361,48 @@ JSClass("JSURL", JSObject, {
         this._query = null;
     },
 
+    _createQuery: function(other){
+        var url = this;
+        var query = Object.create(JSFormFieldMap.prototype, {
+
+            add: {
+                value: function(name, value){
+                    JSFormFieldMap.prototype.add.call(this, name, value);
+                    url._encodedQuery = this.urlEncoded();
+                    if (url._encodedQuery.length === 0){
+                        url._encodedQuery = null;
+                    }
+                }
+            },
+
+            set: {
+                value: function(name, value){
+                    JSFormFieldMap.prototype.set.call(this, name, value);
+                    url._encodedQuery = this.urlEncoded();
+                    if (url._encodedQuery.length === 0){
+                        url._encodedQuery = null;
+                    }
+                }
+            },
+
+            unset: {
+                value: function(name, value){
+                    JSFormFieldMap.prototype.unset.call(this, name);
+                    url._encodedQuery = this.urlEncoded();
+                    if (url._encodedQuery.length === 0){
+                        url._encodedQuery = null;
+                    }
+                }
+            }
+
+        });
+        JSFormFieldMap.call(query, other);
+        return query;
+    },
+
     getQuery: function(){
         if (this._query === null){
-            this._query = JSFormFieldMap();
+            this._query = this._createQuery();
             if (this._encodedQuery !== null){
                 this._query.decode(this._encodedQuery, true);
             }
@@ -373,9 +412,9 @@ JSClass("JSURL", JSObject, {
 
     setQuery: function(query){
         if (query === null){
-            this._query = JSFormFieldMap();
+            this._query = this._createQuery();
         }else{
-            this._query = JSFormFieldMap(query);
+            this._query = this._createQuery(query);
         }
         this._encodedQuery = this._query.urlEncoded();
         if (this._encodedQuery.length === 0){

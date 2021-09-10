@@ -462,6 +462,7 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.host, 'google.com');
         TKAssertNull(url.encodedQuery);
         TKAssertNotNull(url.query);
+        TKAssertInstance(url.query, JSFormFieldMap);
         TKAssertExactEquals(url.query.fields.length, 0);
         url = JSURL.initWithString("http://google.com?");
         TKAssertExactEquals(url.scheme, 'http');
@@ -473,6 +474,7 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.host, 'google.com');
         TKAssertExactEquals(String.initWithData(url.encodedQuery, String.Encoding.utf8), "a=1");
         query = url.query;
+        TKAssertInstance(query, JSFormFieldMap);
         TKAssertExactEquals(query.fields.length, 1);
         TKAssertExactEquals(query.get('a'), "1");
         url = JSURL.initWithString("http://google.com/with/a/pa%3Fth?a=1");
@@ -1056,6 +1058,26 @@ JSClass('JSURLTests', TKTestSuite, {
 
         url = JSURL.initWithString("https://user:pass@test.breakside.io:123/test/?one=1#fragment");
         TKAssertEquals(url.origin, "https://test.breakside.io:123");
+    },
+
+    testSetQuery: function(){
+        var url = JSURL.initWithString("https://test.breakside.io");
+        var query = JSFormFieldMap();
+        query.add("a", "1");
+        query.add("b", "two");
+        url.query = query;
+        TKAssertInstance(url.query, JSFormFieldMap);
+        TKAssertExactEquals(url.encodedString, "https://test.breakside.io?a=1&b=two");
+    },
+
+    testModifyQuery: function(){
+        var url = JSURL.initWithString("https://test.breakside.io");
+        url.query.add("a", "1");
+        url.query.add("b", "two");
+        url.query.set("c", "three");
+        url.query.unset("b");
+        TKAssertInstance(url.query, JSFormFieldMap);
+        TKAssertExactEquals(url.encodedString, "https://test.breakside.io?a=1&c=three");
     },
 
     // TODO: test modifying parts other than path
