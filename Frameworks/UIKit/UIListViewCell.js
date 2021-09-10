@@ -151,11 +151,15 @@ JSClass("UIListViewCell", UIView, {
     _updateState: function(newState){
         if (newState != this._state){
             this._state = newState;
-            this._didChangeState();
+            if (this._didChangeState){
+                this._didChangeState();
+            }else{
+                this.update();
+            }
         }
     },
 
-    _didChangeState: function(){
+    update: function(){
         var styler = (this._styler || (this.listView && this.listView._styler));
         if (!styler){
             return;
@@ -171,6 +175,10 @@ JSClass("UIListViewCell", UIView, {
             newState &= ~flag;
         }
         this._updateState(newState);
+    },
+
+    toggleStates: function(flag, on){
+        this._toggleState(flag, on);
     },
 
     isActive: function(){

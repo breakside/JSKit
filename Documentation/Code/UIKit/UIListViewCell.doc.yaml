@@ -107,6 +107,13 @@ topics:
     name: Styling
     members:
       -
+        name: update
+        introduced: 2021.36.2
+        kind: method
+        summary: Update the cell's style when the cell's state changes
+        description: |
+          The default implementation calls `styler`.`updateCell()`
+      -
         name: stylerProperties
         type: dictionary
         summary: A dictionary that a styler can use to store properties
@@ -204,3 +211,20 @@ topics:
         type: boolean
         summary: Indicates the cell is context-selected, like when it is
           right-clicked
+      -
+        name: toggleStates
+        introduced: 2021.36.2
+        kind: method
+        summary: Change the `state` by turning the given states on or off
+        arguments:
+          -
+            name: states
+            type: State
+            summary: The states to turn on or off
+          -
+            name: "on"
+            type: boolean
+            summary: Whether the states should be turned on or off
+        description: |
+          Convenience method subclasses can call to turn their custom states
+          on or off without having to perform bitwise operations themselves.
