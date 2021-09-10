@@ -497,10 +497,18 @@ JSClass("UISplitView", UIView, {
             if (this._leadingCollapses && leadingSize < this._minimumLeadingSize / 2){
                 if (this._leadingViewOpen){
                     this.leadingViewOpen = false;
+                    this.leadingSize = this._previousLeadingSize;
+                    if (this.delegate && this.delegate.splitViewDidToggleView){
+                        this.delegate.splitViewDidToggleView(this, this._leadingView);
+                    }
                 }
             }else{
                 if (!this._leadingViewOpen){
                     this.leadingViewOpen = true;
+                    this.leadingSize = this._minimumLeadingSize;
+                    if (this.delegate && this.delegate.splitViewDidToggleView){
+                        this.delegate.splitViewDidToggleView(this, this._leadingView);
+                    }
                 }
                 if (leadingSize >= this._minimumLeadingSize && leadingSize <= maximumLeadingSize){
                     this._leadingSize = leadingSize;
@@ -519,10 +527,18 @@ JSClass("UISplitView", UIView, {
             if (this._trailingCollapses && trailingSize < this._minimumTrailingSize / 2){
                 if (this._trailingViewOpen){
                     this.trailingViewOpen = false;
+                    this.trailingSize = this._previousTrailingSize;
+                    if (this.delegate && this.delegate.splitViewDidToggleView){
+                        this.delegate.splitViewDidToggleView(this, this._trailingView);
+                    }
                 }
             }else{
                 if (!this._trailingViewOpen){
                     this.trailingViewOpen = true;
+                    this.trailingSize = this._minimumTrailingSize;
+                    if (this.delegate && this.delegate.splitViewDidToggleView){
+                        this.delegate.splitViewDidToggleView(this, this._trailingView);
+                    }
                 }
                 if (trailingSize >= this._minimumTrailingSize && trailingSize <= maximumTrailingSize){
                     this._trailingSize = trailingSize;
