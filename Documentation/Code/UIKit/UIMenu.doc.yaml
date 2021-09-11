@@ -516,6 +516,10 @@ topics:
                         type: JSColor
                         summary: The color to use for the menu background
                       -
+                        name: cornerRadius
+                        type: Number
+                        summary: The radius of the menu's rounded corners
+                      -
                         name: borderColor
                         type: JSColor
                         summary: The color to use for the menu border
@@ -535,6 +539,43 @@ topics:
                         name: shadowRadius
                         type: Number
                         summary: The radius of the menu's shadow
+                  -
+                    name: Layout
+                    members:
+                      -
+                        name: capSize
+                        type: Number
+                        summary: The spacing at the top and bottom of the menu
+                      -
+                        name: itemContentInsets
+                        type: JSInsets
+                        summary: The amount to inset each menu item's content
+                      -
+                        name: indentationSize
+                        type: Number
+                        summary: The distance of one indentation level
+                  -
+                    name: Separators
+                    members:
+                      -
+                        name: separatorSize
+                        type: Number
+                        summary: The height of a separator item
+                        description: |
+                          The `separatorSize` determines how much
+                          space a separator item takes up, where the
+                          `separatorLineWidth` determines how thick
+                          of a line to draw in the middle of the
+                          separator's space.
+                      -
+                        name: separatorLineWidth
+                        type: Number
+                        summary: The size of a separator line
+                      -
+                        name: separatorColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The color of the separator
           -
             name: Text Colors
             members:
@@ -565,6 +606,10 @@ topics:
                 type: JSColor
                 summary: The color to use for the menu background
               -
+                name: cornerRadius
+                type: Number
+                summary: The radius of the menu's rounded corners
+              -
                 name: borderColor
                 type: JSColor
                 summary: The color to use for the menu border
@@ -584,6 +629,43 @@ topics:
                 name: shadowRadius
                 type: Number
                 summary: The radius of the menu's shadow
+          -
+            name: Layout
+            members:
+              -
+                name: capSize
+                type: Number
+                summary: The spacing at the top and bottom of the menu
+              -
+                name: itemContentInsets
+                type: JSInsets
+                summary: The amount to inset each menu item's content
+              -
+                name: indentationSize
+                type: Number
+                summary: The distance of one indentation level
+          -
+            name: Separators
+            members:
+              -
+                name: separatorSize
+                type: Number
+                summary: The height of a separator item
+                description: |
+                  The `separatorSize` determines how much
+                  space a separator item takes up, where the
+                  `separatorLineWidth` determines how thick
+                  of a line to draw in the middle of the
+                  separator's space.
+              -
+                name: separatorLineWidth
+                type: Number
+                summary: The size of a separator line
+              -
+                name: separatorColor
+                introduced: 2021.36.2
+                type: JSColor
+                summary: The color of the separator
       -
         name: Styler
         kind: enum

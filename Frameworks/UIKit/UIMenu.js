@@ -466,6 +466,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
     indentationSize: JSDynamicProperty('_indentationSize', 10),
     separatorSize: 10,
     separatorLineWidth: 2,
+    separatorColor: null,
     shadowColor: null,
     shadowRadius: 14,
     shadowOffset: null,
@@ -475,6 +476,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         UIMenuWindowStyler.$super.init.call(this);
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
         this.shadowOffset = JSPoint.Zero;
+        this.separatorColor = this.disabledTextColor;
     },
 
     initWithSpec: function(spec){
@@ -520,8 +522,13 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         if (spec.containsKey('separatorSize')){
             this.separatorSize = spec.valueForKey("separatorSize");
         }
-        if (spec.containsKey('separtorLineWidth')){
-            this.separtorLineWidth = spec.valueForKey("separtorLineWidth");
+        if (spec.containsKey('separatorLineWidth')){
+            this.separatorLineWidth = spec.valueForKey("separatorLineWidth");
+        }
+        if (spec.containsKey('separatorColor')){
+            this.separatorColor = spec.valueForKey("separatorColor", JSColor);
+        }else{
+            this.separatorColor = this.disabledTextColor;
         }
         if (spec.containsKey('itemContentInsets')){
             this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
@@ -854,8 +861,8 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         window.downIndicatorImageView.templateColor = this._textColor;
         window.menuView.backgroundColor = this._backgroundColor;
         window.capSize = this._capSize;
-        window.separatorColor = this.disabledTextColor;
-        window.separatorLineWidth = this.separtorLineWidth;
+        window.separatorColor = this.separatorColor;
+        window.separatorLineWidth = this.separatorLineWidth;
         window.separatorSize = this.separatorSize;
         window.itemContentInsets = this._itemContentInsets;
         window.indentationSize = this.indentationSize;

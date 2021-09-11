@@ -48,7 +48,7 @@ JSClass("UIMenuWindow", UIWindow, {
     _keyWidth: 0,
     separatorColor: null,
     separatorSize: 10,
-    sepratorLineWidth: 2,
+    separatorLineWidth: 2,
     itemContentInsets: null,
     indentationSize: 10,
     highlightColor: null,
@@ -643,7 +643,7 @@ JSClass("UIMenuView", UIView, {
         var view = item.view;
         if (view === null){
             if (item.separator){
-                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.sepratorLineWidth);
+                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.separatorLineWidth);
                 view.frame = JSRect(0, 0, 1, this.menuWindow.separatorSize);
             }else{
                 view = UIMenuItemView.init();
