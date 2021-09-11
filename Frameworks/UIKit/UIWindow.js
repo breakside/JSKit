@@ -24,6 +24,7 @@
 // #import "UIViewPropertyAnimator.js"
 // #import "UIViewController.js"
 // #import "UIFocusRingLayer.js"
+/* global UISplitView */
 'use strict';
 
 (function(){
@@ -1406,6 +1407,117 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             topSize += window.stylerProperties.toolbar.intrinsicSize.height;
         }
         window.contentInsets = JSInsets(topSize, 0, 0, 0);
+    },
+
+});
+
+JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
+
+    _titlebarSize: 22,
+    _controlButtonSize: 12,
+    shadowRadius: 40,
+    inactiveShadowRadius: 25,
+    cornerRadius: 6,
+    backgroundColor: null,
+    shadowColor: null,
+    closeButtonImages: null,
+
+    init: function(){
+        UIWindowDefaultStyler.$super.init.call(this);
+        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+        this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+        this.closeButtonImages = {
+            inactive: images.closeInactive,
+            normal: images.closeNormal,
+            over: images.closeOver,
+            active: images.closeActive
+        };
+        this.toolbarTitleColor = JSColor.initWithWhite(102/255);
+        this.toolbarDisabledTitleColor = JSColor.initWithWhite(204/255);
+    },
+
+    initializeWindow: function(window){
+        UIWindowDefaultStyler.$super.initializeWindow.call(this, window);
+        var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
+        closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
+        closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
+        closeButton.setImageForState(this.closeButtonImages.active, UIControl.State.active);
+        closeButton.addAction("close", window);
+
+        var controlsView = UIView.init();
+        controlsView.addSubview(closeButton);
+        window.addSubview(controlsView);
+
+        window.stylerProperties.controlsView = controlsView;
+        window.stylerProperties.closeButton = closeButton;
+        window.stylerProperties.toolbar = null;
+
+        window.shadowColor = this.shadowColor;
+        window.shadowRadius = this.shadowRadius;
+        window.cornerRadius = this.cornerRadius;
+        window.backgroundColor = this.backgroundColor;
+
+        this.updateWindow(window);
+    },
+
+    layoutWindow: function(window){
+        UIWindowDefaultStyler.$super.layoutWindow.call(this, window);
+        var controlsView = window.stylerProperties.controlsView;
+        var closeButton = window.stylerProperties.closeButton;
+        var toolbar = window.stylerProperties.toolbar;
+        var bounds = window.bounds;
+        var controlsHeight = this._controlButtonSize * 2;
+        if (toolbar){
+            controlsHeight = toolbar.frame.size.height;
+        }
+        var controlPadding = (controlsHeight - this._controlButtonSize) / 2;
+        closeButton.frame = JSRect(controlPadding, controlPadding, this._controlButtonSize, this._controlButtonSize);
+        controlsView.frame = JSRect(0, 0, controlsHeight, controlsHeight);
+        var x = controlsView.bounds.size.width;
+        if (window.contentView.isKindOfClass(UISplitView)){
+            var splitView = window.contentView;
+            x = splitView.leadingView.convertPointToView(JSPoint(splitView.leadingView.bounds.size.width, 0), window).x;
+        }
+        window.addSubview(controlsView);
+        if (toolbar){
+            toolbar.frame = JSRect(x, 0, bounds.size.width - x, toolbar.intrinsicSize.height);
+            window.insertSubviewBelowSibling(toolbar, controlsView);
+        }
+    },
+
+    updateWindow: function(window){
+        var closeButton = window.stylerProperties.closeButton;
+        var controlsView = window.stylerProperties.controlsView;
+        closeButton.hidden = !window.allowsClose;
+
+        if (window.isMainWindow || window.isKeyWindow){
+            window.shadowRadius = this.shadowRadius;
+        }else{
+            window.shadowRadius = this.inactiveShadowRadius;
+        }
+        if (window.isMainWindow){
+            closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
+        }else{
+            closeButton.setImageForState(this.closeButtonImages.inactive, UIControl.State.normal);
+        }
+
+        if (window.toolbar){
+            if (window.stylerProperties.toolbar && window.stylerProperties.toolbar !== window.toolbar){
+                window.stylerProperties.toolbar.removeFromSuperview();
+                window.stylerProperties.toolbar = null;
+            }
+            if (window.stylerProperties.toolbar === null){
+                window.stylerProperties.toolbar = window.toolbar;
+                window.insertSubviewBelowSibling(window.stylerProperties.toolbar, controlsView);
+            }
+        }else{
+            if (window.stylerProperties.toolbar !== null){
+                window.stylerProperties.toolbar.removeFromSuperview();
+                window.stylerProperties.toolbar = null;
+            }
+        }
+
+        window.contentInsets = JSInsets.Zero;
     },
 
 });
