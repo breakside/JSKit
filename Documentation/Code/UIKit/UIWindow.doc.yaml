@@ -238,6 +238,11 @@ topics:
                 name: custom
                 summary: The default blank window styler, an instance of
                   \`UIWindowCustomStyler`
+              -
+                name: tooltip
+                introduced: 2021.36.2
+                summary: The default tooltip window styler, an instance of
+                  \`UITooltipWindowStyler`
       -
         name: UIWindowStyler
         kind: class
@@ -399,6 +404,55 @@ topics:
         kind: class
         inherits: UIWindowStyler
         summary: A blank window styler
+      -
+        name: UITooltipWindowStyler
+        introduced: 2021.36.2
+        kind: class
+        inherits: UIWindowStyler
+        summary: The base window styler for tooltips
+        topics:
+          -
+            name: Window Style
+            members:
+              -
+                name: backgroundColor
+                type: JSColor
+                summary: The background color for the tooltip
+              -
+                name: cornerRadius
+                type: Number
+                summary: The rounded corner radius for the tooltip
+              -
+                name: borderColor
+                type: JSColor
+                summary: The border color for the tooltip
+              -
+                name: borderWidth
+                type: Number
+                summary: The border width for the tooltip
+              -
+                name: shadowColor
+                type: JSColor
+                summary: The shadow color for the tooltip
+              -
+                name: shadowRadius
+                type: Number
+                summary: The blur radius for the shadow
+          -
+            name: Text Style
+            members:
+              -
+                name: font
+                type: JSFont
+                summary: The font for the tooltip
+              -
+                name: textColor
+                type: JSColor
+                summary: The text color for the tooltip
+              -
+                name: textInsets
+                type: JSInsets
+                summary: The text insets from the edge of the tooltip
   -
     name: Controls
     members:

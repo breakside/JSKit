@@ -1089,7 +1089,19 @@ UIWindow.Styler = Object.create({}, {
             Object.defineProperty(this, 'custom', {configurable: true, value: styler});
             return styler;
         },
-    }
+    },
+
+    tooltip: {
+        configurable: true,
+        get: function UIWindow_getTooltipStyler(){
+            var styler = UITooltipWindowStyler.init();
+            Object.defineProperty(this, 'tooltip', {configurable: true, value: styler});
+            return styler;
+        },
+        set: function UIWindow_setTooltipStyler(styler){
+            Object.defineProperty(this, 'tooltip', {configurable: true, value: styler});
+        }
+    },
 
 });
 

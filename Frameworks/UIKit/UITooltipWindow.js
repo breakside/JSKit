@@ -20,18 +20,12 @@
 JSClass("UITooltipWindow", UIWindow, {
 
     initWithString: function(str, maxSize){
-        var font = JSFont.systemFontOfSize(12.0);
-        var color = JSColor.initWithRGBA(0.2, 0.2, 0.2, 1.0);
-        var labelInsets = JSInsets(4, 6);
-        this.initWithProperties(str, font, color, labelInsets, maxSize);
-    },
-
-    initWithProperties: function(str, font, textColor, labelInsets, maxSize){
-        this._styler = UIWindow.Styler.custom;
+        this._styler = UIWindow.Styler.tooltip;
         UITooltipWindow.$super.init.call(this);
+        this.layer._domPointerEventsNone = true;
         var label = UILabel.init();
-        label.font = font;
-        label.textInsets = labelInsets;
+        label.font = this._styler.font;
+        label.textInsets = this._styler.textInsets;
         if (str.isKindOfClass && str.isKindOfClass(JSAttributedString)){
             label.attributedText = str;
         }else{
@@ -42,11 +36,6 @@ JSClass("UITooltipWindow", UIWindow, {
         this.contentView = UIView.init();
         this.contentView.addSubview(label);
         this.frame = JSRect(JSPoint.Zero, label.frame.size);
-        this.backgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1.0);
-        this.borderColor = JSColor.initWithRGBA(0.7, 0.7, 0.7, 1.0);
-        this.shadowColor = JSColor.initWithRGBA(0.0, 0.0, 0.0, 0.2);
-        this.borderWidth = 0.5;
-        this.shadowRadius = 15;
     },
 
     canBecomeKey: function(){
@@ -60,5 +49,39 @@ JSClass("UITooltipWindow", UIWindow, {
     userInteractionEnabled: false,
 
     accessibilitySubrole: UIAccessibility.Subrole.tooltip
+
+});
+
+JSClass("UITooltipWindowStyler", UIWindowStyler, {
+
+    font: null,
+    textColor: null,
+    textInsets: null,
+    backgroundColor: null,
+    borderColor: null,
+    borderWidth: 0.5,
+    shadowColor: null,
+    shadowRadius: 15,
+    cornerRadius: 0,
+
+    init: function(){
+        UITooltipWindowStyler.$super.init.call(this);
+        this.backgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1.0);
+        this.borderColor = JSColor.initWithRGBA(0.7, 0.7, 0.7, 1.0);
+        this.shadowColor = JSColor.initWithRGBA(0.0, 0.0, 0.0, 0.2);
+        this.font = JSFont.systemFontOfSize(12.0);
+        this.textColor = JSColor.initWithRGBA(0.2, 0.2, 0.2, 1.0);
+        this.textInsets = JSInsets(4, 6);
+    },
+
+    initializeWindow: function(window){
+        UITooltipWindowStyler.$super.initializeWindow.call(this, window);
+        window.backgroundColor = this.backgroundColor;
+        window.borderColor = this.borderColor;
+        window.shadowColor = this.shadowColor;
+        window.borderWidth = this.borderWidth;
+        window.shadowRadius = this.shadowRadius;
+        window.cornerRadius = this.cornerRadius;
+    }
 
 });

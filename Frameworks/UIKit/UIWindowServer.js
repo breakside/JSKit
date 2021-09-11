@@ -360,7 +360,12 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Tooltips
 
+    _hideTooltipInterval: 0.15,
+
     showTooltipForView: function(view, screenLocation){
+        if (this._tooltipWindow !== null){
+            this.hideTooltip();
+        }
         var safeArea = view.window.screen.frame.rectWithInsets(3);
 
         this._tooltipSourceView = view;
@@ -389,7 +394,19 @@ JSClass("UIWindowServer", JSObject, {
         this._tooltipWindow.orderFront();
     },
 
+    _hideTooltipTimer: null,
+
+    _scheduleHideTooltip: function(){
+        if (this._hideTooltipTimer === null){
+            this._hideTooltipTimer = JSTimer.scheduledTimerWithInterval(this._hideTooltipInterval, this.hideTooltip, this);
+        }
+    },
+
     hideTooltip: function(){
+        if (this._hideTooltipTimer !== null){
+            this._hideTooltipTimer.invalidate();
+            this._hideTooltipTimer = null;
+        }
         this._tooltipWindow.close();
         this._tooltipWindow = null;
         this._tooltipSourceView = null;
@@ -412,9 +429,10 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         if (shouldHideTooltip){
-            this.hideTooltip();
             if (view !== null && view.tooltip !== null){
                 this.showTooltipForView(view, this.mouseLocation);
+            }else{
+                this._scheduleHideTooltip();
             }
         }
     },
