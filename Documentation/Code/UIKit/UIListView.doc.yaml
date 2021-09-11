@@ -1157,6 +1157,15 @@ topics:
 
                           The default styler draws a border inside the cell to
                           indicate context selection.
+                  -
+                    name: Muted State
+                    members:
+                      -
+                        name: showsMutedState
+                        type: boolean
+                        summary: Indicates the cell changes its style when the
+                          list view is not the first responder or the list view's
+                          window is not the main window.
           -
             name: Cell Text
             members:
@@ -1341,6 +1350,15 @@ topics:
 
                   The default styler draws a border inside the cell to
                   indicate context selection.
+          -
+            name: Muted State
+            members:
+              -
+                name: showsMutedState
+                type: boolean
+                summary: Indicates the cell changes its style when the
+                  list view is not the first responder or the list view's
+                  window is not the main window.
       -
         name: Styler
         kind: enum
