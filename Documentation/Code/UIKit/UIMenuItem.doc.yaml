@@ -297,6 +297,10 @@ topics:
                   because multiple objects are selected with different values linked
                   to the item's state.
       -
+        name: state
+        type: State
+        summary: The state of the menu item
+      -
         name: onImage
         type: JSImage
         nullable: true
