@@ -472,9 +472,11 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
     normalBackgroundColor: null,
     disabledBackgroundColor: null,
+    overBackgroundColor: null,
     activeBackgroundColor: null,
     normalTitleColor: null,
     disabledTitleColor: null,
+    overTitleColor: null,
     activeTitleColor: null,
     cornerRadius: 0,
 
@@ -501,8 +503,26 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         if (spec.containsKey('normalBackgroundColor')){
             this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
         }
+        if (spec.containsKey('activeBackgroundColor')){
+            this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('disabledBackgroundColor')){
+            this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('overBackgroundColor')){
+            this.overBackgroundColor = spec.valueForKey("overBackgroundColor", JSColor);
+        }
         if (spec.containsKey('normalTitleColor')){
             this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
+        }
+        if (spec.containsKey('activeTitleColor')){
+            this.activeTitleColor = spec.valueForKey("activeTitleColor", JSColor);
+        }
+        if (spec.containsKey('disabledTitleColor')){
+            this.disabledTitleColor = spec.valueForKey("disabledTitleColor", JSColor);
+        }
+        if (spec.containsKey('overTitleColor')){
+            this.overTitleColor = spec.valueForKey("overTitleColor", JSColor);
         }
         if (spec.containsKey('cornerRadius')){
             this.cornerRadius = spec.valueForKey("cornerRadius");
@@ -516,6 +536,9 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         }
         if (this.disabledTitleColor === null){
             this.disabledTitleColor = this.normalTitleColor.colorWithAlpha(0.5);
+        }
+        if (this.overTitleColor === null){
+            this.overTitleColor = this.normalTitleColor;
         }
         if (this.normalBackgroundColor !== null){
             if (this.activeBackgroundColor === null){
@@ -550,6 +573,14 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             }
             if (button._imageView !== null){
                 button._imageView.templateColor = this.activeTitleColor;
+            }
+        }else if (button.over){
+            button.layer.backgroundColor = this.overBackgroundColor;
+            if (button._titleLabel !== null){
+                button._titleLabel.textColor = this.overTitleColor;
+            }
+            if (button._imageView !== null){
+                button._imageView.templateColor = this.overTitleColor;
             }
         }else{
             button.layer.backgroundColor = this.normalBackgroundColor;

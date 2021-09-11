@@ -564,11 +564,26 @@ topics:
                         type: JSColor
                         summary: The background color to use for normal states
                         description: |
-                          The active state color will be created by darkening the
+                          If not provided, the active state color will be created by darkening the
                           normal color by 20%.
 
-                          The disabled state color will be created by making the
+                          If not provide, the disabled state color will be created by making the
                           normal color 50% transparent.
+                      -
+                        name: activeBackgroundColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The background color to use for active states
+                      -
+                        name: overBackgroundColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The background color to use for hover over states
+                      -
+                        name: disabledBackgroundColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The background color to use for disabled states
                   -
                     name: Border
                     members:
@@ -584,11 +599,26 @@ topics:
                         type: JSColor
                         summary: The title text color to use for normal states
                         description: |
-                          The active state color will be created by darkening the
+                          If not provided, active state color will be created by darkening the
                           normal color by 20%.
 
-                          The disabled state color will be created by making the
+                          If not provided, disabled state color will be created by making the
                           normal color 50% transparent.
+                      -
+                        name: activeTitleColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The title text color to use for active states
+                      -
+                        name: overTitleColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The title text color to use for hover over states
+                      -
+                        name: disabledTitleColor
+                        introduced: 2021.36.2
+                        type: JSColor
+                        summary: The title text color to use for disabled states
           -
             name: Background
             members:
@@ -607,6 +637,11 @@ topics:
                 type: JSColor
                 summary: The background color to use when the button is in
                   its active state
+              -
+                name: overBackgroundColor
+                introduced: 2021.36.2
+                type: JSColor
+                summary: The background color to use for hover over states
           -
             name: Border
             members:
@@ -632,6 +667,11 @@ topics:
                 type: JSColor
                 summary: The title text color to use when the button is in
                   its active state
+              -
+                name: overTitleColor
+                introduced: 2021.36.2
+                type: JSColor
+                summary: The title text color to use for hover over states
       -
         name: UIButtonImageStyler
         kind: class
