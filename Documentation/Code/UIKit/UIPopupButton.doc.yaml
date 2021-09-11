@@ -137,6 +137,8 @@ topics:
       -
         name: addItemWithTitle
         kind: method
+        type: UIMenuItem
+        return: The added menu item
         summary: Add a menu item with the given title
         arguments:
           -
@@ -147,6 +149,8 @@ topics:
         name: addItemWithTitle
         suffix: tag
         kind: method
+        type: UIMenuItem
+        return: The added menu item
         summary: Add a menu item with the given title and tag
         arguments:
           -
@@ -161,6 +165,8 @@ topics:
         name: insertItemWithTitleAtIndex
         introduced: 2021.6.0
         kind: method
+        type: UIMenuItem
+        return: The added menu item
         summary: Insert a popup menu item with the given title at the
           given index
         arguments:
@@ -177,6 +183,8 @@ topics:
         introduced: 2021.6.0
         suffix: tag
         kind: method
+        type: UIMenuItem
+        return: The added menu item
         summary: Insert a popup menu item with the given title and tag at the
           given index
         arguments:
