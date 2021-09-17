@@ -849,6 +849,15 @@ topics:
             type: boolean
             summary: The value to return if the key is not in the object
   -
+    name: Key Iteration
+    members:
+      -
+        name: getKeys
+        introduced: 2021.37.0
+        kind: method
+        type: String[]
+        summary: Get the list of keys for the object
+  -
     name: Wrapped Arrays
     members:
       -

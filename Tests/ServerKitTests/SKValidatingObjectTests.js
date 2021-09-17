@@ -504,6 +504,21 @@ JSClass("SKValidatingObjectTests", TKTestSuite, {
         TKAssertThrows(function(){ validator.objectForKey("boolKey"); });
     },
 
+    testObjectGetKeys: function(){
+        var input = {
+            stringKey: "testing",
+            numberKey: 1.2,
+            boolKey: true
+        };
+
+        var validator = SKValidatingObject.initWithObject(input);
+        var keys = validator.getKeys();
+        TKAssertEquals(keys.length, 3);
+        TKAssertEquals(keys[0], "stringKey");
+        TKAssertEquals(keys[1], "numberKey");
+        TKAssertEquals(keys[2], "boolKey");
+    },
+
     testObjectArrayForKey: function(){
         var input = {
             stringKey: "testing",
@@ -1103,6 +1118,20 @@ JSClass("SKValidatingObjectTests", TKTestSuite, {
         TKAssertThrows(function(){ validator.objectForKey("nullKey"); });
         TKAssertThrows(function(){ validator.objectForKey("arrayKey"); });
         TKAssertThrows(function(){ validator.objectForKey("boolKey"); });
+    },
+
+    testFormGetKeys: function(){
+        var input = JSFormFieldMap();
+        input.add("stringKey", "testing");
+        input.add("numberKey", "1.2");
+        input.add("integerKey", "12");
+
+        var validator = SKValidatingObject.initWithForm(input);
+        var keys = validator.getKeys();
+        TKAssertEquals(keys.length, 3);
+        TKAssertEquals(keys[0], "stringKey");
+        TKAssertEquals(keys[1], "numberKey");
+        TKAssertEquals(keys[2], "integerKey");
     },
 
     testFormArrayForKey: function(){

@@ -84,6 +84,10 @@ JSClass("SKValidatingObjectPropertyProvider", JSObject, {
         return null;
     },
 
+    getKeys: function(){
+        return Object.keys(this.obj);
+    }
+
 });
 
 JSClass("SKValidatingObjectFormFieldProvider", JSObject, {
@@ -159,6 +163,14 @@ JSClass("SKValidatingObjectFormFieldProvider", JSObject, {
 
     getLength: function(){
         return null;
+    },
+
+    getKeys: function(){
+        var keys = [];
+        for (var i = 0, l = this.form.fields.length; i < l; ++i){
+            keys.push(this.form.fields[i].name);
+        }
+        return keys;
     }
 
 });
@@ -190,6 +202,10 @@ JSClass("SKValidatingObjectFormFieldArrayProvider", SKValidatingObjectFormFieldP
 
     getLength: function(){
         return this.array.length;
+    },
+
+    getKeys: function(){
+        return Object.keys(this.array);
     }
 
 });
@@ -197,6 +213,7 @@ JSClass("SKValidatingObjectFormFieldArrayProvider", SKValidatingObjectFormFieldP
 JSClass("SKValidatingObject", JSObject, {
 
     length: JSReadOnlyProperty(),
+    keys: JSReadOnlyProperty(),
 
     initWithObject: function(obj){
         this.initWithValueProvider(SKValidatingObjectPropertyProvider.initWithObject(obj));
@@ -214,6 +231,10 @@ JSClass("SKValidatingObject", JSObject, {
 
     getLength: function(){
         return this.valueProvider.getLength();
+    },
+
+    getKeys: function(){
+        return this.valueProvider.getKeys();
     },
 
     numberForKey: function(key, defaultValue, validator){
