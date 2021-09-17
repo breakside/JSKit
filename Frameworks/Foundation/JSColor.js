@@ -343,7 +343,7 @@ Object.defineProperties(JSColor, {
     clear: {
         configurable: true,
         get: function JSColor_getClearColor(){
-            var color = JSColor.initWithRGBA(0, 0, 0, 0);
+            var color = this.initWithRGBA(0, 0, 0, 0);
             Object.defineProperty(this, 'clear', {value: color});
             return color;
         }
@@ -352,7 +352,7 @@ Object.defineProperties(JSColor, {
     white: {
         configurable: true,
         get: function JSColor_getWhiteColor(){
-            var color = JSColor.initWithWhite(1.0);
+            var color = this.initWithWhite(1.0);
             Object.defineProperty(this, 'white', {value: color});
             return color;
         }
@@ -361,7 +361,7 @@ Object.defineProperties(JSColor, {
     black: {
         configurable: true,
         get: function JSColor_getBlackColor(){
-            var color = JSColor.initWithWhite(0);
+            var color = this.initWithWhite(0);
             Object.defineProperty(this, 'black', {value: color});
             return color;
         }
@@ -370,7 +370,7 @@ Object.defineProperties(JSColor, {
     red: {
         configurable: true,
         get: function JSColor_getBlackColor(){
-            var color = JSColor.initWithRGBA(1.0, 0, 0);
+            var color = this.initWithRGBA(1.0, 0, 0);
             Object.defineProperty(this, 'red', {value: color});
             return color;
         }
@@ -379,7 +379,7 @@ Object.defineProperties(JSColor, {
     green: {
         configurable: true,
         get: function JSColor_getBlackColor(){
-            var color = JSColor.initWithRGBA(0, 1.0, 0);
+            var color = this.initWithRGBA(0, 1.0, 0);
             Object.defineProperty(this, 'green', {value: color});
             return color;
         }
@@ -388,13 +388,14 @@ Object.defineProperties(JSColor, {
     blue: {
         configurable: true,
         get: function JSColor_getBlackColor(){
-            var color = JSColor.initWithRGBA(0, 0, 1.0);
+            var color = this.initWithRGBA(0, 0, 1.0);
             Object.defineProperty(this, 'blue', {value: color});
             return color;
         }
     },
 
 });
+
 
 JSColor.contentType = "x-jskit/jscolor";
 
