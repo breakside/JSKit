@@ -43,10 +43,14 @@ JSClass("UIControl", UIView, {
         var target;
         var action;
         var event;
-        if (spec.containsKey('target') && spec.containsKey('action')){
-            target = spec.valueForKey("target");
+        if (spec.containsKey('action')){
+            if (spec.containsKey("target")){
+                target = spec.valueForKey("target");
+            }else{
+                target = null;
+            }
             action = spec.valueForKey("action");
-            if (!target.isKindOfClass(UIResponder)){
+            if (target !== null && !target.isKindOfClass(UIResponder)){
                 throw new Error("Action target must be a UIResponder: %s.%s".sprintf(spec.unmodifiedValueForKey("target"), spec.unmodifiedValueForKey("action")));
             }
             this.addAction(action, target);
