@@ -271,7 +271,7 @@ JSClass("UIControl", UIView, {
     },
 
     setOver: function(isOver){
-        this.toggleStates(UIControl.State.over, isOver);
+        this.toggleStates(UIControl.State.over, isOver && this.hasOverState);
     },
 
     isActive: function(){
