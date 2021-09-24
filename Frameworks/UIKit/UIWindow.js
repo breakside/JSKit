@@ -135,8 +135,7 @@ JSClass('UIWindow', UIView, {
                 this._styler = UIWindow.Styler.default;
             }
         }
-        this._traitCollection = UITraitCollection.initWithSize(this.frame.size);
-        this._traitCollection.accessibilityContrast = this.windowServer.contrast;
+        this._traitCollection = this.windowServer.traitCollection.traitsWithSize(this.bounds.size);
         this.stylerProperties = {};
         this._styler.initializeWindow(this);
     },
@@ -309,8 +308,7 @@ JSClass('UIWindow', UIView, {
     // MARK: Traits
 
     layerDidChangeSize: function(){
-        var traits = UITraitCollection.initWithSize(this.bounds.size);
-        traits.contrast = this.windowServer.contrast;
+        var traits = this._traitCollection.traitsWithSize(this.bounds.size);
         this._setTraitCollection(traits);
     },
     

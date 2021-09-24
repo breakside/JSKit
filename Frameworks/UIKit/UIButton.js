@@ -618,16 +618,16 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
 
     init: function(){
         UIButtonDefaultStyler.$super.init.call(this);
-        this.normalBackgroundColor = UIButtonDefaultStyler.NormalBackgroundColor;
-        this.disabledBackgroundColor = UIButtonDefaultStyler.DisabledBackgroundColor;
-        this.activeBackgroundColor = UIButtonDefaultStyler.ActiveBackgroundColor;
-        this.normalBorderColor = UIButtonDefaultStyler.NormalBorderColor;
-        this.disabledBorderColor = UIButtonDefaultStyler.DisabledBorderColor;
-        this.activeBorderColor = UIButtonDefaultStyler.ActiveBorderColor;
-        this.normalTitleColor = UIButtonDefaultStyler.NormalTitleColor;
-        this.disabledTitleColor = UIButtonDefaultStyler.DisabledTitleColor;
-        this.activeTitleColor = UIButtonDefaultStyler.ActiveTitleColor;
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.normalBackgroundColor = JSColor.controlBackground;
+        this.disabledBackgroundColor = JSColor.disabledControlBackground;
+        this.activeBackgroundColor = JSColor.activeControlBackground;
+        this.normalBorderColor = JSColor.controlBorder;
+        this.disabledBorderColor = JSColor.disabledControlBorder;
+        this.activeBorderColor = JSColor.activeControlBorder;
+        this.normalTitleColor = JSColor.controlTitle;
+        this.disabledTitleColor = JSColor.disabledControlTitle;
+        this.activeTitleColor = JSColor.activeControlTitle;
+        this.shadowColor = JSColor.controlShadow;
         this.shadowOffset = JSPoint(0, 1);
         this.titleInsets = JSInsets(3, 7);
     },
@@ -678,18 +678,6 @@ JSClass("UIButtonDefaultStyler", UIButtonStyler, {
     }
 
 });
-
-UIButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UIButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UIButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UIButtonDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UIButtonDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UIButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UIButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
 
 JSClass("UIButtonImageStyler", UIButtonStyler, {
 

@@ -27,12 +27,30 @@ JSClass("UITraitCollection", JSObject, {
         var traits = UITraitCollection.init();
         traits.horizontalSizeClass = this.horizontalSizeClass;
         traits.verticalSizeClass = this.verticalSizeClass;
+        traits.userInterfaceStyle = this.userInterfaceStyle;
         traits.accessibilityContrast = contrast;
+        return traits;
+    },
+
+    traitsWithUserInterfaceStyle: function(style){
+        var traits = UITraitCollection.init();
+        traits.horizontalSizeClass = this.horizontalSizeClass;
+        traits.verticalSizeClass = this.verticalSizeClass;
+        traits.userInterfaceStyle = style;
+        traits.accessibilityContrast = this.accessibilityContrast;
+        return traits;
+    },
+
+    traitsWithSize: function(size){
+        var traits = UITraitCollection.initWithSize(size);
+        traits.accessibilityContrast = this.accessibilityContrast;
+        traits.userInterfaceStyle = this.userInterfaceStyle;
         return traits;
     },
 
     horizontalSizeClass: UIUserInterface.SizeClass.unspecified,
     verticalSizeClass: UIUserInterface.SizeClass.unspecified,
+    userInterfaceStyle: UIUserInterface.Style.unspecified,
     accessibilityContrast: UIUserInterface.Contrast.unspecified,
 
     isEqual: function(other){
@@ -43,6 +61,9 @@ JSClass("UITraitCollection", JSObject, {
             return false;
         }
         if (this.accessibilityContrast !== other.accessibilityContrast){
+            return false;
+        }
+        if (this.userInterfaceStyle !== other.userInterfaceStyle){
             return false;
         }
         return true;

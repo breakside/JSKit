@@ -267,16 +267,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // --------------------------------------------------------------------
     // MARK: - Media Queries
 
+    darkColorSchemeListener: null,
     highContrastListener: null,
     reducedMotionListener: null,
 
     setupMediaListeners: function(){
+        this.darkColorSchemeListener = this.handleDarkColorSchemeChanged.bind(this);
+        this.darkColorSchemeQuery = this.domWindow.matchMedia("(prefers-color-scheme: dark)");
+        this.darkColorSchemeQuery.addListener(this.darkColorSchemeListener);
         this.highContrastListener = this.handleHighContrastChanged.bind(this);
         this.highContrastQuery = this.domWindow.matchMedia("(prefers-contrast: more)");
         this.highContrastQuery.addListener(this.highContrastListener);
         this.reducedMotionListener = this.handleReducedMotionChanged.bind(this);
         this.reducedMotionQuery = this.domWindow.matchMedia("(prefers-reduced-motion)");
         this.reducedMotionQuery.addListener(this.reducedMotionListener);
+        this.handleDarkColorSchemeChanged(this.darkColorSchemeQuery);
         this.handleHighContrastChanged(this.highContrastQuery);
         this.handleReducedMotionChanged(this.reducedMotionQuery);
     },
@@ -286,8 +291,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.reducedMotionQuery.removeListener(this.reducedMotionListener);
     },
 
+    handleDarkColorSchemeChanged: function(query){
+        var style = query.matches ? UIUserInterface.Style.dark : UIUserInterface.Style.light;
+        this.traitCollection = this._traitCollection.traitsWithUserInterfaceStyle(style);
+    },
+
     handleHighContrastChanged: function(query){
-        this.contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
+        var contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
+        this.traitCollection = this._traitCollection.traitsWithContrast(contrast);
     },
 
     handleReducedMotionChanged: function(query){

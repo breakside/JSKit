@@ -21,6 +21,7 @@
 // #import "UITooltipWindow.js"
 // #import "UIDraggingSession.js"
 // #import "UIUserInterface.js"
+// #import "UIColor.js"
 'use strict';
 
 (function(){
@@ -36,7 +37,6 @@ JSClass("UIWindowServer", JSObject, {
     mainWindow: null,
     menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
-    contrast: JSDynamicProperty('_contrast', UIUserInterface.Contrast.normal),
     mouseLocation: null,
     fullKeyboardAccessEnabled: false,
     _windowsById: null,
@@ -51,6 +51,9 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Creating a Window Server
 
     init: function(){
+        this._traitCollection = UITraitCollection.init();
+        this._traitCollection.accessibilityContrast = UIUserInterface.Contrast.normal;
+        this._traitCollection.userInterfaceStyle = UIUserInterface.Style.light;
         this.windowStack = [];
         this._windowsById = {};
         this._normalLevelRange = JSRange.Zero;
@@ -1004,17 +1007,58 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    setContrast: function(contrast){
-        if (contrast === this._contrast){
+    // -----------------------------------------------------------------------
+    // MARK: - Traits
+
+    _traitCollection: null,
+
+    setTraitCollection: function(traitCollection){
+        if (this._traitCollection.isEqual(traitCollection)){
             return;
         }
-        this._contrast = contrast;
-        var window;
-        for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            window = this.windowStack[i];
-            window._setTraitCollection(window.traitCollection.traitsWithContrast(this._contrast));
+        this._traitCollection = traitCollection;
+        for (var name in JSColor){
+            if (JSColor[name] instanceof UIColor){
+                JSColor[name].adaptToTraits(traitCollection);
+            }
         }
-    }
+        if (this._windowStack.length > 0){
+            var window;
+            for (var i = 0, l = this.windowStack.length; i < l; ++i){
+                window = this.windowStack[i];
+                window._setTraitCollection(this._traitCollection.traitsWithSize(window.bounds.size));
+            }
+            this.setNeedsRedisplay();
+        }
+    },
+
+    _needsRedisplay: false,
+
+    setNeedsRedisplay: function(){
+        if (this._needsRedisplay){
+            return;
+        }
+        this._needsRedisplay = true;
+        var i, l;
+        var layers = [];
+        var window;
+        for (i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            layers.push(window.layer);
+        }
+        var layer;
+        var sublayer;
+        while (layers.length > 0){
+            layer = layers.shift();
+            layer.setNeedsRedisplay();
+            for (i = 0, l = layer.sublayers.length; i < l; ++i){
+                layers.push(layer.sublayers[i]);
+            }
+        }
+        this.displayServer.schedule(function(){
+            this._needsRedisplay = false;
+        }, this);
+    },
 
 });
 

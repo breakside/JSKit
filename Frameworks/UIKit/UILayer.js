@@ -686,6 +686,16 @@ JSClass("UILayer", JSObject, {
         }
     },
 
+    setNeedsRedisplay: function(){
+        this.didChangeProperty("backgroundColor");
+        this.didChangeProperty("backgroundGradient");
+        this.didChangeProperty("borderColor");
+        this.didChangeProperty("shadowColor");
+        if (this.performsCustomDrawing){
+            this.setNeedsDisplay();
+        }
+    },
+
     displayIfNeeded: function(){
         if (this._displayServer !== null){
             this._displayServer.displayLayerIfNeeded(this);
@@ -697,6 +707,15 @@ JSClass("UILayer", JSObject, {
             var context = this._displayServer.contextForLayer(this);
             this._renderInContextImmediately(context, false);
         }
+    },
+
+    performsCustomDrawing: JSReadOnlyProperty(),
+
+    getPerformsCustomDrawing: function(){
+        if (this.delegate && this.delegate.drawLayerInContext){
+            return true;
+        }
+        return this.drawInContext !== UILayer.prototype.drawInContext;
     },
 
     drawInContext: function(context){

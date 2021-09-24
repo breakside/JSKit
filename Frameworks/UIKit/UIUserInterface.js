@@ -50,3 +50,9 @@ UIUserInterface.Contrast = {
     normal: 1,
     high: 2
 };
+
+UIUserInterface.Style = {
+    unspecified: 0,
+    light: 1,
+    dark: 2
+};
