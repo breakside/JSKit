@@ -15,6 +15,7 @@
 
 // #import "JSObject.js"
 // #import "CoreTypes.js"
+/* global JSSpec, JSBundle, JSColor */
 'use strict';
 
 (function(){
@@ -22,6 +23,7 @@
 JSClass("JSColorSpace", JSObject, {
 
     numberOfComponents: 0,
+    canMixComponents: true,
 
     rgbFromComponents: function(components){
         return JSColorSpace.rgb.componentsFromSpace(this, components);
@@ -29,6 +31,10 @@ JSClass("JSColorSpace", JSObject, {
 
     grayFromComponents: function(components){
         return JSColorSpace.gray.componentsFromSpace(this, components);
+    },
+
+    alphaFromComponents: function(components){
+        return 1;
     },
 
     xyzFromComponents: function(components){
@@ -45,7 +51,36 @@ JSClass("JSColorSpace", JSObject, {
         }
         var xyz = space.xyzFromComponents(components);
         return this.componentsFromXYZ(xyz);
-    }
+    },
+
+    mixedComponents: function(a, b, percentage){
+        var mixed = [];
+        for (var i = 0; i < this.numberOfComponents; ++i){
+            mixed.push(a[i] + (b[i] - a[i]) * percentage);
+        }
+        return mixed;
+    },
+
+    componentsDarkenedByPercentage: function(components, percentage){
+        var rgb = this.rgbFromComponents(components);
+        var darkenedRGB = JSColorSpace.rgb.componentsDarkenedByPercentage(rgb, percentage);
+        return this.componentsFromSpace(JSColorSpace.rgb, darkenedRGB);
+    },
+
+    componentsLightenedByPercentage: function(components, percentage){
+        var rgb = this.rgbFromComponents(components);
+        var lightenedRGB = JSColorSpace.rgb.componentsLightenedByPercentage(rgb, percentage);
+        return this.componentsFromSpace(JSColorSpace.rgb, lightenedRGB);
+    },
+
+    compareComponents: function(a, b){
+        for (var i = 0; i < this.numberOfComponents; ++i){
+            if (a[i] !== b[i]){
+                return false;
+            }
+        }
+        return true;
+    },
 
 });
 
@@ -184,6 +219,22 @@ JSClass("JSRGBColorSpace", JSColorSpace, {
 
     grayFromComponents: function(components){
         return [(components[0] + components[1] + components[2]) / 3];
+    },
+
+    componentsDarkenedByPercentage: function(components, percentage){
+        return [
+            components[0] - components[0] * percentage,
+            components[1] - components[1]  * percentage,
+            components[2] - components[2]  * percentage
+        ];
+    },
+
+    componentsLightenedByPercentage: function(components, percentage){
+        return [
+            components[0] + (1.0 - components[0]) * percentage,
+            components[1] + (1.0 - components[1]) * percentage,
+            components[2] + (1.0 - components[2]) * percentage
+        ];
     },
 
     // MARK: - Lab conversions
@@ -328,6 +379,15 @@ JSClass("JSRGBColorSpace", JSColorSpace, {
         ];
     },
 
+    compareComponents: function(a, b){
+        for (var i = 0; i < this.numberOfComponents; ++i){
+            if (Math.round(a[i] * 255) !== Math.round(b[i] * 255)){
+                return false;
+            }
+        }
+        return true;
+    }
+
 });
 
 JSClass("JSGrayColorSpace", JSColorSpace, {
@@ -345,6 +405,27 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
     grayFromComponents: function(components){
         return [components[0]];
     },
+
+    compareComponents: function(a, b){
+        for (var i = 0; i < this.numberOfComponents; ++i){
+            if (Math.round(a[i] * 255) !== Math.round(b[i] * 255)){
+                return false;
+            }
+        }
+        return true;
+    },
+
+    componentsDarkenedByPercentage: function(components, percentage){
+        return [
+            components[0] - components[0] * percentage
+        ];
+    },
+
+    componentsLightenedByPercentage: function(components, percentage){
+        return [
+            components[0] + (1.0 - components[0]) * percentage
+        ];
+    }
 
 });
 
@@ -382,6 +463,89 @@ JSClass("JSDerivedColorSpace", JSColorSpace, {
 
 });
 
+JSClass("JSIndexedColorSpace", JSColorSpace, {
+
+    name: "indexed",
+    numberOfComponents: 1,
+    componentNames: {"index": 0},
+    canMixComponents: false,
+    colors: null,
+
+    init: function(){
+        this.colors = [];
+    },
+
+    addColor: function(color){
+        var index = this.colors.length;
+        this.colors.push(color);
+        return JSColor.initWithSpaceAndComponents(this, [index, -1]);
+    },
+
+    setColorAtIndex: function(color, index){
+        this.colors[index] = color;
+    },
+
+    rgbFromComponents: function(components){
+        var rgba = this.colors[components[0]].rgbaColor().components;
+        return [
+            rgba[0],
+            rgba[1],
+            rgba[2],
+        ];
+    },
+
+    grayFromComponents: function(components){
+        var graya = this.colors[components[0]].grayColor().components;
+        return [
+            graya[0],
+        ];
+    },
+
+    alphaFromComponents: function(components){
+        return this.colors[components[0]].alpha;
+    },
+
+});
+
+JSClass("JSNamedColorSpace", JSColorSpace, {
+
+    name: "named",
+    numberOfComponents: 1,
+    componentNames: {"name": 1},
+    canMixComponents: false,
+    colors: null,
+
+    init: function(){
+        this.colors = {};
+    },
+
+    setColorForName: function(name, color){
+        this.colors[name] = color;
+        return JSColor.initWithSpaceAndComponents(this, [name, -1]);
+    },
+
+    rgbFromComponents: function(components){
+        var rgba = this.colors[components[0]].rgbaColor().components;
+        return [
+            rgba[0],
+            rgba[1],
+            rgba[2],
+        ];
+    },
+
+    grayFromComponents: function(components){
+        var graya = this.colors[components[0]].grayColor().components;
+        return [
+            graya[0],
+        ];
+    },
+
+    alphaFromComponents: function(components){
+        return this.colors[components[0]].alpha;
+    },
+
+});
+
 Object.defineProperties(JSColorSpace, {
 
     rgb: {
@@ -398,6 +562,15 @@ Object.defineProperties(JSColorSpace, {
         get: function(){
             var space = JSGrayColorSpace.init();
             Object.defineProperty(this, "gray", {value: space});
+            return space;
+        }
+    },
+
+    named: {
+        configurable: true,
+        get: function(){
+            var space = JSNamedColorSpace.init();
+            Object.defineProperty(this, "named", {value: space});
             return space;
         }
     },

@@ -15,12 +15,13 @@
 //
 // #import Foundation
 // #import "UIUserInterface.js"
+// #import "UIColorSpace.js"
 /* global UIApplication */
 "use strict";
 
-JSClass("UIColor", JSColor, {
+JSColor.definePropertiesFromExtensions({
 
-    initWithStyles: function(lightColor, darkColor, lightContrastColor, darkContrastColor){
+    initWithUIStyles: function(lightColor, darkColor, lightContrastColor, darkContrastColor){
         if (darkColor === undefined){
             darkColor = lightColor;
         }
@@ -30,121 +31,90 @@ JSClass("UIColor", JSColor, {
         if (darkContrastColor === undefined){
             darkContrastColor = darkColor;
         }
-        this.lightColor = lightColor;
-        this.darkColor = darkColor;
-        this.lightContrastColor = lightContrastColor;
-        this.darkContrastColor = darkContrastColor;
-    },
-
-    lightColor: null,
-    darkColor: null,
-    lightContrastColor: null,
-    darkContrastColor: null,
-
-    colorForTraits: function(traits){
-        if (traits.accessibilityContrast === UIUserInterface.Contrast.high){
-            if (traits.userInterfaceStyle === UIUserInterface.Style.dark){
-                return this.darkContrastColor;
-            }
-            return this.lightContrastColor;
-        }
-        if (traits.userInterfaceStyle === UIUserInterface.Style.dark){
-            return this.darkColor;
-        }
-        return this.lightColor;
-    },
-
-    adaptToTraits: function(traits){
-        var color = this.colorForTraits(traits);
-        this._space = color._space;
-        this._components = color._components;
-    },
-
-    colorWithAlpha: function(alpha){
-        var lightColor = this.lightColor.colorWithAlpha(alpha);
-        var darkColor = this.darkColor.colorWithAlpha(alpha);
-        var lightContrastColor = this.lightContrastColor.colorWithAlpha(alpha);
-        var darkContrastColor = this.darkContrastColor.colorWithAlpha(alpha);
-        return UIColor.initWithStyles(lightColor, darkColor, lightContrastColor, darkContrastColor);
-    },
-
-    rgbaColor: function(){
-        if (this.lightColor._space === JSColorSpace.rgb && this.darkColor._space === JSColorSpace.rgb && this.lightContrastColor._space === JSColorSpace.rgb && this.darkContrastColor._space === JSColorSpace.rgb){
-            return this;
-        }
-        var lightColor = this.lightColor.rgbaColor();
-        var darkColor = this.darkColor.rgbaColor();
-        var lightContrastColor = this.lightContrastColor.rgbaColor();
-        var darkContrastColor = this.darkContrastColor.rgbaColor();
-        return UIColor.initWithStyles(lightColor, darkColor, lightContrastColor, darkContrastColor);
-    },
-
-    grayColor: function(){
-        if (this.lightColor._space === JSColorSpace.gray && this.darkColor._space === JSColorSpace.gray && this.lightContrastColor._space === JSColorSpace.gray && this.darkContrastColor._space === JSColorSpace.gray){
-            return this;
-        }
-        var lightColor = this.lightColor.grayColor();
-        var darkColor = this.darkColor.grayColor();
-        var lightContrastColor = this.lightContrastColor.grayColor();
-        var darkContrastColor = this.darkContrastColor.grayColor();
-        return UIColor.initWithStyles(lightColor, darkColor, lightContrastColor, darkContrastColor);
-    },
-
-    colorByBlendingColor: function(other, percentage){
-        var lightColor;
-        var darkColor;
-        var lightContrastColor;
-        var darkContrastColor;
-        if (other.isKindOfClass(UIColor)){
-            lightColor = this.lightColor.colorByBlendingColor(other.lightColor, percentage);
-            darkColor = this.darkColor.colorByBlendingColor(other.darkColor, percentage);
-            lightContrastColor = this.lightContrastColor.colorByBlendingColor(other.lightContrastColor, percentage);
-            darkContrastColor = this.darkContrastColor.colorByBlendingColor(other.darkContrastColor, percentage);
+        if (lightColor.space === JSColorSpace.ui){
+            lightColor = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, lightColor.components.slice(0, 4));
         }else{
-            lightColor = this.lightColor.colorByBlendingColor(other, percentage);
-            darkColor = this.darkColor.colorByBlendingColor(other, percentage);
-            lightContrastColor = this.lightContrastColor.colorByBlendingColor(other, percentage);
-            darkContrastColor = this.darkContrastColor.colorByBlendingColor(other, percentage);
+            lightColor = lightColor.rgbaColor();
         }
-        return UIColor.initWithStyles(lightColor, darkColor, lightContrastColor, darkContrastColor);
+        if (darkColor.space === JSColorSpace.ui){
+            darkColor = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, darkColor.components.slice(4, 8));
+        }else{
+            darkColor = darkColor.rgbaColor();
+        }
+        if (lightContrastColor.space === JSColorSpace.ui){
+            lightContrastColor = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, lightContrastColor.components.slice(8, 12));
+        }else{
+            lightContrastColor = lightContrastColor.rgbaColor();
+        }
+        if (darkContrastColor.space === JSColorSpace.ui){
+            darkContrastColor = JSColor.initWithSpaceAndComponents(JSColorSpace.rgb, darkContrastColor.components.slice(12, 16));
+        }else{
+            darkContrastColor = darkContrastColor.rgbaColor();
+        }
+        var space = JSColorSpace.ui;
+        var components = [
+            lightColor.components[0],
+            lightColor.components[1],
+            lightColor.components[2],
+            lightColor.components[3],
+            darkColor.components[0],
+            darkColor.components[1],
+            darkColor.components[2],
+            darkColor.components[3],
+            lightContrastColor.components[0],
+            lightContrastColor.components[1],
+            lightContrastColor.components[2],
+            lightContrastColor.components[3],
+            darkContrastColor.components[0],
+            darkContrastColor.components[1],
+            darkContrastColor.components[2],
+            darkContrastColor.components[3],
+            -1
+        ];
+        return JSColor.initWithSpaceAndComponents(space, components);
     },
 
 });
 
+JSColor.defineInitMethod("initWithUIStyles");
+
+// JSColorSpace.theme.setStylesForName("background", JSColor.white, JSColor.initWithWhite(0.15));
+// JSColorSpace.theme.setStylesForName("text", JSColor.black, JSColor.initWithWhite(0.9));
+
 // Common Colors
-JSColor.background = UIColor.initWithStyles(JSColor.white, JSColor.initWithWhite(0.15));
-JSColor.text = UIColor.initWithStyles(JSColor.black, JSColor.initWithWhite(0.9));
-JSColor.hightlight = UIColor.initWithStyles(JSColor.initWithRGBA(0, 0.5, 1), JSColor.initWithRGBA(0.5, 0.75, 1));
-JSColor.mutedHighlight = UIColor.initWithStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
-JSColor.highlightedText = UIColor.initWithStyles(JSColor.white, JSColor.white);
-JSColor.placeholderText = UIColor.initWithStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.4));
+JSColor.background = JSColor.initWithUIStyles(JSColor.white, JSColor.initWithWhite(0.15));
+JSColor.text = JSColor.initWithUIStyles(JSColor.black, JSColor.initWithWhite(0.9));
+JSColor.hightlight = JSColor.initWithUIStyles(JSColor.initWithRGBA(0, 0.5, 1), JSColor.initWithRGBA(0.5, 0.75, 1));
+JSColor.mutedHighlight = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
+JSColor.highlightedText = JSColor.initWithUIStyles(JSColor.white, JSColor.white);
+JSColor.placeholderText = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.4));
 
 // Control Colors
-JSColor.controlBackground = UIColor.initWithStyles(JSColor.initWithWhite(0.98), JSColor.initWithWhite(0.2));
-JSColor.controlBorder = UIColor.initWithStyles(JSColor.initWithWhite(0.8), JSColor.initWithWhite(0.1));
-JSColor.controlTitle = UIColor.initWithStyles(JSColor.initWithWhite(0.2), JSColor.white);
-JSColor.activeControlBackground = UIColor.initWithStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.1));
-JSColor.activeControlBorder = UIColor.initWithStyles(JSColor.initWithWhite(0.75), JSColor.black);
-JSColor.activeControlTitle = UIColor.initWithStyles(JSColor.initWithWhite(0.2), JSColor.white);
-JSColor.disabledControlBackground = UIColor.initWithStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.1));
-JSColor.disabledControlBorder = UIColor.initWithStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.05));
-JSColor.disabledControlTitle = UIColor.initWithStyles(JSColor.initWithWhite(0.6), JSColor.initWithWhite(0.4));
-JSColor.controlShadow = UIColor.initWithStyles(JSColor.black.colorWithAlpha(0.1));
+JSColor.controlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.98), JSColor.initWithWhite(0.2));
+JSColor.controlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.8), JSColor.initWithWhite(0.1));
+JSColor.controlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
+JSColor.activeControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.1));
+JSColor.activeControlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.75), JSColor.black);
+JSColor.activeControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.initWithWhite(0.8));
+JSColor.disabledControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.1));
+JSColor.disabledControlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.05));
+JSColor.disabledControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.6), JSColor.initWithWhite(0.4));
+JSColor.controlShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.1));
 
 // Window Colors
-JSColor.windowShadow = UIColor.initWithStyles(JSColor.black.colorWithAlpha(0.4));
+JSColor.windowShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.4));
 
 // Tooltip Colors
-JSColor.toolip = UIColor.initWithStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.2));
-JSColor.tooltipText = UIColor.initWithStyles(JSColor.initWithWhite(0.2), JSColor.white);
-JSColor.tooltipBorder = UIColor.initWithStyles(JSColor.initWithWhite(0.7), JSColor.black);
-JSColor.tooltipShadow = UIColor.initWithStyles(JSColor.black.colorWithAlpha(0.2));
+JSColor.toolip = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.2));
+JSColor.tooltipText = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
+JSColor.tooltipBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.7), JSColor.black);
+JSColor.tooltipShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2));
 
 // Menu Colors
-JSColor.menuBar = UIColor.initWithStyles(JSColor.initWithWhite(0.94), JSColor.black);
-JSColor.menuBarText = UIColor.initWithStyles(JSColor.black, JSColor.white);
-JSColor.menu = UIColor.initWithStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.3));
-JSColor.menuText = UIColor.initWithStyles(JSColor.initWithWhite(0.2), JSColor.white);
+JSColor.menuBar = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.black);
+JSColor.menuBarText = JSColor.initWithUIStyles(JSColor.black, JSColor.white);
+JSColor.menu = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.3));
+JSColor.menuText = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
 
 // JSClass("UIColor", JSColor, {
 

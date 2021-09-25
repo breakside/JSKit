@@ -281,5 +281,33 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertFloatEquals(color.components[1], 0.6);
         TKAssertFloatEquals(color.components[2], 0.14);
         TKAssertFloatEquals(color.components[3], 0.5);
+    },
+
+    testColorDarkenedByPercentage: function(){
+        var color = JSColor.initWithWhite(0.5);
+        var darkened = color.colorDarkenedByPercentage(0.1);
+        TKAssertExactEquals(darkened._space, JSColorSpace.gray);
+        TKAssertFloatEquals(darkened.components[0], 0.45);
+
+        color = JSColor.initWithRGBA(0, 0.5, 1);
+        darkened = color.colorDarkenedByPercentage(0.1);
+        TKAssertExactEquals(darkened._space, JSColorSpace.rgb);
+        TKAssertFloatEquals(darkened.components[0], 0);
+        TKAssertFloatEquals(darkened.components[1], 0.45);
+        TKAssertFloatEquals(darkened.components[2], 0.9);
+    },
+
+    testColorLightenedByPercentage: function(){
+        var color = JSColor.initWithWhite(0.5);
+        var lightened = color.colorLightenedByPercentage(0.1);
+        TKAssertExactEquals(lightened._space, JSColorSpace.gray);
+        TKAssertFloatEquals(lightened.components[0], 0.55);
+
+        color = JSColor.initWithRGBA(0, 0.5, 1);
+        lightened = color.colorLightenedByPercentage(0.1);
+        TKAssertExactEquals(lightened._space, JSColorSpace.rgb);
+        TKAssertFloatEquals(lightened.components[0], 0.1);
+        TKAssertFloatEquals(lightened.components[1], 0.55);
+        TKAssertFloatEquals(lightened.components[2], 1);
     }
 });

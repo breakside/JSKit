@@ -21,7 +21,7 @@
 // #import "UITooltipWindow.js"
 // #import "UIDraggingSession.js"
 // #import "UIUserInterface.js"
-// #import "UIColor.js"
+// #import "UIColorSpace.js"
 'use strict';
 
 (function(){
@@ -35,7 +35,6 @@ JSClass("UIWindowServer", JSObject, {
     textInputManager: null,
     keyWindow: null,
     mainWindow: null,
-    menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
     mouseLocation: null,
     fullKeyboardAccessEnabled: false,
@@ -343,6 +342,8 @@ JSClass("UIWindowServer", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Menu Bar
+    
+    menuBar: JSDynamicProperty('_menuBar', null),
 
     setMenuBar: function(menuBar){
         if (this._menuBar){
@@ -1010,19 +1011,15 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Traits
 
-    _traitCollection: null,
+    traitCollection: JSDynamicProperty("_traitCollection", null),
 
     setTraitCollection: function(traitCollection){
         if (this._traitCollection.isEqual(traitCollection)){
             return;
         }
         this._traitCollection = traitCollection;
-        for (var name in JSColor){
-            if (JSColor[name] instanceof UIColor){
-                JSColor[name].adaptToTraits(traitCollection);
-            }
-        }
-        if (this._windowStack.length > 0){
+        UIColorSpace.setTraitCollection(traitCollection);
+        if (this.windowStack.length > 0){
             var window;
             for (var i = 0, l = this.windowStack.length; i < l; ++i){
                 window = this.windowStack[i];

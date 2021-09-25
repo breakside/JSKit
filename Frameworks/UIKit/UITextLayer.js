@@ -45,7 +45,7 @@ JSClass("UITextLayer", UILayer, {
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
     font: JSDynamicProperty(),
-    textColor: JSDynamicProperty("_textColor", null),
+    textColor: JSDynamicProperty(),
     lineBreakMode: UITextLayerContainerProperty(),
     textAlignment: UITextLayerContainerProperty(),
     lineSpacing: UITextLayerContainerProperty(),
@@ -74,7 +74,6 @@ JSClass("UITextLayer", UILayer, {
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._textLayoutManager);
         this._textLayoutManager.addTextContainer(this._textContainer);
-        this._textColor = this._textLayoutManager.defaultTextColor;
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this.setNeedsLayout();
     },
@@ -97,8 +96,12 @@ JSClass("UITextLayer", UILayer, {
         this._textLayoutManager.defaultFont = font;
     },
 
+    getTextColor: function(){
+        return this._textLayoutManager.defaultTextColor;
+    },
+
     setTextColor: function(color){
-        this._textColor = color;
+        this._textLayoutManager.defaultTextColor = color;
         this.setNeedsDisplay();
     },
     
@@ -187,7 +190,6 @@ JSClass("UITextLayer", UILayer, {
 
     drawInContext: function(context){
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
-        this._textLayoutManager.defaultTextColor = this._textColor;
         this._textLayoutManager.layoutIfNeeded();
         this._textLayoutManager.drawContainerInContextAtPoint(this._textContainer, context, textOrigin);
         this._displayQueued = false;
@@ -257,6 +259,11 @@ JSClass("UITextLayer", UILayer, {
 
     layoutManagerTextContainerForLocation: function(layoutManager, location){
         return this._textContainer;
+    },
+
+    setNeedsRedisplay: function(){
+        UITextLayer.$super.setNeedsRedisplay.call(this);
+        this._textLayoutManager.setNeedsLayout();
     }
 
 });

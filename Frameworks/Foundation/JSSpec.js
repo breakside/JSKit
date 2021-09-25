@@ -66,7 +66,7 @@ JSClass("JSSpec", JSObject, {
         }else if (typeof(value) == 'object'){
             this._dictionaryValue = value;
         }
-        this._root = root;
+        this._root = root || this;
         this._cache = {};
     },
 

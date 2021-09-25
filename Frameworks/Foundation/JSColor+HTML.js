@@ -19,12 +19,21 @@
 JSColor.definePropertiesFromExtensions({
 
     _cachedCSSString: null,
+    _cachedCSSNumber: -1,
 
     cssString: function(){
-        if (this._cachedCSSString === null){
+        if (this._cachedCSSString === null || this._cachedCSSNumber !== JSColorSpace._cssCacheNumber){
             var rgbaColor = this.rgbaColor();
             this._cachedCSSString = 'rgba(%d, %d, %d, %f)'.sprintf(Math.round(rgbaColor.components[0] * 255), Math.round(rgbaColor.components[1] * 255), Math.round(rgbaColor.components[2] * 255), rgbaColor.components[3]);
+            this._cachedCSSNumber = JSColor._cssCacheNumber;
         }
         return this._cachedCSSString;
     }
+
 });
+
+JSColor._cssCacheNumber = 0;
+
+JSColor.invalidateCSSCache = function(){
+    ++JSColor._cssCacheNumber;
+};

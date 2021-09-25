@@ -308,8 +308,10 @@ JSClass('UIWindow', UIView, {
     // MARK: Traits
 
     layerDidChangeSize: function(){
-        var traits = this._traitCollection.traitsWithSize(this.bounds.size);
-        this._setTraitCollection(traits);
+        if (this._traitCollection !== null){
+            var traits = this._traitCollection.traitsWithSize(this.bounds.size);
+            this._setTraitCollection(traits);
+        }
     },
     
     traitCollection: JSReadOnlyProperty('_traitCollection', null),

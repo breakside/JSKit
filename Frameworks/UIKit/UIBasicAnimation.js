@@ -97,6 +97,12 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
         if (this._toValue === null){
             this._toValue = JSResolveDottedName(this.layer.model, this.keyPath);
         }
+        if ((this._fromValue instanceof JSColor) && (this._toValue instanceof JSColor)){
+            if (this._fromValue.space !== this._toValue.space || !this._fromValue.space.canMixComponents){
+                this._fromValue = this._fromValue.rgbaColor();
+                this._toValue = this._toValue.rgbaColor();
+            }
+        }
         return UIAnimation.interpolationForValues(this._fromValue, this._toValue);
     }
 
