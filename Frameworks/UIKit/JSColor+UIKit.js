@@ -71,7 +71,7 @@ JSColor.definePropertiesFromExtensions({
             darkContrastColor.components[3],
             -1
         ];
-        return JSColor.initWithSpaceAndComponents(space, components);
+        this.initWithSpaceAndComponents(space, components);
     },
 
 });

@@ -463,12 +463,40 @@ JSClass("JSDerivedColorSpace", JSColorSpace, {
 
 });
 
-JSClass("JSIndexedColorSpace", JSColorSpace, {
+JSClass("JSMappedColorSpace", JSColorSpace, {
+
+    canMixComponents: false,
+
+    colorFromComponents: function(components){
+    },
+
+    rgbFromComponents: function(components){
+        var rgba = this.colorFromComponents(components).rgbaColor().components;
+        return [
+            rgba[0],
+            rgba[1],
+            rgba[2],
+        ];
+    },
+
+    grayFromComponents: function(components){
+        var graya = this.colorFromComponents(components).grayColor().components;
+        return [
+            graya[0],
+        ];
+    },
+
+    alphaFromComponents: function(components){
+        return this.colorFromComponents(components).alpha;
+    },
+
+});
+
+JSClass("JSIndexedColorSpace", JSMappedColorSpace, {
 
     name: "indexed",
-    numberOfComponents: 1,
+    numberOfComponents: 2,
     componentNames: {"index": 0},
-    canMixComponents: false,
     colors: null,
 
     init: function(){
@@ -478,41 +506,30 @@ JSClass("JSIndexedColorSpace", JSColorSpace, {
     addColor: function(color){
         var index = this.colors.length;
         this.colors.push(color);
-        return JSColor.initWithSpaceAndComponents(this, [index, -1]);
+        return JSColor.initWithSpaceAndComponents(this, [index, 1, -1]);
     },
 
     setColorAtIndex: function(color, index){
         this.colors[index] = color;
     },
 
-    rgbFromComponents: function(components){
-        var rgba = this.colors[components[0]].rgbaColor().components;
-        return [
-            rgba[0],
-            rgba[1],
-            rgba[2],
-        ];
-    },
-
-    grayFromComponents: function(components){
-        var graya = this.colors[components[0]].grayColor().components;
-        return [
-            graya[0],
-        ];
-    },
-
-    alphaFromComponents: function(components){
-        return this.colors[components[0]].alpha;
+    colorFromComponents: function(components){
+        var color = this.colors[components[0]];
+        if (components[1] < 1){
+            color = color.colorDarkenedByPercentage(1 - components[1]);
+        }else if (components[1] > 1){
+            color = color.colorLightenedByPercentage(components[1] - 1);
+        }
+        return color;
     },
 
 });
 
-JSClass("JSNamedColorSpace", JSColorSpace, {
+JSClass("JSNamedColorSpace", JSMappedColorSpace, {
 
     name: "named",
-    numberOfComponents: 1,
+    numberOfComponents: 2,
     componentNames: {"name": 1},
-    canMixComponents: false,
     colors: null,
 
     init: function(){
@@ -521,28 +538,32 @@ JSClass("JSNamedColorSpace", JSColorSpace, {
 
     setColorForName: function(name, color){
         this.colors[name] = color;
-        return JSColor.initWithSpaceAndComponents(this, [name, -1]);
+        return JSColor.initWithSpaceAndComponents(this, [name, 1, -1]);
     },
 
-    rgbFromComponents: function(components){
-        var rgba = this.colors[components[0]].rgbaColor().components;
+    colorFromComponents: function(components){
+        var color = this.colors[components[0]];
+        if (components[1] < 1){
+            color = color.colorDarkenedByPercentage(1 - components[1]);
+        }else if (components[1] > 1){
+            color = color.colorLightenedByPercentage(components[1] - 1);
+        }
+        return color;
+    },
+
+    componentsDarkenedByPercentage: function(components, percentage){
         return [
-            rgba[0],
-            rgba[1],
-            rgba[2],
+            components[0],
+            components[1] * (1.0 - percentage)
         ];
     },
 
-    grayFromComponents: function(components){
-        var graya = this.colors[components[0]].grayColor().components;
+    componentsLightenedByPercentage: function(components, percentage){
         return [
-            graya[0],
+            components[0],
+            components[1] * (1.0 + percentage)
         ];
-    },
-
-    alphaFromComponents: function(components){
-        return this.colors[components[0]].alpha;
-    },
+    }
 
 });
 

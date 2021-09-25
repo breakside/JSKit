@@ -35,16 +35,6 @@ JSClass("UIColorSpace", JSColorSpace, {
         throw new Error("Unable to convert from XYZ -> UI color space");
     },
 
-    componentsFromSpace: function(space, components){
-        if (space === this){
-            // slice to create a copy and to always return the expected number of
-            // components regardless of whether an alpha component was passed in
-            return components.slice(0, this.numberOfComponents);
-        }
-        var xyz = space.xyzFromComponents(components);
-        return this.componentsFromXYZ(xyz);
-    },
-
     componentsDarkenedByPercentage: function(components, percentage){
         return [
             components[0] - components[0] * percentage,
@@ -112,10 +102,15 @@ UIColorSpace.setTraitCollection = function(traitCollection){
 
 JSClass("UINamedColorSpace", JSNamedColorSpace, {
 
+    name: "uinamed",
+
     setColorForName: function(name, color){
         UINamedColorSpace.$super.setColorForName.call(this, name, color);
         if (JSGlobalObject && UIApplication.shared){
             UIApplication.shared.windowServer.setNeedsRedisplay();
+            if (JSColor.invalidateCSSCache){
+                JSColor.invalidateCSSCache();
+            }
         }
     },
 
