@@ -153,16 +153,13 @@ JSClass("UIColorPanelViewController", UIViewController, {
         wellStyler.disabledBorderWidth = 0;
         wellStyler.cornerRadius = 3;
         var componentStyler = UITextFieldCustomStyler.init();
-        componentStyler.backgroundColor = JSColor.white.colorWithAlpha(0.4);
-        componentStyler.activeBackgroundColor = JSColor.white.colorWithAlpha(0.8);
+        componentStyler.backgroundColor = JSColor.initWithUIStyles(JSColor.white, JSColor.white.colorWithAlpha(0.1));
         componentStyler.cornerRadius = 3;
         componentStyler.textInsets = JSInsets(3, 4);
-        componentStyler.textColor = JSColor.black;
-        componentStyler.placeholderColor = JSColor.black.colorWithAlpha(0.4);
+        componentStyler.textColor = JSColor.text;
+        componentStyler.placeholderColor = JSColor.placeholderText;
         componentStyler.borderWidth = 1;
-        componentStyler.borderColor = JSColor.black.colorWithAlpha(0.2);
-        componentStyler.activeBorderColor = JSColor.black.colorWithAlpha(0.4);
-        componentStyler.disabledBorderColor = JSColor.black.colorWithAlpha(0.2);
+        componentStyler.borderColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.4));
         this.saturationBrightnessControl = UIColorPanelTwoAxisSlider.init();
         this.hueSlider = UISlider.initWithStyler(hueStyler);
         this.alphaSlider = UISlider.initWithStyler(alphaStyler);
@@ -203,7 +200,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.hexLabel.text = "Hex";
         this._updateComponentLabels();
         this.component4Label.text = "Alpha";
-        this.hexLabel.textColor = JSColor.initWithWhite(0.5);
+        this.hexLabel.textColor = JSColor.text.colorWithAlpha(0.5);
         this.component1Label.textColor = this.hexLabel.textColor;
         this.component2Label.textColor = this.hexLabel.textColor;
         this.component3Label.textColor = this.hexLabel.textColor;
@@ -216,7 +213,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
 
         var hashLabel = UILabel.init();
         hashLabel.font = this.hexField.font;
-        hashLabel.textColor = JSColor.initWithWhite(0.6);
+        hashLabel.textColor = JSColor.text.colorWithAlpha(0.4);
         hashLabel.text = "#";
         hashLabel.sizeToFit();
         this.hexField.leftAccessoryView = hashLabel;
@@ -733,12 +730,12 @@ JSClass("UIColorPanelTwoAxisSlider", UIControl, {
         this._maximumValue = JSPoint(1, 1);
         this.knobSize = JSSize(16, 16);
         this._value = JSPoint(0, 0);
-        this.normalKnobBackgroundColor = JSColor.white;
-        this.activeKnobBackgroundColor = JSColor.white;
-        this.disabledKnobBackgroundColor = this.normalKnobBackgroundColor.colorWithAlpha(0.5);
-        this.normalKnobBorderColor = JSColor.black.colorWithAlpha(0.2);
-        this.activeKnobBorderColor = JSColor.black.colorWithAlpha(0.3);
-        this.disabledKnobBorderColor = JSColor.black.colorWithAlpha(0.1);
+        this.normalKnobBackgroundColor = JSColor.controlBackground;
+        this.activeKnobBackgroundColor = JSColor.activeControlBackground;
+        this.disabledKnobBackgroundColor = JSColor.disabledControlBackground;
+        this.normalKnobBorderColor = JSColor.controlBorder;
+        this.activeKnobBorderColor = JSColor.activeControlBorder;
+        this.disabledKnobBorderColor = JSColor.disabledControlBorder;
         this.xLayer = UILayer.init();
         this.yLayer = UILayer.init();
         this.yLayer.backgroundGradient = JSGradient.initWithColors([JSColor.black, JSColor.black.colorWithAlpha(0)]);

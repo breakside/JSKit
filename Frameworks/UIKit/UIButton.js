@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIEvent.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIButton", UIControl, {

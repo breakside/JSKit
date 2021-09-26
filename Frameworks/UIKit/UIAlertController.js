@@ -214,7 +214,7 @@ UIAlertController.ButtonStylers = Object.create({}, {
         get: function(){
             var styler = UIButtonDefaultStyler.init();
             styler.font = styler.font.fontWithPointSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.bold);
-            styler.normalTitleColor = JSColor.initWithRGBA(204/255,0,0);
+            styler.normalTitleColor = JSColor.initWithUIStyles(JSColor.initWithRGBA(0.8,0,0), JSColor.initWithRGBA(1,0.5,0.5));
             styler.activeTitleColor = styler.normalTitleColor.colorDarkenedByPercentage(0.2);
             styler.disabledTitleColor = styler.normalTitleColor.colorWithAlpha(0.5);
             Object.defineProperty(this, 'destructive', {writable: true, value: styler});

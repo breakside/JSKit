@@ -21,6 +21,7 @@
 // #import "UITextAttachmentView.js"
 // #import "UIImageView.js"
 // #import "UIPasteboard.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -134,6 +135,7 @@ JSClass("UITextField", UIControl, {
             this._styler = UITextField.Styler.default;
         }
         this.hasOverState = this._styler.showsOverState;
+        this.textColor = JSColor.text;
         this._styler.initializeControl(this);
     },
 
@@ -249,7 +251,7 @@ JSClass("UITextField", UIControl, {
     _createPlaceholderColor: function(){
         var backgroundColor = this.backgroundColor;
         if (backgroundColor === null){
-            backgroundColor = JSColor.white;
+            backgroundColor = JSColor.background;
         }
         this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
     },
@@ -1267,7 +1269,7 @@ JSClass("UITextFieldStyler", UIControlStyler, {
 
     _commonStylerInit: function(){
         if (this.localCursorColor === null){
-            this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 1);
+            this.localCursorColor = JSColor.highlight;
         }
     },
 
@@ -1317,8 +1319,8 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
     },
 
     _commonDefaultStylerInit: function(){
-        this.activeColor = JSColor.black;
-        this.inactiveColor = JSColor.initWithWhite(0.8);
+        this.activeColor = JSColor.text;
+        this.inactiveColor = JSColor.text.colorWithAlpha(0.2);
         this.textInsets = JSInsets(3, 0);
     },
 
@@ -1366,6 +1368,11 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     textInsets: null,
     showsFocusRing: true,
 
+    init: function(){
+        UITextFieldCustomStyler.$super.init.call(this);
+        this.textColor = JSColor.text;
+    },
+
     initWithSpec: function(spec){
         UITextFieldCustomStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("backgroundColor")){
@@ -1388,6 +1395,8 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
         }
         if (spec.containsKey("textColor")){
             this.textColor = spec.valueForKey("textColor", JSColor);
+        }else{
+            this.textColor = JSColor.text;
         }
         if (spec.containsKey("placeholderColor")){
             this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);

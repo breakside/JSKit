@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIEvent.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UISegmentedControl", UIControl, {
@@ -662,21 +663,21 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
     cornerRadius: 3,
 
     init: function(){
-        this.normalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-        this.activeBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-        this.disabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-        this.selectedBackgroundColor = JSColor.initWithRGBA(128/255,128/255,128/255);
-        this.selectedActiveBackgroundColor = JSColor.initWithRGBA(102/255,102/255,102/255);
-        this.normalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-        this.activeBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-        this.disabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-        this.selectedBorderColor = this.selectedBackgroundColor;
-        this.selectedActiveBorderColor = this.selectedActiveBackgroundColor;
-        this.normalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-        this.activeTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-        this.disabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
-        this.selectedTitleColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-        this.selectedActiveTitleColor = this.selectedTitleColor;
+        this.normalBackgroundColor = JSColor.controlBackground;
+        this.activeBackgroundColor = JSColor.activeControlBackground;
+        this.disabledBackgroundColor = JSColor.disabledControlBackground;
+        this.selectedBackgroundColor = JSColor.selectedControlBackground;
+        this.selectedActiveBackgroundColor = JSColor.activeSelectedControlBackground;
+        this.normalBorderColor = JSColor.controlBorder;
+        this.activeBorderColor = JSColor.activeControlBorder;
+        this.disabledBorderColor = JSColor.disabledControlBorder;
+        this.selectedBorderColor = JSColor.selectedControlBorder;
+        this.selectedActiveBorderColor = JSColor.activeSelectedControlBorder;
+        this.normalTitleColor = JSColor.controlTitle;
+        this.activeTitleColor = JSColor.activeControlTitle;
+        this.disabledTitleColor = JSColor.disabledControlTitle;
+        this.selectedTitleColor = JSColor.selectedControlTitle;
+        this.selectedActiveTitleColor = JSColor.activeSelectedControlTitle;
         this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
         this.shadowOffset = JSPoint(0, 1);
         this.titleInsets = JSInsets(3, 7);

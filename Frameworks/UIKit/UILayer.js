@@ -733,7 +733,16 @@ JSClass("UILayer", JSObject, {
         if (this._displayServer !== null){
             var displayContext = this._displayServer.contextForLayer(this);
             if (context === displayContext){
-                this.setNeedsDisplay();
+                var layers = [this];
+                var layer;
+                var i, l;
+                while (layers.length > 0){
+                    layer = layers.shift();
+                    layer.setNeedsRedisplay();
+                    for (i = 0, l = layer.sublayers.length; i < l; ++i){
+                        layers.push(layer.sublayers[i]);
+                    }
+                }
                 return;
             }
         }

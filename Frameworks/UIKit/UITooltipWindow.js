@@ -69,7 +69,7 @@ JSClass("UITooltipWindowStyler", UIWindowStyler, {
         this.backgroundColor = JSColor.tooltip;
         this.borderColor = JSColor.tooltipBorder;
         this.shadowColor = JSColor.tooltipShadow;
-        this.font = JSFont.systemFontOfSize(12.0);
+        this.font = JSFont.systemFontOfSize(JSFont.Size.detail);
         this.textColor = JSColor.tooltipText;
         this.textInsets = JSInsets(4, 6);
     },

@@ -16,6 +16,7 @@
 // #import "UIWindow.js"
 // #import "UIMenu.js"
 // #import "UIMenuView.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIMenuBar", UIWindow, {
@@ -86,11 +87,11 @@ JSClass("UIMenuBar", UIWindow, {
         this.contentView = UIView.init();
         this._clipView = UIView.init();
         this.contentView.addSubview(this._clipView);
-        // this.backgroundColor = JSColor.initWithRGBA(1, 1, 1, 0.95);
+        this.backgroundColor = JSColor.menuBar;
         this._font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);
-        this._textColor = UIMenu.Styler.default.textColor;
-        this._highlightColor = UIMenu.Styler.default.highlightColor;
-        this._highlightedTextColor = UIMenu.Styler.default.highlightedTextColor;
+        this._textColor = JSColor.menuBarText;
+        this._highlightColor = JSColor.highlight;
+        this._highlightedTextColor = JSColor.highlightedText;
     },
 
     // --------------------------------------------------------------------

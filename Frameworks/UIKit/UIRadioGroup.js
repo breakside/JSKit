@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIEvent.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -360,16 +361,16 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
     borderWidth: 1,
 
     init: function(){
-        this.normalBackgroundColor = UIRadioButtonDefaultStyler.NormalBackgroundColor;
-        this.disabledBackgroundColor = UIRadioButtonDefaultStyler.DisabledBackgroundColor;
-        this.activeBackgroundColor = UIRadioButtonDefaultStyler.ActiveBackgroundColor;
-        this.normalBorderColor = UIRadioButtonDefaultStyler.NormalBorderColor;
-        this.disabledBorderColor = UIRadioButtonDefaultStyler.DisabledBorderColor;
-        this.activeBorderColor = UIRadioButtonDefaultStyler.ActiveBorderColor;
-        this.normalTitleColor = UIRadioButtonDefaultStyler.NormalTitleColor;
-        this.disabledTitleColor = UIRadioButtonDefaultStyler.DisabledTitleColor;
-        this.activeTitleColor = UIRadioButtonDefaultStyler.ActiveTitleColor;
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.normalBackgroundColor = JSColor.controlBackground;
+        this.disabledBackgroundColor = JSColor.disabledControlBackground;
+        this.activeBackgroundColor = JSColor.activeControlBackground;
+        this.normalBorderColor = JSColor.controlBorder;
+        this.disabledBorderColor = JSColor.disabledControlBorder;
+        this.activeBorderColor = JSColor.activeControlBorder;
+        this.normalTitleColor = JSColor.controlTitle;
+        this.disabledTitleColor = JSColor.disabledControlTitle;
+        this.activeTitleColor = JSColor.activeControlTitle;
+        this.shadowColor = JSColor.controlShadow;
         this.shadowOffset = JSPoint(0, 1);
     },
 
@@ -425,18 +426,6 @@ JSClass("UIRadioButtonDefaultStyler", UIRadioButtonStyler, {
     }
 
 });
-
-UIRadioButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UIRadioButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UIRadioButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UIRadioButtonDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UIRadioButtonDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UIRadioButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UIRadioButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIRadioButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIRadioButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
 
 var images = Object.create({}, {
 

@@ -83,38 +83,46 @@ JSColor.defineInitMethod("initWithUIStyles");
 
 // Common Colors
 JSColor.background = JSColor.initWithUIStyles(JSColor.white, JSColor.initWithWhite(0.15));
-JSColor.text = JSColor.initWithUIStyles(JSColor.black, JSColor.initWithWhite(0.9));
-JSColor.hightlight = JSColor.initWithUIStyles(JSColor.initWithRGBA(0, 0.5, 1), JSColor.initWithRGBA(0.5, 0.75, 1));
-JSColor.mutedHighlight = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
+JSColor.text = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.9), JSColor.white.colorWithAlpha(0.9));
+JSColor.highlight = JSColor.initWithUIStyles(JSColor.initWithRGBA(0, 0.5, 1), JSColor.initWithRGBA(0, 0.5, 1));
+JSColor.mutedHighlight = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.15));
 JSColor.highlightedText = JSColor.initWithUIStyles(JSColor.white, JSColor.white);
 JSColor.placeholderText = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.4));
 
 // Control Colors
-JSColor.controlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.98), JSColor.initWithWhite(0.2));
-JSColor.controlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.8), JSColor.initWithWhite(0.1));
+JSColor.controlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.98), JSColor.initWithWhite(0.35));
+JSColor.controlBorder = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.8));
 JSColor.controlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
-JSColor.activeControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.1));
-JSColor.activeControlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.75), JSColor.black);
+JSColor.activeControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.2));
+JSColor.activeControlBorder = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.8));
 JSColor.activeControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.initWithWhite(0.8));
+JSColor.selectedControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.5), JSColor.initWithWhite(0.1));
+JSColor.selectedControlBorder = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.8));
+JSColor.selectedControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.94));
+JSColor.activeSelectedControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.4), JSColor.black);
+JSColor.activeSelectedControlBorder = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.8));
+JSColor.activeSelectedControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(1.0));
 JSColor.disabledControlBackground = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.1));
-JSColor.disabledControlBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.875), JSColor.initWithWhite(0.05));
+JSColor.disabledControlBorder = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.black.colorWithAlpha(0.8));
 JSColor.disabledControlTitle = JSColor.initWithUIStyles(JSColor.initWithWhite(0.6), JSColor.initWithWhite(0.4));
-JSColor.controlShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.1));
+JSColor.controlShadow = JSColor.black.colorWithAlpha(0.1);
 
 // Window Colors
-JSColor.windowShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.4));
+JSColor.window = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.2));
+JSColor.windowShadow = JSColor.black.colorWithAlpha(0.4);
+JSColor.toolbarTitle = JSColor.text.colorWithAlpha(0.6);
 
 // Tooltip Colors
-JSColor.toolip = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.2));
-JSColor.tooltipText = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
+JSColor.tooltip = JSColor.window;
+JSColor.tooltipText = JSColor.text;
 JSColor.tooltipBorder = JSColor.initWithUIStyles(JSColor.initWithWhite(0.7), JSColor.black);
-JSColor.tooltipShadow = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2));
+JSColor.tooltipShadow = JSColor.black.colorWithAlpha(0.2);
 
 // Menu Colors
-JSColor.menuBar = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.black);
+JSColor.menuBar = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.1));
 JSColor.menuBarText = JSColor.initWithUIStyles(JSColor.black, JSColor.white);
-JSColor.menu = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.initWithWhite(0.3));
-JSColor.menuText = JSColor.initWithUIStyles(JSColor.initWithWhite(0.2), JSColor.white);
+JSColor.menu = JSColor.window;
+JSColor.menuShadow = JSColor.black.colorWithAlpha(0.2);
 
 // JSClass("UIColor", JSColor, {
 

@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIEvent.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -255,16 +256,16 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
     shadowRadius: 1,
 
     init: function(){
-        this.normalBackgroundColor = UICheckboxDefaultStyler.NormalBackgroundColor;
-        this.disabledBackgroundColor = UICheckboxDefaultStyler.DisabledBackgroundColor;
-        this.activeBackgroundColor = UICheckboxDefaultStyler.ActiveBackgroundColor;
-        this.normalBorderColor = UICheckboxDefaultStyler.NormalBorderColor;
-        this.disabledBorderColor = UICheckboxDefaultStyler.DisabledBorderColor;
-        this.activeBorderColor = UICheckboxDefaultStyler.ActiveBorderColor;
-        this.normalTitleColor = UICheckboxDefaultStyler.NormalTitleColor;
-        this.disabledTitleColor = UICheckboxDefaultStyler.DisabledTitleColor;
-        this.activeTitleColor = UICheckboxDefaultStyler.ActiveTitleColor;
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.normalBackgroundColor = JSColor.controlBackground;
+        this.disabledBackgroundColor = JSColor.disabledControlBackground;
+        this.activeBackgroundColor = JSColor.activeControlBackground;
+        this.normalBorderColor = JSColor.controlBorder;
+        this.disabledBorderColor = JSColor.disabledControlBorder;
+        this.activeBorderColor = JSColor.activeControlBorder;
+        this.normalTitleColor = JSColor.controlTitle;
+        this.disabledTitleColor = JSColor.disabledControlTitle;
+        this.activeTitleColor = JSColor.activeControlTitle;
+        this.shadowColor = JSColor.controlShadow;
         this.shadowOffset = JSPoint(0, 1);
     },
 
@@ -343,18 +344,6 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
     }
 
 });
-
-UICheckboxDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UICheckboxDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UICheckboxDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UICheckboxDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UICheckboxDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UICheckboxDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UICheckboxDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UICheckboxDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UICheckboxDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
 
 var images = Object.create({}, {
 

@@ -20,6 +20,7 @@
 // #import "UIEvent.js"
 // #import "UIWindow.js"
 // #import "UIAccessibility.js"
+// #import "JSColor+UIKit.js"
 /* global UIMenuWindow */
 'use strict';
 
@@ -444,12 +445,12 @@ JSClass("UIMenuStyler", JSObject, {
 
 });
 
-var defaultTextColor = JSColor.initWithRGBA(51/255, 51/255, 51/255, 1);
-var defaultHighlightTextColor = JSColor.initWithRGBA(1, 1, 1, 1);
-var defaultDisabledTextColor = JSColor.initWithRGBA(223/255, 223/255, 223/255, 1);
-var defaultHighlightColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
-var defaultBackgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1);
-var defaultBorderColor = JSColor.initWithRGBA(184/255, 184/255, 184/255, 1);
+var defaultTextColor = JSColor.text;
+var defaultHighlightTextColor = JSColor.highlightedText;
+var defaultDisabledTextColor = JSColor.text.colorWithAlpha(0.2);
+var defaultHighlightColor = JSColor.highlight;
+var defaultBackgroundColor = JSColor.menu;
+var defaultBorderColor = JSColor.black.colorWithAlpha(0.1);
 
 JSClass("UIMenuWindowStyler", UIMenuStyler, {
 
@@ -465,7 +466,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
     itemContentInsets: JSDynamicProperty('_itemContentInsets', JSInsets(2, 3, 2, 7)),
     indentationSize: JSDynamicProperty('_indentationSize', 10),
     separatorSize: 10,
-    separatorLineWidth: 2,
+    separatorLineWidth: 1,
     separatorColor: null,
     shadowColor: null,
     shadowRadius: 14,
@@ -474,14 +475,14 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
 
     init: function(){
         UIMenuWindowStyler.$super.init.call(this);
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        this.shadowColor = JSColor.menuShadow;
         this.shadowOffset = JSPoint.Zero;
         this.separatorColor = this.disabledTextColor;
     },
 
     initWithSpec: function(spec){
         UIMenuWindowStyler.$super.initWithSpec.call(this, spec);
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.2);
+        this.shadowColor = JSColor.menuShadow;
         this.shadowOffset = JSPoint.Zero;
         if (spec.containsKey('capSize')){
             this._capSize = spec.valueForKey("capSize");

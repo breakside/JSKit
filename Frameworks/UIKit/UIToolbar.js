@@ -32,6 +32,7 @@ JSClass("UIToolbar", UIView, {
     },
 
     initWithStyler: function(styler){
+        UIToolbar.$super.init.call(this);
         this._items = [];
         this._imageSize = UIToolbar.ImageSize.default;
         this._styler = styler;
@@ -117,7 +118,7 @@ JSClass("UIToolbar", UIView, {
 
     setShowsTitles: function(showsTitles){
         this._showsTitles = showsTitles;
-        this._styler.updateToolbar();
+        this._styler.updateToolbar(this);
     },
 
     imageSize: JSDynamicProperty('_imageSize', 0),
@@ -176,7 +177,7 @@ UIToolbar.Styler = Object.create({}, {
     default: {
         configurable: true,
         get: function UIToolbarStyler_getDefault(){
-            var styler = UIToolbarCustomStyler.initWithItemColor(JSColor.initWithWhite(0.2));
+            var styler = UIToolbarCustomStyler.init();
             styler.itemSpacing = 7;
             Object.defineProperty(this, 'default', {writable: true, value: styler});
             return styler;
@@ -268,7 +269,10 @@ JSClass("UIToolbarItemView", UIView, {
         if (!isNaN(minWidth) && minWidth > 0){
             return JSSize(minWidth, UIView.noIntrinsicSize);
         }
-        var contentSize = this.contentView.intrinsicSize;
+        var contentSize = JSSize(this._item.toolbar._imageSize, this._item.toolbar._imageSize);
+        if (this._item.view !== null){
+            contentSize = this.contentView.intrinsicSize;
+        }
         if (this._item.toolbar.showsTitles){
             var titleSize = this.titleLabel.intrinsicSize;
             return JSSize(Math.max(contentSize.width, titleSize.width), UIView.noIntrinsicSize);
@@ -432,9 +436,14 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
     contentInsets: null,
     itemSpacing: 0,
 
-    initWithItemColor: function(itemColor){
+    init: function(){
         this.contentInsets = JSInsets(5);
+        this._fillInMissingStyles();
+    },
+
+    initWithItemColor: function(itemColor){
         this.itemColor = itemColor;
+        this.contentInsets = JSInsets(5);
         this._fillInMissingStyles();
     },
 
@@ -468,13 +477,13 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             this.itemFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.normal);
         }
         if (this.itemColor === null){
-            this.itemColor = JSColor.initWithWhite(0.8);
+            this.itemColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.8), JSColor.white.colorWithAlpha(0.8));
         }
         if (this.activeItemColor === null){
             this.activeItemColor = this.itemColor.colorDarkenedByPercentage(0.5);
         }
         if (this.disabledItemColor === null){
-            this.disabledItemColor = this.itemColor.colorWithAlpha(0.5);
+            this.disabledItemColor = this.itemColor.colorWithAlpha(0.4);
         }
     },
 
@@ -518,13 +527,13 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             }
         }
         if (toolbar.showsTitles){
-            item.titleLabel.text = item.title;
+            itemView.titleLabel.text = item.title;
             if (itemView.active){
-                item.titleLabel.textColor = this.activeItemColor;
+                itemView.titleLabel.textColor = this.activeItemColor;
             }else if (item.enabled){
-                item.titleLabel.textColor = this.itemColor;
+                itemView.titleLabel.textColor = this.itemColor;
             }else{
-                item.titleLabel.textColor = this.disabledItemColor;
+                itemView.titleLabel.textColor = this.disabledItemColor;
             }
         }
     },
