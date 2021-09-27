@@ -236,6 +236,14 @@ JSClass("UIToolbarItemView", UIView, {
                     break;
             }
         }
+        if (item.toolbar.showsTitles){
+            this.titleLabel.hidden = false;
+            this.titleLabel.text = item.title;
+        }else{
+            if (this._titleLabel !== null){
+                this._titleLabel.hidden = true;
+            }
+        }
         this.contentView.tooltip = item.tooltip;
         this.addSubview(this.contentView);
     },
@@ -243,41 +251,64 @@ JSClass("UIToolbarItemView", UIView, {
     _createTitleLabel: function(){
         var label = UILabel.init();
         label.textAlignment = JSTextAlignment.center;
+        label.font = this.item.toolbar.styler.itemFont;
         this.addSubview(label);
         return label;
     },
 
     layoutSubviews: function(){
         var toolbar = this._item.toolbar;
-        if (this._item.identifier == UIToolbarItem.Identifier.custom && toolbar.showsTitles){
-            var titleHeight = toolbar.styler.itemFont.displayLineHeight;
-            var width;
-            if (this._item.view !== null){
-                width = this._item.minimumSize.width;
-            }else{
-                width = this._item.image.size.width * toolbar.imageSize / this._item.image.size.height;
+        if (this._item.identifier == UIToolbarItem.Identifier.custom){
+            var bounds = this.bounds;
+            if (toolbar.showsTitles){
+                var titleHeight = toolbar.styler.itemFont.displayLineHeight;
+                this.titleLabel.frame = JSRect(0, bounds.size.height - titleHeight, bounds.size.width, titleHeight);
+                bounds = bounds.rectWithInsets(0, 0, titleHeight, 0);
             }
-            this.contentView.frame = JSRect((this.bounds.size.width - width) / 2.0, 0, width, this.bounds.size.height - titleHeight);
-            this.titleLabel.frame = JSRect(0, this.bounds.size.height - titleHeight, this.bounds.size.width, titleHeight);
+            var width;
+            var height;
+            if (!isNaN(this._item.minimumWidth) && this._item.minimumWidth > 0){
+                width = this._item.minimumWidth;
+            }else if (this._item.view !== null){
+                width = this._item.view.intrinsicSize.width;
+            }else{
+                width = this._item.image.size.width * toolbar._imageSize / this._item.image.size.height;
+            }
+            if (this._item.view !== null){
+                height = this._item.view.intrinsicSize.height;
+                if (height === UIView.noIntrinsicSize){
+                    height = bounds.size.height;
+                }
+            }else{
+                height = bounds.size.height;
+            }
+            this.contentView.frame = JSRect((bounds.size.width - width) / 2.0, (bounds.size.height - height) / 2.0, width, height);
         }else{
             this.contentView.frame = this.bounds;
         }
     },
 
     getIntrinsicSize: function(){
-        var minWidth = this._item.minimumWidth;
-        if (!isNaN(minWidth) && minWidth > 0){
-            return JSSize(minWidth, UIView.noIntrinsicSize);
+        var toolbar = this._item.toolbar;
+        var width;
+        if (this._item.identifier == UIToolbarItem.Identifier.custom){
+            if (!isNaN(this._item.minimumWidth) && this._item.minimumWidth > 0){
+                width = this._item.minimumWidth;
+            }else if (this._item.view !== null){
+                width = this._item.view.intrinsicSize.width;
+            }else{
+                width = this._item.image.size.width * toolbar._imageSize / this._item.image.size.height;
+            }
+            if (toolbar.showsTitles){
+                var titleSize = this.titleLabel.intrinsicSize;
+                if (titleSize.width > width){
+                    width = Math.ceil(titleSize.width);
+                }
+            }
+        }else{
+            width = this.contentView.intrinsicSize.width;
         }
-        var contentSize = JSSize(this._item.toolbar._imageSize, this._item.toolbar._imageSize);
-        if (this._item.view !== null){
-            contentSize = this.contentView.intrinsicSize;
-        }
-        if (this._item.toolbar.showsTitles){
-            var titleSize = this.titleLabel.intrinsicSize;
-            return JSSize(Math.max(contentSize.width, titleSize.width), UIView.noIntrinsicSize);
-        }
-        return contentSize;
+        return JSSize(width, UIView.noIntrinsicSize);
     },
 
     mouseDown: function(event){
@@ -477,7 +508,8 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             this.itemFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.normal);
         }
         if (this.itemColor === null){
-            this.itemColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.8), JSColor.white.colorWithAlpha(0.8));
+            this.itemColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.7), JSColor.white.colorWithAlpha(0.7));
+            this.activeItemColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.9), JSColor.white.colorWithAlpha(0.5));
         }
         if (this.activeItemColor === null){
             this.activeItemColor = this.itemColor.colorDarkenedByPercentage(0.5);
@@ -526,8 +558,16 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
                 itemView.contentView.alpha = 0.4;
             }
         }
+        if (itemView.contentView instanceof UIImageView){
+            if (itemView.active){
+                itemView.contentView.templateColor = this.activeItemColor;
+            }else if (item.enabled){
+                itemView.contentView.templateColor = this.itemColor;
+            }else{
+                itemView.contentView.templateColor = this.disabledItemColor;
+            }
+        }
         if (toolbar.showsTitles){
-            itemView.titleLabel.text = item.title;
             if (itemView.active){
                 itemView.titleLabel.textColor = this.activeItemColor;
             }else if (item.enabled){
@@ -541,7 +581,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
     createOverflowButtonForToolbar: function(toolbar){
         var styler = UIButtonCustomStyler.initWithColor(this.itemColor);
         var button = UIButton.initWithStyler(styler);
-        button.image = images.toolbarOverflow;
+        button.setImageForState(images.toolbarOverflow, UIControl.State.normal);
         button.addAction(function(){
             var menu = this.createOverflowMenuForToolbar(toolbar);
             if (menu !== null){
@@ -590,7 +630,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
     },
 
     showOverflowMenuForToolbar: function(menu, toolbar, overflowButton){
-        menu.openAdjacentToView(overflowButton, UIMenu.placement.below);
+        menu.openAdjacentToView(overflowButton, UIMenu.Placement.below);
     },
 
     layoutToolbar: function(toolbar){
@@ -628,9 +668,9 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
                 props.overflowButton = this.createOverflowButtonForToolbar(toolbar);
             }
             size = props.overflowButton.intrinsicSize;
-            props.overflowButton.frame = JSRect(toolbar.width - this.contentInsets.right - size.width, y + (maxHeight - size.height) / 2.0, size.width, size.height);
+            props.overflowButton.frame = JSRect(toolbar.bounds.size.width - this.contentInsets.right - size.width, y + (maxHeight - size.height) / 2.0, size.width, size.height);
             // reduce available width by overflow button width
-            availableWidth -= props.overflowButton.frame.width - this.itemSpacing;
+            availableWidth -= props.overflowButton.bounds.size.width - this.itemSpacing;
             // Back up over any overflowing items
             for (; props.lastVisibleIndex >= 0 && itemsWidth > availableWidth; --props.lastVisibleIndex){
                 size = itemSizes[props.lastVisibleIndex];
@@ -656,20 +696,17 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
         }
 
         // Position each item, centered vertically in the middle
+        var titleHeight = this.itemFont.displayLineHeight;
         for (i = 0, l = props.itemViews.length; i <= props.lastVisibleIndex; ++i){
             itemView = props.itemViews[i];
             itemView.hidden = false;
             item = itemView.item;
             size = itemSizes[i];
-            if (item.view !== null){
-                size.height = item.minimumSize.height;
-            }else{
-                size.height = toolbar.imageSize;
-            }
-            itemView.frame = JSRect(x, y + (maxHeight - size.height) / 2.0, size.width, size.height);
+            size.height = maxHeight;
+            itemView.frame = JSRect(x, y, size.width, size.height);
             x += size.width + this.itemSpacing;
         }
-        for (i = props.lastVisibleIndex + 1; i < itemView.length; ++i){
+        for (i = props.lastVisibleIndex + 1; i < props.itemViews.length; ++i){
             itemView = props.itemViews[i];
             itemView.hidden = true;
         }
@@ -702,9 +739,9 @@ var images = Object.create({}, {
     toolbarOverflow: {
         configurable: true,
         get: function(){
-            var image = JSImage.initWithResourceName("UIToolbarOverflow", this.bundle);
-            Object.defineProperty(this, 'toolbarOverflow', {value: image.imageWithRenderingMode(JSImage.RenderMode.template) });
-            return this.toolbarOverflow;
+            var image = JSImage.initWithResourceName("UIToolbarOverflow", this.bundle).imageWithRenderMode(JSImage.RenderMode.template);
+            Object.defineProperty(this, 'toolbarOverflow', {value: image });
+            return image;
         }
     },
 

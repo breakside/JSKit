@@ -450,7 +450,7 @@ var defaultHighlightTextColor = JSColor.highlightedText;
 var defaultDisabledTextColor = JSColor.text.colorWithAlpha(0.2);
 var defaultHighlightColor = JSColor.highlight;
 var defaultBackgroundColor = JSColor.menu;
-var defaultBorderColor = JSColor.black.colorWithAlpha(0.1);
+var defaultBorderColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
 
 JSClass("UIMenuWindowStyler", UIMenuStyler, {
 

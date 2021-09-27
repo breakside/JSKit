@@ -60,9 +60,10 @@ JSClass("UITabView", UIView, {
             this.delegate = spec.valueForKey("delegate");
         }
         if (spec.containsKey('items')){
-            var items = spec.valueForKey('items');
-            for (var i = 0, l = items.length; i < l; ++i){
-                items.push(items.valueForKey(i, UITabViewItem));
+            var items = [];
+            var specItems = spec.valueForKey('items');
+            for (var i = 0, l = specItems.length; i < l; ++i){
+                items.push(specItems.valueForKey(i, UITabViewItem));
             }
             this.items = items;
         }
@@ -689,18 +690,18 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
 
     init: function(){
         UITabViewDefaultStyler.$super.init.call(this);
-        this.normalItemColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-        this.activeItemColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-        this.selectedItemColor = JSColor.initWithRGBA(70/255,153/255,254/255);
-        this.activeSelectedItemColor = JSColor.initWithRGBA(63/255,138/255,230/255);
-        this.normalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-        this.activeBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-        this.selectedBorderColor = JSColor.initWithRGBA(63/255,138/255,230/255);
-        this.activeSelectedBorderColor = JSColor.initWithRGBA(54/255,123/255,205/255);
-        this.normalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-        this.activeTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-        this.selectedTitleColor = JSColor.initWithRGBA(255/255,255/255,255/255);
-        this.selectedActiveTitleColor = JSColor.initWithRGBA(255/255,255/255,255/255);
+        this.normalItemColor = JSColor.controlBackground;
+        this.activeItemColor = JSColor.activeControlBackground;
+        this.selectedItemColor = JSColor.highlight;
+        this.activeSelectedItemColor = JSColor.highlight.colorDarkenedByPercentage(0.2);
+        this.normalBorderColor = JSColor.controlBorder;
+        this.activeBorderColor = JSColor.activeControlBorder;
+        this.selectedBorderColor = JSColor.highlight.colorDarkenedByPercentage(0.2);
+        this.activeSelectedBorderColor = JSColor.highlight.colorDarkenedByPercentage(0.4);
+        this.normalTitleColor = JSColor.controlTitle;
+        this.activeTitleColor = JSColor.activeControlTitle;
+        this.selectedTitleColor = JSColor.highlightedText;
+        this.selectedActiveTitleColor = JSColor.highlightedText;
         this._fillInMissingStyles();
     },
 
@@ -777,22 +778,22 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             this.itemsInsets = JSInsets(4);
         }
         if (this.normalTitleColor === null){
-            this.normalTitleColor = JSColor.black;
+            this.normalTitleColor = JSColor.controlTitle;
         }
         if (this.activeTitleColor === null){
             this.activeTitleColor = this.normalTitleColor;
         }
         if (this.selectedTitleColor === null){
-            this.selectedTitleColor = JSColor.white;
+            this.selectedTitleColor = JSColor.highlightedText;
         }
         if (this.activeSelectedTitleColor === null){
             this.activeSelectedTitleColor = this.selectedTitleColor;
         }
         if (this.normalItemColor === null){
-            this.normalItemColor = JSColor.initWithRGBA(250/255,250/255,250/255);
+            this.normalItemColor = JSColor.highlight;
         }
         if (this.selectedItemColor === null){
-            this.selectedItemColor = JSColor.initWithRGBA(70/255,153/255,254/255);
+            this.selectedItemColor = JSColor.highlight.colorDarkenedByPercentage(0.2);
         }
         if (this.activeItemColor === null){
             this.activeItemColor = this.normalItemColor.colorDarkenedByPercentage(0.1);
@@ -813,7 +814,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             this.activeSelectedBorderColor = this.selectedBorderColor.colorDarkenedByPercentage(0.05);
         }
         if (this.dividerColor === null){
-            this.dividerColor = this.normalBorderColor;
+            this.dividerColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
         }
     },
 
@@ -824,7 +825,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         tabView.addSubview(props.contentViewContainer);
         props.itemsView = UITabViewItemsView.init();
         props.itemsView.tabView = tabView;
-        props.itemsView.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        props.itemsView.shadowColor = JSColor.controlShadow;
         props.itemsView.shadowOffset = JSPoint(0, 1);
         props.itemsView.shadowRadius = 1;
         props.itemsView.cornerRadius = this.cornerRadius;
@@ -1038,6 +1039,7 @@ UITabView.Styler = Object.defineProperties({}, {
     },
 
     tabless: {
+        configurable: true,
         get: function UITabView_getTablessStyler(){
             var styler = UITabViewTablessStyler.init();
             Object.defineProperty(this, 'tabless', {writable: true, value: styler});
@@ -1046,6 +1048,7 @@ UITabView.Styler = Object.defineProperties({}, {
     },
 
     images: {
+        configurable: true,
         get: function UITabView_getImagesStyler(){
             var styler = UITabViewImagesStyler.init();
             Object.defineProperty(this, 'images', {writable: true, value: styler});
@@ -1163,8 +1166,8 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
     initializeTabView: function(tabView){
         UITabViewDefaultStyler.$super.initializeTabView.call(this, tabView);
         if (this.borderColor === null){
-            var backgroundColor = tabView.backgroundColor || JSColor.white;
-            this.borderColor = backgroundColor.colorDarkenedByPercentage(0.2);
+            var backgroundColor = tabView.backgroundColor || JSColor.background;
+            this.borderColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
         }
         var props = tabView.stylerProperties;
         props.contentViewContainer = UITabViewContentContainer.init();
@@ -1234,14 +1237,14 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
 });
 
 var defaultStateImageColors = [
-    JSColor.initWithRGBA(0,0,0,0.2), // 0 normal
-    JSColor.initWithRGBA(0,0,0,0.2), // 1 over
-    JSColor.initWithRGBA(0,0,0,0.5), // 2 active
-    JSColor.initWithRGBA(0,0,0,0.5), // 3 active + over
-    JSColor.initWithRGBA(70/255,153/255,254/255),  // 4 selected
-    JSColor.initWithRGBA(70/255,153/255,254/255),  // 5 selected + over
-    JSColor.initWithRGBA(54/255,123/255,205/255),  // 6 selected + active
-    JSColor.initWithRGBA(54/255,123/255,205/255),  // 7 selected + active + over
+    JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2)), // 0 normal
+    JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2)), // 1 over
+    JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.1)), // 2 active
+    JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.1)), // 3 active + over
+    JSColor.highlight,  // 4 selected
+    JSColor.highlight,  // 5 selected + over
+    JSColor.highlight.colorDarkenedByPercentage(0.2),  // 6 selected + active
+    JSColor.highlight.colorDarkenedByPercentage(0.2),  // 7 selected + active + over
 ];
 
 })();
