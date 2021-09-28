@@ -21,6 +21,7 @@
 // #import "UITooltipWindow.js"
 // #import "UIDraggingSession.js"
 // #import "UIUserInterface.js"
+// #import "UIColorSpace.js"
 'use strict';
 
 (function(){
@@ -34,11 +35,10 @@ JSClass("UIWindowServer", JSObject, {
     textInputManager: null,
     keyWindow: null,
     mainWindow: null,
-    menuBar: JSDynamicProperty('_menuBar', null),
     screen: null,
-    contrast: JSDynamicProperty('_contrast', UIUserInterface.Contrast.normal),
     mouseLocation: null,
     fullKeyboardAccessEnabled: false,
+    darkModeEnabled: true,
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
@@ -51,6 +51,9 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Creating a Window Server
 
     init: function(){
+        this._traitCollection = UITraitCollection.init();
+        this._traitCollection.accessibilityContrast = UIUserInterface.Contrast.normal;
+        this._traitCollection.userInterfaceStyle = UIUserInterface.Style.light;
         this.windowStack = [];
         this._windowsById = {};
         this._normalLevelRange = JSRange.Zero;
@@ -340,6 +343,8 @@ JSClass("UIWindowServer", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Menu Bar
+    
+    menuBar: JSDynamicProperty('_menuBar', null),
 
     setMenuBar: function(menuBar){
         if (this._menuBar){
@@ -1004,17 +1009,57 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
-    setContrast: function(contrast){
-        if (contrast === this._contrast){
+    // -----------------------------------------------------------------------
+    // MARK: - Traits
+
+    traitCollection: JSDynamicProperty("_traitCollection", null),
+
+    setTraitCollection: function(traitCollection){
+        if (!this.darkModeEnabled && traitCollection.userInterfaceStyle === UIUserInterface.Style.dark){
+            traitCollection = traitCollection.traitsWithUserInterfaceStyle(UIUserInterface.Style.light);
+        }
+        if (this._traitCollection.isEqual(traitCollection)){
             return;
         }
-        this._contrast = contrast;
-        var window;
-        for (var i = 0, l = this.windowStack.length; i < l; ++i){
-            window = this.windowStack[i];
-            window._setTraitCollection(window.traitCollection.traitsWithContrast(this._contrast));
+        this._traitCollection = traitCollection;
+        UIColorSpace.setTraitCollection(traitCollection);
+        if (this.windowStack.length > 0){
+            var window;
+            for (var i = 0, l = this.windowStack.length; i < l; ++i){
+                window = this.windowStack[i];
+                window._setTraitCollection(this._traitCollection.traitsWithSize(window.bounds.size));
+            }
+            this.setNeedsRedisplay();
         }
-    }
+    },
+
+    _needsRedisplay: false,
+
+    setNeedsRedisplay: function(){
+        if (this._needsRedisplay){
+            return;
+        }
+        this._needsRedisplay = true;
+        var i, l;
+        var layers = [];
+        var window;
+        for (i = 0, l = this.windowStack.length; i < l; ++i){
+            window = this.windowStack[i];
+            layers.push(window.layer);
+        }
+        var layer;
+        var sublayer;
+        while (layers.length > 0){
+            layer = layers.shift();
+            layer.setNeedsRedisplay();
+            for (i = 0, l = layer.sublayers.length; i < l; ++i){
+                layers.push(layer.sublayers[i]);
+            }
+        }
+        this.displayServer.schedule(function(){
+            this._needsRedisplay = false;
+        }, this);
+    },
 
 });
 

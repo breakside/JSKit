@@ -330,21 +330,21 @@ JSClass("UISliderDefaultStyler", UISliderLayerBasedStyler, {
     init: function(){
         UISliderDefaultStyler.$super.init.call(this);
         this.knobSize = JSSize(16, 16);
-        this.normalTrackColor = UISliderDefaultStyler.NormalTrackColor;
-        this.activeTrackColor = UISliderDefaultStyler.ActiveTrackColor;
-        this.disabledTrackColor = UISliderDefaultStyler.DisabledTrackColor;
-        this.normalTrackBorderColor = UISliderDefaultStyler.NormalTrackBorderColor;
-        this.activeTrackBorderColor = UISliderDefaultStyler.ActiveTrackBorderColor;
-        this.disabledTrackBorderColor = UISliderDefaultStyler.DisabledTrackBorderColor;
+        this.normalTrackColor = JSColor.initWithUIStyles(JSColor.controlBackground.colorDarkenedByPercentage(0.02), JSColor.controlBackground.colorDarkenedByPercentage(0.3), JSColor.controlBackground, JSColor.controlBackground);
+        this.activeTrackColor = this.normalTrackColor;
+        this.disabledTrackColor = JSColor.disabledControlBackground;
+        this.normalTrackBorderColor = JSColor.controlBorder;
+        this.activeTrackBorderColor = JSColor.controlBorder;
+        this.disabledTrackBorderColor = JSColor.disabledControlBorder;
         this.trackInnerShadowColor = JSColor.black.colorWithAlpha(0.4);
         this.trackInnerShadowOffset = JSPoint(0, 1);
-        this.normalKnobBackgroundColor = UISliderDefaultStyler.NormalKnobBackgroundColor;
-        this.disabledKnobBackgroundColor = UISliderDefaultStyler.DisabledKnobBackgroundColor;
-        this.activeKnobBackgroundColor = UISliderDefaultStyler.ActiveKnobBackgroundColor;
-        this.normalKnobBorderColor = UISliderDefaultStyler.NormalKnobBorderColor;
-        this.disabledKnobBorderColor = UISliderDefaultStyler.DisabledKnobBorderColor;
-        this.activeKnobBorderColor = UISliderDefaultStyler.ActiveKnobBorderColor;
-        this.knobShadowColor = JSColor.black.colorWithAlpha(0.1);
+        this.normalKnobBackgroundColor = JSColor.controlBackground;
+        this.disabledKnobBackgroundColor = JSColor.disabledControlBackground;
+        this.activeKnobBackgroundColor = JSColor.activeControlBackground;
+        this.normalKnobBorderColor = JSColor.controlBorder;
+        this.disabledKnobBorderColor = JSColor.disabledControlBorder;
+        this.activeKnobBorderColor = JSColor.activeControlBorder;
+        this.knobShadowColor = JSColor.controlShadow;
         this.knobShadowOffset = JSPoint(0, 1);
     },
 
@@ -534,22 +534,6 @@ JSClass("UISliderDefaultStyler", UISliderLayerBasedStyler, {
 
 });
 
-UISliderDefaultStyler.NormalTrackColor = JSColor.initWithRGBA(245/255,245/255,245/255);
-UISliderDefaultStyler.ActiveTrackColor = UISliderDefaultStyler.NormalTrackColor;
-UISliderDefaultStyler.DisabledTrackColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UISliderDefaultStyler.NormalTrackBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UISliderDefaultStyler.ActiveTrackBorderColor = UISliderDefaultStyler.NormalTrackBorderColor;
-UISliderDefaultStyler.DisabledTrackBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UISliderDefaultStyler.NormalKnobBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UISliderDefaultStyler.ActiveKnobBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UISliderDefaultStyler.DisabledKnobBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UISliderDefaultStyler.NormalKnobBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UISliderDefaultStyler.ActiveKnobBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UISliderDefaultStyler.DisabledKnobBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
 JSClass("UISliderColorStyler", UISliderLayerBasedStyler, {
 
     gradient: null,
@@ -595,13 +579,13 @@ JSClass("UISliderColorStyler", UISliderLayerBasedStyler, {
             this.knobSize = JSSize(this.trackWidth + 6, this.trackWidth + 6);
         }
         this.trackRadius = this.trackWidth / 2;
-        this.normalKnobBackgroundColor = JSColor.white;
-        this.activeKnobBackgroundColor = JSColor.white;
-        this.disabledKnobBackgroundColor = this.normalKnobBackgroundColor.colorWithAlpha(0.5);
-        this.normalKnobBorderColor = JSColor.black.colorWithAlpha(0.2);
-        this.activeKnobBorderColor = JSColor.black.colorWithAlpha(0.3);
-        this.disabledKnobBorderColor = JSColor.black.colorWithAlpha(0.1);
-        this.checkerColor = JSColor.initWithWhite(0.9);
+        this.normalKnobBackgroundColor = JSColor.controlBackground;
+        this.activeKnobBackgroundColor = JSColor.activeControlBackground;
+        this.disabledKnobBackgroundColor = JSColor.disabledControlBackground;
+        this.normalKnobBorderColor = JSColor.controlBorder;
+        this.activeKnobBorderColor = JSColor.activeControlBorder;
+        this.disabledKnobBorderColor = JSColor.disabledControlBorder;
+        this.checkerColor = JSColor.initWithUIStyles(JSColor.initWithWhite(0.9), JSColor.initWithWhite(0.1));
     },
 
     setColors: function(colors){

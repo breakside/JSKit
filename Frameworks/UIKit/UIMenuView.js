@@ -20,6 +20,7 @@
 // #import "UIImageView.js"
 // #import "UIEvent.js"
 // #import "UIPlatform.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -635,7 +636,7 @@ JSClass("UIMenuView", UIView, {
 
     initWithFrame: function(frame){
         UIMenuView.$super.initWithFrame.call(this, frame);
-        this.backgroundColor = JSColor.initWithRGBA(255/255, 255/255, 255/255, 1.0);
+        this.backgroundColor = JSColor.background;
         this.itemViews = [];
     },
 
@@ -643,7 +644,7 @@ JSClass("UIMenuView", UIView, {
         var view = item.view;
         if (view === null){
             if (item.separator){
-                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.separatorLineWidth);
+                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.separatorLineWidth, this.menuWindow.itemContentInsets.insetsWithInsets(0, item.menu.showStatusColumn ? (item.menu.font.displayLineHeight + this.menuWindow.itemContentInsets.left) : 0, 0, 0));
                 view.frame = JSRect(0, 0, 1, this.menuWindow.separatorSize);
             }else{
                 view = UIMenuItemView.init();
@@ -714,10 +715,12 @@ JSClass("UIMenuItemSeparatorView", UIView, {
 
     lineLayer: null,
     size: 0,
+    insets: null,
 
-    initWithColor: function(color, size){
+    initWithColor: function(color, size, insets){
         UIMenuItemSeparatorView.$super.init.call(this);
         this.size = size;
+        this.insets = JSInsets(insets);
         this.lineLayer = UILayer.init();
         this.lineLayer.backgroundColor = color;
         this.layer.addSublayer(this.lineLayer);
@@ -725,7 +728,8 @@ JSClass("UIMenuItemSeparatorView", UIView, {
 
     layoutSubviews: function(){
         UIMenuItemSeparatorView.$super.layoutSubviews.call(this);
-        this.lineLayer.frame = JSRect(0, (this.bounds.size.height - this.size) / 2, this.bounds.size.width, this.size);
+
+        this.lineLayer.frame = JSRect(this.insets.left, (this.bounds.size.height - this.size) / 2, this.bounds.size.width - this.insets.width, this.size);
     },
 
     isAccessibilityElement: true,

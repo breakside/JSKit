@@ -16,6 +16,7 @@
 // #import "UIListViewCell.js"
 // #import "UIButton.js"
 // #import "UIEvent.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIOutlineViewCell", UIListViewCell, {
@@ -28,7 +29,7 @@ JSClass("UIOutlineViewCell", UIListViewCell, {
 
     _commonCellInit: function(){
         UIOutlineViewCell.$super._commonCellInit.call(this);
-        var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.black);
+        var buttonStyler = UIButtonImageStyler.initWithColor(JSColor.text);
         this._disclosureButton = UIButton.initWithStyler(buttonStyler);
         this._disclosureButton.addAction("_toggleExpanded", this);
         this._disclosureButton.accessibilityRole = UIAccessibility.Role.disclosureTriangle;

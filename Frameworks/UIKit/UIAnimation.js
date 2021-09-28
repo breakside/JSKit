@@ -96,19 +96,7 @@ UIAnimation.interpolationForValues = function(from, to){
         return UIAnimation.interpolateAffineTransform;
     }
     if (from.isKindOfClass && from.isKindOfClass(JSColor)){
-        if (from.components.length == 1){
-            return UIAnimation.interpolate1Color;
-        }
-        if (from.components.length == 2){
-            return UIAnimation.interpolate2Color;
-        }
-        if (from.components.length == 3){
-            return UIAnimation.interpolate3Color;
-        }
-        if (from.components.length == 4){
-            return UIAnimation.interpolate4Color;
-        }
-        return UIAnimation.interpolateNull;
+        return UIAnimation.interpolateColor;
     }
     if (from.animationInterpolation){
         return from.animationInterpolation;
@@ -156,6 +144,12 @@ UIAnimation.interpolateAffineTransform = function(from, to, progress){
         from.tx + (to.tx - from.tx) * progress,
         from.ty + (to.ty - from.ty) * progress
     );
+};
+
+UIAnimation.interpolateColor = function(from, to, progress){
+    var mixed = from.space.mixedComponents(from.components, to.components, progress);
+    mixed.push(from.components[from.space.numberOfComponents] + (to.components[to.space.numberOfComponents] - from.components[from.space.numberOfComponents]) * progress);
+    return JSColor.initWithSpaceAndComponents(from.space, mixed);
 };
 
 UIAnimation.interpolate1Color = function(from, to, progress){

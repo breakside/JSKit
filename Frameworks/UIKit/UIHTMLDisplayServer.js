@@ -216,7 +216,6 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
     setLayerNeedsDisplay: function(layer){
         var context = this.contextForLayer(layer);
         context.needsCustomDisplay = true;
-        layer._UIHTMLDisplayServerCustomDrawing = true;
         UIHTMLDisplayServer.$super.setLayerNeedsDisplay.call(this, layer);
     },
 
@@ -433,7 +432,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _removeLayerFromDOM: function(layer){
         layer._displayServer = null;
-        if (layer._UIHTMLDisplayServerCustomDrawing){
+        if (layer.performsCustomDrawing){
             // So the layer will redraw if it's ever re-added
             layer.setNeedsDisplay();
         }

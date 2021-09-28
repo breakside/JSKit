@@ -261,6 +261,11 @@ JSClass("UITextLayer", UILayer, {
         return this._textContainer;
     },
 
+    setNeedsRedisplay: function(){
+        UITextLayer.$super.setNeedsRedisplay.call(this);
+        this._textLayoutManager.setNeedsLayout();
+    }
+
 });
 
 })();

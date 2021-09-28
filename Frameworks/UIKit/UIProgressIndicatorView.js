@@ -51,7 +51,7 @@ JSClass("UIProgressIndicatorView", UIView, {
 
     _commonProgressInit: function(){
         if (this._progressBarColor === null){
-            this._progressBarColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+            this._progressBarColor = JSColor.initWithUIStyles(JSColor.black.colorLightenedByPercentage(0.6), JSColor.white.colorDarkenedByPercentage(0.6));
         }
         if (this._progressBorderColor === null){
             this._progressBorderColor = this._progressBarColor;

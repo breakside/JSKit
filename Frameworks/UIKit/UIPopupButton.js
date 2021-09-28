@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UIImageView.js"
 // #import "UIMenu.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -480,7 +481,7 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
     indicatorSpacing: 0,
 
     init: function(){
-        this.initWithColor(JSColor.black);
+        this.initWithColor(JSColor.text);
     },
 
     initWithColor: function(color){
@@ -588,7 +589,7 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
             }
         }
         if (this.normalTitleColor === null){
-            this.normalTitleColor = JSColor.black;
+            this.normalTitleColor = JSColor.text;
         }
         if (this.activeTitleColor === null){
             this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
@@ -703,31 +704,31 @@ JSClass("UIPopupButtonDefaultStyler", UIPopupButtonCustomStyler, {
 
     _fillInMissingColors: function(){
         if (this.normalBackgroundColor === null){
-            this.normalBackgroundColor = UIPopupButtonDefaultStyler.NormalBackgroundColor;
+            this.normalBackgroundColor = JSColor.controlBackground;
             if (this.activeBackgroundColor === null){
-                this.activeBackgroundColor = UIPopupButtonDefaultStyler.ActiveBackgroundColor;
+                this.activeBackgroundColor = JSColor.activeControlBackground;
             }
             if (this.disabledBackgroundColor === null){
-                this.disabledBackgroundColor = UIPopupButtonDefaultStyler.DisabledBackgroundColor;
+                this.disabledBackgroundColor = JSColor.disabledControlBackground;
             }
         }
         if (this.normalBorderColor === null){
-            this.normalBorderColor = UIPopupButtonDefaultStyler.NormalBorderColor;
+            this.normalBorderColor = JSColor.controlBorder;
             if (this.activeBorderColor === null){
-                this.activeBorderColor = UIPopupButtonDefaultStyler.ActiveBorderColor;
+                this.activeBorderColor = JSColor.activeControlBorder;
             }
             if (this.disabledBorderColor === null){
-                this.disabledBorderColor = UIPopupButtonDefaultStyler.DisabledBorderColor;
+                this.disabledBorderColor = JSColor.disabledControlBorder;
             }
         }
         if (this.normalTitleColor === null){
-            this.normalTitleColor = UIPopupButtonDefaultStyler.NormalTitleColor;
+            this.normalTitleColor = JSColor.controlTitle;
         }
         if (this.activeTitleColor === null){
-            this.activeTitleColor = UIPopupButtonDefaultStyler.ActiveTitleColor;
+            this.activeTitleColor = JSColor.activeControlTitle;
         }
         if (this.disabledTitleColor === null){
-            this.disabledTitleColor = UIPopupButtonDefaultStyler.DisabledTitleColor;
+            this.disabledTitleColor = JSColor.disabledControlTitle;
         }
     }
 
@@ -744,7 +745,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     cornerRadius: 0,
 
     init: function(){
-        this.initWithColor(JSColor.black);
+        this.initWithColor(JSColor.text);
     },
 
     initWithColor: function(color){
@@ -831,18 +832,6 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     },
 
 });
-
-UIPopupButtonDefaultStyler.NormalBackgroundColor = JSColor.initWithRGBA(250/255,250/255,250/255);
-UIPopupButtonDefaultStyler.ActiveBackgroundColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-UIPopupButtonDefaultStyler.DisabledBackgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255);
-
-UIPopupButtonDefaultStyler.NormalBorderColor = JSColor.initWithRGBA(204/255,204/255,204/255);
-UIPopupButtonDefaultStyler.ActiveBorderColor = JSColor.initWithRGBA(192/255,192/255,192/255);
-UIPopupButtonDefaultStyler.DisabledBorderColor = JSColor.initWithRGBA(224/255,224/255,224/255);
-
-UIPopupButtonDefaultStyler.NormalTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIPopupButtonDefaultStyler.ActiveTitleColor = JSColor.initWithRGBA(51/255,51/255,51/255);
-UIPopupButtonDefaultStyler.DisabledTitleColor = JSColor.initWithRGBA(152/255,152/255,152/255);
 
 var images = Object.create({}, {
 

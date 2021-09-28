@@ -119,7 +119,7 @@ JSClass('UIWindow', UIView, {
     _commonWindowInit: function(){
         this.window = this;
         if (this.backgroundColor === null){
-            this.backgroundColor = JSColor.white;
+            this.backgroundColor = JSColor.background;
         }
         this.clipsToBounds = true;
         if (this._contentView === null){
@@ -135,8 +135,7 @@ JSClass('UIWindow', UIView, {
                 this._styler = UIWindow.Styler.default;
             }
         }
-        this._traitCollection = UITraitCollection.initWithSize(this.frame.size);
-        this._traitCollection.accessibilityContrast = this.windowServer.contrast;
+        this._traitCollection = this.windowServer.traitCollection.traitsWithSize(this.bounds.size);
         this.stylerProperties = {};
         this._styler.initializeWindow(this);
     },
@@ -179,7 +178,7 @@ JSClass('UIWindow', UIView, {
 
     setToolbar: function(toolbar){
         this._toolbar = toolbar;
-        this._styler.updateWindow();
+        this._styler.updateWindow(this);
         this.setNeedsLayout();
     },
 
@@ -309,9 +308,10 @@ JSClass('UIWindow', UIView, {
     // MARK: Traits
 
     layerDidChangeSize: function(){
-        var traits = UITraitCollection.initWithSize(this.bounds.size);
-        traits.contrast = this.windowServer.contrast;
-        this._setTraitCollection(traits);
+        if (this._traitCollection !== null){
+            var traits = this._traitCollection.traitsWithSize(this.bounds.size);
+            this._setTraitCollection(traits);
+        }
     },
     
     traitCollection: JSReadOnlyProperty('_traitCollection', null),
@@ -1124,7 +1124,7 @@ JSClass("UIWindowStyler", JSObject, {
     focusRingWidth: 3.5,
 
     init: function(){
-        this.focusRingColor = this.localCursorColor = JSColor.initWithRGBA(0, 128/255.0, 255/255.0, 0.6);
+        this.focusRingColor = JSColor.highlight;
     },
 
     initializeWindow: function(window){
@@ -1215,24 +1215,19 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
 
     init: function(){
         UIWindowDefaultStyler.$super.init.call(this);
-        this.activeTitleColor = JSColor.initWithWhite(51/255);
-        this.inactiveTitleColor = JSColor.initWithWhite(192/255);
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
-        this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
-        this.titleBackgroundColor = null;
-        this.titleBackgroundGradient = JSGradient.initWithStops(
-            0, JSColor.initWithRGBA(230/255,230/255,230/255,1),
-            1, JSColor.initWithRGBA(204/255,204/255,204/255,1)
-        );
-        this.contentSeparatorColor = JSColor.initWithRGBA(0, 0, 0, 0.1);
+        this.activeTitleColor = JSColor.text;
+        this.inactiveTitleColor = JSColor.text.colorWithAlpha(0.3);
+        this.shadowColor = JSColor.windowShadow;
+        this.backgroundColor = JSColor.window;
+        this.titleBackgroundColor = JSColor.initWithUIStyles(JSColor.window.colorLightenedByPercentage(0.5), JSColor.window.colorLightenedByPercentage(0.05));
+        this.contentSeparatorColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.1), JSColor.black.colorWithAlpha(0.8));
         this.closeButtonImages = {
             inactive: images.closeInactive,
             normal: images.closeNormal,
             over: images.closeOver,
             active: images.closeActive
         };
-        this.toolbarTitleColor = JSColor.initWithWhite(102/255);
-        this.toolbarDisabledTitleColor = JSColor.initWithWhite(204/255);
+        this.toolbarTitleColor = JSColor.toolbarTitle;
     },
 
     initializeWindow: function(window){
@@ -1424,16 +1419,15 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
 
     init: function(){
         UIWindowDefaultStyler.$super.init.call(this);
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
-        this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
+        this.shadowColor = JSColor.windowShadow;
+        this.backgroundColor = JSColor.window;
         this.closeButtonImages = {
             inactive: images.closeInactive,
             normal: images.closeNormal,
             over: images.closeOver,
             active: images.closeActive
         };
-        this.toolbarTitleColor = JSColor.initWithWhite(102/255);
-        this.toolbarDisabledTitleColor = JSColor.initWithWhite(204/255);
+        this.toolbarTitleColor = JSColor.toolbarTitle;
     },
 
     initializeWindow: function(window){

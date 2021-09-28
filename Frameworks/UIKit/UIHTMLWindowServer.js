@@ -65,6 +65,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     rootElement: null,
     domDocument: null,
     domWindow: null,
+    themeColorElement: null,
     _screenClientOrigin: null,
 
     setupRenderingEnvironment: function(){
@@ -85,11 +86,24 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             body.style.overflow = 'hidden';
             body.style.borderLeft = "env(safe-area-inset-left) solid black";
             body.style.borderRight = "env(safe-area-inset-right) solid black";
+            var head = this.domDocument.head;
+            var child;
+            for (var i = head.childNodes.length - 1; i >= 0; --i){
+                child = head.childNodes[i];
+                if (child.nodeType == Node.ELEMENT_NODE){
+                    if (child.tagName.toLowerCase() === "meta" && child.getAttribute("name") == "theme-color"){
+                        head.removeChild(child);
+                    }
+                }
+            }
+            this.themeColorElement = head.appendChild(this.domDocument.createElement("meta"));
+            this.themeColorElement.setAttribute("name", "theme-color");
         }else{
             var style = this.domWindow.getComputedStyle(this.rootElement);
             if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
                 this.rootElement.style.position = 'relative';
             }
+            this.themeColorElement = null;
         }
         this.rootElement.style.userSelect = 'none';
         this.rootElement.style.mozUserSelect = 'none';
@@ -267,16 +281,21 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // --------------------------------------------------------------------
     // MARK: - Media Queries
 
+    darkColorSchemeListener: null,
     highContrastListener: null,
     reducedMotionListener: null,
 
     setupMediaListeners: function(){
+        this.darkColorSchemeListener = this.handleDarkColorSchemeChanged.bind(this);
+        this.darkColorSchemeQuery = this.domWindow.matchMedia("(prefers-color-scheme: dark)");
+        this.darkColorSchemeQuery.addListener(this.darkColorSchemeListener);
         this.highContrastListener = this.handleHighContrastChanged.bind(this);
         this.highContrastQuery = this.domWindow.matchMedia("(prefers-contrast: more)");
         this.highContrastQuery.addListener(this.highContrastListener);
         this.reducedMotionListener = this.handleReducedMotionChanged.bind(this);
         this.reducedMotionQuery = this.domWindow.matchMedia("(prefers-reduced-motion)");
         this.reducedMotionQuery.addListener(this.reducedMotionListener);
+        this.handleDarkColorSchemeChanged(this.darkColorSchemeQuery);
         this.handleHighContrastChanged(this.highContrastQuery);
         this.handleReducedMotionChanged(this.reducedMotionQuery);
     },
@@ -286,8 +305,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.reducedMotionQuery.removeListener(this.reducedMotionListener);
     },
 
+    handleDarkColorSchemeChanged: function(query){
+        var style = query.matches ? UIUserInterface.Style.dark : UIUserInterface.Style.light;
+        this.traitCollection = this._traitCollection.traitsWithUserInterfaceStyle(style);
+        this.updateThemeColorElement();
+    },
+
     handleHighContrastChanged: function(query){
-        this.contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
+        var contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
+        this.traitCollection = this._traitCollection.traitsWithContrast(contrast);
+        this.updateThemeColorElement();
     },
 
     handleReducedMotionChanged: function(query){
@@ -869,6 +896,44 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // aren't traceable to a user interaction
         if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
             this.textInputManager.windowDidChangeResponder(window);
+        }
+    },
+
+    orderWindowFront: function(window){
+        UIHTMLWindowServer.$super.orderWindowFront.call(this, window);
+        if (window.subviewIndex === 0){
+            this.updateThemeColorElement();
+        }
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Menu Bar
+
+    setMenuBar: function(menuBar){
+        UIHTMLWindowServer.$super.setMenuBar.call(this, menuBar);
+        this.updateThemeColorElement();
+    },
+
+    updateThemeColorElement: function(){
+        if (this.themeColorElement === null){
+            return;
+        }
+        var window = this._menuBar;
+        var color = null;
+        if (window === null && this.windowStack.length > 0){
+            window = this.windowStack[0];
+        }
+        if (window !== null){
+            if (window.backgroundGradient !== null){
+                color = window.backgroundGradient.stops[0].color;
+            }else if (window.backgroundColor !== null){
+                color = window.backgroundColor;
+            }
+        }
+        if (color !== null){
+            this.themeColorElement.setAttribute("content", color.cssString());
+        }else{
+            this.themeColorElement.setAttribute("content", JSColor.background);
         }
     },
 

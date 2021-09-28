@@ -18,6 +18,7 @@
 // #import "UIPlatform.js"
 // #import "UIImageView.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "JSColor+UIKit.js"
 /* global UIListViewCell, UIListViewHeaderFooterView */
 'use strict';
 
@@ -3029,22 +3030,22 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.headerFont = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.bold);
         }
         if (this.cellTextColor === null){
-            this.cellTextColor = JSColor.black;
+            this.cellTextColor = JSColor.text;
         }
         if (this.cellDetailTextColor === null){
-            this.cellDetailTextColor = this.cellTextColor.colorLightenedByPercentage(0.6);
+            this.cellDetailTextColor = JSColor.secondaryText;
         }
         if (this.cellDetailFont === null && this.cellFont !== null){
-            this.cellDetailFont = this.cellFont.fontWithPointSize(Math.round(this.cellFont.pointSize * 12.0 / 14.0));
+            this.cellDetailFont = this.cellFont.fontWithPointSize(JSFont.Size.detail);
         }
         if (this.selectedCellBackgroundColor === null){
-            this.selectedCellBackgroundColor = JSColor.initWithRGBA(70/255, 153/255, 254/255, 1);
+            this.selectedCellBackgroundColor = JSColor.highlight;
         }
         if (this.contextSelectedCellBorderColor === null){
             this.contextSelectedCellBorderColor = this.selectedCellBackgroundColor.colorDarkenedByPercentage(0.5);
         }
         if (this.headerTextColor === null){
-            this.headerTextColor = JSColor.black;
+            this.headerTextColor = JSColor.text;
         }
         if (this.cellSeparatorColor === null){
             this.cellSeparatorColor = this.cellTextColor.colorWithAlpha(0.2);
@@ -3053,13 +3054,13 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.accessoryColor = this.cellTextColor;
         }
         if (this.selectedCellTextColor === null){
-            this.selectedCellTextColor = JSColor.white;
+            this.selectedCellTextColor = JSColor.highlightedText;
         }
         if (this.selectedCellDetailTextColor === null){
             this.selectedCellDetailTextColor = this.selectedCellTextColor;
         }
         if (this.selectedCellSeparatorColor === null){
-            this.selectedCellSeparatorColor = this.selectedCellBackgroundColor.colorLightenedByPercentage(0.2);
+            this.selectedCellSeparatorColor = JSColor.clear;
         }
         if (this.activeCellBackgroundColor === null){
             this.activeCellBackgroundColor = this.cellBackgroundColor;
@@ -3080,10 +3081,10 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.mutedSelectedCellDetailTextColor = this.cellDetailTextColor;
         }
         if (this.mutedSelectedCellBackgroundColor === null){
-            this.mutedSelectedCellBackgroundColor = this.cellSeparatorColor;
+            this.mutedSelectedCellBackgroundColor = JSColor.mutedHighlight;
         }
         if (this.mutedSelectedCellSeparatorColor === null){
-            this.mutedSelectedCellSeparatorColor = this.mutedSelectedCellBackgroundColor.colorLightenedByPercentage(0.2);
+            this.mutedSelectedCellSeparatorColor = JSColor.clear;
         }
         if (this.cellContentInsets === null){
             this.cellContentInsets = JSInsets.Zero;

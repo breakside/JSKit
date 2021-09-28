@@ -37,6 +37,9 @@ JSClass('UIApplication', UIResponder, {
         logger.info("Creating application");
         shared = this;
         this.windowServer = windowServer;
+        if (this.bundle.info.UIUserInterfaceStyle === "light"){
+            this.windowServer.darkModeEnabled = false;
+        }
         this._windows = [];
         this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },

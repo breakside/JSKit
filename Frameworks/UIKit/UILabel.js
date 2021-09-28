@@ -38,7 +38,8 @@ JSClass('UILabel', UIView, {
     initWithFrame: function(frame){
         UILabel.$super.initWithFrame.call(this, frame);
         this.maximumNumberOfLines = 1;
-        this._selectionColor = JSColor.white.colorWithAlpha(0.2);
+        this.textColor = JSColor.text;
+        this._selectionColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
     },
 
     initWithSpec: function(spec){
@@ -51,6 +52,8 @@ JSClass('UILabel', UIView, {
         }
         if (spec.containsKey("textColor")){
             this.textColor = spec.valueForKey("textColor", JSColor);
+        }else{
+            this.textColor = JSColor.text;
         }
         if (spec.containsKey("textAlignment")){
             this.textAlignment = spec.valueForKey("textAlignment", JSTextAlignment);
@@ -72,7 +75,16 @@ JSClass('UILabel', UIView, {
         if (spec.containsKey("selectionColor")){
             this._selectionColor = spec.valueForKey("selectionColor");
         }else{
-            this._selectionColor = JSColor.white.colorWithAlpha(0.2);
+            this._selectionColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
+        }
+    },
+
+    tooltip: JSDynamicProperty("_tooltip"),
+
+    setTooltip: function(tooltip){
+        this._tooltip = tooltip;
+        if (this._tooltip !== null){
+            this.userInteractionEnabled = true;
         }
     },
 

@@ -15,6 +15,7 @@
 
 // #import "UIWindow.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIPopupWindow", UIWindow, {
@@ -321,8 +322,8 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
 
     init: function(){
         UIPopupWindowStyler.$super.init.call(this);
-        this.backgroundColor = JSColor.initWithRGBA(240/255,240/255,240/255,1);
-        this.shadowColor = JSColor.initWithRGBA(0, 0, 0, 0.4);
+        this.backgroundColor = JSColor.window;
+        this.shadowColor = JSColor.windowShadow;
         this.shadowOffset = JSPoint.Zero;
         this.shadowRadius = UIWindow.Styler.default.shadowRadius;
         this.cornerRadius = UIWindow.Styler.default.cornerRadius;

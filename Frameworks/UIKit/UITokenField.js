@@ -173,7 +173,7 @@ JSClass("UITokenField", UITextField, {
         }
         str = representedObject.toString();
         return UITokenFieldTokenView.initWithString(str, this);
-    },
+    }
 
 });
 
@@ -194,8 +194,8 @@ JSClass("UITokenFieldTokenView", UIView, {
         this.textField = textField;
         this.tokenLabel.font = this.textField.font;
         this.tokenLabel.text = str;
-        this.tokenLabel.backgroundColor = JSColor.initWithRGBA(210/255, 231/255, 251/255, 1.0);
-        this.tokenLabel.borderColor = JSColor.initWithRGBA(116/255, 181/255, 243/255, 1.0);
+        this.tokenLabel.backgroundColor = JSColor.initWithUIStyles(JSColor.highlight.colorLightenedByPercentage(0.8), JSColor.highlight.colorDarkenedByPercentage(0.6));
+        this.tokenLabel.borderColor = JSColor.initWithUIStyles(JSColor.highlight, JSColor.black);
         this.backgroundColor = null;
         this.tokenLabel.borderWidth = 0.5;
         this.tokenLabel.cornerRadius = 3.0;

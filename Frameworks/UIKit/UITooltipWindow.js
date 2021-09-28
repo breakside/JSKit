@@ -66,11 +66,11 @@ JSClass("UITooltipWindowStyler", UIWindowStyler, {
 
     init: function(){
         UITooltipWindowStyler.$super.init.call(this);
-        this.backgroundColor = JSColor.initWithRGBA(240/255, 240/255, 240/255, 1.0);
-        this.borderColor = JSColor.initWithRGBA(0.7, 0.7, 0.7, 1.0);
-        this.shadowColor = JSColor.initWithRGBA(0.0, 0.0, 0.0, 0.2);
-        this.font = JSFont.systemFontOfSize(12.0);
-        this.textColor = JSColor.initWithRGBA(0.2, 0.2, 0.2, 1.0);
+        this.backgroundColor = JSColor.tooltip;
+        this.borderColor = JSColor.tooltipBorder;
+        this.shadowColor = JSColor.tooltipShadow;
+        this.font = JSFont.systemFontOfSize(JSFont.Size.detail);
+        this.textColor = JSColor.tooltipText;
         this.textInsets = JSInsets(4, 6);
     },
 

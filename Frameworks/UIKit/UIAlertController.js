@@ -19,6 +19,7 @@
 // #import "UIButton.js"
 // #import "UIPopupWindow.js"
 // #import "UIAlertAction.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -214,9 +215,9 @@ UIAlertController.ButtonStylers = Object.create({}, {
         get: function(){
             var styler = UIButtonDefaultStyler.init();
             styler.font = styler.font.fontWithPointSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.bold);
-            styler.normalTitleColor = JSColor.initWithRGBA(204/255,0,0);
-            styler.activeTitleColor = styler.normalTitleColor.colorDarkenedByPercentage(0.2);
-            styler.disabledTitleColor = styler.normalTitleColor.colorWithAlpha(0.5);
+            styler.normalTitleColor = JSColor.destructive;
+            styler.activeTitleColor = JSColor.destructive.colorDarkenedByPercentage(0.2);
+            styler.disabledTitleColor = JSColor.destructive.colorWithAlpha(0.5);
             Object.defineProperty(this, 'destructive', {writable: true, value: styler});
             return styler;
         },

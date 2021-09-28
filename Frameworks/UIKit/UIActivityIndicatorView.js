@@ -16,6 +16,7 @@
 // #import "UIView.js"
 // #import "UICustomAnimation.js"
 // #import "UIImageLayer.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -190,7 +191,7 @@ UIActivityIndicatorView.Style = {
     light: 1
 };
 
-var darkColor = JSColor.black;
+var darkColor = JSColor.initWithUIStyles(JSColor.black, JSColor.white);
 var lightColor = JSColor.white;
 
 var images = Object.create({}, {

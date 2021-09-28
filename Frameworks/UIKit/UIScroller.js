@@ -16,6 +16,7 @@
 // #import "UIControl.js"
 // #import "UIViewPropertyAnimator.js"
 // #import "UIDevice.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIScroller", UIControl, {
@@ -287,9 +288,9 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
         this.knobInsets = JSInsets(2, 3, 2, 2);
         var maxKnobWidth = this.expandedSize - this.knobInsets.left - this.knobInsets.right;
         this.minimumKnobLength = maxKnobWidth * 2;
-        this.trackColor = JSColor.initWithWhite(0, 0.1);
-        this.trackBorderColor = JSColor.initWithWhite(0, 0.15);
-        this.knobColor = JSColor.initWithWhite(0, 0.6);
+        this.trackColor = JSColor.initWithUIStyles(JSColor.initWithWhite(0, 0.1), JSColor.initWithWhite(1, 0.1));
+        this.trackBorderColor = JSColor.initWithUIStyles(JSColor.initWithWhite(0, 0.15), JSColor.initWithWhite(1, 0.05));
+        this.knobColor = JSColor.initWithUIStyles(JSColor.initWithWhite(0, 0.6), JSColor.initWithWhite(1, 0.6));
         if (UIDevice.shared && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
             this.collapsedSize = 8;
         }

@@ -15,6 +15,7 @@
 
 // #import "UIView.js"
 // #import "UIImageLayer.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 JSClass("UIImageView", UIView, {
@@ -32,6 +33,7 @@ JSClass("UIImageView", UIView, {
     initWithFrame: function(frame){
         UIImageView.$super.initWithFrame.call(this, frame);
         this._contentInsets = JSInsets.Zero;
+        this.templateColor = JSColor.text;
         this._commonImageViewInit();
     },
 
@@ -39,6 +41,8 @@ JSClass("UIImageView", UIView, {
         UIImageView.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('templateColor')){
             this.templateColor = spec.valueForKey("templateColor", JSColor);
+        }else{
+            this.templateColor = JSColor.text;
         }
         if (spec.containsKey("automaticRenderMode")){
             this.automaticRenderMode = spec.valueForKey("automaticRenderMode", JSImage.RenderMode);
