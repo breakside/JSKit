@@ -14,9 +14,7 @@
 // limitations under the License.
 //
 // #import Foundation
-// #import "UIUserInterface.js"
 // #import "UIColorSpace.js"
-/* global UIApplication */
 "use strict";
 
 JSColor.definePropertiesFromExtensions({

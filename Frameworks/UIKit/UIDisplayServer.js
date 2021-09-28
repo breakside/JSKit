@@ -29,7 +29,6 @@ JSClass("UIDisplayServer", JSObject, {
     _isUpdating: false,
     _scheduleQueue: null,
     _scheduled: null,
-    _traitCollection: null,
 
     init: function(){
         this.layerDisplayQueue = UIDisplayServerQueue();

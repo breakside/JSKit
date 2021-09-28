@@ -19,6 +19,7 @@
 // #import "UIButton.js"
 // #import "UIPopupWindow.js"
 // #import "UIAlertAction.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){

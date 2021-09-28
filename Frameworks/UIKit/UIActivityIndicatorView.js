@@ -16,6 +16,7 @@
 // #import "UIView.js"
 // #import "UICustomAnimation.js"
 // #import "UIImageLayer.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){

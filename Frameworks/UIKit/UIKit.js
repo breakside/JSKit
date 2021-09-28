@@ -27,6 +27,7 @@
 // #import "UIApplication.js"
 // #import "UIPlatform.js"
 // #import "JSColor+UIKit.js"
+// #import "UIColorSpace.js"
 
 // Layers & Views
 // #import "UIResponder.js"

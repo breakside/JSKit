@@ -610,15 +610,6 @@ Object.defineProperties(JSColorSpace, {
         }
     },
 
-    named: {
-        configurable: true,
-        get: function(){
-            var space = JSNamedColorSpace.init();
-            Object.defineProperty(this, "named", {value: space});
-            return space;
-        }
-    },
-
     xyz: {
         configurable: true,
         get: function(){
