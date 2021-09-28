@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "UILayer.js"
 // #import "UITextInput.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -49,7 +50,7 @@ JSClass("UITextEditor", JSObject, {
         this._selectionHighlightLayers = [];
         this.textLayoutManager = textLayer.textLayoutManager;
         this.textLayoutManager.editor = this;
-        this.cursorColor = JSColor.black;
+        this.cursorColor = JSColor.highlight;
         this.selections = [
             this._createSelection(JSRange(0, 0), UITextInput.SelectionInsertionPoint.end)
         ];

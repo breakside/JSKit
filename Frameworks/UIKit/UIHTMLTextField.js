@@ -172,7 +172,7 @@ JSClass("UIHTMLTextField", UIControl, {
     _createPlaceholderColor: function(){
         var backgroundColor = this.backgroundColor;
         if (backgroundColor === null){
-            backgroundColor = JSColor.white;
+            backgroundColor = JSColor.background;
         }
         this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
         this._needsPlaceholderColor = true;
@@ -205,8 +205,8 @@ JSClass("UIHTMLTextField", UIControl, {
     // MARK: - Styling
 
     textAlignment: JSDynamicProperty("_textAlignment", JSTextAlignment.left),
-    textColor: JSDynamicProperty("_textColor", JSColor.black),
-    localCursorColor: JSDynamicProperty("_localCursorColor", JSColor.black),
+    textColor: JSDynamicProperty("_textColor", JSColor.text),
+    localCursorColor: JSDynamicProperty("_localCursorColor", JSColor.highlight),
     font: JSDynamicProperty("_font", null),
 
     setTextAlignment: function(textAlignment){

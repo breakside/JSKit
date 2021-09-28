@@ -1228,7 +1228,6 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
             active: images.closeActive
         };
         this.toolbarTitleColor = JSColor.toolbarTitle;
-        this.toolbarDisabledTitleColor = JSColor.toolbarTitle.colorWithAlpha(0.3);
     },
 
     initializeWindow: function(window){
@@ -1429,7 +1428,6 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
             active: images.closeActive
         };
         this.toolbarTitleColor = JSColor.toolbarTitle;
-        this.toolbarDisabledTitleColor = JSColor.initWithWhite(204/255);
     },
 
     initializeWindow: function(window){

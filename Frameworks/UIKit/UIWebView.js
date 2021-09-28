@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "UIView.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -30,14 +31,14 @@ JSClass("UIWebView", UIView, {
 
     initWithFrame: function(frame){
         UIWebView.$super.initWithFrame.call(this, frame);
-        this.backgroundColor = JSColor.white;
+        this.backgroundColor = JSColor.background;
         this.setNeedsDisplay();
     },
 
     initWithSpec: function(spec){
         UIWebView.$super.initWithSpec.call(this, spec);
         if (this.backgroundColor === null){
-            this.backgroundColor = JSColor.white;
+            this.backgroundColor = JSColor.background;
         }
         if (spec.containsKey("delegate")){
             this.delegate = spec.valueForKey("delegate");

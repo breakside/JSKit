@@ -499,7 +499,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
 
     init: function(){
         UIButtonCustomStyler.$super.init.call(this);
-        this.initWithColor(JSColor.black);
+        this.initWithColor(JSColor.text);
     },
 
     initWithSpec: function(spec){
