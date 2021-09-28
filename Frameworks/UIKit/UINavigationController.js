@@ -17,6 +17,7 @@
 // #import "UINavigationBar.js"
 // #import "UIScrollView.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "JSColor+UIKit.js"
 /* global UISplitViewController */
 'use strict';
 
@@ -195,7 +196,7 @@ JSClass("UINavigationController", UIViewController, {
             var navController = this;
             this.layoutChildView(viewController.view);
             viewController.view.transform = JSAffineTransform.Translated(viewController.view.bounds.size.width, 0);
-            viewController.view.shadowColor = JSColor.initWithWhite(0, 0.4);
+            viewController.view.shadowColor = JSColor.windowShadow;
             viewController.view.shadowRadius = 20;
             this.pushAnimator.addAnimations(function(){
                 viewController.view.transform = JSAffineTransform.Identity;
@@ -272,7 +273,7 @@ JSClass("UINavigationController", UIViewController, {
             var navController = this;
             this.layoutChildView(viewController.view);
             viewController.view.transform = JSAffineTransform.Translated(-viewController.view.bounds.size.width / 2, 0);
-            fromViewController.view.shadowColor = JSColor.initWithWhite(0, 0.4);
+            fromViewController.view.shadowColor = JSColor.windowShadow;
             fromViewController.view.shadowRadius = 20;
             this.popAnimator.addAnimations(function(){
                 viewController.view.transform = JSAffineTransform.Identity;

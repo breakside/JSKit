@@ -17,6 +17,7 @@
 // #import "UILabel.js"
 // #import "UINavigationBarItem.js"
 // #import "UIViewPropertyAnimator.js"
+// #import "JSColor+UIKit.js"
 'use strict';
 
 (function(){
@@ -317,10 +318,11 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     init: function(){
         UINavigationBarDefaultStyler.$super.init.call(this);
         this.coversContent = true;
-        this.backgroundColor = JSColor.initWithWhite(0.8);
+        this.backgroundColor = JSColor.background;
         this.contentSeparatorSize = 1;
-        this.contentSeparatorColor = JSColor.initWithWhite(0.8);
-        this.titleColor = JSColor.initWithWhite(0.2);
+        this.contentSeparatorColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.1), JSColor.white.colorWithAlpha(0.1));
+        this.titleColor = JSColor.text;
+        this.itemColor = JSColor.highlight;
         this.itemInsets = JSInsets.Zero;
         this._fillInDefaultStyles();
     },
@@ -772,6 +774,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         button.accessibilityLabel = barItem.accessibilityTitle;
         if (barItem.image){
             button.setImageForState(barItem.image, UIControl.State.normal);
+            button._imageView.automaticRenderMode = JSImage.RenderMode.template;
         }
         button.addAction(barItem.action, barItem.target);
         return button;

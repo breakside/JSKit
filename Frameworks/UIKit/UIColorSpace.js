@@ -102,8 +102,6 @@ UIColorSpace.setTraitCollection = function(traitCollection){
 
 JSClass("UINamedColorSpace", JSNamedColorSpace, {
 
-    name: "uinamed",
-
     setColorForName: function(name, color){
         UINamedColorSpace.$super.setColorForName.call(this, name, color);
         if (JSGlobalObject && UIApplication.shared){
@@ -112,6 +110,16 @@ JSClass("UINamedColorSpace", JSNamedColorSpace, {
                 JSColor.invalidateCSSCache();
             }
         }
+        var space = this;
+        Object.defineProperty(JSColor, name, {
+            configurable: true,
+            get: function(){
+                return color;
+            },
+            set: function(color){
+                space.setColorForName(name, color);
+            }
+        });
     },
 
     setStylesForName: function(name, lightColor, darkColor, lightContrastColor, darkContrastColor){

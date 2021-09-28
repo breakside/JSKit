@@ -84,8 +84,9 @@ JSColor.defineInitMethod("initWithUIStyles");
 // Common Colors
 JSColor.background = JSColor.initWithUIStyles(JSColor.white, JSColor.initWithWhite(0.15));
 JSColor.text = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.9), JSColor.white.colorWithAlpha(0.9));
+JSColor.secondaryText = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.6), JSColor.white.colorWithAlpha(0.6));
 JSColor.highlight = JSColor.initWithUIStyles(JSColor.initWithRGBA(0, 0.5, 1), JSColor.initWithRGBA(0, 0.5, 1));
-JSColor.mutedHighlight = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.15));
+JSColor.mutedHighlight = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.15), JSColor.white.colorWithAlpha(0.1));
 JSColor.highlightedText = JSColor.initWithUIStyles(JSColor.white, JSColor.white);
 JSColor.placeholderText = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.5), JSColor.white.colorWithAlpha(0.4));
 
@@ -123,6 +124,9 @@ JSColor.menuBar = JSColor.initWithUIStyles(JSColor.initWithWhite(0.94), JSColor.
 JSColor.menuBarText = JSColor.initWithUIStyles(JSColor.black, JSColor.white);
 JSColor.menu = JSColor.window;
 JSColor.menuShadow = JSColor.black.colorWithAlpha(0.2);
+
+// Navigation
+
 
 // JSClass("UIColor", JSColor, {
 

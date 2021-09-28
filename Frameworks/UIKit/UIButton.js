@@ -405,7 +405,8 @@ JSClass("UIButtonStyler", UIControlStyler, {
                     size.width += titleSize.width;
                 }
             }else if (image !== null){
-                size.width += image.size.width;
+                imageScale = contentHeight / image.size.height;
+                size.width += Math.ceil(image.size.width * imageScale);
             }
             return size;
         }
@@ -421,7 +422,9 @@ JSClass("UIButtonStyler", UIControlStyler, {
                 size.height += titleSize.height;
             }
         }else if (image !== null){
-            size.width += image.size.width;
+            contentHeight = Math.max(image.size.height, titleSize.height);
+            imageScale = contentHeight / image.size.height;
+            size.width += Math.ceil(image.size.width * imageScale);
             size.height += image.size.height;
         }
         return size;
