@@ -552,7 +552,7 @@ JSClass("JSNamedColorSpace", JSMappedColorSpace, {
 
     name: "named",
     numberOfComponents: 2,
-    componentNames: {"name": 1},
+    componentNames: {"name": 0},
     colors: null,
 
     init: function(){

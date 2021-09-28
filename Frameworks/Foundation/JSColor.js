@@ -196,6 +196,30 @@ JSClass('JSColor', JSObject, {
             var otherColor = spec.valueForKey("with", JSColor);
             var blendPercentage = spec.valueForKey("percent") / 100;
             this.initWithBlendedColor(base, otherColor, blendPercentage);
+        }else if (spec.containsKey("space")){
+            var spaceName = spec.valueForKey("space");
+            var space = JSColorSpace[spaceName];
+            if (space === undefined){
+                throw new Error("Unknown color space: %s".sprintf(spaceName));
+            }
+            components = [];
+            for (var componentName in space.componentNames){
+                if (!spec.containsKey(componentName)){
+                    throw new Error("Missing component %s for color in space: %s".sprintf(componentName, spaceName));
+                }
+                components[space.componentNames[componentName]] = spec.valueForKey(componentName);
+            }
+            if (space instanceof JSMappedColorSpace){
+                components.push(1);
+            }
+            var alpha = 1;
+            if (spec.containsKey("alpha")){
+                alpha = spec.valueForKey("alpha");
+            }else if (space instanceof JSMappedColorSpace){
+                alpha = -1;
+            }
+            components.push(alpha);
+            this.initWithSpaceAndComponents(space, components);
         }
     },
 
