@@ -429,3 +429,89 @@ article.doc > footer > p {
         margin-bottom: 10px;
     }
 }
+
+@media (prefers-color-scheme: dark){
+    body{
+        background: rgb(38,38,38);
+    }
+
+    article.doc{
+        color: rgb(234,234,234);
+    }
+
+    article.doc a{
+        text-decoration: none;
+        color: rgb(160,160,220);
+    }
+
+    article.doc a:visited{
+        color: rgb(190,190,240);
+    }
+
+    article.doc div.code{
+        border: 1px solid rgb(26,26,26);
+        background: rgb(51,51,51);
+        color: rgb(255,255,255);
+    }
+
+    article.doc code{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > header{
+        border-bottom: 1px solid rgb(72,72,72);
+    }
+
+    article.doc > header > p.type{
+        color: rgb(128,128,128);
+    }
+
+    article.doc > aside.availability > div.versions{
+        color: rgb(128,128,128);
+    }
+
+    article.doc > aside.availability > table.environments > tbody > tr > td.beta > div{
+        border: 1px solid rgb(180,111,51);
+        color: rgb(180,111,51);
+    }
+
+    article.doc > aside.availability > table.environments > tbody > tr > td.available > div{
+        border: 1px solid rgb(64,255,128);
+        color: rgb(64,255,128);
+    }
+
+    article.doc > aside.availability > table.environments > tbody > tr > td.unavailable > div{
+        border: 1px solid rgb(224,224,224);
+        color: rgb(224,224,224);
+    }
+
+    article.doc > aside.availability > table.environments > tbody > tr > td.deprecated > div{
+        border: 1px solid rgb(204,102,0);
+        color: rgb(204,102,0);
+    }
+
+    article.doc > section.parameters > dl > dt{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > section.parameters > dl > dd > dl > dt{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > section.options > dl > dt{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > section.options > dl > dd > dl > dt{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > section.return > dl.promise > dt{
+        color: rgb(255,255,255);
+    }
+
+    article.doc > footer > p {
+        color: rgb(164,164,164);
+    }
+
+}
