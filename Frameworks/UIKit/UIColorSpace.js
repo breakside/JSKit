@@ -26,6 +26,15 @@ JSClass("UIColorSpace", JSMappedColorSpace, {
     colors: null,
 
     initWithStyles: function(lightColor, darkColor, lightContrastColor, darkContrastColor){
+        if (darkColor === undefined){
+            darkColor = lightColor;
+        }
+        if (lightContrastColor === undefined){
+            lightContrastColor = lightColor;
+        }
+        if (darkContrastColor === undefined){
+            darkContrastColor = darkColor;
+        }
         this.colors = [
             lightColor,
             darkColor,
