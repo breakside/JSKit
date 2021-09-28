@@ -162,7 +162,7 @@ JSClass('JSDispatchQueueTests', TKTestSuite, {
             t1start = t;
             t1done = this.now();
             TKAssert(!called2);
-            TKAssertGreaterThanOrEquals(t1done - t0, 499); // sometimes the github test timer fires slightly early
+            TKAssertGreaterThanOrEquals(t1done - t0, 490); // sometimes the github test timer fires slightly early
             called1 = true;
         }, this);
         expectation.call(queue.enqueue, queue, JSDispatchQueueTestsJobAsync, args, function(error, t){
@@ -170,8 +170,8 @@ JSClass('JSDispatchQueueTests', TKTestSuite, {
             t2start = t;
             t2done = this.now();
             TKAssert(called1);
-            TKAssertGreaterThanOrEquals(t2start - t1start, 499); // sometimes the github test timer fires slightly early
-            TKAssertGreaterThanOrEquals(t2done - t1done, 499); // sometimes the github test timer fires slightly early
+            TKAssertGreaterThanOrEquals(t2start - t1start, 490); // sometimes the github test timer fires slightly early
+            TKAssertGreaterThanOrEquals(t2done - t1done, 490); // sometimes the github test timer fires slightly early
             called2 = true;
         }, this);
         TKAssert(!called1);
