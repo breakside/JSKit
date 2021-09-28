@@ -88,19 +88,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             body.style.borderRight = "env(safe-area-inset-right) solid black";
             var head = this.domDocument.head;
             var child;
-            for (var i = 0, l = head.childNodes.length; i < l; ++i){
+            for (var i = head.childNodes.length - 1; i >= 0; --i){
                 child = head.childNodes[i];
                 if (child.nodeType == Node.ELEMENT_NODE){
                     if (child.tagName.toLowerCase() === "meta" && child.getAttribute("name") == "theme-color"){
-                        this.themeColorElement = child;
-                        break;
+                        head.removeChild(child);
                     }
                 }
             }
-            if (this.themeColorElement === null){
-                this.themeColorElement = head.appendChild(this.domDocument.createElement("meta"));
-                this.themeColorElement.setAttribute("name", "theme-color");
-            }
+            this.themeColorElement = head.appendChild(this.domDocument.createElement("meta"));
+            this.themeColorElement.setAttribute("name", "theme-color");
         }else{
             var style = this.domWindow.getComputedStyle(this.rootElement);
             if (style.position != 'absolute' && style.position != 'relative' && style.position != 'fixed'){
