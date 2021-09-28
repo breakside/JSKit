@@ -20,6 +20,7 @@
     left: 0;
     right: 0;
     bottom: 0;
+    background-color: rgb(255,255,255);
   }
   #status {
     position: absolute;
@@ -35,6 +36,7 @@
     text-align: center;
     transition-property: opacity, color, margin-top;
     transition-duration: .25s;
+    color: rgb(164,164,164);
   }
   #details {
     position: absolute;
@@ -49,6 +51,7 @@
     text-align: center;
     transition: opacity linear .5s .5s;
     opacity: 0;
+    color: rgb(192,192,192);
   }
   #progress {
     opacity: 0;
@@ -64,34 +67,19 @@
     overflow: hidden;
     transition-property: opacity;
     transition-duration: .25s;
+    background-color: rgba(245,245,245);
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.15);
   }
   #progress-bar {
     height: 100%;
     width: 0%;
+    background-color: rgb(224,224,224);
   }
   #splash.error #status {
     font-weight: 600;
   }
   #splash.error #details {
     opacity: 1;
-  }
-  @media (prefers-color-scheme: light) {
-    #splash {
-      background-color: rgb(255,255,255);
-    }
-    #status {
-      color: rgb(164,164,164);
-    }
-    #details {
-      color: rgb(192,192,192);
-    }
-    #progress {
-      background-color: rgba(245,245,245);
-      box-shadow: inset 0 0 2px rgba(0,0,0,0.15);
-    }
-    #progress-bar {
-      background-color: rgb(224,224,224);
-    }
   }
   @media (prefers-color-scheme: dark) {
     #splash {
