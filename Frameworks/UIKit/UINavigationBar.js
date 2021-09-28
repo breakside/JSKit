@@ -338,8 +338,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (spec.containsKey("contentSeparatorColor")){
             this.contentSeparatorColor = spec.valueForKey("contentSeparatorColor", JSColor);
         }
-        if (spec.containsKey("contentSeparatorWidth")){
-            this.contentSeparatorWidth = spec.valueForKey("contentSeparatorWidth");
+        if (spec.containsKey("contentSeparatorSize")){
+            this.contentSeparatorSize = spec.valueForKey("contentSeparatorSize");
         }
         if (spec.containsKey("titleColor")){
             this.titleColor = spec.valueForKey("titleColor", JSColor);
