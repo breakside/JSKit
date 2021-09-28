@@ -38,6 +38,7 @@ JSClass("UIWindowServer", JSObject, {
     screen: null,
     mouseLocation: null,
     fullKeyboardAccessEnabled: false,
+    darkModeEnabled: true,
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
@@ -1014,6 +1015,9 @@ JSClass("UIWindowServer", JSObject, {
     traitCollection: JSDynamicProperty("_traitCollection", null),
 
     setTraitCollection: function(traitCollection){
+        if (!this.darkModeEnabled && traitCollection.userInterfaceStyle === UIUserInterface.Style.dark){
+            traitCollection = traitCollection.traitsWithUserInterfaceStyle(UIUserInterface.Style.light);
+        }
         if (this._traitCollection.isEqual(traitCollection)){
             return;
         }
