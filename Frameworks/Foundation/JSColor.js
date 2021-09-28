@@ -155,10 +155,10 @@ JSClass('JSColor', JSObject, {
 
     initWithBlendedColor: function(base, otherColor, blendPercentage){
         while (base._space instanceof JSMappedColorSpace){
-            base = base._space.colorForComponents(base._components);
+            base = base._space.colorFromComponents(base._components);
         }
         while (otherColor._space instanceof JSMappedColorSpace){
-            otherColor = otherColor._space.colorForComponents(otherColor._components);
+            otherColor = otherColor._space.colorFromComponents(otherColor._components);
         }
         if (base.space !== otherColor.space || !base.space.canMixComponents){
             base = base.rgbaColor();

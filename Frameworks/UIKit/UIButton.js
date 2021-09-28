@@ -422,7 +422,7 @@ JSClass("UIButtonStyler", UIControlStyler, {
                 size.height += titleSize.height;
             }
         }else if (image !== null){
-            contentHeight = Math.max(image.size.height, titleSize.height);
+            contentHeight = image.size.height;
             imageScale = contentHeight / image.size.height;
             size.width += Math.ceil(image.size.width * imageScale);
             size.height += image.size.height;

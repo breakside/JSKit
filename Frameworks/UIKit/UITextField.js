@@ -136,6 +136,7 @@ JSClass("UITextField", UIControl, {
         }
         this.hasOverState = this._styler.showsOverState;
         this.textColor = JSColor.text;
+        this._placeholderColor = JSColor.placeholderText;
         this._styler.initializeControl(this);
     },
 
@@ -240,20 +241,9 @@ JSClass("UITextField", UIControl, {
         this._placeholderLabel.hidden = true;
         this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
         this._placeholderLabel.layer.heightTracksText = true;
-        if (this._placeholderColor === null){
-            this._createPlaceholderColor();
-        }
         this._placeholderLabel.textColor = this._placeholderColor;
         this._clipView.insertSubviewAtIndex(this._placeholderLabel, 0);
         this._clipView.layer.insertSublayerBelowSibling(this._placeholderLabel.layer, this._textLayer);
-    },
-
-    _createPlaceholderColor: function(){
-        var backgroundColor = this.backgroundColor;
-        if (backgroundColor === null){
-            backgroundColor = JSColor.background;
-        }
-        this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
     },
 
     _placeholderLabel: null,
@@ -1319,7 +1309,7 @@ JSClass("UITextFieldDefaultStyler", UITextFieldStyler, {
     },
 
     _commonDefaultStylerInit: function(){
-        this.activeColor = JSColor.text;
+        this.activeColor = JSColor.highlight;
         this.inactiveColor = JSColor.text.colorWithAlpha(0.2);
         this.textInsets = JSInsets(3, 0);
     },

@@ -12,11 +12,12 @@ JSClass("UIColorWell", UIControl, {
     initWithSpec: function(spec){
         UIColorWell.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("color")){
-            this._color = spec.valueForKey("color", JSColor);
+            this._color = spec.valueForKey("color", JSColor).rgbaColor();
         }
         if (spec.containsKey("allowsAlpha")){
             this._allowsAlpha = spec.valueForKey("allowsAlpha", JSColor);
         }
+        this.update();
     },
 
     commonUIControlInit: function(){
@@ -36,7 +37,7 @@ JSClass("UIColorWell", UIControl, {
     color: JSDynamicProperty("_color", JSColor.black),
 
     setColor: function(color){
-        this._color = color;
+        this._color = color.rgbaColor();
         this.update();
     },
 

@@ -490,6 +490,15 @@ JSClass("JSMappedColorSpace", JSColorSpace, {
         return this.colorFromComponents(components).alpha;
     },
 
+    xyzFromComponents: function(components){
+        var rgb = this.rgbFromComponents(components);
+        return JSColorSpace.rgb.xyzFromComponents(rgb);
+    },
+
+    componentsFromXYZ: function(xyz){
+        throw new Error("Unable to convert from xyz -> %s mapped color space".sprintf(this.name));
+    },
+
 });
 
 JSClass("JSIndexedColorSpace", JSMappedColorSpace, {
@@ -522,6 +531,20 @@ JSClass("JSIndexedColorSpace", JSMappedColorSpace, {
         }
         return color;
     },
+
+    componentsDarkenedByPercentage: function(components, percentage){
+        return [
+            components[0],
+            components[1] * (1.0 - percentage)
+        ];
+    },
+
+    componentsLightenedByPercentage: function(components, percentage){
+        return [
+            components[0],
+            components[1] * (1.0 + percentage)
+        ];
+    }
 
 });
 

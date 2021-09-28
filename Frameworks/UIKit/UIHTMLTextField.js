@@ -153,7 +153,7 @@ JSClass("UIHTMLTextField", UIControl, {
     // MARK: - Placeholder
 
     placeholder: JSDynamicProperty("_placeholder", null),
-    placeholderColor: JSDynamicProperty("_placeholderColor", null),
+    placeholderColor: JSDynamicProperty("_placeholderColor", JSColor.placeholderText),
 
     setPlaceholder: function(placeholder){
         this._placeholder = placeholder;
@@ -167,15 +167,6 @@ JSClass("UIHTMLTextField", UIControl, {
         this._placeholderColor = color;
         this._needsPlaceholderColor = true;
         this.setNeedsDisplay();
-    },
-
-    _createPlaceholderColor: function(){
-        var backgroundColor = this.backgroundColor;
-        if (backgroundColor === null){
-            backgroundColor = JSColor.background;
-        }
-        this._placeholderColor = backgroundColor.colorByBlendingColor(this.textColor, 0.3);
-        this._needsPlaceholderColor = true;
     },
 
     // --------------------------------------------------------------------
@@ -290,9 +281,6 @@ JSClass("UIHTMLTextField", UIControl, {
             UIHTMLTextField.sharedStyleElement = layer.element.ownerDocument.createElement("style");
             UIHTMLTextField.sharedStyleElement.type = "text/css";
             layer.element.ownerDocument.head.appendChild(UIHTMLTextField.sharedStyleElement);
-        }
-        if (this._placeholderColor === null){
-            this._createPlaceholderColor();
         }
         var stylesheet = UIHTMLTextField.sharedStyleElement.sheet;
         var index = stylesheet.insertRule("#%s::selection { }".sprintf(this.inputElement.id));
