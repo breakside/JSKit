@@ -432,10 +432,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     _removeLayerFromDOM: function(layer){
         layer._displayServer = null;
-        if (layer.performsCustomDrawing){
-            // So the layer will redraw if it's ever re-added
-            layer.setNeedsDisplay();
-        }
+        layer.setNeedsRedisplay();
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
             if (context.element.isConnected){
