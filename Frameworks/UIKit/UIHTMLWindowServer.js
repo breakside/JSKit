@@ -924,7 +924,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             window = this.windowStack[0];
         }
         if (window !== null){
-            if (window.backgroundGradient !== null){
+            var vc = window.contentViewController;
+            if ((vc instanceof UISplitViewController) && vc.view.mainHidden){
+                vc = vc.leadingViewController;
+            }
+            if (vc instanceof UINavigationController){
+                color = vc.navigationBar.backgroundColor;
+            }else if (window.backgroundGradient !== null){
                 color = window.backgroundGradient.stops[0].color;
             }else if (window.backgroundColor !== null){
                 color = window.backgroundColor;
