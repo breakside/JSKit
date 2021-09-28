@@ -899,6 +899,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    orderWindowFront: function(window){
+        UIHTMLWindowServer.$super.orderWindowFront.call(this, window);
+        if (window.subviewIndex === 0){
+            this.updateThemeColorElement();
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Menu Bar
 
