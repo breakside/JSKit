@@ -233,6 +233,7 @@ JSClass("_JSResourceImage", JSImage, {
         _JSResourceImage.$super.copy.call(this, image);
         image.bundle = this.bundle;
         image.metadata = this.metadata;
+        image.contentType = this.contentType;
         return image;
     },
 
