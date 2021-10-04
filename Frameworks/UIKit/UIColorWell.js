@@ -304,15 +304,23 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
         }
         if (spec.containsKey("normalBorderColor")){
             this.normalBorderColor = spec.valueForKey("normalBorderColor", JSColor);
+        }else{
+            this.normalBorderColor = JSColor.black.colorWithAlpha(0.2);
         }
         if (spec.containsKey("activeBorderColor")){
             this.activeBorderColor = spec.valueForKey("activeBorderColor", JSColor);
+        }else{
+            this.activeBorderColor = JSColor.black.colorWithAlpha(0.4);
         }
         if (spec.containsKey("dropTargetBorderColor")){
             this.dropTargetBorderColor = spec.valueForKey("dropTargetBorderColor", JSColor);
+        }else{
+            this.dropTargetBorderColor = JSColor.black.colorWithAlpha(0.2);
         }
         if (spec.containsKey("disabledBorderColor")){
             this.disabledBorderColor = spec.valueForKey("disabledBorderColor", JSColor);
+        }else{
+            this.disabledBorderColor = JSColor.clear;
         }
         if (spec.containsKey("normalBorderWidth")){
             this.normalBorderWidth = spec.valueForKey("normalBorderWidth");
@@ -341,6 +349,8 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
         }
         if (spec.containsKey("wellInnerShadowColor")){
             this.wellInnerShadowColor = spec.valueForKey("wellInnerShadowColor", JSColor);
+        }else{
+            this.wellInnerShadowColor = JSColor.black.colorWithAlpha(0.4);
         }
         if (spec.containsKey("wellInnerShadowOffset")){
             this.wellInnerShadowOffset = spec.valueForKey("wellInnerShadowOffset", JSPoint);
