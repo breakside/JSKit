@@ -28,6 +28,8 @@ JSProtocol("UIColorPanelDelegate", JSProtocol, {
 
 JSClass("UIColorPanel", UIPopupWindow, {
 
+    escapeClosesWindow: true,
+
     init: function(){
         UIColorPanel.$super.init.call(this);
         this.contentViewController = UIColorPanelViewController.init();
