@@ -65,6 +65,9 @@ JSClass("UIPopupButton", UIControl, {
                 this.addItemWithTitle(options.valueForKey(i));
             }
         }
+        if (spec.containsKey("menuAdoptsTitleFont")){
+            this.menuAdoptsTitleFont = spec.valueForKey("menuAdoptsTitleFont");
+        }
     },
 
     commonUIControlInit: function(){
@@ -274,9 +277,13 @@ JSClass("UIPopupButton", UIControl, {
     // -------------------------------------------------------------------------
     // MARK: - Menu
 
+    menuAdoptsTitleFont: true,
+
     openMenu: function(){
         if (this.menu.items.length > 0){
-            this.menu.font = this.titleLabel.font;
+            if (this.menuAdoptsTitleFont){
+                this.menu.font = this.titleLabel.font;
+            }
             this.menu.delegate = this;
             if (this._pullsDown){
                 this.menu.minimumWidth = this.frame.size.width;
@@ -448,6 +455,7 @@ JSClass("UIPopupButtonStyler", UIControlStyler, {
     },
 
     initWithSpec: function(spec){
+        UIPopupButtonStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("menuStyler")){
             this.menuStyler = spec.valueForKey("menuStyler", UIMenu.Styler);
         }else{

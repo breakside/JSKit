@@ -79,6 +79,12 @@ topics:
                 type: boolean
                 summary: Controls whether the popup/pulldown indicator arrow
                   is visible on the button
+              -
+                name: menuAdoptsTitleFont
+                introduced: 2021.40.0
+                summary: Use the same font in the popup menu as the button title
+                description: |
+                  Defaults to `true`()
           -
             name: Pull Down Menu
             members:
@@ -640,6 +646,12 @@ topics:
         type: boolean
         summary: Controls whether the popup/pulldown indicator arrow
           is visible on the button
+      -
+        name: menuAdoptsTitleFont
+        introduced: 2021.40.0
+        summary: Use the same font in the popup menu as the button title
+        description: |
+          Defaults to `true`()
   -
     name: Selection
     members:
