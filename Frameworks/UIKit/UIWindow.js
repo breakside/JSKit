@@ -521,36 +521,22 @@ JSClass('UIWindow', UIView, {
             return;
         }
         var window = this;
-        var alpha = this.alpha;
-        window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
-        window._modalAnimator.addAnimations(function(){
-            window.alpha = alpha * 0.8;
+        var transform = this.transform;
+        this._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.075);
+        this._modalAnimator.addAnimations(function(){
+            window.transform = transform.scaledBy(1.15);
         });
-        window._modalAnimator.addCompletion(function(){
-            window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
+        this._modalAnimator.addCompletion(function(){
+            window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.075);
             window._modalAnimator.addAnimations(function(){
-                window.alpha = alpha;
+                window.transform = transform;
             });
             window._modalAnimator.addCompletion(function(){
-                window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
-                window._modalAnimator.addAnimations(function(){
-                    window.alpha = alpha * 0.8;
-                });
-                window._modalAnimator.addCompletion(function(){
-                    window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.05);
-                    window._modalAnimator.addAnimations(function(){
-                        window.alpha = alpha;
-                    });
-                    window._modalAnimator.addCompletion(function(){
-                        window._modalAnimator = null;
-                    });
-                    window._modalAnimator.start();
-                });
-                window._modalAnimator.start();
+                window._modalAnimator = null;
             });
             window._modalAnimator.start();
         });
-        window._modalAnimator.start();
+        this._modalAnimator.start();
     },
 
     // -------------------------------------------------------------------------
