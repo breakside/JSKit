@@ -58,8 +58,8 @@ JSClass("UIColorWell", UIControl, {
 
     _changeColor: function(color){
         this.color = color;
-        this.sendActionsForEvents(UIControl.Event.valueChanged);
         this.didChangeValueForBinding('color');
+        this.sendActionsForEvents(UIControl.Event.valueChanged);
     },
 
     // ----------------------------------------------------------------------
