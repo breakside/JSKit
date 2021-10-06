@@ -290,7 +290,15 @@ JSClass("UISliderLayerBasedStyler", UIControlStyler, {
         return knobLayer.containsPoint(point);
     },
 
-    intrinsicSizeOfControl: function(styler){
+    sizeControlToFitSize: function(slider, maxSize){
+        var size = JSSize(slider.bounds.size.width, this.intrinsicSizeOfControl(slider).height);
+        if (size.width > maxSize.width){
+            size.width = maxSize.width;
+        }
+        slider.bounds = JSRect(JSPoint.Zero, size);
+    },
+
+    intrinsicSizeOfControl: function(slider){
         return JSSize(UIView.noIntrinsicSize, Math.max(this.trackWidth, this.knobSize.height));
     }
 
