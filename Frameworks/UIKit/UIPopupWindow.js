@@ -278,9 +278,15 @@ JSClass("UIPopupWindow", UIWindow, {
 
     },
 
+    modalIndicationClosesWindow: false,
+
     _modalAnimator: null,
 
     indicateModalStatus: function(){
+        if (this.modalIndicationClosesWindow){
+            this.close();
+            return;
+        }
         if (this._modalAnimator !== null){
             return;
         }
