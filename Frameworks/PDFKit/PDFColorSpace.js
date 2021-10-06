@@ -170,7 +170,7 @@ PDFColorSpace.deviceCMYK = {
         var a = 0;
         var b = 0;
         for (i = 0, l = offsets.length; i < l; ++i){
-            if (offsets[i].offset >= CMYKToLabLookup.length) return;
+            if (offsets[i].offset >= CMYKToLabLookup.length) return JSColor.black;
             L += CMYKToLabLookup[offsets[i].offset] / 255.0 * offsets[i].pct;
             a += CMYKToLabLookup[offsets[i].offset + 1] / 255.0 * offsets[i].pct;
             b += CMYKToLabLookup[offsets[i].offset + 2] / 255.0 * offsets[i].pct;
