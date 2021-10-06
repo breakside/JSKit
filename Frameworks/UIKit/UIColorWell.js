@@ -30,7 +30,7 @@ JSClass("UIColorWell", UIControl, {
             this._color = spec.valueForKey("color", JSColor).rgbaColor();
         }
         if (spec.containsKey("allowsAlpha")){
-            this._allowsAlpha = spec.valueForKey("allowsAlpha", JSColor);
+            this.allowsAlpha = spec.valueForKey("allowsAlpha", JSColor);
         }
         this.update();
     },
