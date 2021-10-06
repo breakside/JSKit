@@ -67,7 +67,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             }
             canvas.toBlob(function(blob){
                 opCompletion.call(opTarget);
-                var reader = FileReader();
+                var reader = new FileReader();
                 reader.addEventListener("loadend", function(){
                     if (reader.error){
                         logger.error("Error reading blob: %{error}", reader.error);
