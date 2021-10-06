@@ -30,7 +30,7 @@ JSClass("UIButton", UIControl, {
     _imagesByState: null,
     _backgroundImagesByState: null,
 
-    _imageView: null,
+    imageView: JSLazyInitProperty('_createImageView', '_imageView'),
     _backgroundImageView: null,
 
     initWithSpec: function(spec){
