@@ -253,8 +253,11 @@ JSClass("_JSDataImage", JSImage, {
             return null;
         }
         this.data = data;
-        this.contentType = _JSDataImage.contentTypeOfData(data);
-        if (size === undefined && this.contentType !== null){
+        this.contentType = JSImage.contentTypeOfData(data);
+        if (size === undefined){
+            if (this.contentType === null){
+                return null;
+            }
             switch (this.contentType.subtype){
                 case "png":
                     size = _JSDataImage.sizeFromPNGData(data);
@@ -265,6 +268,8 @@ JSClass("_JSDataImage", JSImage, {
                 case "svg+xml":
                     size = _JSDataImage.sizeFromSVGData(data);
                     break;
+                default:
+                    return null;
             }
         }
         _JSDataImage.$super._initWithPixelSize.call(this, size, scale);
@@ -287,7 +292,7 @@ JSClass("_JSDataImage", JSImage, {
 
 });
 
-_JSDataImage.contentTypeOfData = function(data){
+JSImage.contentTypeOfData = function(data){
     if (data.length >= 24 &&
         // magic
         data[0] == 0x89 &&
