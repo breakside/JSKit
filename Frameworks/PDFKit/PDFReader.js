@@ -48,9 +48,14 @@ JSClass("PDFReader", JSObject, {
             completion = Promise.completion();
         }
         this._crossReferenceTable = [];
-        this._readVersion();
-        var offset = this._readEndOfFile();
-        this._readCrossReferenceEntries(offset);
+        try{
+            this._readVersion();
+            var offset = this._readEndOfFile();
+            this._readCrossReferenceEntries(offset);
+        }catch (e){
+            completion.call(target, PDFReader.Status.error, null);
+            return;
+        }
         var encrypt = this._trailer.Encrypt;
         if (!encrypt){
             this._readObjectStreams(function(){
