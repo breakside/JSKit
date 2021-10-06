@@ -620,7 +620,27 @@ JSClass('UIWindow', UIView, {
             }
             return;
         }
-        UIWindow.$super.keyDown.call(this, event);
+        var next = this._nextKeyResponder();
+        if (next !== null){
+            next.keyDown(event);
+        }
+    },
+
+    keyUp: function(event){
+        var next = this._nextKeyResponder();
+        if (next !== null){
+            next.keyUp(event);
+        }
+    },
+
+    _nextKeyResponder: function(){
+        var responder = this.getNextResponder();
+        if (responder === this._application){
+            if (this.isKeyWindow && this.windowServer.mainWindow !== null && this.windowServer.mainWindow !== this){
+                return this.windowServer.mainWindow;
+            }
+        }
+        return responder;
     },
 
     // -------------------------------------------------------------------------
@@ -674,9 +694,6 @@ JSClass('UIWindow', UIView, {
     getNextResponder: function(){
         if (this.viewController !== null){
             return this.viewController;
-        }
-        if (this.isKeyWindow && this.windowServer.mainWindow !== null && this.windowServer.mainWindow !== this){
-            return this.windowServer.mainWindow;
         }
         return this._application;
     },
