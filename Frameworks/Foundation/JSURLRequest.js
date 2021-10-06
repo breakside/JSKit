@@ -140,7 +140,10 @@ JSURLRequest.Method = {
     'get': "GET",
     'put': "PUT",
     'delete': "DELETE",
-    'post': "POST"
+    'post': "POST",
+    'patch': "PATCH",
+    'options': "OPTIONS",
+    'head': "HEAD"
 };
 
 // deprecated
