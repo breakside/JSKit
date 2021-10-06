@@ -433,6 +433,7 @@ JSClass('UIWindow', UIView, {
             }else if (this._contentViewController){
                 this._contentViewController.viewWillAppear(false);
             }
+            this._shouldCallDidAppear = true;
         }
         this.windowServer.orderWindowFront(this);
         if (!this._isOpen){
@@ -443,15 +444,19 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    _shouldCallDidAppear: false,
     _isVisible: false,
 
     didBecomeVisible: function(){
         this._application._windows.push(this);
         this._isVisible = true;
-        if (this.viewController){
-            this.viewController.viewDidAppear(false);
-        }else if (this._contentViewController){
-            this._contentViewController.viewDidAppear(false);
+        if (this._shouldCallDidAppear){
+            this._shouldCallDidAppear = false;
+            if (this.viewController){
+                this.viewController.viewDidAppear(false);
+            }else if (this._contentViewController){
+                this._contentViewController.viewDidAppear(false);
+            }
         }
         if (this._initialFirstResponder !== null){
             var responder = this._initialFirstResponder;
