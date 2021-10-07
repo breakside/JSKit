@@ -79,7 +79,7 @@ JSClass('UILabel', UIView, {
         }
     },
 
-    tooltip: JSDynamicProperty("_tooltip"),
+    tooltip: JSDynamicProperty("_tooltip", null),
 
     setTooltip: function(tooltip){
         this._tooltip = tooltip;
