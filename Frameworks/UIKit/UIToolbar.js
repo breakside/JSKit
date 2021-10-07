@@ -43,7 +43,7 @@ JSClass("UIToolbar", UIView, {
     initWithSpec: function(spec){
         UIToolbar.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("styler")){
-            this._styler = spec.valueForKey("styler", UIToolbarStyler);
+            this._styler = spec.valueForKey("styler", UIToolbar.Styler);
         }else{
             this._styler = UIToolbar.Styler.default;
         }
