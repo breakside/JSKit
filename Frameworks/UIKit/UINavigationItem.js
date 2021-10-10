@@ -25,6 +25,7 @@ JSClass("UINavigationItem", JSObject, {
     rightBarItems: JSDynamicProperty('_rightBarItems', null),
     leftBarItems: JSDynamicProperty('_leftBarItems', null),
     hidesBackButton: false,
+    titleTextAlignment: null,
 
     init: function(args){
         this._rightBarItems = [];
@@ -44,6 +45,9 @@ JSClass("UINavigationItem", JSObject, {
         }
         if (spec.containsKey("hidesBackButton")){
             this.hidesBackButton = spec.valueForKey("hidesBackButton");
+        }
+        if (spec.containsKey("titleTextAlignment")){
+            this.titleTextAlignment = spec.valueForKey("titleTextAlignment", JSTextAlignment);
         }
         this._rightBarItems = [];
         this._leftBarItems = [];

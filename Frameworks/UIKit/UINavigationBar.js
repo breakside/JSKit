@@ -510,10 +510,10 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             }
             removingBackBarItemView.alpha = 0;
             removingTitleLabel.alpha = 0;
-            removingTitleLabel.transform = JSAffineTransform.Translated(backTitleFrame.origin.x - removingTitleLabel.frame.origin.x, 0).scaledBy(1 / backToTitleScale);
+            removingTitleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingTitleLabel.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
             if (removingCustomView){
                 removingCustomView.alpha = 0;
-                removingCustomView.transform = JSAffineTransform.Translated(backTitleFrame.origin.x - removingCustomView.frame.origin.x, 0).scaledBy(1 / backToTitleScale);
+                removingCustomView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingCustomView.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
             }
             props.titleLabel.alpha = 1;
             props.titleLabel.transform = JSAffineTransform.Identity;
@@ -570,10 +570,10 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         props.backBarItemView.alpha = 0;
         var backTitleFrame = removingBackBarItemView.titleLabel.convertRectToView(removingBackBarItemView.titleLabel.bounds, props.backBarItemView.superview);
         if (props.customView){
-            props.customView.transform = JSAffineTransform.Translated(backTitleFrame.origin.x - props.customView.frame.origin.x, 0).scaledBy(1 / backToTitleScale);
+            props.customView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.customView.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
             props.customView.alpha = 0;
         }else{
-            props.titleLabel.transform = JSAffineTransform.Translated(backTitleFrame.origin.x - props.titleLabel.frame.origin.x, 0).scaledBy(1 / backToTitleScale);
+            props.titleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.titleLabel.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
         }
         animator.addAnimations(function(){
             var i, l;
@@ -693,6 +693,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     },
 
     layoutBar: function(navigationBar){
+        var item = navigationBar.topItem;
         var size = navigationBar.bounds.size;
         var props = navigationBar.stylerProperties;
         var xLeft = this.itemInsets.left;
@@ -706,7 +707,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         if (!barItemView.hidden){
             xLeft += barItemView.bounds.size.width;
         }
-        for (i = 0, l = props.leftBarItemViews; i < l; ++i){
+        for (i = 0, l = props.leftBarItemViews.length; i < l; ++i){
             barItemView = props.leftBarItemViews[i];
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
             barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
@@ -731,20 +732,18 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
                 props.titleLabel.hidden = false;
                 titleView = props.titleLabel;
             }
-            titleView.sizeToFitSize(JSSize(availableTitleWidth, Number.MAX_VALUE));
+            titleView.sizeToFitSize(JSSize(availableTitleWidth, size.height));
             var viewSize = titleView.bounds.size;
             var minX = xLeft;
             var maxX = xRight - viewSize.width;
             var centeredX = (size.width - viewSize.width) / 2;
             var centeredY = (size.height - viewSize.height) / 2;
-            if (this.titleTextAlignment === JSTextAlignment.center){
+            var titleTextAlignment = item ? item.titleTextAlignment || this.titleTextAlignment : this.titleTextAlignment;
+            if (titleTextAlignment === JSTextAlignment.center){
                 titleView.frame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
-            }else if (this.titleTextAlignment === JSTextAlignment.right){
+            }else if (titleTextAlignment === JSTextAlignment.right){
                 titleView.frame = JSRect(JSPoint(maxX - viewSize.width, centeredY), viewSize);
             }else{
-                if (props.backBarItemView && props.backBarItemView.hidden){
-                    minX += props.backBarItemView.bounds.size.width;
-                }
                 titleView.frame = JSRect(JSPoint(minX, centeredY), viewSize);
             }
         }else{
