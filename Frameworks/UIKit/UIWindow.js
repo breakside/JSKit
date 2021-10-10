@@ -1122,6 +1122,11 @@ JSClass("UIRootWindow", UIWindow, {
         return this.application.accessibilityLabel;
     },
 
+    _commonWindowInit: function(){
+        UIRootWindow.$super._commonWindowInit.call(this);
+        this.frame = this.application.windowServer.screen.frame;
+    },
+
     isAccessibilityElement: false,
 
 });
