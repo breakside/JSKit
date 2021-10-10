@@ -440,18 +440,20 @@ JSClass("UIButtonStyler", UIControlStyler, {
         var image = button.getImageForState(UIControl.State.normal);
         var contentRect = button.bounds.rectWithInsets(button._titleInsets);
         if (button._titleLabel !== null){
+            var titleSize = button._titleLabel.intrinsicSize;
+            var x, y;
             if (image !== null){
                 var imageScale = contentRect.size.height / image.size.height;
                 var imageSize = JSSize(image.size.width * imageScale, contentRect.size.height);
                 button._imageView.frame = JSRect(contentRect.origin, imageSize);
-                var x = contentRect.origin.x + imageSize.width + this.titleImageSpacing;
-                var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
-                var titleSize = button._titleLabel.intrinsicSize;
-                var y = (contentRect.size.height - titleSize.height) / 2;
-                button._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
+                x = contentRect.origin.x + imageSize.width + this.titleImageSpacing;
+                y = (contentRect.size.height - titleSize.height) / 2;
             }else{
-                button._titleLabel.frame = contentRect;
+                x = contentRect.origin.x;
+                y = (contentRect.size.height - titleSize.height) / 2;
             }
+            var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
+            button._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
         }else if (image !== null){
             button._imageView.frame = contentRect;
         }
