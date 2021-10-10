@@ -44,7 +44,7 @@ JSClass("UINavigationBar", UIView, {
         this._items = [];
 
         if (spec.containsKey("styler")){
-            this._styler = spec.valueForKey("styler", UINavigationBarStyler);
+            this._styler = spec.valueForKey("styler", UINavigationBar.Styler);
         }
         this._commonNavigationBarInit();
     },
