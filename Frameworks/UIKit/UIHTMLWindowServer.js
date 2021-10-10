@@ -936,11 +936,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                 color = window.backgroundColor;
             }
         }
-        if (color !== null){
-            this.themeColorElement.setAttribute("content", color.cssString());
-        }else{
-            this.themeColorElement.setAttribute("content", JSColor.background);
+        if (color === null){
+            color = JSColor.background;
         }
+        this.themeColorElement.setAttribute("content", color.cssString());
     },
 
     // --------------------------------------------------------------------
