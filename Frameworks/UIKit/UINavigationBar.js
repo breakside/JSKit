@@ -90,11 +90,11 @@ JSClass("UINavigationBar", UIView, {
     pushAnimator: null,
 
     createPushAnimator: function(){
-        return UIViewPropertyAnimator.initWithDuration(0.2, UIAnimation.Timing.easeOut);
+        return UIViewPropertyAnimator.initWithDuration(0.2, UIAnimation.Timing.easeInOut);
     },
 
     createPopAnimator: function(){
-        return UIViewPropertyAnimator.initWithDuration(0.2, UIAnimation.Timing.easeOut);
+        return UIViewPropertyAnimator.initWithDuration(0.2, UIAnimation.Timing.easeInOut);
     },
 
     pushItem: function(item, animated){
