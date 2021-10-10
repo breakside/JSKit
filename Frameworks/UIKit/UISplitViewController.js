@@ -31,8 +31,6 @@ JSClass("UISplitViewController", UIViewController, {
     splitView: JSReadOnlyProperty(),
     _defaultViewClass: UISplitView,
 
-    _mainHidden: false,
-
     initWithSpec: function(spec){
         if (spec.containsKey('leadingViewController')){
             this._leadingViewController = spec.valueForKey("leadingViewController");
@@ -190,6 +188,10 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     setMainViewController: function(mainViewController){
+        if (this.isViewLoaded && this.view.mainHidden){
+            this._setMainViewControllerCollapsed(mainViewController);
+            return;
+        }
         var callAppearanceMethods = this.isViewVisible;
         var disappearingViewController = null;
         if (this._mainViewController !== null && this._mainViewController.parentViewController === this){
@@ -200,32 +202,45 @@ JSClass("UISplitViewController", UIViewController, {
             this._mainViewController.removeFromParentViewController();
         }
         this._mainViewController = mainViewController;
-        if (this.isViewLoaded && this.view.mainHidden){
-            if (this._mainViewController){
-                this._leadingViewController.show(this._mainViewController, this);
-            }
-        }else{
-            if (this._mainViewController){
-                if (callAppearanceMethods){
-                    this._mainViewController.viewWillAppear(false);
-                }
-                this.addChildViewController(this._mainViewController);
-            }
-            if (this._view !== null){
-                var view = null;
-                if (this._mainViewController !== null){
-                    view = this._mainViewController.view;
-                }
-                this._view.mainView = view;
-            }
+        if (this._mainViewController){
             if (callAppearanceMethods){
-                if (disappearingViewController !== null){
-                    disappearingViewController.enqueueDidDisappear();
+                this._mainViewController.viewWillAppear(false);
+            }
+            this.addChildViewController(this._mainViewController);
+        }
+        if (this._view !== null){
+            var view = null;
+            if (this._mainViewController !== null){
+                view = this._mainViewController.view;
+            }
+            this._view.mainView = view;
+        }
+        if (callAppearanceMethods){
+            if (disappearingViewController !== null){
+                disappearingViewController.enqueueDidDisappear();
+            }
+            if (this._mainViewController !== null){
+                this._mainViewController.enqueueDidAppear();
+            }
+        }
+    },
+
+    _setMainViewControllerCollapsed: function(mainViewController){
+        if (this._mainViewController !== null){
+            if (this._leadingViewController.isKindOfClass(UINavigationController)){
+                if (this._mainViewController === this._leadingViewController.topViewController){
+                    this._leadingViewController.popViewController(false);
                 }
-                if (this._mainViewController !== null){
-                    this._mainViewController.enqueueDidAppear();
+            }else{
+                if (this._mainViewController === this._leadingViewController.presentedViewController){
+                    this._leadingViewController.dismiss(false);
                 }
             }
+            this._leadingViewController.view.layoutIfNeeded();
+        }
+        this._mainViewController = mainViewController;
+        if (this._mainViewController !== null){
+            this._leadingViewController.show(this._mainViewController, this);
         }
     },
 
