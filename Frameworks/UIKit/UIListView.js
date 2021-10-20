@@ -2387,6 +2387,10 @@ JSClass("UIListView", UIScrollView, {
         return null;
     },
 
+    indexPathOfCell: function(cell){
+        return cell.indexPath;
+    },
+
     /// Get the visible cell that contains the given location, if any
     ///
     /// Only visible cells are checked in the search, because those are the only
