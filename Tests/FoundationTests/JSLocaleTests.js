@@ -219,6 +219,11 @@ JSClass("JSLocaleTests", TKTestSuite, {
         TKAssertEquals(locale.mediumTimeFormat, "h:mm:ss a");
         TKAssertEquals(locale.longTimeFormat, "h:mm:ss a z");
         TKAssertEquals(locale.fullTimeFormat, "h:mm:ss a zzzz");
+        TKAssertEquals(locale.shortDateTimeFormat, "{1}, {0}");
+        // inconsistent browser behavior with medium date+time format
+        // TKAssertEquals(locale.mediumDateTimeFormat, "{1}, {0}");
+        TKAssertEquals(locale.longDateTimeFormat, "{1} 'at' {0}");
+        TKAssertEquals(locale.fullDateTimeFormat, "{1} 'at' {0}");
         TKAssertEquals(locale.dateFormatForTemplate("yMEd"), "EEE, M/d/y");
         TKAssertEquals(locale.dateFormatForTemplate("yyyyMd"), "M/d/y");
         TKAssertEquals(locale.dateFormatForTemplate("yMd"), "M/d/y");
@@ -244,6 +249,10 @@ JSClass("JSLocaleTests", TKTestSuite, {
             TKAssertEquals(locale.fullDateFormat, "EEEE, d. MMMM y");
             TKAssertEquals(locale.shortTimeFormat, "HH:mm");
             TKAssertEquals(locale.mediumTimeFormat, "HH:mm:ss");
+            TKAssertEquals(locale.shortDateTimeFormat, "{1}, {0}");
+            TKAssertEquals(locale.mediumDateTimeFormat, "{1}, {0}");
+            TKAssertEquals(locale.longDateTimeFormat, "{1} 'um' {0}");
+            TKAssertEquals(locale.fullDateTimeFormat, "{1} 'um' {0}");
             // browsers seem to use zzzz in the long format, but that doesn't
             // match unicode data....
             // TKAssertEquals(locale.longTimeFormat, "HH:mm:ss z");

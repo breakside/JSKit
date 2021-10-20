@@ -461,10 +461,27 @@ JSClass("JSLocale", JSObject, {
         var narrowWeekdayName = "";
         var locale = this._identifier;
         function escaped(literal){
-            if (literal.match(/^[^A-Za-z]+$/)){
-                return literal;
+            var escapedLiteral = "";
+            var i, l, c;
+            var quoting = false;
+            for (i = 0, l = literal.length; i < l; ++i){
+                c = literal[i];
+                if (c === "'"){
+                    escapedLiteral += "'";
+                }else if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z')){
+                    if (!quoting){
+                        quoting = true;
+                        escapedLiteral += "'";
+                    }
+                }else{
+                    if (quoting){
+                        quoting = false;
+                        escapedLiteral += "'";
+                    }
+                }
+                escapedLiteral += c;
             }
-            return "'" + literal.replace(/\'/g, "''") + "'";
+            return escapedLiteral;
         }
         function unicodeFormatForOptions(options){
             options.calendar = "gregory";
@@ -551,6 +568,10 @@ JSClass("JSLocale", JSObject, {
             this._mediumTimeFormat = unicodeFormatForOptions({timeStyle: "medium"});
             this._longTimeFormat = unicodeFormatForOptions({timeStyle: "long"});
             this._fullTimeFormat = unicodeFormatForOptions({timeStyle: "full"});
+            this._shortDateTimeFormat = unicodeFormatForOptions({dateStyle: "short", timeStyle: "short"}).replace(this._shortDateFormat, "{1}").replace(this._shortTimeFormat, "{0}");
+            this._mediumDateTimeFormat = unicodeFormatForOptions({dateStyle: "medium", timeStyle: "medium"}).replace(this._mediumDateFormat, "{1}").replace(this._mediumTimeFormat, "{0}");
+            this._longDateTimeFormat = unicodeFormatForOptions({dateStyle: "long", timeStyle: "long"}).replace(this._longDateFormat, "{1}").replace(this._longTimeFormat, "{0}");
+            this._fullDateTimeFormat = unicodeFormatForOptions({dateStyle: "full", timeStyle: "full"}).replace(this._fullDateFormat, "{1}").replace(this._fullTimeFormat, "{0}");
             this._dateFormatsByTemplate = {
                 "yMEd": unicodeFormatForOptions({year: "numeric", month: "numeric", weekday: "short", day: "numeric"}),
                 "yyyyMd": unicodeFormatForOptions({year: "numeric", month: "numeric", day: "numeric"}),
