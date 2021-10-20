@@ -209,6 +209,18 @@ topics:
         summary: A language identifier that will be used as a final option
           if none of the user's preferred languages are supported by the app.
   -
+    name: Dark Mode
+    members:
+      -
+        name: UIUserInterfaceStyle
+        introduced: 2021.40.0
+        type: String
+        summary: Can be set to "light" to opt-out of dark mode support
+        description: |
+          All `UIApplication`s support dark mode by default.  If you do not
+          want to support dark mode in your application, set `UIUserInterfaceStyle`
+          to `"light"` in your `Info`() file.
+  -
     name: Fonts
     members:
       -

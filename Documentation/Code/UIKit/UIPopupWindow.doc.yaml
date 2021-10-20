@@ -65,6 +65,15 @@ topics:
             default: "true"
             summary: Whether the alert should appear in an animated way
   -
+    name: Behaviors
+    members:
+      -
+        name: modalIndicationClosesWindow
+        introduced: 2021.40.0
+        type: boolean
+        summary: Instructs a modal popup window to close when the user clicks
+          outside the window.
+  -
     name: Source View
     members:
       -

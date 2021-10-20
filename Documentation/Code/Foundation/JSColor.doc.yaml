@@ -192,6 +192,55 @@ topics:
             type: Number
             summary: The amount to blend, from `0.0` to `1.0`
       -
+        name: initWithUIStyles
+        introduced: 2021.40.0
+        kind: init
+        summary: Create a dynamic color that changes depending on the user interface style
+        arguments:
+          -
+            name: lightColor
+            type: JSColor
+            summary: The color to use for light user interface style
+          -
+            name: darkColor
+            type: JSColor
+            summary: The color to use for dark user interface style
+          -
+            name: lightContrastColor
+            type: JSColor
+            summary: The color to use for light user interface style with high contrast
+          -
+            name: darkContrastColor
+            type: JSColor
+            summary: The color to use for dark user interface style with high contrast
+        description: |
+          Available if you import `UIKit`.
+
+          The light user interface style is typically a light background with dark text.
+
+          The dark user interface style is typically a dark background with light text.
+      -
+        name: initWithUIStyles
+        suffix: short
+        introduced: 2021.40.0
+        kind: init
+        summary: Create a dynamic color that changes depending on the user interface style
+        arguments:
+          -
+            name: lightColor
+            type: JSColor
+            summary: The color to use for light user interface style
+          -
+            name: darkColor
+            type: JSColor
+            summary: The color to use for dark user interface style
+        description: |
+          Available if you import `UIKit`.
+
+          The light user interface style is typically a light background with dark text.
+
+          The dark user interface style is typically a dark background with light text.
+      -
         name: initFromDictionary
         introduced: 2021.28.0
         kind: init
@@ -205,45 +254,17 @@ topics:
           Useful for situations like writing and then reading a color dictionary
           to a `UIPasteboard`.
       -
-        name: clear
-        static: true
-        type: JSColor
-        summary: A `0` alpha color
-      -
-        name: white
-        static: true
-        type: JSColor
-        summary: A fully white color
-      -
-        name: black
-        static: true
-        type: JSColor
-        summary: A fully black color
-      -
-        name: red
-        static: true
-        type: JSColor
-        summary: A fully red color
-      -
-        name: green
-        static: true
-        type: JSColor
-        summary: A fully green color
-      -
-        name: blue
-        static: true
-        type: JSColor
-        summary: A fully blue color
-      -
         name: Spec File Properties
         kind: spec
         summary: Description of properties that can be included in a spec file
         description: |
           A `JSColor` can be specified in a few different ways:
 
+          1. As a string corresponding to the name of a static `JSColor` property
           1. As an RGBA color with the `rgba` property
-          2. As a grayscale color with the `white` property
-          3. As a blending of colors with the `blendBase`, `with`, and `percent`
+          1. As a grayscale color with the `white` property
+          1. With a `space` property and other properties corresponding to component names
+          1. As a blending of colors with the `blendBase`, `with`, and `percent`
              properties.
 
           Implicit Class
@@ -270,7 +291,7 @@ topics:
               -
                 name: rgba
                 type: String
-                summary: A comma-separated list of r,g,b,a components
+                summary: A comma-separated list of r,g,b,a components, or a hex string
                 description: |
                   Creates a color in the RGBA color space with the given
                   components.  Any missing color components default to `0`,
@@ -320,6 +341,65 @@ topics:
                     class: JSColor
                     white: 0.75
                   ````
+              -
+                name: white
+                introduced: 2021.40.0
+                suffix: with-alpha
+                type: String
+                summary: A comma-separated list of white,alpha components
+                description: |
+                  Creates a color in the grayscale color space with the given
+                  whiteness percentage and alpha value
+
+                  ````
+                  ErrorColor:
+                    class: JSColor
+                    white: 1,0.5
+                  ````
+          -
+            name: Space and Components
+            members:
+              -
+                name: space
+                introduced: 2021.40.0
+                type: String
+                summary: The name of a static `JSColorSpace` property
+                description: |
+                  Along with properties matching the component names for the space,
+                  creates a color with the given color space and components.
+
+                  In the following example, the `ui`(JSColorSpace.ui) color space is a
+                  named color space, so it has a single component named `"name"`.
+                  Colors from every space can additionally use the `"alpha"`
+                  component.
+
+                  ````
+                  Label:
+                    class: UILabel
+                    textColor:
+                      space: ui
+                      name: text
+                      alpha: 0.5
+                  ````
+
+                  You can also create an RGB color using the same space + components
+                  style, although the `rgba` style is designed to be more compact.
+                  ````
+                  Label:
+                    class: UILabel
+                    textColor:
+                      space: rgb
+                      red: 1
+                      green: 0.1
+                      blue: 0.1
+                      alpha: 0.9
+                  ````
+              -
+                name: name
+                introduced: 2021.40.0
+                type: String
+                summary: A property to specify the name component of color in a
+                  named color space
           -
             name: Blending
             members:
@@ -387,6 +467,464 @@ topics:
                 see:
                   - blendBase
                   - with
+  -
+    name: Common Colors
+    members:
+      -
+        name: clear
+        static: true
+        type: JSColor
+        summary: A `0` alpha color
+      -
+        name: white
+        static: true
+        type: JSColor
+        summary: A fully white color
+      -
+        name: black
+        static: true
+        type: JSColor
+        summary: A fully black color
+      -
+        name: red
+        static: true
+        type: JSColor
+        summary: A fully red color
+      -
+        name: green
+        static: true
+        type: JSColor
+        summary: A fully green color
+      -
+        name: blue
+        static: true
+        type: JSColor
+        summary: A fully blue color
+  -
+    name: Standard User Interface Colors
+    description: Available when you import `UIKit`, all colors correspond to
+      the same name in the `UIColorSpace.ui` space.
+    members:
+      - name: background
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for the root window's background
+        description: |
+          Corresponds to the `"background"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: text
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for labels
+        description: |
+          Corresponds to the `"text"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: secondaryText
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for detail labels
+        description: |
+          Corresponds to the `"secondaryText"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: highlight
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for highlighting selections
+        description: |
+          Corresponds to the `"highlight"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: mutedHighlight
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for highlighting selections when a view is not the first responder
+        description: |
+          Corresponds to the `"mutedHighlight"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: highlightedText
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for text in a highlighted selection
+        description: |
+          Corresponds to the `"highlightedText"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: placeholderText
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for placeholder text
+        description: |
+          Corresponds to the `"placeholderText"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: destructive
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for destructive actions
+        description: |
+          Corresponds to the `"destructive"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: controlBackground
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control backgrounds
+        description: |
+          Corresponds to the `"controlBackground"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: controlBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control borders
+        description: |
+          Corresponds to the `"controlBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: controlTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control titles
+        description: |
+          Corresponds to the `"controlTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeControlBackground
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control backgrounds when active
+        description: |
+          Corresponds to the `"activeControlBackground"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeControlBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control borders when active
+        description: |
+          Corresponds to the `"activeControlBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeControlTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control titles when active
+        description: |
+          Corresponds to the `"activeControlTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: selectedControlBackground
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control backgrounds when selected
+        description: |
+          Corresponds to the `"selectedControlBackground"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: selectedControlBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control border when selected
+        description: |
+          Corresponds to the `"selectedControlBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: selectedControlTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control titles when selected
+        description: |
+          Corresponds to the `"selectedControlTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeSelectedControlBackground
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control backgrounds when selected and active
+        description: |
+          Corresponds to the `"activeSelectedControlBackground"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeSelectedControlBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control borders when selected and active
+        description: |
+          Corresponds to the `"activeSelectedControlBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: activeSelectedControlTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control titles when selected and active
+        description: |
+          Corresponds to the `"activeSelectedControlTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: disabledControlBackground
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control backgrounds when not enabled
+        description: |
+          Corresponds to the `"disabledControlBackground"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: disabledControlBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control borders when not enabled
+        description: |
+          Corresponds to the `"disabledControlBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: disabledControlTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control titles when not enabled
+        description: |
+          Corresponds to the `"disabledControlTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: controlShadow
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for standard control shadows
+        description: |
+          Corresponds to the `"controlShadow"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: window
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for window backgrounds
+        description: |
+          Corresponds to the `"window"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: windowShadow
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for window shadows
+        description: |
+          Corresponds to the `"windowShadow"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: toolbarTitle
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for toolbar titles
+        description: |
+          Corresponds to the `"toolbarTitle"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: tooltip
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for tooltip backgrounds
+        description: |
+          Corresponds to the `"tooltip"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: tooltipText
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for tooltip text
+        description: |
+          Corresponds to the `"tooltipText"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: tooltipBorder
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for tooltip borders
+        description: |
+          Corresponds to the `"tooltipBorder"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: tooltipShadow
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for tooltip shadows
+        description: |
+          Corresponds to the `"tooltipShadow"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: menuBar
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for menu bars
+        description: |
+          Corresponds to the `"menuBar"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: menuBarText
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for menu bar text
+        description: |
+          Corresponds to the `"menuBarText"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: menu
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for menus
+        description: |
+          Corresponds to the `"menu"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
+      - name: menuShadow
+        introduced: 2021.40.0
+        type: JSColor
+        static: true
+        summary: The color used for menu shadows
+        description: |
+          Corresponds to the `"menuShadow"` name in the `JSColorSpace.ui` color space.
+
+          Set this property to customize your application's user interface.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark.
   -
     name: Color Space
     members:

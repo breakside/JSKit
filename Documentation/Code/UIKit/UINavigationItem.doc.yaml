@@ -39,6 +39,12 @@ topics:
                 name: view
                 type: UIView
                 summary: The custom view to show instead of a title
+              -
+                name: titleTextAlignment
+                introduced: 2021.40.3
+                type: JSTextAlignment
+                nullable: true
+                summary: The alignment of this item's title in the navigation bar
           -
             name: Bar Items
             members:
@@ -103,6 +109,12 @@ topics:
         type: UIView
         nullable: true
         summary: The custom view to show instead of a title
+      -
+        name: titleTextAlignment
+        introduced: 2021.40.3
+        type: JSTextAlignment
+        nullable: true
+        summary: The alignment of this item's title in the navigation bar
   -
     name: Bar Items
     members:

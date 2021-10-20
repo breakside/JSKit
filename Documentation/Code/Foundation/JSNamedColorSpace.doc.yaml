@@ -1,0 +1,31 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSColorSpace
+introduced: 2021.40.0
+summary: A color space that uses names to reference its colors
+description: |
+  A named color space contains a map from names to colors.  `JSColor`s with
+  a named color space as their `space`(JSColor.space) have a single
+  component, the name of the color to lookup in the space's map.
+
+  `UIKit` makes use of a named color space for standard user interface colors,
+  accessible via the `JSColorSpace.ui` static property.  A named space allows
+  for a level of indirection, like a pointer, that is useful for changing
+  interface colors dynamically.  A `UILabel` with a reference to `JSColor.text`,
+  for example, can be updated simply by changing the color space's map for the
+  `"text"` name, without any direct changes to the label itself.
+topics:
+  - name: Setting Colors
+    members:
+      - name: setColorForName
+        kind: method
+        type: JSColor
+        return: A color in this named color space 
+        summary: Add or update a named color in this space
+        arguments:
+          - name: name
+            type: String
+            summary: The name of the color to add or update
+          - name: color
+            type: JSColor
+            summary: The color to set for the given name

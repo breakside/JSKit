@@ -18,6 +18,29 @@ topics:
         static: true
         type: JSColorSpace
         summary: The standard grayscale color space
+  - name: Standard Spaces
+    members:
+      - name: ui
+        introduced: 2021.40.0
+        static: true
+        type: JSNamedColorSpace
+        summary: A named color space for standard user interface colors
+        description: |
+          Available only if you import `UIKit`.
+
+          Can be used to add or update named user interface colors, which
+          simplifies implementation themes and of dark mode.
+        note: |
+          For convenience, when you add a new color to the `ui` space via `setColorForName()`, a static property
+          of the same name will be automatically added to `JSColor`.  Thereafter, overwriting
+          the static property on `JSColor` is equivalent to calling `setColorForName()` again.
+        important: |
+          When you update a `ui` color, either by calling `setColorForName()` or by
+          overwriting its corresponding `JSColor` static property, the entire user
+          interface will be re-rendered at the next display cycle
+        see:
+          - JSNamedColorSpace.setColorForName()
+          - JSColor.initWithUIStyles()
   - name: Component Info
     members:
       - name: numberOfComponents

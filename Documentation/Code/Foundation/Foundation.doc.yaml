@@ -64,6 +64,7 @@ topics:
       - JSAffineTransform
       - JSColor
       - JSColorSpace
+      - JSNamedColorSpace
       - JSCubicBezier
       - JSGradient
       - JSImage

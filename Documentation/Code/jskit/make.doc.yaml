@@ -23,7 +23,7 @@ description: |
   way to ensure changed files are always downloaded while unchanged files are
   cached forever.
 invocations:
-  - "[--debug] [--watch] <project-dir>"
+  - "[--debug] [--watch] [--bundle-version] [--build-label] [--quiet] <project-dir>"
 topics:
   -
     name: Project Info
@@ -90,6 +90,14 @@ topics:
           use the same build label, because the cache-busting http paths of files
           include a component derived from the build label.  Without the same label,
           different containers will be serving different paths for files.
+      -
+        name: --quiet
+        introduced: 2021.33.0
+        type: flag
+        summary: Supress the normal build output except for errors
+        description: |
+          Useful in automated build environments that can't take advantage of
+          output line replacement features.
   -
     name: HTML Specific Arguments
     summary: For use when calling `make` on projects that have an `html` type

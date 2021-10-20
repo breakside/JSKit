@@ -18,6 +18,19 @@ topics:
             summary: The size that will determine this collection's size
               classes
       -
+        name: traitsWithSize
+        introduced: 2021.40.0
+        kind: method
+        type: UITraitConllection
+        summary: Create a copy of this trait collection with the size classes
+          changed to match the given size
+        arguments:
+          -
+            name: size
+            type: JSSize
+            summary: The size that will determine this collection's size
+              classes
+      -
         name: traitsWithContrast
         introduced: 2020.42.0
         kind: method
@@ -29,6 +42,18 @@ topics:
             name: contrast
             type: UIUserInterface.Contrast
             summary: The new contrast value
+      -
+        name: traitsWithUserInterfaceStyle
+        introduced: 2021.40.0
+        kind: method
+        type: UITraitConllection
+        summary: Create a copy of this trait collection with the user interface style
+          changed to match the given value
+        arguments:
+          -
+            name: style
+            type: UIUserInterface.Style
+            summary: The new user interface style
   -
     name: Sizes
     members:
@@ -40,6 +65,14 @@ topics:
         name: verticalSizeClass
         type: UIUserInterface.SizeClass
         summary: The general size of the screen in the vertical direction
+  -
+    name: User Interface Style
+    members:
+      -
+        name: userInterfaceStyle
+        introduced: 2021.40.0
+        type: UIUserInterface.Style
+        summary: The current user interface style (regular or dark mode)
   -
     name: Accessibility
     members:

@@ -984,6 +984,12 @@ topics:
                         summary: The color to use for the cell's
                           \`titleLabel`(UIListViewCell.titleLabel)
                       -
+                        name: activeCellTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                          is active
+                      -
                         name: selectedCellTextColor
                         type: JSColor
                         summary: The color to use for the cell's
@@ -1009,6 +1015,12 @@ topics:
                         type: JSColor
                         summary: The color to use for the cell's
                           \`detailLabel`(UIListViewCell.detailLabel)
+                      -
+                        name: activeCellDetailTextColor
+                        type: JSColor
+                        summary: The color to use for the cell's
+                          \`detailLabel`(UIListViewCell.detailLabel) when the
+                          cell is active
                       -
                         name: selectedCellDetailTextColor
                         type: JSColor
@@ -1061,6 +1073,10 @@ topics:
                         name: cellBackgroundColor
                         type: JSColor
                         summary: The background color of the cell
+                      -
+                        name: activeCellBackgroundColor
+                        type: JSColor
+                        summary: The background color of the cell when it is active
                       -
                         name: selectedCellBackgroundColor
                         type: JSColor
@@ -1134,6 +1150,11 @@ topics:
                         type: JSColor
                         summary: The color of the separator line between cells
                       -
+                        name: activeCellSeparatorColor
+                        type: JSColor
+                        summary: The color of the separator line between cells
+                          when a cell is active
+                      -
                         name: selectedCellSeparatorColor
                         type: JSColor
                         summary: The color of the separator line between cells
@@ -1180,6 +1201,12 @@ topics:
                 summary: The color to use for the cell's
                   \`titleLabel`(UIListViewCell.titleLabel)
               -
+                name: activeCellTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`titleLabel`(UIListViewCell.titleLabel) when the cell
+                  is active
+              -
                 name: selectedCellTextColor
                 type: JSColor
                 summary: The color to use for the cell's
@@ -1205,6 +1232,12 @@ topics:
                 type: JSColor
                 summary: The color to use for the cell's
                   \`detailLabel`(UIListViewCell.detailLabel)
+              -
+                name: activeCellDetailTextColor
+                type: JSColor
+                summary: The color to use for the cell's
+                  \`detailLabel`(UIListViewCell.detailLabel) when the
+                  cell is active
               -
                 name: selectedCellDetailTextColor
                 type: JSColor
@@ -1253,6 +1286,10 @@ topics:
                 name: cellBackgroundColor
                 type: JSColor
                 summary: The background color of the cell
+              -
+                name: activeCellBackgroundColor
+                type: JSColor
+                summary: The background color of the cell when it is active
               -
                 name: selectedCellBackgroundColor
                 type: JSColor
@@ -1326,6 +1363,11 @@ topics:
                 name: cellSeparatorColor
                 type: JSColor
                 summary: The color of the separator line between cells
+              -
+                name: activeCellSeparatorColor
+                type: JSColor
+                summary: The color of the separator line between cells
+                  when a cell is active
               -
                 name: selectedCellSeparatorColor
                 type: JSColor

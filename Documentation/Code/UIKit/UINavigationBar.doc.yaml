@@ -204,6 +204,13 @@ topics:
                         name: titleColor
                         type: JSColor
                         summary: The color of the bar's title label
+                      -
+                        name: titleTextAlignment
+                        introduced: 2021.40.3
+                        type: JSTextAlignment
+                        summary: The alignment of the title in the bar
+                        description: |
+                          Each `UINavigationItem` can override this value
                   -
                     name: Items
                     members:
@@ -220,6 +227,10 @@ topics:
                         name: disabledItemColor
                         type: JSColor
                         summary: The color of the bar's items when disabled
+                      -
+                        name: itemInsets
+                        type: JSInsets
+                        summary: The insets from the bar's edge for all items
                       -
                         introduced: 2020.30.3
                         name: itemTitleInsets
@@ -276,6 +287,13 @@ topics:
                 name: titleColor
                 type: JSColor
                 summary: The color of the bar's title label
+              -
+                name: titleTextAlignment
+                introduced: 2021.40.3
+                type: JSTextAlignment
+                summary: The alignment of the title in the bar
+                description: |
+                  Each `UINavigationItem` can override this value
           -
             name: Items
             members:
@@ -292,6 +310,16 @@ topics:
                 name: disabledItemColor
                 type: JSColor
                 summary: The color of the bar's items when disabled
+              -
+                name: itemInsets
+                type: JSInsets
+                summary: The insets from the bar's edge for all items
+              -
+                introduced: 2020.30.3
+                name: itemTitleInsets
+                type: JSInsets
+                summary: The title insets for buttons that are created
+                  for bar items
           -
             name: Back Button
             members:

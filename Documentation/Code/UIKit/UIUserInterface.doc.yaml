@@ -76,6 +76,29 @@ topics:
                 summary: Able to make precsise selections, such as a mouse or
                   a pen/stylus.
   -
+    name: User Interace Style
+    members:
+      -
+        name: Style
+        introduced: 2021.40.0
+        kind: enum
+        summary: The possible styles
+        description: |
+          Used to distinguish between regular and dark mode interfaces
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: unspecified
+                summary: An unknown style
+              -
+                name: light
+                summary: The normal or default style, typically a light background
+              -
+                name: dark
+                summary: The dark mode user interface style, typically a dark background
+  -
     name: Accessibility
     members:
       -
