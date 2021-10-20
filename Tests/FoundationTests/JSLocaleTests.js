@@ -220,7 +220,21 @@ JSClass("JSLocaleTests", TKTestSuite, {
         TKAssertEquals(locale.mediumTimeFormat, "h:mm:ss a");
         TKAssertEquals(locale.longTimeFormat, "h:mm:ss a z");
         TKAssertEquals(locale.fullTimeFormat, "h:mm:ss a zzzz");
+        TKAssertEquals(locale.dateFormatForTemplate("yMEd"), "EEE, M/d/y");
         TKAssertEquals(locale.dateFormatForTemplate("yyyyMd"), "M/d/y");
+        TKAssertEquals(locale.dateFormatForTemplate("yMd"), "M/d/y");
+        TKAssertEquals(locale.dateFormatForTemplate("yMMMd"), "MMM d, y");
+        TKAssertEquals(locale.dateFormatForTemplate("yMMMMd"), "MMMM d, y");
+        TKAssertEquals(locale.dateFormatForTemplate("yM"), "M/y");
+        TKAssertEquals(locale.dateFormatForTemplate("yMMM"), "MMM y");
+        TKAssertEquals(locale.dateFormatForTemplate("yMMMM"), "MMMM y");
+        TKAssertEquals(locale.dateFormatForTemplate("Md"), "M/d");
+        TKAssertEquals(locale.dateFormatForTemplate("MMMd"), "MMM d");
+        TKAssertEquals(locale.dateFormatForTemplate("MMMMd"), "MMMM d");
+        TKAssertEquals(locale.dateFormatForTemplate("hms"), "h:mm:ss a");
+        TKAssertEquals(locale.dateFormatForTemplate("hm"), "h:mm a");
+        TKAssertEquals(locale.dateFormatForTemplate("Hms"), "HH:mm:ss");
+        TKAssertEquals(locale.dateFormatForTemplate("Hm"), "HH:mm");
 
         // Node built with small-icu doesn't have any locale but en-US
         if (JSGlobalObject.window === JSGlobalObject){
@@ -235,7 +249,25 @@ JSClass("JSLocaleTests", TKTestSuite, {
             // match unicode data....
             // TKAssertEquals(locale.longTimeFormat, "HH:mm:ss z");
             TKAssertEquals(locale.fullTimeFormat, "HH:mm:ss zzzz");
+            // Inconsistent implementations across browsers
+            // TKAssertEquals(locale.dateFormatForTemplate("yMEd"), "EEEE, d.M.y");
             TKAssertEquals(locale.dateFormatForTemplate("yyyyMd"), "d.M.y");
+            TKAssertEquals(locale.dateFormatForTemplate("yMd"), "d.M.y");
+            // Inconsistent implementations across browsers
+            // TKAssertEquals(locale.dateFormatForTemplate("yMMMd"), "d. MMM y");
+            TKAssertEquals(locale.dateFormatForTemplate("yMMMMd"), "d. MMMM y");
+            TKAssertEquals(locale.dateFormatForTemplate("yM"), "M.y");
+            // Inconsistent implementations across browsers
+            // TKAssertEquals(locale.dateFormatForTemplate("yMMM"), "MMM y");
+            TKAssertEquals(locale.dateFormatForTemplate("yMMMM"), "MMMM y");
+            TKAssertEquals(locale.dateFormatForTemplate("Md"), "d.M.");
+            // Inconsistent implementations across browsers
+            // TKAssertEquals(locale.dateFormatForTemplate("MMMd"), "d. MMM");
+            TKAssertEquals(locale.dateFormatForTemplate("MMMMd"), "d. MMMM");
+            TKAssertEquals(locale.dateFormatForTemplate("hms"), "HH:mm:ss");
+            TKAssertEquals(locale.dateFormatForTemplate("hm"), "HH:mm");
+            TKAssertEquals(locale.dateFormatForTemplate("Hms"), "HH:mm:ss");
+            TKAssertEquals(locale.dateFormatForTemplate("Hm"), "HH:mm");
         }
     }
 

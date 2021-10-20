@@ -549,7 +549,21 @@ JSClass("JSLocale", JSObject, {
             this._longTimeFormat = unicodeFormatForOptions({timeStyle: "long"});
             this._fullTimeFormat = unicodeFormatForOptions({timeStyle: "full"});
             this._dateFormatsByTemplate = {
-                "yyyyMd": unicodeFormatForOptions({year: "numeric", month: "numeric", day: "numeric"})
+                "yMEd": unicodeFormatForOptions({year: "numeric", month: "numeric", weekday: "short", day: "numeric"}),
+                "yyyyMd": unicodeFormatForOptions({year: "numeric", month: "numeric", day: "numeric"}),
+                "yMd": unicodeFormatForOptions({year: "numeric", month: "numeric", day: "numeric"}),
+                "yMMMd": unicodeFormatForOptions({year: "numeric", month: "short", day: "numeric"}),
+                "yMMMMd": unicodeFormatForOptions({year: "numeric", month: "long", day: "numeric"}),
+                "yM": unicodeFormatForOptions({year: "numeric", month: "numeric"}),
+                "yMMM": unicodeFormatForOptions({year: "numeric", month: "short"}),
+                "yMMMM": unicodeFormatForOptions({year: "numeric", month: "long"}),
+                "Md": unicodeFormatForOptions({month: "numeric", day: "numeric"}),
+                "MMMd": unicodeFormatForOptions({month: "short", day: "numeric"}),
+                "MMMMd": unicodeFormatForOptions({month: "long", day: "numeric"}),
+                "hms": unicodeFormatForOptions({hour: "numeric", minute: "numeric", second: "numeric"}),
+                "hm": unicodeFormatForOptions({hour: "numeric", minute: "numeric"}),
+                "Hms": unicodeFormatForOptions({hour: "numeric", minute: "numeric", second: "numeric", hour12: false}),
+                "Hm": unicodeFormatForOptions({hour: "numeric", minute: "numeric", hour12: false}),
             };
             return true;
         }catch (e){
