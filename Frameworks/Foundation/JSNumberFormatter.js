@@ -105,7 +105,11 @@ JSClass("JSNumberFormatter", JSObject, {
                 this.format = this._locale.accountingNumberFormat;
                 break;
             case JSNumberFormatter.Style.currencyISOCode:
-                this.format = this._locale.currencyNumberFormat.replace(/¤/g, "¤¤ ");
+                if (this._locale.currencyNumberFormat.startsWith("¤") && this._locale.currencyNumberFormat.indexOf(";") < 0){
+                    this.format = this._locale.currencyNumberFormat.replace(/¤/g, "¤¤ ") + ";" + this._locale.currencyNumberFormat.replace(/¤/g, "¤¤ -");
+                }else{
+                    this.format = this._locale.currencyNumberFormat.replace(/¤/g, "¤¤");
+                }
                 break;
         }
         this._style = style;

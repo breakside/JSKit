@@ -195,8 +195,7 @@ JSClass("JSLocaleTests", TKTestSuite, {
         TKAssertEquals(locale.decimalNumberFormat, "#,##0.###");
         TKAssertEquals(locale.percentNumberFormat, "#,##0%");
         TKAssertEquals(locale.currencyNumberFormat, "¤#,##0.00");
-        // Fails in headless webkit (unclear why, works everywhere else)
-        // TKAssertEquals(locale.accountingNumberFormat, "¤#,##0.00;(¤#,##0.00)");
+        TKAssertEquals(locale.accountingNumberFormat, "¤#,##0.00;(¤#,##0.00)");
 
         // Node built with small-icu doesn't have any locale but en-US
         if (JSGlobalObject.window === JSGlobalObject){

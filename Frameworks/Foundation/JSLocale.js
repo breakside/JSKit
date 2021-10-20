@@ -147,6 +147,9 @@ JSClass("JSLocale", JSObject, {
     accountingNumberFormat: JSReadOnlyProperty("_accountingNumberFormat", "¤#,##0.00;(¤#,##0.00)"),
 
     _determineNumericFormattingOptions: function(){
+        if (this._identifier === "en-US"){
+            return;
+        }
         if (this._determineNumericFormattingOptionsFromData()){
             return;
         }
