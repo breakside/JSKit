@@ -566,6 +566,9 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         if (spec.containsKey("indicatorSpacing")){
             this.indicatorSpacing = spec.valueForKey("indicatorSpacing");
         }
+        if (spec.containsKey("cornerRadius")){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
+        }
 
         this._fillInMissingColors();
     },
