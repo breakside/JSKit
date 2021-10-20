@@ -102,17 +102,90 @@ JSClass("JSDateFormatter", JSObject, {
         return this.calendar.timezone;
     },
 
-    dateFormat: JSDynamicProperty('_dateFormat', null),
+    dateFormat: JSDynamicProperty('_dateFormat', ""),
 
-    getDateFormat: function(){
-        if (this._dateFormat !== null){
-            return this._dateFormat;
-        }
-        // TODO: get the format for date and time styles
+    setDateFormat: function(dateFormat){
+        this._dateFormat = dateFormat;
     },
 
-    dateStyle: JSDynamicProperty('_dateStyle', null),
-    timeStyle: JSDynamicProperty('_timeStyle', null),
+    setLocalizedDateFormatFromTemplate: function(template){
+        this._dateFormat = this._locale.dateFormatForTemplate(template) || "";
+    },
+
+    dateStyle: JSDynamicProperty('_dateStyle', 0),
+
+    setDateStyle: function(dateStyle){
+        this._dateStyle = dateStyle;
+        this._updateDateFormatFromStyles();
+    },
+
+    timeStyle: JSDynamicProperty('_timeStyle', 0),
+
+    setTimeStyle: function(timeStyle){
+        this._timeStyle = timeStyle;
+        this._updateDateFormatFromStyles();
+    },
+
+    _updateDateFormatFromStyles: function(){
+        var datePart = "";
+        var timePart = "";
+        switch (this._dateStyle){
+            case JSDateFormatter.DateStyle.short:
+                datePart = this._locale.shortDateFormat;
+                break;
+            case JSDateFormatter.DateStyle.medium:
+                datePart = this._locale.mediumDateFormat;
+                break;
+            case JSDateFormatter.DateStyle.long:
+                datePart = this._locale.longDateFormat;
+                break;
+            case JSDateFormatter.DateStyle.full:
+                datePart = this._locale.fullDateFormat;
+                break;
+            default:
+            case JSDateFormatter.DateStyle.none:
+                break;
+        }
+        switch (this._timeStyle){
+            case JSDateFormatter.TimeStyle.short:
+                timePart = this._locale.shortTimeFormat;
+                break;
+            case JSDateFormatter.TimeStyle.medium:
+                timePart = this._locale.mediumTimeFormat;
+                break;
+            case JSDateFormatter.TimeStyle.long:
+                timePart = this._locale.longTimeFormat;
+                break;
+            case JSDateFormatter.TimeStyle.full:
+                timePart = this._locale.fullTimeFormat;
+                break;
+            default:
+            case JSDateFormatter.TimeStyle.none:
+                break;
+        }
+        if (datePart !== "" && timePart !== ""){
+            switch (this._dateStyle){
+                case JSDateFormatter.DateStyle.short:
+                    this._dateFormat = this._locale.shortDateTimeFormat.replacingTemplateParameters({1: datePart, 0: timePart}, "{", "}");
+                    break;
+                case JSDateFormatter.DateStyle.medium:
+                    this._dateFormat = this._locale.mediumDateTimeFormat.replacingTemplateParameters({1: datePart, 0: timePart}, "{", "}");
+                    break;
+                case JSDateFormatter.DateStyle.long:
+                    this._dateFormat = this._locale.longDateTimeFormat.replacingTemplateParameters({1: datePart, 0: timePart}, "{", "}");
+                    break;
+                default:
+                case JSDateFormatter.DateStyle.none:
+                case JSDateFormatter.DateStyle.full:
+                    this._dateFormat = this._locale.fullDateTimeFormat.replacingTemplateParameters({1: datePart, 0: timePart}, "{", "}");
+                    break;
+            }
+        }else if (timePart !== ""){
+            this._dateFormat = timePart;
+        }else{
+            this._dateFormat = datePart;
+        }
+    },
 
     stringFromDate: function(date){
         var cal = this.calendar;
