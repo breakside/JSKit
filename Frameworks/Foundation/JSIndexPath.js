@@ -76,6 +76,9 @@ Object.defineProperties(JSIndexPath.prototype, {
 
     isEqual: {
         value: function JSIndexPath_isEqual(other){
+            if (other === null || other === undefined){
+                return false;
+            }
             if (this.length != other.length){
                 return false;
             }
