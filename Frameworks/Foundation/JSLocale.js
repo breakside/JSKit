@@ -394,6 +394,24 @@ JSClass("JSLocale", JSObject, {
 
     _determineDateFormattingOptions: function(){
         this._dateFormatsByTemplate = {};
+        if (this._identifier === "en-US"){
+            this._dateFormatsByTemplate.yMEd = "EEE, M/d/y";
+            this._dateFormatsByTemplate.yyyyMd = "M/d/y";
+            this._dateFormatsByTemplate.yMd = "M/d/y";
+            this._dateFormatsByTemplate.yMMMd = "MMM d, y";
+            this._dateFormatsByTemplate.yMMMMd = "MMMM d, y";
+            this._dateFormatsByTemplate.yM = "M/y";
+            this._dateFormatsByTemplate.yMMM = "MMM y";
+            this._dateFormatsByTemplate.yMMMM = "MMMM y";
+            this._dateFormatsByTemplate.Md = "M/d";
+            this._dateFormatsByTemplate.MMMd = "MMM d";
+            this._dateFormatsByTemplate.MMMMd = "MMMM d";
+            this._dateFormatsByTemplate.hms = "h:mm:ss a";
+            this._dateFormatsByTemplate.hm = "h:mm a";
+            this._dateFormatsByTemplate.Hms = "HH:mm:ss";
+            this._dateFormatsByTemplate.Hm = "HH:mm";
+            return;
+        }
         if (this._determineDateFormattingOptionsFromData()){
             return;
         }
