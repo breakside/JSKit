@@ -186,6 +186,57 @@ JSClass("JSLocaleTests", TKTestSuite, {
 
         TKAssert(!locale4.isLessSpecificThan(locale4));
         TKAssert(!locale4.isLessSpecificThan(locale5));
+    },
+
+    testNumberFormattingOptionsNoData: function(){
+        var locale = JSLocale.initWithIdentifier("en-US");
+        TKAssertEquals(locale.decimalSeparator, ".");
+        TKAssertEquals(locale.groupingSeparator, ",");
+        TKAssertEquals(locale.decimalNumberFormat, "#,##0.###");
+        TKAssertEquals(locale.percentNumberFormat, "#,##0%");
+        TKAssertEquals(locale.currencyNumberFormat, "¤#,##0.00");
+        // Fails in headless webkit (unclear why, works everywhere else)
+        // TKAssertEquals(locale.accountingNumberFormat, "¤#,##0.00;(¤#,##0.00)");
+
+        // Node built with small-icu doesn't have any locale but en-US
+        if (JSGlobalObject.window === JSGlobalObject){
+            locale = JSLocale.initWithIdentifier("de-DE");
+            TKAssertEquals(locale.decimalSeparator, ",");
+            TKAssertEquals(locale.groupingSeparator, ".");
+            TKAssertEquals(locale.decimalNumberFormat, "#,##0.###");
+            TKAssertEquals(locale.percentNumberFormat, "#,##0\u00a0%");
+            TKAssertEquals(locale.currencyNumberFormat, "#,##0.00\u00a0¤");
+            TKAssertEquals(locale.accountingNumberFormat, "#,##0.00\u00a0¤;-#,##0.00\u00a0¤");
+        }
+    },
+
+    testDateFormattingOptionsNoData: function(){
+        var locale = JSLocale.initWithIdentifier("en-US");
+        TKAssertEquals(locale.shortDateFormat, "M/d/yy");
+        TKAssertEquals(locale.mediumDateFormat, "MMM d, y");
+        TKAssertEquals(locale.longDateFormat, "MMMM d, y");
+        TKAssertEquals(locale.fullDateFormat, "EEEE, MMMM d, y");
+        TKAssertEquals(locale.shortTimeFormat, "h:mm a");
+        TKAssertEquals(locale.mediumTimeFormat, "h:mm:ss a");
+        TKAssertEquals(locale.longTimeFormat, "h:mm:ss a z");
+        TKAssertEquals(locale.fullTimeFormat, "h:mm:ss a zzzz");
+        TKAssertEquals(locale.dateFormatForTemplate("yyyyMd"), "M/d/y");
+
+        // Node built with small-icu doesn't have any locale but en-US
+        if (JSGlobalObject.window === JSGlobalObject){
+            locale = JSLocale.initWithIdentifier("de-DE");
+            TKAssertEquals(locale.shortDateFormat, "dd.MM.yy");
+            TKAssertEquals(locale.mediumDateFormat, "dd.MM.y");
+            TKAssertEquals(locale.longDateFormat, "d. MMMM y");
+            TKAssertEquals(locale.fullDateFormat, "EEEE, d. MMMM y");
+            TKAssertEquals(locale.shortTimeFormat, "HH:mm");
+            TKAssertEquals(locale.mediumTimeFormat, "HH:mm:ss");
+            // browsers seem to use zzzz in the long format, but that doesn't
+            // match unicode data....
+            // TKAssertEquals(locale.longTimeFormat, "HH:mm:ss z");
+            TKAssertEquals(locale.fullTimeFormat, "HH:mm:ss zzzz");
+            TKAssertEquals(locale.dateFormatForTemplate("yyyyMd"), "d.M.y");
+        }
     }
 
 });

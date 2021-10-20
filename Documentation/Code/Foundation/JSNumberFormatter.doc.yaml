@@ -82,7 +82,7 @@ topics:
                 summary: 'Equivalent to setting `format = "¤#,##0.00"`'
               -
                 name: currencyAccounting
-                summary: 'Equivalent to setting `format = "¤#,##0.00;(¤#)"`'
+                summary: 'Equivalent to setting `format = "¤#,##0.00;(¤#,##0.00)"`'
               -
                 name: currencyISOCode
                 summary: 'Equivalent to setting `format = "¤¤ #,##0.00;¤¤ -#"`'

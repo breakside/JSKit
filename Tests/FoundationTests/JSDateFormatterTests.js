@@ -447,6 +447,73 @@ JSClass("JSDateFormatterTests", TKTestSuite, {
         var date = cal.dateFromComponents({year: 2018, month: 7, day: 18, hour: 12, minute: 30, second: 45, millisecond: 123});
         var str = formatter.stringFromDate(date);
         TKAssertEquals(str, "'Testin' 2018-07-18,12:30:45.123 PM qu otes'");
+    },
+
+    testDateStyle: function(){
+        var formatter = JSDateFormatter.init();
+        formatter.dateStyle = JSDateFormatter.DateStyle.short;
+        TKAssertEquals(formatter.dateFormat, "M/d/yy");
+        formatter.dateStyle = JSDateFormatter.DateStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "MMM d, y");
+        formatter.dateStyle = JSDateFormatter.DateStyle.long;
+        TKAssertEquals(formatter.dateFormat, "MMMM d, y");
+        formatter.dateStyle = JSDateFormatter.DateStyle.full;
+        TKAssertEquals(formatter.dateFormat, "EEEE, MMMM d, y");
+    },
+
+    testTimeStyle: function(){
+        var formatter = JSDateFormatter.init();
+        formatter.timeStyle = JSDateFormatter.TimeStyle.short;
+        TKAssertEquals(formatter.dateFormat, "h:mm a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "h:mm:ss a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.long;
+        TKAssertEquals(formatter.dateFormat, "h:mm:ss a z");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.full;
+        TKAssertEquals(formatter.dateFormat, "h:mm:ss a zzzz");
+    },
+
+    testDateAndTimeStyle: function(){
+        var formatter = JSDateFormatter.init();
+        formatter.dateStyle = JSDateFormatter.DateStyle.short;
+        formatter.timeStyle = JSDateFormatter.TimeStyle.short;
+        TKAssertEquals(formatter.dateFormat, "M/d/yy, h:mm a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "M/d/yy, h:mm:ss a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.long;
+        TKAssertEquals(formatter.dateFormat, "M/d/yy, h:mm:ss a z");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.full;
+        TKAssertEquals(formatter.dateFormat, "M/d/yy, h:mm:ss a zzzz");
+
+        formatter.dateStyle = JSDateFormatter.DateStyle.medium;
+        formatter.timeStyle = JSDateFormatter.TimeStyle.short;
+        TKAssertEquals(formatter.dateFormat, "MMM d, y, h:mm a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "MMM d, y, h:mm:ss a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.long;
+        TKAssertEquals(formatter.dateFormat, "MMM d, y, h:mm:ss a z");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.full;
+        TKAssertEquals(formatter.dateFormat, "MMM d, y, h:mm:ss a zzzz");
+
+        formatter.dateStyle = JSDateFormatter.DateStyle.long;
+        formatter.timeStyle = JSDateFormatter.TimeStyle.short;
+        TKAssertEquals(formatter.dateFormat, "MMMM d, y 'at' h:mm a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "MMMM d, y 'at' h:mm:ss a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.long;
+        TKAssertEquals(formatter.dateFormat, "MMMM d, y 'at' h:mm:ss a z");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.full;
+        TKAssertEquals(formatter.dateFormat, "MMMM d, y 'at' h:mm:ss a zzzz");
+
+        formatter.dateStyle = JSDateFormatter.DateStyle.full;
+        formatter.timeStyle = JSDateFormatter.TimeStyle.short;
+        TKAssertEquals(formatter.dateFormat, "EEEE, MMMM d, y 'at' h:mm a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.medium;
+        TKAssertEquals(formatter.dateFormat, "EEEE, MMMM d, y 'at' h:mm:ss a");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.long;
+        TKAssertEquals(formatter.dateFormat, "EEEE, MMMM d, y 'at' h:mm:ss a z");
+        formatter.timeStyle = JSDateFormatter.TimeStyle.full;
+        TKAssertEquals(formatter.dateFormat, "EEEE, MMMM d, y 'at' h:mm:ss a zzzz");
     }
 });
 

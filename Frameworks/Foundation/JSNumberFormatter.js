@@ -42,8 +42,17 @@ JSClass("JSNumberFormatter", JSObject, {
 
     setLocale: function(locale){
         this._locale = locale;
-        this.groupingSeparator = locale.groupingSeparator;
-        this.decimalSeparator = locale.decimalSeparator;
+        this._groupingSeparator = locale.groupingSeparator;
+        this._decimalSeparator = locale.decimalSeparator;
+        this._percentSymbol = locale.percentSymbol;
+        this._perMilleSymbol = locale.perMilleSymbol;
+        this._minusSign = locale.minusSign;
+        this._plusSign = locale.plusSign;
+        this._zeroSymbol = locale.zeroSymbol;
+        this._notANumberSymbol = locale.notANumberSymbol;
+        this._nullSymbol = locale.nullSymbol;
+        this._positiveInfinitySymbol = locale.positiveInfinitySymbol;
+        this._negativeInfinitySymbol = locale.negativeInfinitySymbol;
     },
 
     format: JSDynamicProperty(),
@@ -81,22 +90,22 @@ JSClass("JSNumberFormatter", JSObject, {
                 this.format = "#";
                 break;
             case JSNumberFormatter.Style.decimal:
-                this.format = "#,##0.###";
+                this.format = this._locale.decimalNumberFormat;
                 break;
             case JSNumberFormatter.Style.percent:
-                this.format = "#,##0%";
+                this.format = this._locale.percentNumberFormat;
                 break;
             case JSNumberFormatter.Style.ordinal:
                 // TODO:
                 break;
             case JSNumberFormatter.Style.currency:
-                this.format = "¤#,##0.00";
+                this.format = this._locale.currencyNumberFormat;
                 break;
             case JSNumberFormatter.Style.currencyAccounting:
-                this.format = "¤#,##0.00;(¤#)";
+                this.format = this._locale.accountingNumberFormat;
                 break;
             case JSNumberFormatter.Style.currencyISOCode:
-                this.format = "¤¤ #,##0.00;¤¤ -#";
+                this.format = this._locale.currencyNumberFormat.replace(/¤/g, "¤¤ ");
                 break;
         }
         this._style = style;
