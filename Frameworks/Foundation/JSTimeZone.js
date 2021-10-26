@@ -536,7 +536,11 @@ var defaultLocalProperty = {
     get: function JSTimeZone_getLocal(){
         var timezone = null;
         if (localIdentifier !== null){
-            timezone = JSTimeZone.initWithIdentifier(localIdentifier);
+            if (localIdentifier === "UTC"){
+                timezone = JSTimeZone.utc;
+            }else{
+                timezone = JSTimeZone.initWithIdentifier(localIdentifier);
+            }
         }
         Object.defineProperty(JSTimeZone, 'local', {configurable: true, value: timezone});
         return timezone;
@@ -557,7 +561,7 @@ Object.defineProperties(JSTimeZone, {
     systemTimeZoneIdentifier: {
         get: function JSTimeZone_getSystemTimeZoneIdentifier(){
             // FIXME: if no identifier, try to guess based on offset?
-            return Intl.DateTimeFormat().resolvedOptions().timeZone || null;
+            return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
         }
     },
 
