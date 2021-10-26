@@ -279,6 +279,7 @@ JSClass("_JSDataImage", JSImage, {
         var image = _JSDataImage.init();
         _JSDataImage.$super.copy.call(this, image);
         image.data = this.data;
+        image.contentType = this.contentType;
         return image;
     },
 
