@@ -1559,8 +1559,7 @@ JSClass("UIListView", UIScrollView, {
         cell.position = JSPoint(rect.origin.x + cell.bounds.size.width * cell.anchorPoint.x, rect.origin.y + cell.bounds.size.height * cell.anchorPoint.y);
         cell.active = false;
         this._updateCellState(cell);
-        var styler = cell._styler || this._styler;
-        styler.updateCell(cell, indexPath);
+        cell.update();
         cell.setNeedsLayout();
         return cell;
     },
@@ -1967,12 +1966,10 @@ JSClass("UIListView", UIScrollView, {
 
     _updateVisibleCellStyles: function(){
         var item;
-        var styler;
         for (var i = 0, l = this._visibleItems.length; i < l; ++i){
             item = this._visibleItems[i];
             if (item.kind === VisibleItem.Kind.cell){
-                styler = item.view._styler || this._styler;
-                styler.updateCell(item.view, item.view.indexPath);
+                item.view.update();
             }
         }
     },
