@@ -145,6 +145,23 @@ JSClass("UILayer", JSObject, {
         this.didChangeProperty('position');
     },
 
+    untransformedFrame: JSDynamicProperty(),
+
+    getUntransformedFrame: function(){
+        var bounds = this.model.bounds;
+        var anchorPoint = this.model.anchorPoint;
+        var offset = JSPoint(anchorPoint.x * bounds.size.width, anchorPoint.y * bounds.size.height);
+        return JSRect(this.model.position.subtracting(offset), bounds.size);
+    },
+
+    setUntransformedFrame: function(frame){
+        var bounds = this.model.bounds;
+        var anchorPoint = this.model.anchorPoint;
+        var offset = JSPoint(anchorPoint.x * frame.size.width, anchorPoint.y * frame.size.height);
+        this.bounds = JSRect(bounds.origin, frame.size);
+        this.position = frame.origin.adding(offset);
+    },
+
     setBounds: function(bounds){
         // When the bounds origin changes, it's like a scrolling view, and we need to update the sublayers
         // When the bounds change size, the position and frame both need to be recalculated accordingly

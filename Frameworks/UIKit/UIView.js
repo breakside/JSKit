@@ -464,6 +464,7 @@ JSClass('UIView', UIResponder, {
     // MARK: - Layout
 
     frame: UIViewLayerProperty(),
+    untransformedFrame: UIViewLayerProperty(),
     bounds: UIViewLayerProperty(),
     position: UIViewLayerProperty(),
     anchorPoint: UIViewLayerProperty(),
