@@ -71,10 +71,10 @@ JSClass("UIContainerView", UIView, {
             this._contentView.removeFromSuperview();
         }
         this._contentView = contentView;
+        this.setNeedsLayout();
         if (this._contentView !== null){
             this.insertSubviewAtIndex(contentView, index);
         }
-        this.setNeedsLayout();
     },
 
     setAlignment: function(alignment){
