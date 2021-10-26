@@ -354,11 +354,11 @@ JSReadOnlyProperty.prototype.define = function(C, publicKey, extensions){
     });
 };
 
-JSGlobalObject.JSLazyInitProperty = function(propertyInitMethodName, privateKey){
+JSGlobalObject.JSLazyInitProperty = function(propertyInitMethod, privateKey){
     if (this === undefined){
-        return new JSLazyInitProperty(propertyInitMethodName, privateKey);
+        return new JSLazyInitProperty(propertyInitMethod, privateKey);
     }else{
-        this.propertyInitMethodName = propertyInitMethodName;
+        this.propertyInitMethod = propertyInitMethod;
         this.privateKey = privateKey;
     }
 };
@@ -366,7 +366,7 @@ JSGlobalObject.JSLazyInitProperty = function(propertyInitMethodName, privateKey)
 JSLazyInitProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 JSLazyInitProperty.prototype.define = function(C, key, extensions){
-    var propertyInitMethodName = this.propertyInitMethodName;
+    var propertyInitMethod = this.propertyInitMethod;
     var privateKey = this.privateKey;
     if (privateKey){
         Object.defineProperty(C.prototype, privateKey, {configurable: true, writable: true, value: null});
@@ -375,7 +375,10 @@ JSLazyInitProperty.prototype.define = function(C, key, extensions){
         configurable: true,
         enumerable: false,
         get: function(){
-            var x = this[propertyInitMethodName]();
+            if (typeof(propertyInitMethod) != "function"){
+                propertyInitMethod = this[propertyInitMethod];
+            }
+            var x = propertyInitMethod.call(this);
             Object.defineProperty(this, key, {
                 configurable: true,
                 enumerable: false,

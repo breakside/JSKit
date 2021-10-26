@@ -400,6 +400,28 @@ JSClass('JSClassTests', TKTestSuite, {
         TKAssertEquals(obj.xInitCount, 1);
     },
 
+    testLazyInitPropertyInline: function(){
+        var cls = JSClass('Test1', BaseObjectClass, {
+            x: JSLazyInitProperty(function(){
+                this.xInitCount++;
+                return 5;
+            }),
+
+            xInitCount: 0,
+
+            init: function(){
+            },
+
+        });
+
+        var obj = cls.init();
+        TKAssertEquals(obj.xInitCount, 0);
+        TKAssertEquals(obj.x, 5);
+        TKAssertEquals(obj.xInitCount, 1);
+        TKAssertEquals(obj.x, 5);
+        TKAssertEquals(obj.xInitCount, 1);
+    },
+
     testReadOnlyPropertyOverride: function(){
 
         var cls = JSClass('Test1', BaseObjectClass, {
