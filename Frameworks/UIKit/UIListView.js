@@ -142,6 +142,12 @@ JSClass("UIListView", UIScrollView, {
         if (spec.containsKey("showsFocusRing")){
             this._showsFocusRing = spec.valueForKey("showsFocusRing");
         }
+        if (spec.containsKey("listHeaderView")){
+            this.listHeaderView = spec.valueForKey("listHeaderView", UIView);
+        }
+        if (spec.containsKey("listFooterView")){
+            this.listFooterView = spec.valueForKey("listFooterView", UIView);
+        }
     },
 
     _commonListInit: function(){
