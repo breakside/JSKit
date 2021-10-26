@@ -1431,7 +1431,7 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
     closeButtonImages: null,
 
     init: function(){
-        UIWindowDefaultStyler.$super.init.call(this);
+        UIWindowTitlelessStyler.$super.init.call(this);
         this.shadowColor = JSColor.windowShadow;
         this.backgroundColor = JSColor.window;
         this.closeButtonImages = {
@@ -1443,8 +1443,42 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
         this.toolbarTitleColor = JSColor.toolbarTitle;
     },
 
+    initWithSpec: function(spec){
+        UIWindowTitlelessStyler.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("backgroundColor")){
+            this.backgroundColor = spec.valueForKey("backgroundColor", JSColor);
+        }else{
+            this.backgroundColor = JSColor.window;
+        }
+        if (spec.containsKey("shadowColor")){
+            this.shadowColor = spec.valueForKey("shadowColor", JSColor);
+        }else{
+            this.shadowColor = JSColor.windowShadow;
+        }
+        if (spec.containsKey("shadowRadius")){
+            this.shadowRadius = spec.valueForKey("shadowRadius");
+        }
+        if (spec.containsKey("inactiveShadowRadius")){
+            this.inactiveShadowRadius = spec.valueForKey("inactiveShadowRadius");
+        }
+        if (spec.containsKey("cornerRadius")){
+            this.cornerRadius = spec.valueForKey("cornerRadius");
+        }
+        if (spec.containsKey("toolbarTitleColor")){
+            this.toolbarTitleColor = spec.valueForKey("toolbarTitleColor", JSColor);
+        }else{
+            this.toolbarTitleColor = JSColor.toolbarTitle;
+        }
+        this.closeButtonImages = {
+            inactive: images.closeInactive,
+            normal: images.closeNormal,
+            over: images.closeOver,
+            active: images.closeActive
+        };
+    },
+
     initializeWindow: function(window){
-        UIWindowDefaultStyler.$super.initializeWindow.call(this, window);
+        UIWindowTitlelessStyler.$super.initializeWindow.call(this, window);
         var closeButton = UIButton.initWithStyler(UIButton.Styler.custom);
         closeButton.setImageForState(this.closeButtonImages.normal, UIControl.State.normal);
         closeButton.setImageForState(this.closeButtonImages.over, UIControl.State.over);
@@ -1468,7 +1502,7 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
     },
 
     layoutWindow: function(window){
-        UIWindowDefaultStyler.$super.layoutWindow.call(this, window);
+        UIWindowTitlelessStyler.$super.layoutWindow.call(this, window);
         var controlsView = window.stylerProperties.controlsView;
         var closeButton = window.stylerProperties.closeButton;
         var toolbar = window.stylerProperties.toolbar;
