@@ -926,6 +926,17 @@ JSClass("UIListView", UIScrollView, {
         this._cellsContainerView.insertSubviewAtIndex(item.view, viewIndex);
     },
 
+    sizeToFitSize: function(maxSize){
+        var bounds = JSRect(this.bounds.origin, this.contentSize);
+        if (maxSize.width < Number.MAX_VALUE){
+            bounds.size.width = maxSize.width;
+        }
+        if (bounds.size.height > maxSize.height){
+            bounds.size.height = maxSize.height;
+        }
+        this.bounds = bounds;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - List Header and Footer
 
@@ -3133,7 +3144,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (cell.selected){
             cell.contentView.borderColor = this.contextSelectedCellBorderColor;
-            if (this.showsMutedState && !cell.listView.keyActive){
+            var showsMutedState = this.showsMutedState && UIDevice.shared && UIDevice.shared.primaryPointerType != UIUserInterface.PointerType.touch;
+            if (showsMutedState && !cell.listView.keyActive){
                 cell.contentView.backgroundColor = this.mutedSelectedCellBackgroundColor;
                 if (cell._titleLabel !== null){
                     cell._titleLabel.textColor = this.mutedSelectedCellTextColor;
