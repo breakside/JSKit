@@ -152,11 +152,11 @@ JSClass("UINavigationController", UIViewController, {
     pushAnimator: null,
 
     createPushAnimator: function(){
-        return UIViewPropertyAnimator.initWithDuration(0.3, UIAnimation.Timing.easeInOut);
+        return UIViewPropertyAnimator.initWithDuration(UIAnimation.Duration.transition, UIAnimation.Timing.easeInOut);
     },
 
     createPopAnimator: function(){
-        return UIViewPropertyAnimator.initWithDuration(0.3, UIAnimation.Timing.easeInOut);
+        return UIViewPropertyAnimator.initWithDuration(UIAnimation.Duration.transition, UIAnimation.Timing.easeInOut);
     },
 
     pushViewController: function(viewController, animated){

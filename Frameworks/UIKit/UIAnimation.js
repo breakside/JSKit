@@ -181,3 +181,7 @@ UIAnimation.interpolate4Color = function(from, to, progress){
         from.components[3] + (to.components[3] - from.components[3]) * progress
     ]);
 };
+
+UIAnimation.Duration = {
+    transition: 0.2
+};
