@@ -41,10 +41,17 @@ JSClass("UIListViewHeaderFooterView", UIView, {
     initWithSpec: function(spec){
         UIListViewHeaderFooterView.$super.initWithSpec.call(this, spec);
         this._commonHeaderFooterInit();
+        if (spec.containsKey("accessorySize")){
+            this._accessorySize = spec.valueForKey("accessorySize", JSSize);
+        }
+        if (spec.containsKey("accessoryView")){
+            this.accessoryView = spec.valueForKey("accessoryView", UIView);
+        }
     },
 
     _commonHeaderFooterInit: function(){
         this.stylerProperties = {};
+        this._accessorySize = JSSize(20, 20);
         this._titleInsets = JSInsets(0, 10);
         this._contentView = UIView.init();
         this.addSubview(this._contentView);
@@ -66,12 +73,39 @@ JSClass("UIListViewHeaderFooterView", UIView, {
         this._titleInsets = JSInsets(titleInsets);
         this.setNeedsLayout();
     },
+    
+    accessoryView: JSDynamicProperty("_accessoryView", null),
+    accessorySize: JSDynamicProperty("_accessorySize", null),
+
+    setAccessoryView: function(accessoryView){
+        if (accessoryView === this._accessoryView){
+            return;
+        }
+        if (this._accessoryView !== null){
+            this._accessoryView.removeFromSuperview();
+        }
+        this._accessoryView = accessoryView;
+        if (this._accessoryView !== null){
+            this.contentView.addSubview(this._accessoryView);
+        }
+        this.setNeedsLayout();
+    },
+
+    setAccessorySize: function(size){
+        this._accessorySize = JSSize(size);
+        this.setNeedsLayout();
+    },
 
     layoutSubviews: function(){
         UIListViewHeaderFooterView.$super.layoutSubviews.call(this);
         this._contentView.frame = this.bounds;
         var size = JSSize(this.bounds.size.width - this._titleInsets.left - this._titleInsets.right, 0);
         var origin = JSPoint(this._titleInsets.left, 0);
+        if (this._accessoryView !== null){
+            this._accessoryView.bounds = JSRect(JSPoint.Zero, this._accessorySize);
+            this._accessoryView.position = JSPoint(origin.x + size.width - this._accessorySize.width / 2, this._contentView.bounds.center.y);
+            size.width -= this._accessorySize.width + this._titleInsets.right;
+        }
         if (this._titleLabel !== null){
             if (this._detailLabel !== null){
                 size.height = this._titleLabel.font.displayLineHeight + this._detailLabel.font.displayLineHeight;
