@@ -13,6 +13,27 @@ topics:
     name: Creating an Item
     members:
       -
+        name: initWithTitle
+        introduced: 2021.43.1
+        kind: init
+        summary: Create a button-like item with a title
+        arguments:
+          -
+            name: title
+            type: String
+            summary: The title to show on the item
+          -
+            name: action
+            type: String
+            summary: The named action to perform when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            default: "null"
+            summary: The intended `action` target, if any.  Use `null` if the
+              \`action` should be sent to the window's
+              \`firstResponder`(UIWindow.firstResponder)
+      -
         name: initWithImage
         kind: init
         summary: Create a button-like item with an image

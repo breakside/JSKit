@@ -29,6 +29,13 @@ JSClass("UINavigationBarItem", JSObject, {
     enabled: JSDynamicProperty('_enabled', true),
     view: JSDynamicProperty('_view', null),
 
+    initWithTitle: function(title, action, target){
+        this._title = title;
+        this._target = target;
+        this._action = action;
+        this._commonItemInit();
+    },
+
     initWithImage: function(image, action, target){
         this._image = image;
         this._target = target;
