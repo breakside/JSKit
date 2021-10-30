@@ -28,6 +28,7 @@ JSClass("UINavigationBarItem", JSObject, {
     action: JSDynamicProperty('_action', null),
     enabled: JSDynamicProperty('_enabled', true),
     view: JSDynamicProperty('_view', null),
+    _barButton: null,
 
     initWithTitle: function(title, action, target){
         this._title = title;
@@ -87,6 +88,9 @@ JSClass("UINavigationBarItem", JSObject, {
         this._enabled = enabled;
         if (this._view !== null && this._view.isKindOfClass(UIControl)){
             this._view.enabled = this.enabled;
+        }
+        if (this._barButton !== null){
+            this._barButton.enabled = this.enabled;
         }
     }
 

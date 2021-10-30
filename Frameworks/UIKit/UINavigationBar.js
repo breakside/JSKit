@@ -776,6 +776,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             button._imageView.automaticRenderMode = JSImage.RenderMode.template;
         }
         button.addAction(barItem.action, barItem.target);
+        button.enabled = barItem.enabled;
+        barItem._barButton = button;
         return button;
     }
 
