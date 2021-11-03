@@ -220,6 +220,21 @@ JSClass('JSColor', JSObject, {
             }
             components.push(alpha);
             this.initWithSpaceAndComponents(space, components);
+        }else if (spec.containsKey("light") && this.initWithUIStyles){
+            var light = spec.valueForKey("light", JSColor);
+            var dark = light;
+            var lightContrast = light;
+            if (spec.containsKey("dark")){
+                dark = spec.valueForKey("dark", JSColor);
+            }
+            var darkContrast = dark;
+            if (spec.containsKey("lightContrast")){
+                lightContrast = spec.valueForKey("lightContrast", JSColor);
+            }
+            if (spec.containsKey("darkContrast")){
+                darkContrast = spec.valueForKey("darkContrast", JSColor);
+            }
+            this.initWithUIStyles(light, dark, lightContrast, darkContrast);
         }
     },
 
