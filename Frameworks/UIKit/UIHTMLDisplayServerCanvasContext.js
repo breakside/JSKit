@@ -101,6 +101,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Display Lifecycle
 
     layerDidChangeProperty: function(layer, property){
+        var methodName = 'updateHTMLProperty_' + property;
         switch (property){
             case 'shadowColor':
             case 'shadowOffset':
@@ -120,7 +121,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 }
                 break;
             default:
-                this.propertiesNeedingUpdate[property] = true;
+                if (methodName in this){
+                    this.propertiesNeedingUpdate[property] = true;
+                }else{
+                    this.needsCustomDisplay = true;
+                }
                 break;
         }
     },

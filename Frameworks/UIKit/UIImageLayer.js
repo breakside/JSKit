@@ -20,13 +20,13 @@ JSClass("UIImageLayer", UILayer, {
 
     image: JSDynamicProperty('_image', null),
     imageFrame: JSDynamicProperty('_imageFrame', null),
-    templateColor: JSDynamicProperty('_templateColor', null),
+    templateColor: UILayerAnimatedProperty(),
     automaticRenderMode: JSDynamicProperty('_automaticRenderMode', JSImage.RenderMode.original),
 
     init: function(){
         UIImageLayer.$super.init.call(this);
         this._imageFrame = JSRect.Zero;
-        this._templateColor = JSColor.black;
+        this.model.templateColor = JSColor.black;
     },
 
     getImage: function(){
@@ -49,7 +49,7 @@ JSClass("UIImageLayer", UILayer, {
     drawInContext: function(context){
         if (this._image !== null && this._imageFrame.size.width > 0 && this._imageFrame.size.height > 0){
             if (this._image.renderMode === JSImage.RenderMode.template || (this._image.renderMode === JSImage.RenderMode.automatic && this._automaticRenderMode === JSImage.RenderMode.template)){
-                context.setFillColor(this._templateColor);
+                context.setFillColor(this.presentation.templateColor);
                 context.fillMaskedRect(this._imageFrame, this._image);
             }else{
                 context.drawImage(this._image, this._imageFrame);
@@ -65,21 +65,19 @@ JSClass("UIImageLayer", UILayer, {
         this.setNeedsDisplay();
     },
 
-    setTemplateColor: function(templateColor){
-        if (templateColor === null && this._templateColor === null){
-            return;
-        }
-        if (templateColor !== null && this._templateColor !== null && templateColor.isEqual(this._templateColor)){
-            return;
-        }
-        this._templateColor = templateColor;
-        this.setNeedsDisplay();
-    },
-
     sizeToFit: function(){
         if (this._image !== null){
             this.bounds = JSRect(JSPoint.Zero, this._image.size);
         }
+    }
+
+});
+
+UIImageLayer.Properties = Object.create(UILayer.Properties, {
+
+    templateColor: {
+        writable: true,
+        value: null
     }
 
 });
