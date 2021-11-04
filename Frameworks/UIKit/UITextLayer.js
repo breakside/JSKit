@@ -45,7 +45,7 @@ JSClass("UITextLayer", UILayer, {
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
     font: JSDynamicProperty(),
-    textColor: JSDynamicProperty(),
+    textColor: UILayerAnimatedProperty(),
     lineBreakMode: UITextLayerContainerProperty(),
     textAlignment: UITextLayerContainerProperty(),
     lineSpacing: UITextLayerContainerProperty(),
@@ -74,6 +74,7 @@ JSClass("UITextLayer", UILayer, {
         this._textStorage = JSTextStorage.init();
         this._textStorage.addLayoutManager(this._textLayoutManager);
         this._textLayoutManager.addTextContainer(this._textContainer);
+        this.model.textColor = JSColor.black;
         this.font = JSFont.systemFontOfSize(JSFont.Size.normal);
         this.setNeedsLayout();
     },
@@ -94,15 +95,6 @@ JSClass("UITextLayer", UILayer, {
             return;
         }
         this._textLayoutManager.defaultFont = font;
-    },
-
-    getTextColor: function(){
-        return this._textLayoutManager.defaultTextColor;
-    },
-
-    setTextColor: function(color){
-        this._textLayoutManager.defaultTextColor = color;
-        this.setNeedsDisplay();
     },
     
     setTextInsets: function(insets){
@@ -190,6 +182,7 @@ JSClass("UITextLayer", UILayer, {
 
     drawInContext: function(context){
         var textOrigin = JSPoint(this._textInsets.left, this._textInsets.top);
+        this._textLayoutManager.defaultTextColor = this.presentation.textColor;
         this._textLayoutManager.layoutIfNeeded();
         this._textLayoutManager.drawContainerInContextAtPoint(this._textContainer, context, textOrigin);
         this._displayQueued = false;
@@ -217,6 +210,7 @@ JSClass("UITextLayer", UILayer, {
     layoutSublayers: function(){
         UITextLayer.$super.layoutSublayers.call(this);
         this._textContainer.origin = JSPoint(this._textInsets.left, this._textInsets.top);
+        this._textLayoutManager.defaultTextColor = this.presentation.textColor;
         this._textLayoutManager.layoutIfNeeded();
         if ((this._widthTracksText || this._heightTracksText) && this._textContainer.textFrame !== null){
             var width = this.bounds.size.width;
@@ -266,6 +260,13 @@ JSClass("UITextLayer", UILayer, {
         this._textLayoutManager.setNeedsLayout();
     }
 
+});
+
+UITextLayer.Properties = Object.create(UILayer.Properties, {
+    textColor: {
+        writable: true,
+        value: null,
+    }
 });
 
 })();
