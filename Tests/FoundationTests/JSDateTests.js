@@ -34,6 +34,12 @@ JSClass("JSDateTests", TKTestSuite, {
 
         date = JSDate.initWithTimeIntervalSince1970(-123456.789);
         TKAssertEquals(date.timeIntervalSince1970, -123456.789);
+
+        date = JSDate.initWithTimeIntervalSince1970(null);
+        TKAssertNull(date);
+
+        date = JSDate.initWithTimeIntervalSince1970(undefined);
+        TKAssertNull(date);
     },
 
     testInitWithTimeIntervalSinceNow: function(){

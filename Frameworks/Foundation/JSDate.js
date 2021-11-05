@@ -59,10 +59,16 @@ Object.defineProperties(JSDate.prototype, {
 });
 
 JSDate.initWithTimeIntervalSince1970 = function(timeInterval){
+    if (timeInterval === null || timeInterval === undefined){
+        return null;
+    }
     return Object.create(JSDate.prototype, {timeIntervalSince1970: {value: timeInterval}});
 };
 
 JSDate.initWithTimeIntervalSinceNow = function(timeInterval){
+    if (timeInterval === null || timeInterval === undefined){
+        return null;
+    }
     return JSDate.initWithTimeIntervalSince1970((Date.now() / 1000) + timeInterval);
 };
 
