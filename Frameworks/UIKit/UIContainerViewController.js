@@ -74,42 +74,10 @@ JSClass("UIContainerViewController", UIViewController, {
     contentViewController: JSDynamicProperty("_contentViewController", null),
 
     setContentViewController: function(contentViewController){
-        var previousViewController = this._contentViewController;
+        this.replaceChildViewController(this._contentViewController, contentViewController);
+        this._contentViewController = contentViewController;
         if (this.isViewLoaded){
-            var contentView = null;
-            if (contentViewController !== null){
-                contentView = contentViewController.view;
-            }
-            if (this.isViewVisible){
-                if (previousViewController !== null){
-                    previousViewController.viewWillDisappear(false);
-                    previousViewController.enqueueDidDisappear();
-                }
-                if (contentViewController !== null){
-                    contentViewController.viewWillAppear(false);
-                }
-            }
-            if (previousViewController !== null){
-                previousViewController.removeFromParentViewController();
-            }
-            this._contentViewController = contentViewController;
-            if (contentViewController !== null){
-                this.addChildViewController(contentViewController);
-            }
-            this.view.contentView = contentView;
-            if (this.isViewVisible){
-                if (contentViewController !== null){
-                    contentViewController.enqueueDidAppear();
-                }
-            }
-        }else{
-            if (previousViewController !== null){
-                previousViewController.removeFromParentViewController();
-            }
-            this._contentViewController = contentViewController;
-            if (contentViewController !== null){
-                this.addChildViewController(contentViewController);
-            }
+            this.view.contentView = contentViewController !== null ? contentViewController.view : null;
         }
     },
 

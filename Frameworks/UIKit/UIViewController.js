@@ -192,6 +192,42 @@ JSClass("UIViewController", UIResponder, {
     didMoveToParentViewController: function(parentViewController){
     },
 
+    replaceChildViewController: function(previousChildViewController, childViewController, animator){
+        if (this.isViewLoaded && this.isViewVisible){
+            var animated = animator !== undefined && animator !== null;
+            if (previousChildViewController !== null){
+                previousChildViewController.viewWillDisappear(animated);
+                previousChildViewController.removeFromParentViewController();
+            }
+            if (childViewController !== null){
+                // trigger childViewController.viewDidLoad by accessing .view
+                var view = childViewController.view;
+                this.addChildViewController(childViewController);
+                childViewController.viewWillAppear(animated);
+            }
+            var completion = function(){
+                if (previousChildViewController !== null){
+                    previousChildViewController.viewDidDisappear(animated);
+                }
+                if (childViewController !== null){
+                    childViewController.viewDidAppear(animated);
+                }
+            };
+            if (animated){
+                animator.addCompletion(completion, this);
+            }else{
+                this.view.layer._displayServer.schedule(completion, this);
+            }
+        }else{
+            if (previousChildViewController !== null){
+                previousChildViewController.removeFromParentViewController();
+            }
+            if (childViewController !== null){
+                this.addChildViewController(childViewController);
+            }
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Responder
 
