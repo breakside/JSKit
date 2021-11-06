@@ -14,7 +14,7 @@ topics:
     members:
       -
         name: initWithTitle
-        introduced: 2021.43.1
+        introduced: 2021.44.0
         kind: init
         summary: Create a button-like item with a title
         arguments:
