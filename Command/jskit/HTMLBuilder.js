@@ -743,7 +743,8 @@ JSClass("HTMLBuilder", Builder, {
         var params = {
             JSKIT_APP: JSON.stringify({
                 buildId: this.buildId,
-                sources: sources
+                environment: this.project.info.HTMLApplicationEnvironment,
+                sources: sources,
             }, null, 2)
         };
         var workerConents = await this.fileManager.contentsAtURL(this.serviceWorkerSourceURL);
