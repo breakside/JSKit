@@ -3226,7 +3226,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
     layoutCell: function(cell){
         cell._contentView.frame = cell.bounds.rectWithInsets(this.cellContentInsets);
-        var size = JSSize(cell.bounds.size.width - cell._titleInsets.left - cell._titleInsets.right, 0);
+        var size = JSSize(cell._contentView.bounds.size.width - cell._titleInsets.width, 0);
         var origin = JSPoint(cell._titleInsets.left, 0);
         var indent = this._indentationForCell(cell);
         origin.x += indent;
