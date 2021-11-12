@@ -49,7 +49,9 @@ JSClass("SKFileJobQueue", SKJobQueue, {
     },
 
     handleChange: function(eventType, filename){
-        if (fs.existsSync(filename)){
+        let url = JSURL.initWithString(filename, this.queueURL);
+        let path = this.fileManager.pathForURL(url);
+        if (fs.existsSync(path)){
             this.notifyConsumer(this);
         }
     },
