@@ -453,9 +453,9 @@ JSClass("JSDateFormatter", JSObject, {
             return Math.floor(ms / 100).toString();
         }
         if (n == 2){
-            return Math.floor(ms / 10).toString();
+            return Math.floor(ms / 10).toString().leftPaddedString("0", 2);
         }
-        return Math.floor((ms * Math.pow(10, n - 3))).toString();
+        return Math.floor((ms * Math.pow(10, n - 3))).toString().leftPaddedString("0", n);
     },
 
     _z: function(n, date, components){
