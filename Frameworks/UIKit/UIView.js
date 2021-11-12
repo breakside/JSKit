@@ -211,10 +211,16 @@ JSClass('UIView', UIResponder, {
     subviews: null,
 
     addSubview: function(subview){
+        if (!(subview instanceof UIView)){
+            throw new TypeError("addSubview() given view is not a UIView");
+        }
         return this._insertSubviewAtIndex(subview, this.subviews.length, this.layer.sublayers.length);
     },
 
     insertSubviewAtIndex: function(subview, index){
+        if (!(subview instanceof UIView)){
+            throw new TypeError("insertSubviewAtIndex() given view is not a UIView");
+        }
         var layerIndex;
         if (index < this.subviews.length){
             layerIndex = this.subviews[index].layer.sublayerIndex;
@@ -225,6 +231,9 @@ JSClass('UIView', UIResponder, {
     },
 
     insertSubviewBelowSibling: function(subview, sibling){
+        if (!(subview instanceof UIView)){
+            throw new TypeError("insertSubviewBelowSibling() given view is not a UIView");
+        }
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
@@ -232,6 +241,9 @@ JSClass('UIView', UIResponder, {
     },
 
     insertSubviewAboveSibling: function(subview, sibling){
+        if (!(subview instanceof UIView)){
+            throw new TypeError("insertSubviewAboveSibling() given view is not a UIView");
+        }
         if (sibling.superview !== this){
             throw Error('Cannot insert subview [%s] in view [%s] because sibling view [%s] is not a valid subview.');
         }
@@ -239,6 +251,9 @@ JSClass('UIView', UIResponder, {
     },
 
     removeSubview: function(subview){
+        if (!(subview instanceof UIView)){
+            throw new TypeError("removeSubview() given subview is not a UIView");
+        }
         if (subview.superview === this){
             this.layer.removeSublayer(subview.layer);
             for (var i = subview.subviewIndex + 1, l = this.subviews.length; i < l; ++i){

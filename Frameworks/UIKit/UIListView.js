@@ -1561,9 +1561,12 @@ JSClass("UIListView", UIScrollView, {
 
     _createCellAtIndexPath: function(indexPath, rect){
         indexPath = JSIndexPath(indexPath);
+        if (!this.delegate.cellForListViewAtIndexPath){
+            throw new Error("%s must implement cellForListViewAtIndexPath()".sprintf(this.delegate.$class.className));
+        }
         var cell = this.delegate.cellForListViewAtIndexPath(this, indexPath);
         if (cell === null || cell === undefined){
-            throw new Error("Got null/undefined cell for indexPath: %s".sprintf(indexPath));
+            throw new Error("%s.cellForListViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.delegate.$class.className, indexPath));
         }
         this._adoptCell(cell, indexPath);
         cell.bounds = JSRect(JSPoint.Zero, rect.size);
@@ -1588,9 +1591,12 @@ JSClass("UIListView", UIScrollView, {
             header = this._stickyHeader;
             this._stickyHeader = null;
         }else{
+            if (!this.delegate.headerViewForListViewSection){
+                throw new Error("%s must implement headerViewForListViewSection() when headerHeight is non-zero".sprintf(this.delegate.$class.className));
+            }
             header = this.delegate.headerViewForListViewSection(this, section);
             if (header === null || header === undefined){
-                throw new Error("Got null/undefined header for section: %d".sprintf(section));
+                throw new Error("%s.headerViewForListViewSection() returned null/undefined header for section: %d".sprintf(this.delegate.$class.className, section));
             }
         }
         header.kind = UIListViewHeaderFooterView.Kind.header;
@@ -1602,9 +1608,12 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _createFooterAtSection: function(section, rect){
+        if (!this.delegate.footerViewForListViewSection){
+            throw new Error("%s must implement footerViewForListViewSection() when footerHeight is non-zero".sprintf(this.delegate.$class.className));
+        }
         var footer = this.delegate.footerViewForListViewSection(this, section);
         if (footer === null || footer === undefined){
-            throw new Error("Got null/undefined footer for section: %d".sprintf(section));
+            throw new Error("%s.headerViewForListViewSection() returned null/undefined header for section: %d".sprintf(this.delegate.$class.className, section));
         }
         footer.kind = UIListViewHeaderFooterView.Kind.footer;
         footer.section = section;
