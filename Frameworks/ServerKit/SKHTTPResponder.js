@@ -197,16 +197,20 @@ JSClass("SKHTTPResponder", JSObject, {
         return Promise.reject(new Error("not implemented"));
     },
 
-    addAllowedOrigin: function(origin, methods, headers){
+    addAllowedOrigin: function(origin, methods, headers, credentials){
         if (methods === undefined){
             methods = ["*"];
         }
         if (headers === undefined){
             headers = ["Authorization", "Content-Type"];
         }
+        if (credentials === undefined){
+            credentials = false;
+        }
         this.allowedOrigins[origin] = {
             methods: methods,
-            headers: headers
+            headers: headers,
+            credentials: credentials
         };
     },
 
@@ -228,6 +232,9 @@ JSClass("SKHTTPResponder", JSObject, {
                 }
                 if (this.request.headerMap.get('Access-Control-Request-Headers', null) !== null){
                     this.response.headerMap.set("Access-Control-Allow-Headers", allowed.headers.join(", "));
+                }
+                if (allowed.credentials){
+                    this.response.headerMap.set("Access-Control-Allow-Credentials", "true");
                 }
                 if (this.request.method == "OPTIONS"){
                     this.response.headerMap.set("Access-Control-Max-Age", 60 * 60);
