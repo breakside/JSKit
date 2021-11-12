@@ -790,10 +790,10 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             this.activeSelectedTitleColor = this.selectedTitleColor;
         }
         if (this.normalItemColor === null){
-            this.normalItemColor = JSColor.highlight;
+            this.normalItemColor = JSColor.controlBackground;
         }
         if (this.selectedItemColor === null){
-            this.selectedItemColor = JSColor.highlight.colorDarkenedByPercentage(0.2);
+            this.selectedItemColor = JSColor.highlight;
         }
         if (this.activeItemColor === null){
             this.activeItemColor = this.normalItemColor.colorDarkenedByPercentage(0.1);

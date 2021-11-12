@@ -30,11 +30,12 @@ JSClass("UITabViewController", UIViewController, {
     initWithViewControllers: function(viewControllers, styler){
         UITabViewController.$super.init.call(this);
         this._viewControllers = JSCopy(viewControllers);
-        this._styler = styler || null;
+        this._tabViewStyler = styler || null;
     },
 
     initWithSpec: function(spec){
         this._viewControllers = [];
+        this._tabViewStyler = null;
         var viewController;
         var i, l;
         if (spec.containsKey('viewControllers')){
@@ -51,7 +52,7 @@ JSClass("UITabViewController", UIViewController, {
     },
 
     loadView: function(){
-        this._view = UITabView.initWithStyler(this._styler);
+        this._view = UITabView.initWithStyler(this._tabViewStyler);
     },
 
     viewDidLoad: function(){
