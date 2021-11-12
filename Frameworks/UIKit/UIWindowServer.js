@@ -580,7 +580,7 @@ JSClass("UIWindowServer", JSObject, {
         }
 
         if (ignore){
-            logger.warn("Ignoring mouse event: %d".sprintf(type));
+            logger.info("Ignoring mouse event: %d".sprintf(type));
             return;
         }
 
@@ -904,7 +904,7 @@ JSClass("UIWindowServer", JSObject, {
         // Create or update the active touch event
         if (this.activeTouchEvent === null){
             if (type != UIEvent.Type.touchesBegan){
-                logger.warn("Ignoring touch event: %d", type);
+                logger.info("Ignoring touch event: %d", type);
                 return;
             }
             this.activeTouchEvent = UIEvent.initTouchEventWithType(type, timestamp);
