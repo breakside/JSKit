@@ -132,7 +132,7 @@ JSClass("JavascriptCompilation", JSObject, {
         var mapURL = url.appendingFileExtension('.map');
         var map = {
             version: 3,
-            file: mapURL.lastPathComponent,
+            file: url.lastPathComponent,
             sourceRoot: this.sourceRoot,
             sources: this.sources,
             names: [],
