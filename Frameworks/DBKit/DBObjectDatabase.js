@@ -197,16 +197,17 @@ JSClass("DBObjectDatabase", JSObject, {
 
     exclusiveSave: function(id, change, completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveTrue);
+            completion = Promise.completion(Promise.resolveNonNull);
         }
         if (!DBID.isValid(id)){
             logger.error("Cannot save change without a valid id");
-            JSRunLoop.main.schedule.call(completion, target, false);
+            JSRunLoop.main.schedule.call(completion, target, null);
         }else if (this.store.exclusiveSave){
             var db = this;
+            var changedStorable = null;
             this.store.exclusiveSave(id, function(dictionary, changeCompletion){
                 var storable = db.storableFromStorableDictionary(dictionary);
-                var changedStorable = change(storable);
+                changedStorable = change(storable);
                 if (changedStorable === undefined){
                     changedStorable = storable;
                 }
@@ -218,11 +219,11 @@ JSClass("DBObjectDatabase", JSObject, {
                     });
                 }
             }, function(success){
-                completion.call(target, success);
+                completion.call(target, success ? changedStorable : null);
             });
         }else{
             logger.error("%{public} does not support exclusiveSave", this.store.$class.className);
-            JSRunLoop.main.schedule(completion, target, false);
+            JSRunLoop.main.schedule(completion, target, null);
         }
         return completion.promise;
     },
