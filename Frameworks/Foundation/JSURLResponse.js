@@ -92,6 +92,12 @@ JSClass("JSURLResponse", JSObject, {
 
     getLocation: function(){
         return JSURL.initWithString(this._headerMap.get("Location", null));
+    },
+
+    assertSuccess: function(){
+        if (this.statusClass !== JSURLResponse.StatusClass.success){
+            throw new JSURLResponseError(this);
+        }
     }
 
 });
@@ -155,3 +161,57 @@ JSURLResponse.StatusClass = {
     clientError: 4,
     serverError: 5
 };
+
+JSGlobalObject.JSURLResponseError = function(response){
+    if (this === undefined){
+        return new JSURLResponseError();
+    }
+    this.name = "JSURLResponseError";
+    if (response instanceof JSURLResponseError){
+        this.message = response.message;
+        this.response = response.response;
+        this.stack = response.stack;
+    }else{
+        this.response = response;
+        this.message = "Received %d from server".sprintf(response.statusCode);
+        if (Error.captureStackTrace){
+            Error.captureStackTrace(this, JSURLResponseError);
+        }
+    }
+};
+
+JSURLResponseError.prototype = Object.create(Error.prototype);
+
+Object.defineProperties(JSURLResponseError.prototype, {
+
+    statusCode: {
+        value: function(){
+            return this.response.statusCode;
+        },
+    },
+
+    statusClass: {
+        value: function(){
+            return this.response.statusClass;
+        },
+    },
+
+    data: {
+        value: function(){
+            return this.response.data;
+        }
+    },
+
+    object: {
+        value: function(){
+            return this.response.object;
+        }
+    },
+
+    headerMap: {
+        value: function(){
+            return this.response.headerMap;
+        }
+    }
+
+});
