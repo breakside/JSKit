@@ -18,6 +18,7 @@
 // #import "JSLog.js"
 // #import "JSData.js"
 // #import "CoreTypes.js"
+// #import "Error+JS.js"
 'use strict';
 
 (function(){
@@ -1439,9 +1440,7 @@ function DeflateError(msg){
     }
     this.name = "DeflateError";
     this.message = msg;
-    if (Error.captureStackTrace){
-        Error.captureStackTrace(this, DeflateError);
-    }
+    Error.captureStackTrace(this, DeflateError);
 }
 
 DeflateError.prototype = Object.create(Error.prototype);

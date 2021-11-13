@@ -25,9 +25,7 @@ JSClass("APIErrorTests", TKTestSuite, {
         TKAssertInstance(error, Error);
         TKAssertEquals(error.statusCode, 404);
         TKAssertEquals(error.message, "not found");
-        if (Error.captureStackTrace){
-            TKAssertType(error.stack, "string");
-        }
+        TKAssertType(error.stack, "string");
     }
 
 });

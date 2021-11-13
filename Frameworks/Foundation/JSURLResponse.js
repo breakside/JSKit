@@ -17,6 +17,7 @@
 // #import "JSMIMEHeaderMap.js"
 // #import "JSMediaType.js"
 // #import "JSURL.js"
+// #import "Error+JS.js"
 'use strict';
 
 JSClass("JSURLResponse", JSObject, {
@@ -174,9 +175,7 @@ JSGlobalObject.JSURLResponseError = function(response){
     }else{
         this.response = response;
         this.message = "Received %d from server".sprintf(response.statusCode);
-        if (Error.captureStackTrace){
-            Error.captureStackTrace(this, JSURLResponseError);
-        }
+        Error.captureStackTrace(this, JSURLResponseError);
     }
 };
 

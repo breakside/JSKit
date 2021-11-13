@@ -38,6 +38,16 @@ Object.defineProperties(Error.prototype, {
 
 });
 
+if (!Error.captureStackTrace){
+    Error.captureStackTrace = function(instance, cls){
+        var e = new Error();
+        var lines = e.stack.split("\n");
+        lines.shift();
+        lines.shift();
+        instance.stack = lines.join("\n");
+    };
+}
+
 
 // Safari: searchChanged@https://test1.breakside.dev:8089/debug/JS/SidebarViewController.js:213:23
 // Firefox: textStorageDidReplaceCharactersInRange@https://test1.breakside.dev:8089/debug/Frameworks/Foundation/JSTextLayoutManager.js:186:25

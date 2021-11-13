@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import Foundation
 'use strict';
 
 JSGlobalObject.APIError = function(statusCode, message){
@@ -26,9 +27,7 @@ JSGlobalObject.APIError = function(statusCode, message){
         this.statusCode = statusCode;
         this.message = message;
     }
-    if (Error.captureStackTrace){
-        Error.captureStackTrace(this, APIError);
-    }
+    Error.captureStackTrace(this, APIError);
 };
 
 JSGlobalObject.APIError.prototype = Object.create(Error.prototype);

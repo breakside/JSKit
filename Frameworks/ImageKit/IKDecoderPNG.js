@@ -701,9 +701,7 @@ var IKDecoderPNGError = function(code, byteOffset, msg){
     this.code = code;
     this.byteOffset = byteOffset;
     this.msg = msg;
-    if (Error.captureStackTrace){
-        Error.captureStackTrace(this, IKDecoderPNGError);
-    }
+    Error.captureStackTrace(this, IKDecoderPNGError);
 };
 
 IKDecoderPNGError.prototype = Object.create(Error.prototype);

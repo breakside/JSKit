@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import Foundation
 'use strict';
 
 JSGlobalObject.SKHTTPError = function(statusCode, message, object){
@@ -28,9 +29,7 @@ JSGlobalObject.SKHTTPError = function(statusCode, message, object){
         this.message = message;
         this.object = object || null;
     }
-    if (Error.captureStackTrace){
-        Error.captureStackTrace(this, SKHTTPError);
-    }
+    Error.captureStackTrace(this, SKHTTPError);
 };
 
 JSGlobalObject.SKHTTPError.prototype = Object.create(Error.prototype);

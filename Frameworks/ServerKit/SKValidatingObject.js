@@ -527,9 +527,7 @@ SKValidatingObject.Error = function(info, message){
                 this.message = message;
                 break;
         }
-        if (Error.captureStackTrace){
-            Error.captureStackTrace(this, SKValidatingObject.Error);
-        }
+        Error.captureStackTrace(this, SKValidatingObject.Error);
     }
 };
 

@@ -19,6 +19,7 @@
 // #import "JSLog.js"
 // #import "JSData.js"
 // #import "CoreTypes.js"
+// #import "Error+JS.js"
 'use strict';
 
 (function(){
@@ -73,9 +74,7 @@ function ZlibError(msg){
     }
     this.name = "ZlibError";
     this.message = msg;
-    if (Error.captureStackTrace){
-        Error.captureStackTrace(this, ZlibError);
-    }
+    Error.captureStackTrace(this, ZlibError);
 }
 
 ZlibError.prototype = Object.create(Error.prototype);
