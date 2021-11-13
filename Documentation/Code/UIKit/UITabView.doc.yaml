@@ -335,6 +335,24 @@ topics:
 
                   The default implementation places an `UITabItemsView` above
                   a content area.
+          -
+            name: Accessibility
+            members:
+              -
+                name: viewForItemAtIndex
+                introduced: 2021.45.0
+                kind: method
+                type: UIView
+                summary: Get the view that represents the item at the given index
+                arguments:
+                  -
+                    name: tabView
+                    type: UITabView
+                    summary: The tab view
+                  -
+                    name: itemIndex
+                    type: Number
+                    summary: The index of the item
       -
         name: UITabViewDefaultStyler
         kind: class
