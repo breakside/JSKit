@@ -1,0 +1,107 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.46.0
+kind: class
+inherits: JSObject
+summary: Containts the information parsed from a `User-Agent` HTTP header string
+description: |
+  Allows for easier inspection of user agent properties than simple string matching.
+
+  Per the HTTP specificiation, a `User-Agent` string consists of a series of
+  products and comments.  Products take the form of just a `name`() or a
+  `name/version`() pair.  Comments are enclosed in parenthesis and separated by
+  semicolons.
+
+  While the user agent string can be easily spoofed, the value sent by most
+  clients is legitimate, and inspection can help provide an understanding of
+  the clients talking to your server.
+topics:
+  - name: Creating a User Agent
+    members:
+      - name: initWithString
+        kind: init
+        summary: Create a User Agent object by parsing the given string
+        description: |
+          The string typically comes from a `User-Agent` header in an HTTP
+          request.
+        see:
+          - SKHTTPRequest.userAgent
+  - name: Products
+    members:
+      - name: products
+        type: Product[]
+        summary: The ordered list of products found in the user agent string
+      - name: containsProduct
+        kind: method
+        type: boolean
+        summary: Indicates if the given product is present in the user agent
+        arguments:
+          - name: name
+            type: String
+            summary: The product name
+      - name: containsProduct
+        suffix: version
+        kind: method
+        type: boolean
+        summary: Indicates if the given product is present in the user agent and
+          matches the given version
+        arguments:
+          - name: name
+            type: String
+            summary: The product name
+          - name: version
+            type: String
+            summary: The product version
+      - name: versionOfProduct
+        kind: method
+        type: String
+        nullable: true
+        summary: Returns the version, if any, for the given product
+        arguments:
+          - name: name
+            type: String
+            summary: The product name
+        note: |
+          A return value of `null`() could mean either that the product is
+          present without a version or the product is not present at all.
+        see:
+          - containsProduct()
+      - name: Product
+        kind: class
+        anonymous: true
+        topics:
+          - name: Properties
+            members:
+              - name: name
+                type: String
+                summary: The name of the product
+              - name: version
+                type: String
+                nullable: true
+                summary: The version of the product
+  - name: Comments
+    members:
+      - name: comments
+        type: String[]
+        summary: The list of comments provided in the user agent string
+        description: |
+          A user agent string may contain multiple comment sections, each
+          enclosed in parenthesis.
+
+          Within each comment are strings seprated by semicolons.
+
+          This list contains all of the semicolon-separated strings found
+          in all of the comment sections.
+      - name: containsComment
+        kind: method
+        type: boolean
+        summary: Indicates if a given comment is present in the user agent string
+        arguments:
+          - name: comment
+            type: String
+            summary: The comment to check for
+        note: |
+          While this is useful for certain comments that are always the same,
+          many comments contain elements such as version numbers that can
+          change over time.  Therefore, it can often be more useful to loop
+          through all of the `comments` and use `startsWith()`(String.startsWith)
+          to see if any comment present has the prefix you're looking for.

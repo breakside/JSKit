@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "SKHTTPResponse.js"
 // #import "SKValidatingObject.js"
+// #import "SKUserAgent.js"
 'use strict';
 
 JSClass("SKHTTPRequest", JSObject, {
@@ -297,6 +298,12 @@ JSClass("SKHTTPRequest", JSObject, {
             return null;
         }
         return null;
+    },
+
+    userAgent: JSReadOnlyProperty(),
+
+    getUserAgent: function(){
+        return SKUserAgent.initWithString(this.headerMap.get("User-Agent", null));
     },
 
 });

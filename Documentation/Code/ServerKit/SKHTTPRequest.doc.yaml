@@ -48,6 +48,11 @@ topics:
         name: receivedAt
         type: JSDate
         summary: The timestamp when the request was received
+      -
+         name: userAgent
+         introduced: 2021.46.0
+         type: SKUserAgent
+         summary: Structured information derived from the User-Agent header
   -
     name: Request Body
     members:
