@@ -340,7 +340,7 @@ topics:
             members:
               -
                 name: viewForItemAtIndex
-                introduced: 2021.45.0
+                introduced: 2020.42.0
                 kind: method
                 type: UIView
                 summary: Get the view that represents the item at the given index
