@@ -2789,7 +2789,7 @@ VisibleItemIterator.prototype = Object.create({}, {
         value: function(){
             var height;
             var item;
-            if (this.item !== null && this.item.Kind === VisibleItem.Kind.footer){
+            if (this.item !== null && this.item.kind === VisibleItem.Kind.footer){
                 ++this.section;
             }
             while (this.section < this.listView.__numberOfSections){
@@ -2810,7 +2810,7 @@ VisibleItemIterator.prototype = Object.create({}, {
                     item = new VisibleItem(VisibleItem.Kind.cell, JSRect(0, this.y, this.width, height), this.cellIterator.indexPath);
                     return item;
                 }
-                if (this.item === null || this.item.section <= this.section){
+                if (this.item === null || this.item.indexPath.section <= this.section){
                     height = this.listView._heightForFooterInSection(this.section);
                     if (height > 0){
                         item = new VisibleItem(VisibleItem.Kind.footer, JSRect(0, this.y, this.width, height), JSIndexPath([this.section]));

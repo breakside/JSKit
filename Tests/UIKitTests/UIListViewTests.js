@@ -3993,6 +3993,95 @@ JSClass("UIListViewTests", TKTestSuite, {
         selected = listView.selectedIndexPaths;
         TKAssertEquals(selected.length, 1);
         TKAssertObjectEquals(selected[0], JSIndexPath(0, 2));
+    },
+
+    testFooters: function(){
+        var listView = UIListView.initWithFrame(JSRect(0, 0, 300, 300));
+        listView.rowHeight = 40;
+        listView.footerHeight = 50;
+        var calls = {
+            numberOfSectionsInListView: [],
+            numberOfRowsInListViewSection: [],
+            cellForListViewAtIndexPath: [],
+            footerViewForListViewSection: []
+        };
+
+        listView.dataSource = {
+            numberOfSectionsInListView: function(listView){
+                calls.numberOfSectionsInListView.push({listView: listView});
+                return 3;
+            },
+
+            numberOfRowsInListViewSection: function(listView, sectionIndex){
+                calls.numberOfRowsInListViewSection.push({listView: listView, sectionIndex: sectionIndex});
+                switch (sectionIndex){
+                    case 0:
+                        return 3;
+                    case 1:
+                        return 5;
+                    case 2:
+                        return 1;
+                }
+            }
+        };
+
+        listView.delegate = {
+            footerViewForListViewSection: function(listView, section){
+                calls.footerViewForListViewSection.push({listView: listView, section: section});
+                var cell = UIListViewHeaderFooterView.init();
+                return cell;
+            },
+
+            cellForListViewAtIndexPath: function(listView, indexPath){
+                calls.cellForListViewAtIndexPath.push({listView: listView, indexPath: indexPath});
+                var cell = UIListViewCell.init();
+                return cell;
+            },
+        };
+
+        this.window.contentView.addSubview(listView);
+        this.app.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+        listView.reloadData();
+        TKAssert(listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 0);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection.length, 0);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 0);
+        TKAssertExactEquals(calls.footerViewForListViewSection.length, 0);
+        this.app.updateDisplay();
+        TKAssert(!listView.layer.needsLayout());
+        TKAssertExactEquals(calls.numberOfSectionsInListView.length, 1);
+        TKAssertExactEquals(calls.numberOfSectionsInListView[0].listView, listView);
+        // We don't have an exact requirement on how many times numberOfRows
+        // should be called, allowing the implementation some flexibility, but
+        // it should still be within a reasonable range.  Currently, that range
+        // is about 3-4 times per section.
+        TKAssertGreaterThanOrEquals(calls.numberOfRowsInListViewSection.length, 3);
+        TKAssertLessThanOrEquals(calls.numberOfRowsInListViewSection.length, 16);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[0].sectionIndex, 0);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[1].sectionIndex, 1);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[2].listView, listView);
+        TKAssertExactEquals(calls.numberOfRowsInListViewSection[2].sectionIndex, 2);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath.length, 7);
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[0].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[0].indexPath, JSIndexPath(0,0));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[1].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[1].indexPath, JSIndexPath(0,1));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[2].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[2].indexPath, JSIndexPath(0,2));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[3].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[3].indexPath, JSIndexPath(1,0));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[4].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[4].indexPath, JSIndexPath(1,1));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[5].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[5].indexPath, JSIndexPath(1,2));
+        TKAssertExactEquals(calls.cellForListViewAtIndexPath[6].listView, listView);
+        TKAssertObjectEquals(calls.cellForListViewAtIndexPath[6].indexPath, JSIndexPath(1,3));
+        TKAssertExactEquals(calls.footerViewForListViewSection.length, 1);
+        TKAssertExactEquals(calls.footerViewForListViewSection[0].listView, listView);
+        TKAssertEquals(calls.footerViewForListViewSection[0].section, 0);
     }
 
 });
