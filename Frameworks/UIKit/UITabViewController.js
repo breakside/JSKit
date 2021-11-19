@@ -86,9 +86,9 @@ JSClass("UITabViewController", UIViewController, {
             selectedViewController.viewWillDisappear(animated);
         }
     },
-
-    viewDisDisappear: function(animated){
-        UITabViewController.$super.viewDisDisappear.call(this, animated);
+    
+    viewDidDisappear: function(animated){
+        UITabViewController.$super.viewDidDisappear.call(this, animated);
         var selectedViewController = this.selectedViewController;
         if (selectedViewController !== null){
             selectedViewController.viewDidDisappear(animated);
