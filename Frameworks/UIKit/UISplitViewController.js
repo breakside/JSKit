@@ -120,70 +120,18 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     setLeadingViewController: function(leadingViewController){
-        var callAppearanceMethods = this.isViewVisible && this.leadingViewOpen;
-        var disappearingViewController = null;
-        if (this._leadingViewController !== null){
-            if (callAppearanceMethods){
-                this._leadingViewController.viewWillDisappear(false);
-                disappearingViewController = this._leadingViewController;
-            }
-            this._leadingViewController.removeFromParentViewController();
-        }
+        this.replaceChildViewController(this._leadingViewController, leadingViewController);
         this._leadingViewController = leadingViewController;
-        if (this._leadingViewController){
-            if (callAppearanceMethods){
-                this._leadingViewController.viewWillAppear(false);
-            }
-            this.addChildViewController(this._leadingViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._leadingViewController !== null){
-                view = this._leadingViewController.view;
-            }
-            this._view.leadingView = view;
-        }
-        if (callAppearanceMethods){
-            if (disappearingViewController !== null){
-                disappearingViewController.enqueueDidDisappear();
-            }
-            if (this._leadingViewController !== null){
-                this._leadingViewController.enqueueDidAppear();
-            }
+        if (this.isViewLoaded){
+            this.view.leadingView  = leadingViewController !== null ? leadingViewController.view : null;
         }
     },
 
     setTrailingViewController: function(trailingViewController){
-        var callAppearanceMethods = this.isViewVisible && this.trailingViewOpen;
-        var disappearingViewController = null;
-        if (this._trailingViewController !== null){
-            if (callAppearanceMethods){
-                this._trailingViewController.viewWillDisappear(false);
-                disappearingViewController = this._trailingViewController;
-            }
-            this._trailingViewController.removeFromParentViewController();
-        }
+        this.replaceChildViewController(this._trailingViewController, trailingViewController);
         this._trailingViewController = trailingViewController;
-        if (this._trailingViewController){
-            if (callAppearanceMethods){
-                this._trailingViewController.viewWillAppear(false);
-            }
-            this.addChildViewController(this._trailingViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._trailingViewController !== null){
-                view = this._trailingViewController.view;
-            }
-            this._view.trailingView = view;
-        }
-        if (callAppearanceMethods){
-            if (disappearingViewController !== null){
-                disappearingViewController.enqueueDidDisappear();
-            }
-            if (this._trailingViewController !== null){
-                this._trailingViewController.enqueueDidAppear();
-            }
+        if (this.isViewLoaded){
+            this.view.trailingView = trailingViewController !== null ? trailingViewController.view : null;
         }
     },
 
@@ -192,36 +140,10 @@ JSClass("UISplitViewController", UIViewController, {
             this._setMainViewControllerCollapsed(mainViewController);
             return;
         }
-        var callAppearanceMethods = this.isViewVisible;
-        var disappearingViewController = null;
-        if (this._mainViewController !== null && this._mainViewController.parentViewController === this){
-            if (callAppearanceMethods){
-                this._mainViewController.viewWillDisappear(false);
-                disappearingViewController = this._mainViewController;
-            }
-            this._mainViewController.removeFromParentViewController();
-        }
+        this.replaceChildViewController(this._mainViewController, mainViewController);
         this._mainViewController = mainViewController;
-        if (this._mainViewController){
-            if (callAppearanceMethods){
-                this._mainViewController.viewWillAppear(false);
-            }
-            this.addChildViewController(this._mainViewController);
-        }
-        if (this._view !== null){
-            var view = null;
-            if (this._mainViewController !== null){
-                view = this._mainViewController.view;
-            }
-            this._view.mainView = view;
-        }
-        if (callAppearanceMethods){
-            if (disappearingViewController !== null){
-                disappearingViewController.enqueueDidDisappear();
-            }
-            if (this._mainViewController !== null){
-                this._mainViewController.enqueueDidAppear();
-            }
+        if (this.isViewLoaded){
+            this.view.mainView = mainViewController !== null ? mainViewController.view : null;
         }
     },
 
