@@ -1604,6 +1604,7 @@ JSClass("UIListView", UIScrollView, {
         header.bounds = JSRect(JSPoint.Zero, rect.size);
         header.position = JSPoint(rect.origin.x + header.bounds.size.width * header.anchorPoint.x, rect.origin.y + header.bounds.size.height * header.anchorPoint.y);
         this._styler.updateHeader(header, section);
+        header.setNeedsLayout();
         return header;
     },
 
@@ -1620,6 +1621,7 @@ JSClass("UIListView", UIScrollView, {
         footer.bounds = JSRect(JSPoint.Zero, rect.size);
         footer.position = JSPoint(rect.origin.x + footer.bounds.size.width * footer.anchorPoint.x, rect.origin.y + footer.bounds.size.height * footer.anchorPoint.y);
         this._styler.updateFooter(footer, section);
+        footer.setNeedsLayout();
         return footer;
     },
 
