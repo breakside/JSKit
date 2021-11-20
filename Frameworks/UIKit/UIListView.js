@@ -2601,6 +2601,20 @@ JSClass("UIListView", UIScrollView, {
         return indexPaths;
     },
 
+    visibleCells: JSReadOnlyProperty(),
+
+    getVisibleCells: function(){
+        var cells = [];
+        var item;
+        for (var i = 0, l = this._visibleItems.length; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.kind === VisibleItem.Kind.cell){
+                cells.push(item.view);
+            }
+        }
+        return cells;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Scrolling
 
