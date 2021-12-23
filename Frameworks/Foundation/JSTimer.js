@@ -73,3 +73,9 @@ JSTimer.scheduledRepeatingTimerWithInterval = function(interval, action, target)
     timer.schedule();
     return timer;
 };
+
+JSTimer.waitInterval = function(interval){
+    return new Promise(function(resolve, reject){
+        JSTimer.scheduledTimerWithInterval(interval, resolve);
+    });
+};
