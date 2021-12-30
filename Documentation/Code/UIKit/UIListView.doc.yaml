@@ -291,6 +291,19 @@ topics:
                 summary: Indicates that the user can de-select all rows
                 description: |
                   Defaults to `true`()
+          -
+            name: List Header & Footer
+            members:
+              -
+                name: listHeaderView
+                introduced: 2021.43.0
+                type: UIView
+                summary: A header view for the entire list
+              -
+                name: listFooterView
+                introduced: 2021.43.0
+                type: UIView
+                summary: A footer view for the entire list
   -
     name: Delegate & Data Source
     members:

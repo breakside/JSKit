@@ -4,27 +4,22 @@ introduced: 2020.1.0
 inherits: JSObject
 summary: Run actions after a timeout interval, repeating if desired
 topics:
-  -
-    name: Creating a Timer
+  - name: Creating a Timer
     members:
-      -
-        name: scheduledTimerWithInterval
+      - name: scheduledTimerWithInterval
         kind: method
         static: true
         type: JSTimer
         return: A timer that has already been scheduled to run
         summary: Create and schedule a non-repeating timer
         arguments:
-          -
-            name: interval
+          - name: interval
             type: Number
             summary: The timeout, in seconds, before the `action` runs
-          -
-            name: action
+          - name: action
             type: function()
             summary: The function to call when the interval has passed
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling `action`
@@ -38,24 +33,20 @@ topics:
           var timer = JSTimer.initWithInterval(interval, false, action, target);
           timer.schedule()
           ````
-      -
-        name: scheduledRepeatingTimerWithInterval
+      - name: scheduledRepeatingTimerWithInterval
         kind: method
         static: true
         type: JSTimer
         return: A timer that has already been scheduled to run
         summary: Create and schedule a repeating timer
         arguments:
-          -
-            name: interval
+          - name: interval
             type: Number
             summary: The timeout, in seconds, between invocations of `action`
-          -
-            name: action
+          - name: action
             type: function()
             summary: The function to call each time the interval has passed
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling `action`
@@ -69,25 +60,20 @@ topics:
           var timer = JSTimer.initWithInterval(interval, true, action, target);
           timer.schedule()
           ````
-      -
-        name: initWithInterval
+      - name: initWithInterval
         kind: init
         summary: Create a timer without scheduling it to run yet
         arguments:
-          -
-            name: interval
+          - name: interval
             type: Number
             summary: The timeout, in seconds, between invocations of `action`\
-          -
-            name: repeats
+          - name: repeats
             type: boolean
             summary: Whether the timer should repeat or run only once
-          -
-            name: action
+          - name: action
             type: function()
             summary: The function to call each time the interval has passed
-          -
-            name: target
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling `action`
@@ -99,11 +85,9 @@ topics:
           It is often simpler to call the shortcut methods:
           - `scheduledTimerWithInterval()`
           - `scheduledRepeatingTimerWithInterval()`
-  -
-    name: Scheduling
+  - name: Scheduling
     members:
-      -
-        name: schedule
+      - name: schedule
         kind: method
         summary: Schedule an initialized timer to run
         description: |
@@ -113,10 +97,38 @@ topics:
           If instead you used `scheduledTimerWithInterval()` or
           `scheduledRepeatingTimerWithInterval()`, the returned timer already
           has called `schedule()`
-      -
-        name: invalidate
+      - name: invalidate
         kind: method
         summary: Cancel a timer from firing
         description: |
           Once a timer is schedule, a call to `invalidate()` will prevent the
           timer from firing again (or at all if it has not yet fired).
+  - name: Async/Promise Waits
+    members:
+      - name: waitInterval
+        introduced: 2021.52.0
+        kind: method
+        static: true
+        summary: Wait for a specified interval using a promise
+        arguments:
+          - name: interval
+            type: Number
+            summary: The amount of time to wait, in seconds
+        return: Promise
+        promise:
+          resolve:
+            summary: Resolves when then given interval has elapsed
+        description: |
+          Useful when you need to wait a minimum amount of time without ever
+          canceling.
+
+          ````
+          #import Foundation
+
+          async function printNumbers(){
+            for (let i = 1; i <= 10; ++i){
+              console.log(i);
+              await JSTimer.waitInterval(0.5);
+            }
+          }
+          ````

@@ -80,6 +80,23 @@ topics:
         type: UILabel
         summary: A label in which the cell's extra detail text can be included
   -
+    name: Accessory Views
+    members:
+      -
+        name: accessoryView
+        introduced: 2021.44.0
+        type: UIView
+        nullable: true
+        summary: A view to show on the right side of the cell
+        description: |
+          Is often something like an icon that indicates more details are
+          available after selection
+      -
+        name: accessoryInsets
+        introduced: 2021.44.0
+        type: JSInsets
+        summary: Insets for the cell's `accessoryView`
+  -
     name: Styling
     members:
       -

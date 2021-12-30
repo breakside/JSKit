@@ -10,208 +10,147 @@ description: |
   A response object is typically created by the `JSURLSession` system
   and attached to a `JSURLRequest` object automatically.
 topics:
-  -
-    name: Status
+  - name: Status
     members:
-      -
-        name: StatusCode
+      - name: StatusCode
         kind: enum
         summary: Standard HTTP status codes
         suffix: enum
         topics:
-          -
-            name: Options
+          - name: Options
             members:
-              -
-                name: unknown
+              - name: unknown
                 value: "-1"
-              -
-                name: noResponse
+              - name: noResponse
                 value: "0"
-              -
-                name: continue
+              - name: continue
                 value: "100"
-              -
-                name: switchingProtocols
+              - name: switchingProtocols
                 value: "101"
-              -
-                name: ok
+              - name: ok
                 value: "200"
-              -
-                name: created
+              - name: created
                 value: "201"
-              -
-                name: accepted
+              - name: accepted
                 value: "202"
-              -
-                name: nonAuthorativeInformation
+              - name: nonAuthorativeInformation
                 value: "203"
-              -
-                name: noContent
+              - name: noContent
                 value: "204"
-              -
-                name: resetContent
+              - name: resetContent
                 value: "205"
-              -
-                name: partialContent
+              - name: partialContent
                 value: "206"
-              -
-                name: multipleChoices
+              - name: multipleChoices
                 value: "300"
-              -
-                name: movedPermanently
+              - name: movedPermanently
                 value: "301"
-              -
-                name: found
+              - name: found
                 value: "302"
-              -
-                name: seeOther
+              - name: seeOther
                 value: "303"
-              -
-                name: notModified
+              - name: notModified
                 value: "304"
-              -
-                name: useProxy
+              - name: useProxy
                 value: "305"
-              -
-                name: temporaryRedirect
+              - name: temporaryRedirect
                 value: "306"
-              -
-                name: badRequest
+              - name: badRequest
                 value: "400"
-              -
-                name: unauthorized
+              - name: unauthorized
                 value: "401"
-              -
-                name: paymentRequired
+              - name: paymentRequired
                 value: "402"
-              -
-                name: forbidden
+              - name: forbidden
                 value: "403"
-              -
-                name: notFound
+              - name: notFound
                 value: "404"
-              -
-                name: methodNotAllowed
+              - name: methodNotAllowed
                 value: "405"
-              -
-                name: notAcceptable
+              - name: notAcceptable
                 value: "406"
-              -
-                name: proxyAuthenticationRequired
+              - name: proxyAuthenticationRequired
                 value: "407"
-              -
-                name: requestTimeout
+              - name: requestTimeout
                 value: "408"
-              -
-                name: conflict
+              - name: conflict
                 value: "409"
-              -
-                name: gone
+              - name: gone
                 value: "410"
-              -
-                name: lengthRequired
+              - name: lengthRequired
                 value: "411"
-              -
-                name: preconditionFailed
+              - name: preconditionFailed
                 value: "412"
-              -
-                name: payloadTooLarge
+              - name: payloadTooLarge
                 value: "413"
-              -
-                name: uriTooLong
+              - name: uriTooLong
                 value: "414"
-              -
-                name: unsupportedMediaType
+              - name: unsupportedMediaType
                 value: "415"
-              -
-                name: rangeNotSatisfiable
+              - name: rangeNotSatisfiable
                 value: "416"
-              -
-                name: expectationFailed
+              - name: expectationFailed
                 value: "417"
-              -
-                name: upgradeRequired
+              - name: upgradeRequired
                 value: "426"
-              -
-                name: preconditionRequired
+              - name: preconditionRequired
                 introduced: 2021.9.0
                 value: "428"
-              -
-                name: tooManyRequests
+              - name: tooManyRequests
                 introduced: 2021.9.0
                 value: "429"
-              -
-                name: requestHeaderFieldsTooLarge
+              - name: requestHeaderFieldsTooLarge
                 introduced: 2021.9.0
                 value: "431"
-              -
-                name: unavailableForLegalReasons
+              - name: unavailableForLegalReasons
                 introduced: 2021.9.0
                 value: "451"
-              -
-                name: internalServerError
+              - name: internalServerError
                 value: "500"
-              -
-                name: notImplemented
+              - name: notImplemented
                 value: "501"
-              -
-                name: badGateway
+              - name: badGateway
                 value: "502"
-              -
-                name: serviceUnavailable
+              - name: serviceUnavailable
                 value: "503"
-              -
-                name: gatewayTimeout
+              - name: gatewayTimeout
                 value: "504"
-              -
-                name: httpVersionNotSupported
+              - name: httpVersionNotSupported
                 value: "505"
-      -
-        name: StatusClass
+      - name: StatusClass
         kind: enum
         suffix: enum
         summary: Standard HTTP status classes, mapped to the first digit of the
           status code
         topics:
-          -
-            name: Options
+          - name: Options
             members:
-              -
-                name: unknown
+              - name: unknown
                 summary: The status code is unknown
                 value: "-1"
-              -
-                name: noResponse
+              - name: noResponse
                 summary: The status code indicates no response was received
                 value: "0"
-              -
-                name: informational
+              - name: informational
                 summary: Any 1xx status code
                 value: "1"
-              -
-                name: success
+              - name: success
                 summary: Any 2xx status code
                 value: "2"
-              -
-                name: redirect
+              - name: redirect
                 summary: Any 3xx status code
                 value: "3"
-              -
-                name: clientError
+              - name: clientError
                 summary: Any 4xx status code
                 value: "4"
-              -
-                name: serverError
+              - name: serverError
                 summary: Any 5xx status code
                 value: "5"
-      -
-        name: statusCode
+      - name: statusCode
         type: Number
         summary: The HTTP status code for the response, can be compared to
           \`StatusCode`
-      -
-        name: statusClass
+      - name: statusClass
         type: Number
         summary: The HTTP status class for the response, can be compared to
           \`StatusClass`
@@ -228,46 +167,73 @@ topics:
 
           }
           ````
-      -
-        name: statusText
+      - name: statusText
         type: String
         summary: The HTTP status text for the response, specified after the
           code
-  -
-    name: Headers
+      - name: assertSuccess
+        introduced: 2021.46.0
+        kind: method
+        summary: Throw a `JSURLResponseError` if the response was not one of
+          the success status codes
+        description: |
+          Specifically, throw a `JSURLResponseError` if the `statusClass` is not
+          `success`(StatusClass.success)
+
+          Can make error handling simpler by moving any failed requests to a
+          `catch`() block:
+
+          ````
+          #import Foundation
+
+          try{
+            let url = JSURL.initWithString("https://mysite.com/path/to/resource")
+            let task = JSURLSession.shared.dataTaskWithURL(url);
+            let response = await task.resume();
+            response.assertSuccess();
+            // show success
+          }catch (e){
+            if (e instanceof JSURLResponseError){
+              if (e.response.statusCode === JSURLResponse.StatusCode.notFound){
+                // show not found error
+              }else if (e.response.statusCode === JSURLResponse.StatusCode.serviceUnavailable){
+                // show service unavailable
+              }else{
+                // show generic error
+              }
+            }else{
+              // if the error is not a JSURLResponseError,
+              // it could be a network error
+            }
+          }
+          ````
+  - name: Headers
     members:
-      -
-        name: headerMap
+      - name: headerMap
         type: JSMIMEHeaderMap
         summary: An object to read header values
         description: |
           A header map object can easily access headers
           based on a name.
-      -
-        name: headers
+      - name: headers
         type: JSMIMEHeader[]
         summary: An ordered list of headers
-  -
-    name: Response Data
+  - name: Response Data
     members:
-      -
-        name: contentType
+      - name: contentType
         type: JSMediaType
         nullable: true
         summary: The content type of the response data
-      -
-        name: contentLength
+      - name: contentLength
         introduced: 2021.10.1
         type: Number
         nullable: true
         summary: The content length of the response data
-      -
-        name: data
+      - name: data
         type: JSData
         nullable: true
         summary: The raw byte array response data
-      -
-        name: object
+      - name: object
         type: object
         nullable: true
         summary: An object created by parsing the `data` as JSON
@@ -276,3 +242,50 @@ topics:
           1. Have a `contentType` set to `"application/json"`
           2. Have a charset of `"utf-8"`
           3. Be valid JSON
+  - name: Errors
+    members:
+      - name: JSURLResponseError
+        introduced: 2021.46.0
+        kind: class
+        inherits: Error
+        summary: An error that contains a non-2xx response
+        description: |
+          `JSURLResponseError`s are thrown by `assertSuccess()` and cannot be
+          created directly.
+
+          Inspect the `response` property for the `JSURLResponse` that threw the
+          error.
+        topics:
+          - name: Response Information
+            members:
+              - name: response
+                type: JSURLResponse
+                summary: The response that threw this error
+                description: |
+                  You'll typically use the response to show various error
+                  messages depending on the response's `statusCode`.
+
+                  ````
+                  #import Foundation
+
+                  try{
+                    let url = JSURL.initWithString("https://mysite.com/path/to/resource")
+                    let task = JSURLSession.shared.dataTaskWithURL(url);
+                    let response = await task.resume();
+                    response.assertSuccess();
+                    // show success
+                  }catch (e){
+                    if (e instanceof JSURLResponseError){
+                      if (e.response.statusCode === JSURLResponse.StatusCode.notFound){
+                        // show not found error
+                      }else if (e.response.statusCode === JSURLResponse.StatusCode.serviceUnavailable){
+                        // show service unavailable
+                      }else{
+                        // show generic error
+                      }
+                    }else{
+                      // if the error is not a JSURLResponseError,
+                      // it could be a network error
+                    }
+                  }
+                  ````
