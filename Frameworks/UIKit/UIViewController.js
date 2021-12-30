@@ -193,6 +193,9 @@ JSClass("UIViewController", UIResponder, {
     },
 
     replaceChildViewController: function(previousChildViewController, childViewController, animator){
+        if (previousChildViewController === childViewController){
+            return;
+        }
         if (this.isViewLoaded && this.isViewVisible){
             var animated = animator !== undefined && animator !== null;
             if (previousChildViewController !== null){
