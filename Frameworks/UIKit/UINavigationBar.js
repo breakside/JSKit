@@ -490,9 +490,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         props.backBarItemView.alpha = 0;
         var backTitleFrame = props.backBarItemView.titleLabel.convertRectToView(props.backBarItemView.titleLabel.bounds, props.backBarItemView.superview);
         if (removingCustomView){
-            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(removingCustomView.frame.origin.x - backTitleFrame.origin.x, 0).scaledBy(backToTitleScale);
+            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingCustomView.frame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
         }else{
-            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(removingTitleLabel.frame.origin.x - backTitleFrame.origin.x, 0).scaledBy(backToTitleScale);
+            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingTitleLabel.frame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
         }
         animator.addAnimations(function(){
             var i, l;
