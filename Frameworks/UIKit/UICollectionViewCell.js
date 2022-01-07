@@ -1,0 +1,171 @@
+// Copyright 2022 Breakside Inc.
+//
+// Licensed under the Breakside Public License, Version 1.0 (the "License");
+// you may not use this file except in compliance with the License.
+// If a copy of the License was not distributed with this file, you may
+// obtain a copy at
+//
+//     http://breakside.io/licenses/LICENSE-1.0.txt
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// #import "UIView.js"
+// #import "UILabel.js"
+// #import "UIImageView.js"
+'use strict';
+
+JSClass("UICollectionViewCell", UIView, {
+
+    collectionView: null,
+    indexPath: null,
+    reuseIdentifier: null,
+    contentView: JSReadOnlyProperty('_contentView', null),
+    stylerProperties: null,
+    _styler: null,
+
+    initWithReuseIdentifier: function(identifier, styler){
+        this.init();
+        this.reuseIdentifier = identifier;
+        this._styler = styler;
+    },
+
+    initWithFrame: function(frame){
+        UICollectionViewCell.$super.initWithFrame.call(this, frame);
+        this._commonCellInit();
+    },
+
+    initWithSpec: function(spec){
+        UICollectionViewCell.$super.initWithSpec.call(this, spec);
+        this._commonCellInit();
+    },
+
+    _commonCellInit: function(){
+        this.stylerProperties = {};
+        this._contentView = UIView.init();
+        this.accessbilityColumnIndex = 0;
+        this.addSubview(this._contentView);
+    },
+
+    layoutSubviews: function(){
+        UICollectionViewCell.$super.layoutSubviews.call(this);
+        var styler = (this._styler || (this.collectionView && this.collectionView._styler));
+        if (!styler){
+            return;
+        }
+        styler.layoutCell(this);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - State
+
+    state: JSReadOnlyProperty('_state', null),
+    active: JSDynamicProperty(null, null, 'isActive'),
+    selected: JSDynamicProperty(null, null, 'isSelected'),
+    contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
+
+    _updateState: function(newState){
+        if (newState != this._state){
+            this._state = newState;
+            if (this._didChangeState){
+                this._didChangeState();
+            }else{
+                this.update();
+            }
+        }
+    },
+
+    update: function(){
+        var styler = (this._styler || (this.collectionView && this.collectionView._styler));
+        if (!styler){
+            return;
+        }
+        styler.updateCell(this, this.indexPath);
+    },
+
+    _toggleState: function(flag, on){
+        var newState = this._state;
+        if (on){
+            newState |= flag;
+        }else{
+            newState &= ~flag;
+        }
+        this._updateState(newState);
+    },
+
+    toggleStates: function(flag, on){
+        this._toggleState(flag, on);
+    },
+
+    isActive: function(){
+        return (this._state & UICollectionViewCell.State.active) === UICollectionViewCell.State.active;
+    },
+
+    setActive: function(isActive){
+        this._toggleState(UICollectionViewCell.State.active, isActive);
+    },
+
+    isSelected: function(){
+        return (this._state & UICollectionViewCell.State.selected) === UICollectionViewCell.State.selected;
+    },
+
+    setSelected: function(isSelected){
+        this._toggleState(UICollectionViewCell.State.selected, isSelected);
+    },
+
+    isContextSelected: function(){
+        return (this._state & UICollectionViewCell.State.contextSelected) === UICollectionViewCell.State.contextSelected;
+    },
+
+    setContextSelected: function(isContextSelected){
+        this._toggleState(UICollectionViewCell.State.contextSelected, isContextSelected);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Accessibility
+
+    isAccessibilityElement: true,
+    accessibilityRole: UIAccessibility.Role.cell,
+
+    getAccessibilityLabel: function(){
+        var label = UICollectionViewCell.$super.getAccessibilityLabel.call(this);
+        if (label !== null){
+            return label;
+        }
+        var stack = [this.contentView];
+        var view;
+        var i, l;
+        while (stack.length > 0){
+            view = stack.pop();
+            if (view.isKindOfClass(UILabel)){
+                return view.text;
+            }
+            for (i = 0, l = view.subviews.length; i < l; ++i){
+                stack.push(view.subviews[i]);
+            }
+        }
+        return null;
+    },
+
+    getAccessibilityElements: function(){
+        return this._contentView.accessibilityElements;
+    },
+
+    accessibilitySelected: JSReadOnlyProperty(),
+
+    getAccessibilitySelected: function(){
+        return this.selected;
+    },
+
+});
+
+UICollectionViewCell.State = {
+    normal:   0,
+    active:   1 << 1,
+    selected: 1 << 2,
+    contextSelected: 1 << 3,
+    firstUserState: 1 << 4
+};
