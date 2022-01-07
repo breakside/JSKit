@@ -39,7 +39,7 @@ JSProtocol("UICollectionViewDelegate", JSProtocol, {
 JSProtocol("UICollectionViewDataSource", JSProtocol, {
 
     numberOfSectionsInCollectionView: function(collectionView){},
-    numberOfRowsInCollectionViewSection: function(collectionView, sectionIndex){},
+    numberOfCellsInCollectionViewSection: function(collectionView, sectionIndex){},
 
     cellForCollectionViewAtIndexPath: function(collectionView, indexPath){},
     supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, identifier){}
@@ -71,11 +71,16 @@ JSClass("UICollectionView", UIScrollView, {
     // -------------------------------------------------------------------------
     // MARK: - Layout
 
-    collectionViewLayout: JSDynamicProperty("collectionViewLayout", null),
+    collectionViewLayout: JSDynamicProperty("_collectionViewLayout", null),
+
+    layoutSubviews: function(){
+        this.collectionViewLayout.prepare();
+        this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+    }
 
 });
 
-UICollectionView.ElemementCategory = {
+UICollectionView.ElementCategory = {
     cell: 1,
     supplimentary: 2
 };

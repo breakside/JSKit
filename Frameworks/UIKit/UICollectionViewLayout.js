@@ -49,7 +49,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     initCellAtIndexPath: function(indexPath, frame){
         this.elementCategory = UICollectionView.ElementCategory.cell;
         this.indexPath = JSIndexPath(indexPath);
-        this._frame = JSRect(frame);
+        this.frame = JSRect(frame);
     },
 
     initSupplimentaryAtIndexPath: function(indexPath, identifier, frame){

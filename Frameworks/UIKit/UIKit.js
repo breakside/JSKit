@@ -97,6 +97,13 @@
 // #import "UIOutlineView.js"
 // #import "UIOutlineViewCell.js"
 
+// Collections
+// #import "UICollectionView.js"
+// #import "UICollectionViewCell.js"
+// #import "UICollectionReusableView.js"
+// #import "UICollectionViewLayout.js"
+// #import "UICollectionViewGridLayout.js"
+
 // Specialized View Controllers
 // #import "UISplitViewController.js"
 // #import "UITabViewController.js"

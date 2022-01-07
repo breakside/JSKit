@@ -21,8 +21,8 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     init: function(){
         this._collectionInsets = JSInsets.Zero;
-        this.sectionInsets = JSInsets.Zero;
-        this.cellSize = JSSize(50, 50);
+        this._sectionInsets = JSInsets.Zero;
+        this._cellSize = JSSize(50, 50);
     },
 
     initWithSpec: function(spec){
@@ -38,10 +38,19 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (spec.containsKey("collectionFooterHeight")){
             this._collectionFooterHeight = spec.valueForKey("collectionFooterHeight", Number);
         }
+        if (spec.containsKey("collectionHeaderSpacing")){
+            this._collectionHeaderSpacing = spec.valueForKey("collectionHeaderSpacing", Number);
+        }
+        if (spec.containsKey("collectionFooterSpacing")){
+            this._collectionFooterSpacing = spec.valueForKey("collectionFooterSpacing", Number);
+        }
         if (spec.containsKey("sectionInsets")){
             this._sectionInsets = spec.valueForKey("sectionInsets", JSInsets);
         }else{
             this._sectionInsets = JSInsets.Zero;
+        }
+        if (spec.containsKey("showsSectionBackgroundViews")){
+            this._showsSectionBackgroundViews = spec.valueForKey("showsSectionBackgroundViews");
         }
         if (spec.containsKey("sectionSpacing")){
             this._sectionSpacing = spec.valueForKey("sectionSpacing", Number);
@@ -52,6 +61,12 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (spec.containsKey("sectionFooterHeight")){
             this._sectionFooterHeight = spec.valueForKey("sectionFooterHeight", Number);
         }
+        if (spec.containsKey("sectionHeaderSpacing")){
+            this._sectionHeaderSpacing = spec.valueForKey("sectionHeaderSpacing", Number);
+        }
+        if (spec.containsKey("sectionFooterSpacing")){
+            this._sectionFooterSpacing = spec.valueForKey("sectionFooterSpacing", Number);
+        }
         if (spec.containsKey("columnSpacing")){
             this._columnSpacing = spec.valueForKey("columnSpacing", Number);
         }
@@ -61,18 +76,22 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (spec.containsKey("cellSize")){
             this._cellSize = spec.valueForKey("cellSize", JSSize);
         }else{
-            this._cellSize = JSSize.Zero;
+            this._cellSize = JSSize(50, 50);
         }
     },
 
     collectionInsets: JSDynamicProperty("_collectionInsets", null),
     collectionHeaderHeight: JSDynamicProperty("_collectionHeaderHeight", 0),
     collectionFooterHeight: JSDynamicProperty("_collectionFooterHeight", 0),
+    collectionHeaderSpacing: JSDynamicProperty("_collectionHeaderSpacing", 0),
+    collectionFooterSpacing: JSDynamicProperty("_collectionFooterSpacing", 0),
     showsSectionBackgroundViews: JSDynamicProperty("_showsSectionBackgroundViews", false),
     sectionInsets: JSDynamicProperty("_sectionInsets", null),
     sectionSpacing: JSDynamicProperty("_sectionSpacing", 0),
     sectionHeaderHeight: JSDynamicProperty("_sectionHeaderHeight", 0),
     sectionFooterHeight: JSDynamicProperty("_sectionFooterHeight", 0),
+    sectionHeaderSpacing: JSDynamicProperty("_sectionHeaderSpacing", 0),
+    sectionFooterSpacing: JSDynamicProperty("_sectionFooterSpacing", 0),
     columnSpacing: JSDynamicProperty("_columnSpacing", 1),
     rowSpacing: JSDynamicProperty("_rowSpacing", 1),
     cellSize: JSDynamicProperty("_cellSize", null),
@@ -89,6 +108,16 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     setCollectionFooterHeight: function(collectionFooterHeight){
         this._collectionFooterHeight = collectionFooterHeight;
+        this.invalidateLayout();
+    },
+
+    setCollectionHeaderSpacing: function(collectionHeaderSpacing){
+        this._collectionHeaderSpacing = collectionHeaderSpacing;
+        this.invalidateLayout();
+    },
+
+    setCollectionFooterSpacing: function(collectionFooterSpacing){
+        this._collectionFooterSpacing = collectionFooterSpacing;
         this.invalidateLayout();
     },
 
@@ -114,6 +143,16 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     setSectionFooterHeight: function(sectionFooterHeight){
         this._sectionFooterHeight = sectionFooterHeight;
+        this.invalidateLayout();
+    },
+
+    setSectionHeaderSpacing: function(sectionHeaderSpacing){
+        this._sectionHeaderSpacing = sectionHeaderSpacing;
+        this.invalidateLayout();
+    },
+
+    setSectionFooterSpacing: function(sectionFooterSpacing){
+        this._sectionFooterSpacing = sectionFooterSpacing;
         this.invalidateLayout();
     },
 
@@ -152,10 +191,18 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (this.collectionView === null){
             return;
         }
+        var origin = JSPoint(this._collectionInsets.left, this._collectionInsets.top);
         this._cachedLayout.contentSize.width = this.collectionView.bounds.size.width;
-        this._cachedLayout.contentSize.height += this._collectionInsets.height + this._collectionHeaderHeight + this._collectionFooterHeight;
+        this._cachedLayout.contentSize.height += this._collectionInsets.height;
+        if (this._collectionHeaderHeight > 0){
+            this._cachedLayout.contentSize.height += this._collectionHeaderHeight + this._collectionHeaderSpacing;
+            origin.y += this._collectionHeaderHeight + this._collectionHeaderSpacing;
+        }
+        if (this._collectionFooterHeight > 0){
+            this._cachedLayout.contentSize.height += this._collectionFooterHeight + this._collectionFooterSpacing;
+        }
         var availableWidth = this._cachedLayout.contentSize.width - this._collectionInsets.width - this._sectionInsets.width;
-        var columnCount = Math.floor(availableWidth / this._cellSize.width);
+        var columnCount = Math.floor((availableWidth + this._columnSpacing) / (this._cellSize.width + this._columnSpacing));
         var columnIndex;
         var x = this._collectionInsets.left + this._sectionInsets.left;
         for (columnIndex = 0; columnIndex < columnCount; ++columnIndex){
@@ -166,14 +213,21 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         var cellCount;
         var sectionIndex;
         var sectionLayout;
-        var origin = JSPoint(this._collectionInsets.top, this._collectionInsets.left);
-        var size = JSSize(availableWidth, 0);
+        var size = JSSize(this._cachedLayout.contentSize.width - this._collectionInsets.width, 0);
         var rowCount;
         var rowOffset = 0;
+        var sectionHeaderAndSpacingHeight = 0;
+        var sectionFooterAndSpacingHeight = 0;
+        if (this._sectionHeaderHeight > 0){
+            sectionHeaderAndSpacingHeight = this._sectionHeaderHeight + this._sectionHeaderSpacing;
+        }
+        if (this._sectionFooterHeight > 0){
+            sectionFooterAndSpacingHeight= this._sectionFooterHeight + this._sectionFooterSpacing;
+        }
         for (sectionIndex = 0; sectionIndex < sectionCount; ++sectionIndex){
-            cellCount = this.collectionView.dataSource.numberOfRowsInCollectionViewSection(this.collectionView, sectionIndex);
+            cellCount = this.collectionView.dataSource.numberOfCellsInCollectionViewSection(this.collectionView, sectionIndex);
             rowCount = Math.ceil(cellCount / columnCount);
-            size.height = this._sectionInsets.height + this._sectionHeaderHeight + this._sectionFooterHeight;
+            size.height = this._sectionInsets.height + sectionHeaderAndSpacingHeight + sectionFooterAndSpacingHeight;
             size.height += rowCount * this._cellSize.height + (rowCount - 1) * this._rowSpacing;
             this._cachedLayout.sections.push({
                 rowOffset: rowOffset,
@@ -194,9 +248,9 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                 ),
                 cellsFrame: JSRect(
                     origin.x + this._sectionInsets.left,
-                    origin.y + this._sectionInsets.top + this._sectionHeaderHeight,
+                    origin.y + this._sectionInsets.top + sectionHeaderAndSpacingHeight,
                     availableWidth,
-                    size.height - this._sectionInsets.height - this._sectionHeaderHeight - this._sectionFooterHeight
+                    size.height - this._sectionInsets.height - sectionHeaderAndSpacingHeight - sectionFooterAndSpacingHeight
                 )
             });
             this._cachedLayout.contentSize.height += size.height;
@@ -220,7 +274,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         );
     },
 
-    getContentViewCollectionSize: function(){
+    getCollectionViewContentSize: function(){
         return this._cachedLayout.contentSize;
     },
 
@@ -245,16 +299,17 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             sectionLayout = this._cachedLayout.sections[sectionIndex];
             if (sectionLayout.frame.size.height > 0 && rect.intersectsRect(sectionLayout.frame)){
                 if (this._showsSectionBackgroundViews){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath(sectionIndex), UICollectionViewGridLayout.SupplimentaryIdentifier.background));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.background));
                 }
                 if (sectionLayout.headerFrame.size.height > 0 && rect.intersectsRect(sectionLayout.headerFrame)){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath(sectionIndex), UICollectionViewGridLayout.SupplimentaryIdentifier.header));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.header));
                 }
                 if (sectionLayout.cellsFrame.size.height > 0 && rect.intersectsRect(sectionLayout.cellsFrame)){
                     indexPath = JSIndexPath(sectionIndex, 0);
                     y = sectionLayout.cellsFrame.origin.y;
-                    rowIndex = Math.max(0, Math.floor(y0 - y));
+                    rowIndex = Math.max(0, Math.floor((y0 - y) / rowHeight));
                     y += rowIndex * rowHeight;
+                    indexPath.row = rowIndex * columnCount;
                     for (; rowIndex < sectionLayout.rowCount && y < y1; ++rowIndex, y += rowHeight){
                         for (columnIndex = 0; columnIndex < columnCount && indexPath.row < sectionLayout.cellCount; ++columnIndex, ++indexPath.row){
                             attributes.push(UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, JSRect(
@@ -267,7 +322,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                     }
                 }
                 if (sectionLayout.footerFrame.size.height > 0 && rect.intersectsRect(sectionLayout.footerFrame)){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath(sectionIndex), UICollectionViewGridLayout.SupplimentaryIdentifier.footer));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.footer));
                 }
             }
         }
