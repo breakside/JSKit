@@ -126,7 +126,7 @@ JSClass("UIListView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
+                    this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
                 }
             }
         }

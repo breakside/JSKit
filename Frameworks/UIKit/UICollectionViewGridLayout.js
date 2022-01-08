@@ -281,7 +281,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
     layoutAttributesForElementsInRect: function(rect){
         var attributes = [];
         if (this._cachedLayout.headerFrame.size.height > 0 && rect.intersectsRect(this._cachedLayout.headerFrame)){
-            attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryIdentifier.header));
+            attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryKind.header));
         }
         var columnCount = this._cachedLayout.columns.length;
         var columnIndex;
@@ -299,10 +299,10 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             sectionLayout = this._cachedLayout.sections[sectionIndex];
             if (sectionLayout.frame.size.height > 0 && rect.intersectsRect(sectionLayout.frame)){
                 if (this._showsSectionBackgroundViews){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.background));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.background));
                 }
                 if (sectionLayout.headerFrame.size.height > 0 && rect.intersectsRect(sectionLayout.headerFrame)){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.header));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.header));
                 }
                 if (sectionLayout.cellsFrame.size.height > 0 && rect.intersectsRect(sectionLayout.cellsFrame)){
                     indexPath = JSIndexPath(sectionIndex, 0);
@@ -322,12 +322,12 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                     }
                 }
                 if (sectionLayout.footerFrame.size.height > 0 && rect.intersectsRect(sectionLayout.footerFrame)){
-                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryIdentifier.footer));
+                    attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.footer));
                 }
             }
         }
         if (this._cachedLayout.footerFrame.size.height > 0 && rect.intersectsRect(this._cachedLayout.footerFrame)){
-            attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryIdentifier.footer));
+            attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryKind.footer));
         }
         return attributes;
     },
@@ -348,26 +348,26 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         return UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, frame);
     },
 
-    layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath, identifier){
+    layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath, kind){
         if (indexPath.length === 0){
-            if (identifier === UICollectionViewGridLayout.SupplimentaryIdentifier.header){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, identifier, this._cachedLayout.headerFrame);
+            if (kind === UICollectionViewGridLayout.SupplimentaryKind.header){
+                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, this._cachedLayout.headerFrame);
             }
-            if (identifier === UICollectionViewGridLayout.SupplimentaryIdentifier.footer){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, identifier, this._cachedLayout.footerFrame);
+            if (kind === UICollectionViewGridLayout.SupplimentaryKind.footer){
+                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, this._cachedLayout.footerFrame);
             }
             return null;
         }
         if (indexPath.length === 1){
             var sectionLayout = this._cachedLayout.sections[indexPath.section];
-            if (identifier === UICollectionViewGridLayout.SupplimentaryIdentifier.background){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, identifier, sectionLayout.frame);
+            if (kind === UICollectionViewGridLayout.SupplimentaryKind.background){
+                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.frame);
             }
-            if (identifier === UICollectionViewGridLayout.SupplimentaryIdentifier.header){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, identifier, sectionLayout.headerFrame);
+            if (kind === UICollectionViewGridLayout.SupplimentaryKind.header){
+                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.headerFrame);
             }
-            if (identifier === UICollectionViewGridLayout.SupplimentaryIdentifier.footer){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, identifier, sectionLayout.footerFrame);
+            if (kind === UICollectionViewGridLayout.SupplimentaryKind.footer){
+                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.footerFrame);
             }
             return null;
         }
@@ -376,7 +376,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
 });
 
-UICollectionViewGridLayout.SupplimentaryIdentifier = {
+UICollectionViewGridLayout.SupplimentaryKind = {
     background: "background",
     header: "header",
     footer: "footer"

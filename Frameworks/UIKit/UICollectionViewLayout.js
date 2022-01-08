@@ -52,15 +52,15 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.frame = JSRect(frame);
     },
 
-    initSupplimentaryAtIndexPath: function(indexPath, identifier, frame){
+    initSupplimentaryAtIndexPath: function(indexPath, kind, frame){
         this.elementCategory = UICollectionView.ElementCategory.supplimentary;
-        this.identifier = identifier;
+        this.kind = kind;
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
     },
 
     elementCategory: 0,
-    identifier: null,
+    kind: null,
     indexPath: null,
     frame: null,
 
