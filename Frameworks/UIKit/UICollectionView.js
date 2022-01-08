@@ -16,6 +16,7 @@
 // #import Foundation
 // #import "UIScrollView.js"
 // #import "UIPlatform.js"
+// #import "UICollectionViewLayout.js"
 "use strict";
 
 JSProtocol("UICollectionViewDelegate", JSProtocol, {
@@ -62,6 +63,9 @@ JSClass("UICollectionView", UIScrollView, {
 
     initWithFrame: function(frame){
         UICollectionView.$super.initWithFrame.call(this, frame);
+        if (this._collectionViewLayout === null){
+            throw new Error("Use initWithLayout() to create a UICollectionView");
+        }
         this._commonListInit();
     },
 
@@ -72,6 +76,8 @@ JSClass("UICollectionView", UIScrollView, {
         }
         if (spec.containsKey('layout')){
             this.collectionViewLayout = spec.valueForKey("layout", UICollectionView.Styler);
+        }else{
+            throw new Error("layout is a required property in a UICollectionView spec file");
         }
         this._commonListInit();
         if (spec.containsKey('delegate')){
@@ -109,7 +115,7 @@ JSClass("UICollectionView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerViewClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerViewForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler'));
+                    this.registerViewClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler'));
                 }
             }
         }
@@ -120,7 +126,7 @@ JSClass("UICollectionView", UIScrollView, {
             this.allowsEmptySelection = spec.valueForKey("allowsEmptySelection");
         }
         if (spec.containsKey("showsFocusRing")){
-            this._showsFocusRing = spec.valueForKey("showsFocusRing");
+            this.showsFocusRing = spec.valueForKey("showsFocusRing");
         }
     },
 
@@ -135,7 +141,8 @@ JSClass("UICollectionView", UIScrollView, {
         this._selectedIndexPaths = [];
         this._contextSelectedIndexPaths = [];
         this.contentView.addSubview(this._elementsContainerView);
-        this.accessibilityColumnCount = 1;
+        // TODO:
+        // this.accessibilityColumnCount = 1;
         if (this._styler === null){
             this._styler = this.$class.Styler.default;
         }
@@ -199,11 +206,25 @@ JSClass("UICollectionView", UIScrollView, {
         }
     },
 
+    _removeQueuedCells: function(){
+        var queue;
+        var cell;
+        for (var id in this._reusableCellsByIdentifier){
+            queue = this._reusableCellsByIdentifier[id];
+            for (var i = 0, l = queue.length; i < l; ++i){
+                cell = queue[i];
+                if (cell.superview !== null){
+                    cell.removeFromSuperview();
+                }
+            }
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Supplimentary View Reuse
 
-    registerViewClassForReuseIdentifier: function(viewClass, identifier){
-        this._viewClassesByIdentifier[identifier] = viewClass;
+    registerViewClassForReuseIdentifier: function(viewClass, identifier, styler){
+        this._viewClassesByIdentifier[identifier] = {viewClass: viewClass, styler: styler || null};
     },
 
     dequeueReusableViewWithIdentifier: function(identifier, indexPath){
@@ -236,11 +257,24 @@ JSClass("UICollectionView", UIScrollView, {
         queue.push(view);
     },
 
+    _removeQueuedViews: function(){
+        var queue;
+        var view;
+        for (var id in this._reusableViewsByIdentifier){
+            queue = this._reusableViewsByIdentifier[id];
+            for (var i = 0, l = queue.length; i < l; ++i){
+                view = queue[i];
+                if (view.superview !== null){
+                    view.removeFromSuperview();
+                }
+            }
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Reloading Collection Data
 
     _needsReload: false,
-    _hasLoadedOnce: false,
 
     reloadData: function(){
         if (!this.dataSource){
@@ -334,6 +368,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     insertCellsAtIndexPaths: function(indexPaths, animation){
         // TODO:
+        this.reloadData();
     },
 
     deleteCellAtIndexPath: function(indexPath, animation){
@@ -342,6 +377,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     deleteCellsAtIndexPaths: function(indexPaths, animation){
         // TODO:
+        this.reloadData();
     },
 
     insertSection: function(section, animation){
@@ -350,6 +386,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     insertSections: function(sections, animation){
         // TODO:
+        this.reloadData();
     },
 
     deleteSection: function(section, animation){
@@ -358,6 +395,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     deleteSections: function(sections, animation){
         // TODO:
+        this.reloadData();
     },
 
     // -------------------------------------------------------------------------
@@ -378,8 +416,19 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     layoutSubviews: function(){
+        UICollectionView.$super.layoutSubviews.call(this);
+        var i, l;
+        if (this._needsReload){
+            for (i = 0, l = this._visibleElements.length; i < l; ++i){
+                this._enqueueVisibleElement(this._visibleElements[i]);
+            }
+            this._visibleElements = [];
+            this._needsReload = false;
+        }
         this.collectionViewLayout.prepare();
         this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+        this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
+        this._updateVisibleElements();
     },
 
     _didScroll: function(){
@@ -390,7 +439,89 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     _updateVisibleElements: function(){
-        // TODO:
+        var i, l;
+        var visibleRect = JSRect(this.contentView.bounds);
+        var visibleElementMap = {};
+
+        // 1. Enqueue any elements that are no longer visible
+        var element;
+        for (i = this._visibleElements.length - 1; i >= 0; --i){
+            element = this._visibleElements[i];
+            if (!visibleRect.intersectsRect(element.attributes.frame)){
+                this._enqueueVisibleElement(element);
+                this._visibleElements.splice(i, 1);
+            }else{
+                visibleElementMap[element.identifier] = element;
+            }
+        }
+
+        // 2. Add any elements that are newly visible
+        var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
+        var elementIndex = 0;
+        for (i = 0, l = attributes.length; i < l; ++i){
+            element = VisibleElement(attributes);
+            if (!(element.identifier in visibleElementMap)){
+                this._createViewForVisibleElement(element);
+                this._visibleElements.splice(elementIndex, 0, element);
+                if (elementIndex <= this._visibleElements.length - 1){
+                    this._elementsContainerView.insertSubviewBelowSibling(element.view, this._visibleElements[elementIndex + 1].view);
+                }else{
+                    this._elementsContainerView.addSubview(element.view);
+                }
+            }
+            ++elementIndex;
+        }
+
+        // 3. Remove views that were not reused
+        this._removeQueuedCells();
+        this._removeQueuedViews();
+    },
+
+    _createViewForVisibleElement: function(element){
+        if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell){
+            element.view = this._createCellWithAttributes(element.attributes);
+        }else if (element.attributes.elementCategory === UICollectionView.ElementCategory.supplimentary){
+            element.view = this._createSupplimentaryViewWithAttributes(element.attributes);
+        }
+    },
+
+    _createCellWithAttributes: function(attributes){
+        if (!this.dataSource.cellForCollectionViewAtIndexPath){
+            throw new Error("%s must implement cellForCollectionViewAtIndexPath()".sprintf(this.delegate.$class.className));
+        }
+        var cell = this.dataSource.cellForCollectionViewAtIndexPath(this, JSIndexPath(attributes.indexPath));
+        if (cell === null || cell === undefined){
+            throw new Error("%s.cellForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.delegate.$class.className, attributes.indexPath));
+        }
+        this._adoptCell(cell, attributes);
+        cell.untransformedFrame = attributes.frame;
+        cell.active = false;
+        this._updateCellState(cell);
+        cell.update();
+        cell.setNeedsLayout();
+        return cell;
+    },
+
+    _adoptCell: function(cell, attributes){
+        cell.collectionView = this;
+        cell.indexPath = JSIndexPath(attributes.indexPath);
+        cell.accessibilityRowIndex = attributes.rowIndex;
+        cell.accessibilityColumnIndex = attributes.columnIndex;
+        cell.postAccessibilityElementChangedNotification();
+    },
+
+    _createSupplimentaryViewWithAttributes: function(attributes){
+        if (!this.dataSource.supplimentaryViewForCollectionViewAtIndexPath){
+            throw new Error("%s must implement supplimentaryViewForCollectionViewAtIndexPath()".sprintf(this.delegate.$class.className));
+        }
+        var view = this.dataSource.supplimentaryViewForCollectionViewAtIndexPath(this, JSIndexPath(attributes.indexPath));
+        if (view === null || view === undefined){
+            throw new Error("%s.supplimentaryViewForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.delegate.$class.className, attributes.indexPath));
+        }
+        view.collectionView = this;
+        view.untransformedFrame = attributes.frame;
+        view.setNeedsLayout();
+        return view;
     },
 
     sizeToFitSize: function(maxSize){
@@ -1070,9 +1201,6 @@ JSClass("UICollectionViewStyler", JSObject, {
     layoutCell: function(cell){
     },
 
-    updateReusableView: function(view, section){
-    },
-
 });
 
 
@@ -1087,11 +1215,16 @@ var VisibleElement = function(attributes){
     this.attributes = attributes;
     this.indexPath = JSIndexPath(attributes.indexPath);
     this.state = UICollectionView.VisibleElementState.normal;
+    this.identifier = this.indexPath.toString();
+    if (attributes.kind !== null){
+        this.identifier += "/" + attributes.kind;
+    }
 };
 
 VisibleElement.prototype = Object.create(Function.prototype, {
 
     indexPath: { value: null, writable: true },
+    identifier: { value: null, writable: true },
     rect: { value: null, writable: true, configurable: true },
     kind: { value: null, writable: true },
     view: {

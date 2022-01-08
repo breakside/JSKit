@@ -294,6 +294,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         var y1 = rect.origin.y + rect.size.height;
         var rowHeight = this._cellSize.height + this._rowSpacing;
         var rowIndex;
+        var attrs;
         // FIXME: can do a more efficient search of sections
         for (sectionIndex = 0; sectionIndex < sectionCount; ++sectionIndex){
             sectionLayout = this._cachedLayout.sections[sectionIndex];
@@ -312,12 +313,15 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                     indexPath.row = rowIndex * columnCount;
                     for (; rowIndex < sectionLayout.rowCount && y < y1; ++rowIndex, y += rowHeight){
                         for (columnIndex = 0; columnIndex < columnCount && indexPath.row < sectionLayout.cellCount; ++columnIndex, ++indexPath.row){
-                            attributes.push(UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, JSRect(
+                            attrs = UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, JSRect(
                                 this._cachedLayout.columns[columnIndex].x,
                                 y,
                                 this._cellSize.width,
                                 this._cellSize.height
-                            )));
+                            ));
+                            attrs.rowIndex = sectionLayout.rowOffset + rowIndex;
+                            attrs.columnIndex = columnIndex;
+                            attributes.push(attrs);
                         }
                     }
                 }
@@ -345,7 +349,10 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             origin,
             this._cellSize
         );
-        return UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, frame);
+        var attributes = UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, frame);
+        attributes.rowIndex = sectionLayout.rowOffset + rowIndex;
+        attributes.columnIndex = columnIndex;
+        return attributes;
     },
 
     layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath, kind){

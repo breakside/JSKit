@@ -63,5 +63,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     kind: null,
     indexPath: null,
     frame: null,
+    rowIndex: 0,
+    columnIndex: 0
 
 });
