@@ -339,7 +339,6 @@ JSClass("UIListView", UIScrollView, {
         var lastVisibleItem = this._visibleItems[this._visibleItems.length - 1];
         var searcher = JSBinarySearcher(this._visibleItems, VisibleItem.cellIndexPathCompare);
         var visibleSizeChanged = false;
-        var listView = this;
         var contentSize = JSSize(this.contentSize);
         var contentOffset = JSPoint(this.contentOffset);
 
@@ -391,13 +390,13 @@ JSClass("UIListView", UIScrollView, {
 
         if (animator && visibleSizeChanged){
             animator.addAnimations(function(){
-                listView.contentSize = contentSize;
-                listView.contentOffset = contentOffset;
-                listView._layoutVisibleItems(this._visibleItems, y0);
-            });
+                this.contentSize = contentSize;
+                this.contentOffset = contentOffset;
+                this._layoutVisibleItems(this._visibleItems, y0);
+            }, this);
         }else{
-            listView.contentSize = contentSize;
-            listView.contentOffset = contentOffset;
+            this.contentSize = contentSize;
+            this.contentOffset = contentOffset;
         }
 
     },
