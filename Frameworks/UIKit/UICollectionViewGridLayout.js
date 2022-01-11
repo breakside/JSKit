@@ -272,6 +272,8 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             this._cachedLayout.contentSize.width - this._collectionInsets.width,
             this._collectionFooterHeight
         );
+        this.collectionView.accessibilityRowCount = rowOffset;
+        this.collectionView.accessibilityColumnCount = this._cachedLayout.columns.length;
     },
 
     getCollectionViewContentSize: function(){

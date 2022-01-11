@@ -42,9 +42,8 @@ JSProtocol("UICollectionViewDataSource", JSProtocol, {
 
     numberOfSectionsInCollectionView: function(collectionView){},
     numberOfCellsInCollectionViewSection: function(collectionView, sectionIndex){},
-
     cellForCollectionViewAtIndexPath: function(collectionView, indexPath){},
-    supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, identifier){}
+    supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, kind){}
 
 });
 
@@ -141,8 +140,6 @@ JSClass("UICollectionView", UIScrollView, {
         this._selectedIndexPaths = [];
         this._contextSelectedIndexPaths = [];
         this.contentView.addSubview(this._elementsContainerView);
-        // TODO:
-        // this.accessibilityColumnCount = 1;
         if (this._styler === null){
             this._styler = this.$class.Styler.default;
         }
@@ -275,6 +272,7 @@ JSClass("UICollectionView", UIScrollView, {
     // MARK: - Reloading Collection Data
 
     _needsReload: false,
+    _hasLoadedOnce: false,
 
     reloadData: function(){
         if (!this.dataSource){
@@ -289,17 +287,12 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     reloadCellsAtIndexPaths: function(indexPaths, animator){
-        // TODO:
         if (this._visibleElements.length === 0){
             return;
         }
-        var firstVisibleItem = this._visibleElements[0];
-        var lastVisibleItem = this._visibleElements[this._visibleElements.length - 1];
-        var searcher = JSBinarySearcher(this._visibleElements, VisibleItem.cellIndexPathCompare);
-        var visibleSizeChanged = false;
-        var listView = this;
-        var contentSize = JSSize(this.contentSize);
-        var contentOffset = JSPoint(this.contentOffset);
+        var firstVisibleElement = this._visibleElements[0];
+        var lastVisibleElement = this._visibleElements[this._visibleElements.length - 1];
+        var searcher = JSBinarySearcher(this._visibleElements, VisibleElement.indexPathCompare);
 
         indexPaths = JSCopy(indexPaths);
         indexPaths.sort(function(a, b){
@@ -309,53 +302,30 @@ JSClass("UICollectionView", UIScrollView, {
         var i, l;
         var indexPath;
         var comparison;
-        var itemIndex;
+        var elementIndex;
         var cell;
-        var y;
-        var diff;
-        var height;
-        var item;
-        var y0 = firstVisibleItem.view.position.y - firstVisibleItem.view.anchorPoint.y * firstVisibleItem.view.bounds.size.height;
+        var element;
 
         for (i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
-            comparison = VisibleItem.cellIndexPathCompare(indexPath, lastVisibleItem);
+            comparison = VisibleElement.indexPathCompare(indexPath, lastVisibleElement);
             if (comparison <= 0){
-                comparison = VisibleItem.cellIndexPathCompare(indexPath, firstVisibleItem);
-                if (comparison < 0){
-                    // TODO: change contentSize, contentOffset, and y0 if estimating heights
-                }else{
-                    itemIndex = searcher.indexMatchingValue(indexPath);
-                    if (itemIndex !== null){
-                        item = this._visibleItems[itemIndex];
-                        cell = item.view;
-                        height = cell.bounds.size.height;
-                        y = cell.position.y - cell.anchorPoint.y * height;
+                comparison = VisibleElement.indexPathCompare(indexPath, firstVisibleElement);
+                if (comparison >= 0){
+                    elementIndex = searcher.indexMatchingValue(indexPath);
+                    if (elementIndex !== null){
+                        element = this._visibleElements[elementIndex];
+                        cell = element.view;
                         this._enqueueReusableCell(cell);
-                        cell = this._createCellAtIndexPath(indexPath, JSRect(0, y, cell.bounds.size.width, height));
-                        diff = cell.bounds.size.height - height;
-                        if (cell !== item.view){
-                            this._elementsContainerView.insertSubviewBelowSibling(cell, item.view);
-                            item.view.removeFromSuperview();
-                            item.view = cell;
-                        }
-                        if (diff !== 0){
-                            visibleSizeChanged = true;
+                        cell = this._createCellWithAttributes(element.attributes);
+                        if (cell !== element.view){
+                            this._elementsContainerView.insertSubviewBelowSibling(cell, element.view);
+                            element.view.removeFromSuperview();
+                            element.view = cell;
                         }
                     }
                 }
             }
-        }
-
-        if (animator && visibleSizeChanged){
-            animator.addAnimations(function(){
-                listView.contentSize = contentSize;
-                listView.contentOffset = contentOffset;
-                listView._layoutVisibleItems(this._visibleItems, y0);
-            });
-        }else{
-            listView.contentSize = contentSize;
-            listView.contentOffset = contentOffset;
         }
     },
 
@@ -403,6 +373,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     _visibleElements: null,
     _elementsContainerView: null,
+    _hasPreparedLayout: false,
     collectionViewLayout: JSDynamicProperty("_collectionViewLayout", null),
 
     setCollectionViewLayout: function(collectionViewLayout){
@@ -417,6 +388,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     layoutSubviews: function(){
         UICollectionView.$super.layoutSubviews.call(this);
+        var needsPrepare = this._needsReload || this._hasLoadedOnce;
         var i, l;
         if (this._needsReload){
             for (i = 0, l = this._visibleElements.length; i < l; ++i){
@@ -424,9 +396,13 @@ JSClass("UICollectionView", UIScrollView, {
             }
             this._visibleElements = [];
             this._needsReload = false;
+            this._hasLoadedOnce = true;
         }
-        this.collectionViewLayout.prepare();
-        this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+        if (needsPrepare){
+            this.collectionViewLayout.prepare();
+            this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+            this._hasPreparedLayout = true;
+        }
         this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
         this._updateVisibleElements();
     },
@@ -439,6 +415,9 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     _updateVisibleElements: function(){
+        if (!this._hasPreparedLayout){
+            return;
+        }
         var i, l;
         var visibleRect = JSRect(this.contentView.bounds);
         var visibleElementMap = {};
@@ -459,11 +438,11 @@ JSClass("UICollectionView", UIScrollView, {
         var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
         var elementIndex = 0;
         for (i = 0, l = attributes.length; i < l; ++i){
-            element = VisibleElement(attributes);
+            element = VisibleElement(attributes[i]);
             if (!(element.identifier in visibleElementMap)){
                 this._createViewForVisibleElement(element);
                 this._visibleElements.splice(elementIndex, 0, element);
-                if (elementIndex <= this._visibleElements.length - 1){
+                if (elementIndex < this._visibleElements.length - 1){
                     this._elementsContainerView.insertSubviewBelowSibling(element.view, this._visibleElements[elementIndex + 1].view);
                 }else{
                     this._elementsContainerView.addSubview(element.view);
@@ -487,11 +466,11 @@ JSClass("UICollectionView", UIScrollView, {
 
     _createCellWithAttributes: function(attributes){
         if (!this.dataSource.cellForCollectionViewAtIndexPath){
-            throw new Error("%s must implement cellForCollectionViewAtIndexPath()".sprintf(this.delegate.$class.className));
+            throw new Error("%s must implement cellForCollectionViewAtIndexPath()".sprintf(this.dataSource.$class.className));
         }
         var cell = this.dataSource.cellForCollectionViewAtIndexPath(this, JSIndexPath(attributes.indexPath));
         if (cell === null || cell === undefined){
-            throw new Error("%s.cellForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.delegate.$class.className, attributes.indexPath));
+            throw new Error("%s.cellForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.dataSource.$class.className, attributes.indexPath));
         }
         this._adoptCell(cell, attributes);
         cell.untransformedFrame = attributes.frame;
@@ -512,11 +491,11 @@ JSClass("UICollectionView", UIScrollView, {
 
     _createSupplimentaryViewWithAttributes: function(attributes){
         if (!this.dataSource.supplimentaryViewForCollectionViewAtIndexPath){
-            throw new Error("%s must implement supplimentaryViewForCollectionViewAtIndexPath()".sprintf(this.delegate.$class.className));
+            throw new Error("%s must implement supplimentaryViewForCollectionViewAtIndexPath()".sprintf(this.dataSource.$class.className));
         }
-        var view = this.dataSource.supplimentaryViewForCollectionViewAtIndexPath(this, JSIndexPath(attributes.indexPath));
+        var view = this.dataSource.supplimentaryViewForCollectionViewAtIndexPath(this, JSIndexPath(attributes.indexPath), attributes.kind);
         if (view === null || view === undefined){
-            throw new Error("%s.supplimentaryViewForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.delegate.$class.className, attributes.indexPath));
+            throw new Error("%s.supplimentaryViewForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.dataSource.$class.className, attributes.indexPath));
         }
         view.collectionView = this;
         view.untransformedFrame = attributes.frame;
@@ -1131,8 +1110,6 @@ JSClass("UICollectionView", UIScrollView, {
     isAccessibilityElement: true,
     accessibilityRole: UIAccessibility.Role.grid,
 
-    // TODO: column/row count
-
     getAccessibilityElements: function(){
         var views = [];
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
@@ -1249,3 +1226,7 @@ VisibleElement.prototype = Object.create(Function.prototype, {
     }
 
 });
+
+VisibleElement.indexPathCompare = function VisibleElement_indexPathCompare(indexPath, element){
+    return indexPath.compare(element.indexPath);
+};

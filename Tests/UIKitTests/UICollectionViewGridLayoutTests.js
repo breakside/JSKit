@@ -196,7 +196,23 @@ JSClass("UICollectionViewGridLayoutTests", TKTestSuite, {
 
     testPrepare: function(){
         var layout = UICollectionViewGridLayout.init();
+        layout.collectionInsets = JSInsets(1, 2, 3, 4);
+        layout.collectionHeaderHeight = 12;
+        layout.collectionFooterHeight = 34;
+        layout.collectionHeaderSpacing = 2;
+        layout.collectionFooterSpacing = 5;
+        layout.showsSectionBackgroundViews = true;
+        layout.sectionSpacing = 8;
+        layout.sectionInsets = JSInsets(5, 6, 7, 8);
+        layout.sectionHeaderHeight = 21;
+        layout.sectionFooterHeight = 43;
+        layout.sectionHeaderSpacing = 4;
+        layout.sectionFooterSpacing = 10;
+        layout.columnSpacing = 3;
+        layout.rowSpacing = 9;
+        layout.cellSize = JSSize(45, 67);
         var collectionView = UICollectionView.initWithLayout(layout);
+        collectionView.bounds = JSRect(0, 0, 313, 100);
         collectionView.dataSource = {
             numberOfSectionsInCollectionView: function(collectionView){
                 return 2;
@@ -206,6 +222,8 @@ JSClass("UICollectionViewGridLayoutTests", TKTestSuite, {
             }
         };
         layout.prepare();
+        TKAssertExactEquals(collectionView.accessibilityRowCount, 6);
+        TKAssertExactEquals(collectionView.accessibilityColumnCount, 6);
     },
 
     testCollectionViewContentSize: function(){
