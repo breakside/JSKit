@@ -166,7 +166,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         this.invalidateLayout();
     },
 
-    setItemSize: function(cellSize){
+    setCellSize: function(cellSize){
         this._cellSize = JSSize(cellSize);
         this.invalidateLayout();
     },
@@ -202,7 +202,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             this._cachedLayout.contentSize.height += this._collectionFooterHeight + this._collectionFooterSpacing;
         }
         var availableWidth = this._cachedLayout.contentSize.width - this._collectionInsets.width - this._sectionInsets.width;
-        var columnCount = Math.floor((availableWidth + this._columnSpacing) / (this._cellSize.width + this._columnSpacing));
+        var columnCount = Math.max(1, Math.floor((availableWidth + this._columnSpacing) / (this._cellSize.width + this._columnSpacing)));
         var columnIndex;
         var x = this._collectionInsets.left + this._sectionInsets.left;
         for (columnIndex = 0; columnIndex < columnCount; ++columnIndex){

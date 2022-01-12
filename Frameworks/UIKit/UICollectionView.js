@@ -1183,6 +1183,10 @@ JSClass("UICollectionViewStyler", JSObject, {
 
 JSClass("UICollectionViewDefaultStyler", UICollectionViewStyler, {
 
+    layoutCell: function(cell){
+        cell.contentView.untransformedFrame = cell.bounds;
+    }
+
 });
 
 var VisibleElement = function(attributes){
