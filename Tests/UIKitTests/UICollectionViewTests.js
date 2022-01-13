@@ -628,6 +628,38 @@ JSClass("UICollectionViewTests", TKTestSuite, {
         TKAssertExactEquals(calls.cellForCollectionViewAtIndexPath[7].indexPath.section, 0);
         TKAssertExactEquals(calls.cellForCollectionViewAtIndexPath[7].indexPath.row, 2);
         TKAssertExactEquals(calls.CustomCellInit.length, 6);
+    },
+
+    testLayoutChanges: function(){
+
+        var layout = UICollectionViewGridLayout.init();
+        layout.columnSpacing = 0;
+        layout.rowSpacing = 0;
+        layout.cellSize = JSSize(50, 50);
+        var collectionView = UICollectionView.initWithLayout(layout);
+        collectionView.bounds = JSRect(0, 0, 100, 100);
+        collectionView.registerCellClassForReuseIdentifier(UICollectionViewTestsCell, "testcell");
+        collectionView.dataSource = {
+            numberOfSectionsInCollectionView: function(collectionView){
+                return 1;
+            },
+
+            numberOfCellsInCollectionViewSection: function(collectionView, sectionIndex){
+                return 4;
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+                var cell = collectionView.dequeueReusableCellWithIdentifier("testcell", indexPath);
+                return cell;
+            }
+        };
+        this.window.contentView.addSubview(collectionView);
+        collectionView.reloadData();
+        this.app.updateDisplay();
+        TKAssertExactEquals(collectionView.visibleCells.length, 4);
+        layout.cellSize = JSSize(100, 100);
+        this.app.updateDisplay();
+        TKAssertExactEquals(collectionView.visibleCells.length, 1);
     }
 
 });

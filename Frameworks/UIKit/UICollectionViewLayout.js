@@ -50,6 +50,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.elementCategory = UICollectionView.ElementCategory.cell;
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
+        this.elementIdentifier = indexPath.toString();
     },
 
     initSupplimentaryAtIndexPath: function(indexPath, kind, frame){
@@ -57,6 +58,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.kind = kind;
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
+        this.elementIdentifier = "%s/%s".sprintf(indexPath.toString(), kind);
     },
 
     elementCategory: 0,
@@ -64,6 +66,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     indexPath: null,
     frame: null,
     rowIndex: 0,
-    columnIndex: 0
+    columnIndex: 0,
+    elementIdentifier: null,
 
 });

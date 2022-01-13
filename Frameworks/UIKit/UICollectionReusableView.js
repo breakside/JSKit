@@ -76,4 +76,8 @@ JSClass("UICollectionReusableView", UIView, {
         return this._contentView.accessibilityElements;
     },
 
+    layoutSubviews: function(){
+        this.contentView.untransformedFrame = this.bounds;
+    }
+
 });

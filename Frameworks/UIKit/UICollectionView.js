@@ -272,7 +272,6 @@ JSClass("UICollectionView", UIScrollView, {
     // MARK: - Reloading Collection Data
 
     _needsReload: false,
-    _hasLoadedOnce: false,
 
     reloadData: function(){
         if (!this.dataSource){
@@ -388,7 +387,7 @@ JSClass("UICollectionView", UIScrollView, {
 
     layoutSubviews: function(){
         UICollectionView.$super.layoutSubviews.call(this);
-        var needsPrepare = this._needsReload || this._hasLoadedOnce;
+        var needsPrepare = this._needsReload || this._hasPreparedLayout;
         var i, l;
         if (this._needsReload){
             for (i = 0, l = this._visibleElements.length; i < l; ++i){
@@ -396,7 +395,6 @@ JSClass("UICollectionView", UIScrollView, {
             }
             this._visibleElements = [];
             this._needsReload = false;
-            this._hasLoadedOnce = true;
         }
         if (needsPrepare){
             this.collectionViewLayout.prepare();
@@ -422,24 +420,33 @@ JSClass("UICollectionView", UIScrollView, {
         var visibleRect = JSRect(this.contentView.bounds);
         var visibleElementMap = {};
 
-        // 1. Enqueue any elements that are no longer visible
+        // Get the attributes for the elements that should be visible
+        var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
+        var attrs;
+        for (i = 0, l = attributes.length; i < l; ++i){
+            attrs = attributes[i];
+            visibleElementMap[attrs.elementIdentifier] = null;
+        }
+
+        // Enqueue any elements that are no longer visible
         var element;
         for (i = this._visibleElements.length - 1; i >= 0; --i){
             element = this._visibleElements[i];
-            if (!visibleRect.intersectsRect(element.attributes.frame)){
+            if (element.attributes.elementIdentifier in visibleElementMap){
+                visibleElementMap[element.attributes.elementIdentifier] = element;
+            }else{
                 this._enqueueVisibleElement(element);
                 this._visibleElements.splice(i, 1);
-            }else{
-                visibleElementMap[element.identifier] = element;
             }
         }
 
         // 2. Add any elements that are newly visible
-        var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
         var elementIndex = 0;
         for (i = 0, l = attributes.length; i < l; ++i){
-            element = VisibleElement(attributes[i]);
-            if (!(element.identifier in visibleElementMap)){
+            attrs = attributes[i];
+            element = visibleElementMap[attrs.elementIdentifier];
+            if (element === null){
+                element = VisibleElement(attrs);
                 this._createViewForVisibleElement(element);
                 this._visibleElements.splice(elementIndex, 0, element);
                 if (elementIndex < this._visibleElements.length - 1){
@@ -447,11 +454,14 @@ JSClass("UICollectionView", UIScrollView, {
                 }else{
                     this._elementsContainerView.addSubview(element.view);
                 }
+            }else{
+                element.attributes = attrs;
+                element.view.untransformedFrame = attrs.frame;
             }
             ++elementIndex;
         }
 
-        // 3. Remove views that were not reused
+        // 4. Remove views that were not reused
         this._removeQueuedCells();
         this._removeQueuedViews();
     },
@@ -1196,16 +1206,11 @@ var VisibleElement = function(attributes){
     this.attributes = attributes;
     this.indexPath = JSIndexPath(attributes.indexPath);
     this.state = UICollectionView.VisibleElementState.normal;
-    this.identifier = this.indexPath.toString();
-    if (attributes.kind !== null){
-        this.identifier += "/" + attributes.kind;
-    }
 };
 
 VisibleElement.prototype = Object.create(Function.prototype, {
 
     indexPath: { value: null, writable: true },
-    identifier: { value: null, writable: true },
     rect: { value: null, writable: true, configurable: true },
     kind: { value: null, writable: true },
     view: {
