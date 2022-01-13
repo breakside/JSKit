@@ -966,6 +966,48 @@ JSClass("UICollectionViewGridLayoutTests", TKTestSuite, {
         TKAssertExactEquals(attributes.kind, UICollectionViewGridLayout.SupplimentaryKind.footer);
         TKAssertObjectEquals(attributes.indexPath, JSIndexPath([]));
         TKAssertObjectEquals(attributes.frame, JSRect(2, 646, 307, 34));
+    },
+
+    testFillingCellSizeClosestToSize: function(){
+        var layout = UICollectionViewGridLayout.init();
+        layout.collectionInsets = JSInsets(1, 2, 3, 4);
+        layout.collectionHeaderHeight = 12;
+        layout.collectionFooterHeight = 34;
+        layout.collectionHeaderSpacing = 2;
+        layout.collectionFooterSpacing = 5;
+        layout.showsSectionBackgroundViews = true;
+        layout.sectionSpacing = 8;
+        layout.sectionInsets = JSInsets(5, 6, 7, 8);
+        layout.sectionHeaderHeight = 21;
+        layout.sectionFooterHeight = 43;
+        layout.sectionHeaderSpacing = 4;
+        layout.sectionFooterSpacing = 10;
+        layout.columnSpacing = 3;
+        layout.rowSpacing = 9;
+        layout.cellSize = JSSize(45, 67);
+        var collectionView = UICollectionView.initWithLayout(layout);
+        collectionView.dataSource = {
+            numberOfSectionsInCollectionView: function(collectionView){
+                return 2;
+            },
+            numberOfCellsInCollectionViewSection: function(collectionView, sectionIndex){
+                return 10 * (sectionIndex + 1);
+            }
+        };
+        collectionView.bounds = JSRect(0, 0, 300, 100);
+        var size = layout.fillingCellSizeClosestToSize(JSSize(100, 50));
+        TKAssertExactEquals(size.width, 91);
+        TKAssertExactEquals(size.height, 45);
+
+        collectionView.bounds = JSRect(0, 0, 275, 100);
+        size = layout.fillingCellSizeClosestToSize(JSSize(100, 50));
+        TKAssertExactEquals(size.width, 83);
+        TKAssertExactEquals(size.height, 41);
+
+        collectionView.bounds = JSRect(0, 0, 274, 100);
+        size = layout.fillingCellSizeClosestToSize(JSSize(100, 50));
+        TKAssertExactEquals(size.width, 125);
+        TKAssertExactEquals(size.height, 62);
     }
 
 });

@@ -171,6 +171,14 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         this.invalidateLayout();
     },
 
+    fillingCellSizeClosestToSize: function(preferredCellSize){
+        var bounds = this.collectionView.bounds;
+        var availableWidth = bounds.size.width - this._collectionInsets.width - this._sectionInsets.width;
+        var columnCount = Math.max(1, Math.round((availableWidth + this._columnSpacing) / (preferredCellSize.width + this._columnSpacing)));
+        var cellWidth = Math.floor((availableWidth - (columnCount - 1) * this._columnSpacing) / columnCount);
+        return JSSize(cellWidth, Math.floor(preferredCellSize.height * cellWidth / preferredCellSize.width));
+    },
+
     invalidateLayout: function(){
         if (this.collectionView === null){
             return;
