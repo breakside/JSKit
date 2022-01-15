@@ -457,6 +457,7 @@ JSClass("UICollectionView", UIScrollView, {
             }else{
                 element.attributes = attrs;
                 element.view.untransformedFrame = attrs.frame;
+                element.view.transform = attrs.transform;
             }
             ++elementIndex;
         }
@@ -484,6 +485,7 @@ JSClass("UICollectionView", UIScrollView, {
         }
         this._adoptCell(cell, attributes);
         cell.untransformedFrame = attributes.frame;
+        cell.transform = attributes.transform;
         cell.active = false;
         this._updateCellState(cell);
         cell.update();

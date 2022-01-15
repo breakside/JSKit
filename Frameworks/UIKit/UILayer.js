@@ -201,6 +201,9 @@ JSClass("UILayer", JSObject, {
     },
 
     setTransform: function(transform){
+        if (transform.isEqual(this.model.transform)){
+            return;
+        }
         // When the transform changes, the frame needs to be recalculated.  The position, however, does
         // not change.  The transform essentially defines a new relationship between the position and frame
         this._addImplicitAnimationForKey('transform');

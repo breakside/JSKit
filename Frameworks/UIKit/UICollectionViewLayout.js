@@ -40,7 +40,14 @@ JSClass("UICollectionViewLayout", JSObject, {
 
     shouldInvalidateLayoutForBounds: function(bounds){
         return true;
-    }
+    },
+
+    invalidateLayout: function(){
+        if (this.collectionView === null){
+            return;
+        }
+        this.collectionView.setNeedsLayout();
+    },
 
 });
 
@@ -51,6 +58,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
         this.elementIdentifier = indexPath.toString();
+        this.transform = JSAffineTransform.Identity;
     },
 
     initSupplimentaryAtIndexPath: function(indexPath, kind, frame){
@@ -59,6 +67,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
         this.elementIdentifier = "%s/%s".sprintf(indexPath.toString(), kind);
+        this.transform = JSAffineTransform.Identity;
     },
 
     elementCategory: 0,
@@ -68,5 +77,6 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     rowIndex: 0,
     columnIndex: 0,
     elementIdentifier: null,
+    transform: null,
 
 });
