@@ -29,7 +29,7 @@ JSProtocol("UICollectionViewDelegate", JSProtocol, {
     collectionViewSelectionDidChange: function(collectionView, selectedIndexPaths){},
 
     // Context menu
-    menuForCollectionViewCellAtIndexPath: function(collectionView, indexPath){},
+    menuForCollectionViewCellAtIndexPath: function(collectionView, indexPath, selectedIndexPaths){},
 
     // Dragging cells
     collectionViewShouldDragCellAtIndexPath: function(collectionView, indexPath){},
@@ -282,7 +282,7 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     reloadCellAtIndexPath: function(indexPath, animator){
-        this.reloadRowsAtIndexPaths([indexPath], animator);
+        this.reloadCellsAtIndexPaths([indexPath], animator);
     },
 
     reloadCellsAtIndexPaths: function(indexPaths, animator){
@@ -816,13 +816,15 @@ JSClass("UICollectionView", UIScrollView, {
             return;
         }
         if (this.delegate && this.delegate.menuForCollectionViewCellAtIndexPath){
-            var menu = this.delegate.menuForCollectionViewCellAtIndexPath(this, cell.indexPath);
+            var contextSelectedIndexPaths;
+            if (this._selectionContainsIndexPath(cell.indexPath)){
+                contextSelectedIndexPaths = JSCopy(this._selectedIndexPaths);
+            }else{
+                contextSelectedIndexPaths = [cell.indexPath];
+            }
+            var menu = this.delegate.menuForCollectionViewCellAtIndexPath(this, cell.indexPath, contextSelectedIndexPaths);
             if (menu !== null){
-                if (this._selectionContainsIndexPath(cell.indexPath)){
-                    this._contextSelectedIndexPaths = JSCopy(this._selectedIndexPaths);
-                }else{
-                    this._contextSelectedIndexPaths = [cell.indexPath];
-                }
+                this._contextSelectedIndexPaths = contextSelectedIndexPaths;
                 this._updateVisibleCellStates();
                 var locationInCell = this.convertPointToView(location, cell);
                 menu.delegate = this;
@@ -918,9 +920,9 @@ JSClass("UICollectionView", UIScrollView, {
         }else{
             var cellFrame = this.contentView.convertRectFromView(cell.bounds, cell);
             if (cellFrame.origin.y < this.contentView.bounds.origin.y){
-                this.scrollToRowAtIndexPath(cell.indexPath, UICollectionView.ScrollPosition.top);
+                this.scrollToCellAtIndexPath(cell.indexPath, UICollectionView.ScrollPosition.top);
             }else if (cellFrame.origin.y + cellFrame.size.height > this.contentView.bounds.origin.y + this.contentView.bounds.size.height){
-                this.scrollToRowAtIndexPath(cell.indexPath, UICollectionView.ScrollPosition.bottom);
+                this.scrollToCellAtIndexPath(cell.indexPath, UICollectionView.ScrollPosition.bottom);
             }
             if (this._handledSelectionOnDown){
                 this._handledSelectionOnDown = false;
