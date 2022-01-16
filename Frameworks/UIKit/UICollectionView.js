@@ -1023,7 +1023,18 @@ JSClass("UICollectionView", UIScrollView, {
     // MARK: - Finding Cells by Location
 
     _cellHitTest: function(location){
-        // If we add sticky headers, exclude any hits on the headers
+        var i;
+        var element;
+        var locationInSubview;
+        for (i = this._visibleElements.length - 1; i >= 0; --i){
+            element = this._visibleElements[i];
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.supplimentary){
+                locationInSubview = this.layer.convertPointToLayer(location, element.view.layer);
+                if (element.view.containsPoint(locationInSubview)){
+                    return null;
+                }
+            }
+        }
         return this.cellAtLocation(location);
     },
 
