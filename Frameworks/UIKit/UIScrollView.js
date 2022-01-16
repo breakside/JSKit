@@ -276,6 +276,8 @@ JSClass('UIScrollView', UIView, {
 
     _sanitizedOffset: function(offset){
         offset = JSPoint(offset);
+        offset.x = Math.round(offset.x);
+        offset.y = Math.round(offset.y);
         if (!this.scrollsHorizontally){
             offset.x = this._contentOffset.x;
         }else if (offset.x < this._minContentOffset.x){
