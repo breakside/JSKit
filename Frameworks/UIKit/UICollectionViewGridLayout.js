@@ -78,6 +78,9 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         }else{
             this._cellSize = JSSize(50, 50);
         }
+        if (spec.containsKey("headersStickToTop")){
+            this._headersStickToTop = spec.valueForKey("headersStickToTop");
+        }
     },
 
     collectionInsets: JSDynamicProperty("_collectionInsets", null),
@@ -173,7 +176,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
     },
 
     fillingCellSizeClosestToSize: function(preferredCellSize){
-        var bounds = this.collectionView.bounds;
+        var bounds = this.collectionView.contentView.bounds;
         var availableWidth = bounds.size.width - this._collectionInsets.width - this._sectionInsets.width;
         var columnCount = Math.max(1, Math.round((availableWidth + this._columnSpacing) / (preferredCellSize.width + this._columnSpacing)));
         var cellWidth = Math.floor((availableWidth - (columnCount - 1) * this._columnSpacing) / columnCount);
@@ -199,7 +202,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
             return;
         }
         var origin = JSPoint(this._collectionInsets.left, this._collectionInsets.top);
-        this._cachedLayout.contentSize.width = this.collectionView.bounds.size.width;
+        this._cachedLayout.contentSize.width = this.collectionView.contentView.bounds.size.width;
         this._cachedLayout.contentSize.height += this._collectionInsets.height;
         if (this._collectionHeaderHeight > 0){
             this._cachedLayout.contentSize.height += this._collectionHeaderHeight + this._collectionHeaderSpacing;
@@ -311,7 +314,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                 if (this._showsSectionBackgroundViews){
                     attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.background));
                 }
-                if (sectionLayout.headerFrame.size.height > 0 && rect.intersectsRect(sectionLayout.headerFrame)){
+                if (sectionLayout.headerFrame.size.height > 0 && (this._headersStickToTop || rect.intersectsRect(sectionLayout.headerFrame))){
                     attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.header));
                 }
                 if (sectionLayout.cellsFrame.size.height > 0 && rect.intersectsRect(sectionLayout.cellsFrame)){
@@ -342,6 +345,17 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (this._cachedLayout.footerFrame.size.height > 0 && rect.intersectsRect(this._cachedLayout.footerFrame)){
             attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryKind.footer));
         }
+        if (this._headersStickToTop){
+            var i = attributes.length - 1;
+            var j = i;
+            for (; i >= 0; --i){
+                attrs = attributes[i];
+                if (attrs.elementCategory === UICollectionView.ElementCategory.supplimentary && attrs.kind === UICollectionViewGridLayout.SupplimentaryKind.header){
+                    attributes.splice(i, 1);
+                    attributes.splice(j, 0, attrs);
+                }
+            }
+        }
         return attributes;
     },
 
@@ -366,11 +380,13 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath, kind){
         var attributes;
+        var ty;
         if (indexPath.length === 0){
             if (kind === UICollectionViewGridLayout.SupplimentaryKind.header){
                 attributes = UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, this._cachedLayout.headerFrame);
                 if (this._headersStickToTop){
-                    attributes.transform = JSAffineTransform.Translated(0, this.collectionView.contentOffset.y);
+                    ty = Math.max(0, this.collectionView.contentView.bounds.origin.y - attributes.frame.origin.y);
+                    attributes.transform = JSAffineTransform.Translated(0, ty);
                 }
                 return attributes;
             }
@@ -385,7 +401,12 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                 return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.frame);
             }
             if (kind === UICollectionViewGridLayout.SupplimentaryKind.header){
-                return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.headerFrame);
+                attributes = UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.headerFrame);
+                if (this._headersStickToTop){
+                    ty = Math.min(Math.max(0, this.collectionView.contentView.bounds.origin.y - attributes.frame.origin.y + this._cachedLayout.headerFrame.size.height), (sectionLayout.frame.origin.y + sectionLayout.frame.size.height) - (sectionLayout.headerFrame.origin.y + sectionLayout.headerFrame.size.height));
+                    attributes.transform = JSAffineTransform.Translated(0, ty);
+                }
+                return attributes;
             }
             if (kind === UICollectionViewGridLayout.SupplimentaryKind.footer){
                 return UICollectionViewLayoutAttributes.initSupplimentaryAtIndexPath(indexPath, kind, sectionLayout.footerFrame);

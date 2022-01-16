@@ -660,7 +660,7 @@ JSClass("UICollectionViewTests", TKTestSuite, {
         layout.cellSize = JSSize(100, 100);
         this.app.updateDisplay();
         TKAssertExactEquals(collectionView.visibleCells.length, 1);
-    }
+    },
 
 });
 
