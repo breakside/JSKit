@@ -50,6 +50,14 @@ JSClass("UICollectionReusableView", UIView, {
     },
 
     // --------------------------------------------------------------------
+    // MARK: - Applying Attributes
+
+    applyAttributes: function(attributes){
+        this.untransformedFrame = attributes.frame;
+        this.transform = attributes.transform;
+    },
+
+    // --------------------------------------------------------------------
     // MARK: - Accessibility
 
     getAccessibilityLabel: function(){

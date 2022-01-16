@@ -13,42 +13,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "UIView.js"
+// #import "UICollectionReusableView.js"
 // #import "UILabel.js"
 // #import "UIImageView.js"
 'use strict';
 
-JSClass("UICollectionViewCell", UIView, {
-
-    collectionView: null,
-    indexPath: null,
-    reuseIdentifier: null,
-    contentView: JSReadOnlyProperty('_contentView', null),
-    stylerProperties: null,
-    _styler: null,
-
-    initWithReuseIdentifier: function(identifier, styler){
-        this.init();
-        this.reuseIdentifier = identifier;
-        this._styler = styler;
-    },
-
-    initWithFrame: function(frame){
-        UICollectionViewCell.$super.initWithFrame.call(this, frame);
-        this._commonCellInit();
-    },
-
-    initWithSpec: function(spec){
-        UICollectionViewCell.$super.initWithSpec.call(this, spec);
-        this._commonCellInit();
-    },
-
-    _commonCellInit: function(){
-        this.stylerProperties = {};
-        this._contentView = UIView.init();
-        this.accessbilityColumnIndex = 0;
-        this.addSubview(this._contentView);
-    },
+JSClass("UICollectionViewCell", UICollectionReusableView, {
 
     layoutSubviews: function(){
         UICollectionViewCell.$super.layoutSubviews.call(this);
@@ -129,26 +99,6 @@ JSClass("UICollectionViewCell", UIView, {
 
     isAccessibilityElement: true,
     accessibilityRole: UIAccessibility.Role.cell,
-
-    getAccessibilityLabel: function(){
-        var label = UICollectionViewCell.$super.getAccessibilityLabel.call(this);
-        if (label !== null){
-            return label;
-        }
-        var stack = [this.contentView];
-        var view;
-        var i, l;
-        while (stack.length > 0){
-            view = stack.pop();
-            if (view.isKindOfClass(UILabel)){
-                return view.text;
-            }
-            for (i = 0, l = view.subviews.length; i < l; ++i){
-                stack.push(view.subviews[i]);
-            }
-        }
-        return null;
-    },
 
     getAccessibilityElements: function(){
         return this._contentView.accessibilityElements;

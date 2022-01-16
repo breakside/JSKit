@@ -456,8 +456,7 @@ JSClass("UICollectionView", UIScrollView, {
                 }
             }else{
                 element.attributes = attrs;
-                element.view.untransformedFrame = attrs.frame;
-                element.view.transform = attrs.transform;
+                element.view.applyAttributes(attrs);
             }
             ++elementIndex;
         }
@@ -484,8 +483,7 @@ JSClass("UICollectionView", UIScrollView, {
             throw new Error("%s.cellForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.dataSource.$class.className, attributes.indexPath));
         }
         this._adoptCell(cell, attributes);
-        cell.untransformedFrame = attributes.frame;
-        cell.transform = attributes.transform;
+        cell.applyAttributes(attributes);
         cell.active = false;
         this._updateCellState(cell);
         cell.update();
@@ -510,7 +508,7 @@ JSClass("UICollectionView", UIScrollView, {
             throw new Error("%s.supplimentaryViewForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.dataSource.$class.className, attributes.indexPath));
         }
         view.collectionView = this;
-        view.untransformedFrame = attributes.frame;
+        view.applyAttributes(attributes);
         view.setNeedsLayout();
         return view;
     },
