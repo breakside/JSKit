@@ -1074,7 +1074,7 @@ JSClass("UICollectionView", UIScrollView, {
         var element;
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
             element = this._visibleElements[i];
-            if (element.attributes.elementCategory === UICollectionView.ElementCategory.ell && element.state !== UICollectionView.VisibleElementState.deleted && element.view.indexPath.isEqual(indexPath)){
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell && element.state !== UICollectionView.VisibleElementState.deleted && element.view.indexPath.isEqual(indexPath)){
                 return element.view;
             }
         }
