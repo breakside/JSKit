@@ -423,7 +423,7 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
                 context.fillPath();
                 context.restore();
             }
-            if (this.wellInnerShadowOffset){
+            if (this.wellInnerShadowColor !== null){
                 context.save();
                 context.addRect(layer.bounds.rectWithInsets(-100));
                 context.addPath(layer.backgroundPath());
