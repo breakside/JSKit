@@ -158,13 +158,10 @@ JSClass("JSXYZColorSpaceTests", TKTestSuite, {
     },
 
     testInitWithWhitepoint: function(){
-        var space = JSXYZColorSpace.initWithWhitepoint(JSColorSpace.D50, JSColorSpace.D50);
+        var space = JSXYZColorSpace.initWithWhitepoint(JSColorSpace.Whitepoint.D50);
         TKAssertExactEquals(space, JSColorSpace.xyz);
 
-        space = JSXYZColorSpace.initWithWhitepoint([0.9, 1, 0.8], [0.9, 1, 0.8]);
-        TKAssertExactEquals(space, JSColorSpace.xyz);
-
-        space = JSXYZColorSpace.initWithWhitepoint([0.45, 0.5, 0.4], [0.9, 1, 0.8]);
+        space = JSXYZColorSpace.initWithWhitepoint([0.9642 / 2, 1.0 / 2, 0.82491 / 2]);
         var xyz = space.xyzFromComponents([0.1, 0.2, 0.3]);
         TKAssertFloatEquals(xyz[0], 0.05);
         TKAssertFloatEquals(xyz[1], 0.1);
@@ -194,27 +191,6 @@ JSClass("JSLabColorSpaceTests", TKTestSuite, {
         TKAssertFloatEquals(xyz[0], 0.0134, 0.0001);
         TKAssertFloatEquals(xyz[1], 0.0138, 0.0001);
         TKAssertFloatEquals(xyz[2], 0.0116, 0.0001);
-        lab = space.componentsFromXYZ(xyz);
-        TKAssertFloatEquals(lab[0], 11.8, 0.0001);
-        TKAssertFloatEquals(lab[1], 0.28, 0.0001);
-        TKAssertFloatEquals(lab[2], -0.3, 0.0001);
-    },
-
-    testInitWithWhitepoint: function(){
-        var space = JSLabColorSpace.initWithWhitepoint([0.7067, 0.7346, 0.5703]);
-        var xyz = space.xyzFromComponents([100, 0, 0]);
-        TKAssertFloatEquals(xyz[0], 0.7067, 0.0001);
-        TKAssertFloatEquals(xyz[1], 0.7346, 0.0001);
-        TKAssertFloatEquals(xyz[2], 0.5703, 0.0001);
-        var lab = space.componentsFromXYZ(xyz);
-        TKAssertFloatEquals(lab[0], 100, 0.0001);
-        TKAssertFloatEquals(lab[1], 0, 0.0001);
-        TKAssertFloatEquals(lab[2], 0, 0.001);
-
-        xyz = space.xyzFromComponents([11.8, 0.28, -0.3]);
-        TKAssertFloatEquals(xyz[0], 0.0097, 0.0001);
-        TKAssertFloatEquals(xyz[1], 0.0101, 0.0001);
-        TKAssertFloatEquals(xyz[2], 0.0080, 0.0001);
         lab = space.componentsFromXYZ(xyz);
         TKAssertFloatEquals(lab[0], 11.8, 0.0001);
         TKAssertFloatEquals(lab[1], 0.28, 0.0001);
