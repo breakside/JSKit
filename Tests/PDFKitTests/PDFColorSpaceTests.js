@@ -180,6 +180,8 @@ JSClass("PDFColorSpaceTests", TKTestSuite, {
         TKAssertFloatEquals(color.green, 0.5247, tolerance);
         TKAssertFloatEquals(color.blue, 0.1999, tolerance);
         TKAssertFloatEquals(color.alpha, 1, tolerance);
+
+        color = space.colorFromComponents([0.5, 0.5, 0.5, 0.5]);
     }
 
 });

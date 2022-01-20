@@ -756,21 +756,44 @@ JSClass("IKColorProfileLookupTable8", IKColorProfileType, {
 
     lookup: function(components){
         var input = [];
-        var i;
+        var i, j, l;
         var x, x0, x1;
-        var offset = 0;
+        var offsetCount;
+        var offsets = [0];
+        var weights = [1];
+        var w0, w1;
         var stride = this.stride;
+        var d;
         for (i = 0; i < this.numberOfInputChannels; ++i){
+            stride /= this.numberOfGridPoints;
             x = this.inputTables[i][Math.round(Math.max(0, Math.min(1, components[i])) * 255)];
             x *= (this.numberOfGridPoints - 1);
             x0 = Math.floor(x);
-            stride /= this.numberOfGridPoints;
-            offset += x0 * stride;
-            // TODO: interpolate
+            d = x0 * stride;
+            for (j = 0, l = offsets.length; j < l; ++j){
+                offsets[j] += d;
+            }
+            if (x > x0){
+                x1 = x0 + 1;
+                w1 = (x - x0);
+                w0 = 1 - w1;
+                for (j = 0, l = offsets.length; j < l; ++j){
+                    offsets.push(offsets[j] + stride);
+                    weights.push(weights[j] * w1);
+                    weights[j] *= w0;
+                }
+            }
         }
         var output = [];
-        for (i = 0; i < this.numberOfOutputChannels; ++i, ++offset){
-            output.push(this.outputTables[i][this.lookupTableDataView.getUint8(offset)]);
+        for (i = 0; i < this.numberOfOutputChannels; ++i){
+            output.push(0);
+        }
+        var offset;
+        for (i = 0, l = offsets.length; i < l; ++i){
+            offset = offsets[i];
+            for (j = 0; j < this.numberOfOutputChannels; ++j, ++offset){
+                output[j] += this.outputTables[j][this.lookupTableDataView.getUint8(offset)] * weights[i];
+            }
         }
         return output;
     }
@@ -894,7 +917,7 @@ JSClass("IKColorProfileLookupComponentConverter", IKColorProfileComponentConvert
     },
 
     componentsFromConnectionComponents: function(connectionComponents){
-        if (this.connectionComponents === IKColorProfile.ColorSpace.lab){
+        if (this.connectionSpace === IKColorProfile.ColorSpace.lab){
             connectionComponents = [
                 connectionComponents[0] / 100.0,
                 (connectionComponents[1] + 128)  / 256.0,
