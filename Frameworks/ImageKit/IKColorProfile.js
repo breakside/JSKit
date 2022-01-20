@@ -689,20 +689,97 @@ JSClass("IKColorProfileXYZ", IKColorProfileType, {
 JSClass("IKColorProfileLookupTable8", IKColorProfileType, {
 
     type: IKColorProfile.DataType.lookupTable8,
-    fn: null,
+    numberOfInputChannels: 0,
+    numberOfOutputChannels: 0,
+    numberOfGridPoints: 0,
+    matrix: null,
+    inputTables: null,
+    outputTables: null,
+    lookupTableDataView: null,
+    stride: 0,
 
     initWithData: function(data){
         IKColorProfileLookupTable8.$super.initWithData.call(this, data);
         var dataView = data.dataView();
-        // TODO:
+        if (data.length < 48){
+            logger.warn("not enough data for lut8 matrix");
+            return null;
+        }
+        this.numberOfInputChannels = dataView.getUint8(8);
+        this.numberOfOutputChannels = dataView.getUint8(9);
+        this.numberOfGridPoints = dataView.getUint8(10);
+        this.matrix = IKMatrix([
+            [s15Fixed16(dataView.getUint32(12)), s15Fixed16(dataView.getUint32(16)), s15Fixed16(dataView.getUint32(20))],
+            [s15Fixed16(dataView.getUint32(24)), s15Fixed16(dataView.getUint32(28)), s15Fixed16(dataView.getUint32(32))],
+            [s15Fixed16(dataView.getUint32(36)), s15Fixed16(dataView.getUint32(40)), s15Fixed16(dataView.getUint32(44))]
+        ]);
+        var offset = 48;
+        var end;
+        var i, j, k;
+        var table;
+        this.stride = this.numberOfOutputChannels;
+        this.inputTables = [];
+        this.outputTables = [];
+        for (i = 0; i < this.numberOfInputChannels; ++i){
+            this.stride *= this.numberOfGridPoints;
+            end = offset + 256;
+            if (data.length < end){
+                logger.warn("not enough data for lut8 input tables");
+                return null;
+            }
+            table = [];
+            for (; offset < end; ++offset){
+                table.push(dataView.getUint8(offset) / 255.0);
+            }
+            this.inputTables.push(table);
+        }
+        end = offset + this.stride;
+        if (data.length < end){
+            logger.warn("not enough data for lut8 clut");
+            return null;
+        }
+        this.lookupTableDataView = this.data.subdataInRange(JSRange(offset, this.stride)).dataView();
+        offset += this.stride;
+        for (i = 0; i < this.numberOfOutputChannels; ++i){
+            end = offset + 256;
+            if (data.length < end){
+                logger.warn("not enough data for lut8 output tables");
+                return null;
+            }
+            table = [];
+            for (; offset < end; ++offset){
+                table.push(dataView.getUint8(offset) / 255.0);
+            }
+            this.outputTables.push(table);
+        }
     },
+
+    lookup: function(components){
+        var input = [];
+        var i;
+        var x, x0, x1;
+        var offset = 0;
+        var stride = this.stride;
+        for (i = 0; i < this.numberOfInputChannels; ++i){
+            x = this.inputTables[i][Math.round(Math.max(0, Math.min(1, components[i])) * 255)];
+            x *= (this.numberOfGridPoints - 1);
+            x0 = Math.floor(x);
+            stride /= this.numberOfGridPoints;
+            offset += x0 * stride;
+            // TODO: interpolate
+        }
+        var output = [];
+        for (i = 0; i < this.numberOfOutputChannels; ++i, ++offset){
+            output.push(this.outputTables[i][this.lookupTableDataView.getUint8(offset)]);
+        }
+        return output;
+    }
 
 });
 
 JSClass("IKColorProfileLookupTable16", IKColorProfileType, {
 
     type: IKColorProfile.DataType.lookupTable16,
-    fn: null,
 
     initWithData: function(data){
         IKColorProfileLookupTable16.$super.initWithData.call(this, data);
@@ -710,12 +787,14 @@ JSClass("IKColorProfileLookupTable16", IKColorProfileType, {
         // TODO:
     },
 
+    lookup: function(components){
+    }
+
 });
 
 JSClass("IKColorProfileLookupTableAToB", IKColorProfileType, {
 
     type: IKColorProfile.DataType.lookupTableAToB,
-    fn: null,
 
     initWithData: function(data){
         IKColorProfileLookupTableAToB.$super.initWithData.call(this, data);
@@ -723,18 +802,23 @@ JSClass("IKColorProfileLookupTableAToB", IKColorProfileType, {
         // TODO:
     },
 
+    lookup: function(components){
+    }
+
 });
 
 JSClass("IKColorProfileLookupTableBToA", IKColorProfileType, {
 
     type: IKColorProfile.DataType.lookupTableBToA,
-    fn: null,
 
     initWithData: function(data){
         IKColorProfileLookupTableBToA.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         // TODO:
     },
+
+    lookup: function(components){
+    }
 
 });
 
@@ -789,18 +873,35 @@ JSClass("IKColorProfileLookupComponentConverter", IKColorProfileComponentConvert
 
     lookupTable: null,
     inverseLookupTable: null,
+    connectionSpace: null,
 
-    initWithLookupTables: function(lookupTable, inverseLookupTable){
+    initWithLookupTables: function(lookupTable, inverseLookupTable, connectionSpace){
         this.lookupTable = lookupTable;
         this.inverseLookupTable = inverseLookupTable;
+        this.connectionSpace = connectionSpace;
     },
 
     connectionComponentsFromComponents: function(components){
-        return this.lookupTable.lookup(components);
+        var connectionComponents = this.lookupTable.lookup(components);
+        if (this.connectionSpace === IKColorProfile.ColorSpace.lab){
+            connectionComponents = [
+                connectionComponents[0] * 100.0,
+                connectionComponents[1] * 256 - 128,
+                connectionComponents[2] * 256 - 128
+            ];
+        }
+        return connectionComponents;
     },
 
-    componentsFromConnectionComponents: function(xyz){
-        return this.inverseLookupTable.lookup(xyz);
+    componentsFromConnectionComponents: function(connectionComponents){
+        if (this.connectionComponents === IKColorProfile.ColorSpace.lab){
+            connectionComponents = [
+                connectionComponents[0] / 100.0,
+                (connectionComponents[1] + 128)  / 256.0,
+                (connectionComponents[2] + 128)  / 256.0
+            ];
+        }
+        return this.inverseLookupTable.lookup(connectionComponents);
     },
 
 });

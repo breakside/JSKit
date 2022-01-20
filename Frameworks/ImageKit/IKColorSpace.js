@@ -49,7 +49,7 @@ JSClass("IKColorSpace", JSColorSpace, {
             return null;
         }
         if (profile.aToB0 !== null && profile.bToA0 !== null){
-            this._componentConverter = IKColorProfileLookupComponentConverter.initWithLookupTables(profile.aToB0, profile.bToA0);
+            this._componentConverter = IKColorProfileLookupComponentConverter.initWithLookupTables(profile.aToB0, profile.bToA0, profile.connectionSpace);
         }else if (profile.redToneReproductionCurve !== null && profile.greenToneReproductionCurve !== null && profile.blueToneReproductionCurve !== null && profile.redMatrixColumn !== null && profile.greenMatrixColumn !== null && profile.blueMatrixColumn !== null){
             var matrix = [
                 [profile.redMatrixColumn.value[0], profile.greenMatrixColumn.value[0], profile.blueMatrixColumn.value[0]],

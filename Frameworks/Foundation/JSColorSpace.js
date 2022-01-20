@@ -437,7 +437,7 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
     componentNames: { 'white': 0 },
 
     rgbFromComponents: function(components){
-        var white = components[0];
+        var white = Math.pow(components[0], this.gamma);
         return [white, white, white];
     },
 
@@ -468,10 +468,20 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
 
     // MARK: - Lab conversions
 
+    gamma: 1.8,
+
     xyzFromComponents: function(components){
+        var w = Math.pow(components[0], this.gamma);
+        return [
+            JSColorSpace.Whitepoint.profileConnection[0] * w,
+            JSColorSpace.Whitepoint.profileConnection[1] * w,
+            JSColorSpace.Whitepoint.profileConnection[2] * w
+        ];
     },
 
     componentsFromXYZ: function(xyz){
+        var y = Math.min(1, Math.max(0, xyz[1]));
+        return Math.pow(y, 1.0 / this.gamma);
     },
 
 });

@@ -150,6 +150,36 @@ JSClass("IKColorSpaceTests", TKTestSuite, {
             TKAssertFloatEquals(rgb[2], 0.5000, 0.001);
         }, this);
         this.wait(expectation, 1.0);
+    },
+
+    testCMYK: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "CMYK", "icc", function(data){
+            var profile = IKColorProfile.initWithData(data);
+            var space = IKColorSpace.initWithProfile(profile);
+            TKAssertNotNull(space);
+            var cmyk = [0, 0, 0, 0];
+            var xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.9671, 0.001);
+            TKAssertFloatEquals(xyz[1], 1.0000, 0.001);
+            TKAssertFloatEquals(xyz[2], 0.8187, 0.001);
+            cmyk = [1, 1, 1, 1];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0, 0.01);
+            TKAssertFloatEquals(xyz[1], 0, 0.01);
+            TKAssertFloatEquals(xyz[2], 0, 0.01);
+            cmyk = [0, 0, 0, 1];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.0098, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.0100, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.0080, 0.0001);
+            cmyk = [0.5, 0.5, 0.5, 0.5];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.0607, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.0616, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.0443, 0.0001);
+        }, this);
+        this.wait(expectation, 1.0);
     }
 
 });
