@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2022 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import Foundation
+// #import "IKMatrix.js"
 'use strict';
 
 (function(){
@@ -22,7 +23,10 @@ var logger = JSLog("imagekit", "colorprofile");
 
 JSClass("IKColorProfile", JSColorSpace, {
 
-    initWithProfileData: function(data){
+    initWithData: function(data){
+        if (data === null || data === undefined){
+            return null;
+        }
         this._data = data;
         this._dataView = data.dataView();
         try{
@@ -74,7 +78,8 @@ JSClass("IKColorProfile", JSColorSpace, {
             day: dataView.getUint16(28),
             hour: dataView.getUint16(30),
             minute: dataView.getUint16(32),
-            second: dataView.getUint16(34)
+            second: dataView.getUint16(34),
+            timezone: JSTimeZone.utc
         });
         this.signature = String.initWithData(data.subdataInRange(JSRange(36, 4)), String.Encoding.latin1);
         if (this.signature !== "acsp"){
@@ -186,9 +191,11 @@ JSClass("IKColorProfile", JSColorSpace, {
         var offset = 132;
         this._tags = {};
         var tag;
+        var name;
         for (var i = 0; i < tagCount; ++i){
+            name = String.initWithData(this._data.subdataInRange(JSRange(offset, 4)), String.Encoding.latin1);
             tag = {
-                name: String.initWithData(this._data.subdataInRange(JSRange(offset, 4)), String.Encoding.latin1),
+                name: name,
                 range: JSRange(this._dataView.getUint32(offset + 4), this._dataView.getUint32(offset + 8))
             };
             if (tag.range.end > this._data.length){
@@ -197,50 +204,30 @@ JSClass("IKColorProfile", JSColorSpace, {
             this._tags[tag.name] = tag;
             offset += 12;
         }
+        for (var propertyName in IKColorProfile.Tag){
+            name = IKColorProfile.Tag[propertyName];
+            this.definePropertyForTag(name, propertyName);
+        }
     },
 
-    mediaWhitepoint: JSLazyInitProperty(function(){
-        return this.getTag("wtpt", [IKColorProfile.DataType.xyz]);
-    }),
+    definePropertyForTag: function(name, propertyName){
+        Object.defineProperty(this, propertyName, {
+            configurable: true,
+            get: function(){
+                var value = this.getTag(name);
+                Object.defineProperty(this, propertyName, {value: value});
+                return value;
+            }
+        });
+    },
 
-    redTRC: JSLazyInitProperty(function(){
-        return this.getTag("rTRC", [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve]);
-    }),
-
-    greenTRC: JSLazyInitProperty(function(){
-        return this.getTag("gTRC", [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve]);
-    }),
-
-    blueTRC: JSLazyInitProperty(function(){
-        return this.getTag("bTRC", [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve]);
-    }),
-
-    redXYZ: JSLazyInitProperty(function(){
-        return this.getTag("rXYZ", [IKColorProfile.DataType.xyz]);
-    }),
-
-    greenXYZ: JSLazyInitProperty(function(){
-        return this.getTag("gXYZ", [IKColorProfile.DataType.xyz]);
-    }),
-
-    blueXYZ: JSLazyInitProperty(function(){
-        return this.getTag("bXYZ", [IKColorProfile.DataType.xyz]);
-    }),
-
-    A2B0: JSLazyInitProperty(function(){
-        return this.getTag("A2B0", [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableAToB]);
-    }),
-
-    B2A0: JSLazyInitProperty(function(){
-        return this.getTag("B2A0", [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA]);
-    }),
-
-    getTag: function(name, allowedTypes){
+    getTag: function(name){
         var tag = this._tags[name];
         if (!tag){
             return null;
         }
         var data = this.data.subdataInRange(tag.range);
+        var allowedTypes = IKColorProfile.allowedTypesForTag[name];
         return IKColorProfileType.initWithData(data, allowedTypes);
     },
 
@@ -262,7 +249,7 @@ IKColorProfile.ColorSpace = {
     luv: "Luv ",
     ycbcr: "YCbr",
     yxy: "Yxy ",
-    rgb: "RGB",
+    rgb: "RGB ",
     gray: "GRAY",
     hsv: "HSV ",
     hls: "HLS ",
@@ -298,15 +285,139 @@ IKColorProfile.RenderingIntent = {
     absolute: 3
 };
 
+IKColorProfile.Tag = {
+    aToB0: "A2B0",
+    aToB1: "A2B1",
+    aToB2: "A2B2",
+    blueMatrixColumn: "bXYZ",
+    blueToneReproductionCurve: "bTRC",
+    bToA0: "B2A0",
+    bToA1: "B2A1",
+    bToA2: "B2A2",
+    bToD0: "B2D0",
+    bToD1: "B2D1",
+    bToD2: "B2D2",
+    bToD3: "B2D3",
+    calibrationDate: "calt",
+    charTarget: "targ",
+    chromaticAdaptation: "chad",
+    chromaticity: "chrm",
+    colorantOrder: "clro",
+    colorantTable: "clrt",
+    colorantTableOut: "clot",
+    colorimetricIntentImageState: "ciis",
+    copyright: "cprt",
+    deviceManufacturer: "dmnd",
+    deviceModelDescription: "dmdd",
+    dToB0: "D2B0",
+    dToB1: "D2B1",
+    dToB2: "D2B2",
+    dToB3: "D2B3",
+    gamut: "gamt",
+    grayToneReproductionCurve: "kTRC",
+    greenMatrixColumn: "gXYZ",
+    greenToneReproductionCurve: "gTRC",
+    luminance: "lumi",
+    measurement: "meas",
+    mediaWhitepoint: "wtpt",
+    namedColor: "ncl2",
+    outputResponse: "resp",
+    perceptualRenderingIntentGamut: "rig0",
+    preview0: "pre0",
+    preview1: "pre1",
+    preview2: "pre2",
+    profileDescription: "desc",
+    profileSequenceDescription: "pseq",
+    profileSequenceIdentifier: "psid",
+    redMatrixColumn: "rXYZ",
+    redToneReproductionCurve: "rTRC",
+    saturationRenderingIntentGamut: "rig2",
+    technology: "tech",
+    viewingConditionsDescription: "vued",
+    viewingConditions: "view"
+};
+
 IKColorProfile.DataType = {
+    chromaticity: "chrm",
+    colorantOrder: "clro",
+    colorantTable: "clrt",
     curve: "curv",
+    data: "data",
+    dateTime: "dtim",
     lookupTable8: "mft1",
     lookupTable16: "mft2",
     lookupTableAToB: "mAB ",
     lookupTableBToA: "mBA ",
+    measurement: "meas",
+    multiLocalizedUnicode: "mluc",
+    multiProcessElements: "mpet",
+    namedColor: "ncl2",
     parametricCurve: "para",
+    profileSequenceDescription: "pseq",
+    profileSequenceIdentifier: "psid",
+    responseCurveSet16: "rcs2",
+    s15Fixed16Array: "sf32",
+    signature: "sig ",
+    text: "text",
+    u16Fixed16Array: "uf32",
+    uin8Array: "ui08",
+    uint16Array: "ui16",
+    uint32Array: "ui32",
+    uint64Array: "ui64",
+    viewingConditions: "view",
     xyz: "XYZ "
 };
+
+IKColorProfile.allowedTypesForTag = {};
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.aToB0] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableAToB];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.aToB1] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableAToB];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.aToB2] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableAToB];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.blueMatrixColumn] = [IKColorProfile.DataType.xyz];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.blueToneReproductionCurve] = [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToA0] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToA1] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToA2] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToD0] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToD1] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToD2] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.bToD3] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.calibrationDate] = [IKColorProfile.DataType.dateTime];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.charTarget] = [IKColorProfile.DataType.text];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.chromaticAdaptation] = [IKColorProfile.DataType.s15Fixed16Array];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.chromaticity] = [IKColorProfile.DataType.chromaticity];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.colorantOrder] = [IKColorProfile.DataType.colorantOrder];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.colorantTable] = [IKColorProfile.DataType.colorantTable];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.colorantTableOut] = [IKColorProfile.DataType.colorantTable];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.colorimetricIntentImageState] = [IKColorProfile.DataType.signature];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.copyright] = [IKColorProfile.DataType.multiLocalizedUnicode];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.deviceManufacturer] = [IKColorProfile.DataType.multiLocalizedUnicode];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.deviceModelDescription] = [IKColorProfile.DataType.multiLocalizedUnicode];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.dToB0] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.dToB1] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.dToB2] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.dToB3] = [IKColorProfile.DataType.multiProcessElements];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.gamut] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.grayToneReproductionCurve] = [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.greenMatrixColumn] = [IKColorProfile.DataType.xyz];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.greenToneReproductionCurve] = [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.luminance] = [IKColorProfile.DataType.xyz];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.measurement] = [IKColorProfile.DataType.measurement];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.mediaWhitepoint] = [IKColorProfile.DataType.xyz];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.namedColor] = [IKColorProfile.DataType.namedColor];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.outputResponse] = [IKColorProfile.DataType.responseCurveSet16];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.perceptualRenderingIntentGamut] = [IKColorProfile.DataType.signature];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.preview0] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableAToB, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.preview1] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.preview2] = [IKColorProfile.DataType.lookupTable8, IKColorProfile.DataType.lookupTable16, IKColorProfile.DataType.lookupTableBToA];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.profileDescription] = [IKColorProfile.DataType.multiLocalizedUnicode];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.profileSequenceDescription] = [IKColorProfile.DataType.profileSequenceDescription];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.profileSequenceIdentifier] = [IKColorProfile.DataType.profileSequenceIdentifier];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.redMatrixColumn] = [IKColorProfile.DataType.xyz];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.redToneReproductionCurve] = [IKColorProfile.DataType.curve, IKColorProfile.DataType.parametricCurve];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.saturationRenderingIntentGamut] = [IKColorProfile.DataType.signature];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.technology] = [IKColorProfile.DataType.signature];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.viewingConditionsDescription] = [IKColorProfile.DataType.multiLocalizedUnicode];
+IKColorProfile.allowedTypesForTag[IKColorProfile.Tag.viewingConditions] = [IKColorProfile.DataType.viewingConditions];
 
 IKColorProfile.Curve = {
     identity: function(x){
@@ -317,6 +428,7 @@ IKColorProfile.Curve = {
             return Math.pow(x, g);
         };
         fn.inverse = function(y){
+            y = Math.min(1, Math.max(0, y));
             return Math.pow(y, 1.0 / g);
         };
         return fn;
@@ -329,6 +441,7 @@ IKColorProfile.Curve = {
             return 0;
         };
         fn.inverse = function(y){
+            y = Math.min(1, Math.max(0, y));
             if (y === 0){
                 return -b / a;
             }
@@ -344,6 +457,7 @@ IKColorProfile.Curve = {
             return c;
         };
         fn.inverse = function(y){
+            y = Math.min(1, Math.max(0, y));
             if (y === c){
                 return -b / a;
             }
@@ -359,6 +473,7 @@ IKColorProfile.Curve = {
             return c * x;
         };
         fn.inverse = function(y){
+            y = Math.min(1, Math.max(0, y));
             if (y < c * d){
                 return y / c;
             }
@@ -374,6 +489,7 @@ IKColorProfile.Curve = {
             return c * x + f;
         };
         fn.inverse = function(y){
+            y = Math.min(1, Math.max(0, y));
             if (y < c * d + f){
                 return (y - f) / c;
             }
@@ -385,24 +501,33 @@ IKColorProfile.Curve = {
 
 IKColorProfile.Curve.identity.inverse = IKColorProfile.Curve.identity;
 
+
+
 JSClass("IKColorProfileType", JSObject, {
 
+    data: null,
+
     initWithData: function(data, allowedTypes){
-        var type = String.initWithData(data.subdataInRange(JSRange(0, 4)), String.Encoding.latin1);
-        if (allowedTypes){
-            var allowed = false;
-            for (var i = 0, l = allowedTypes.length; i < l && !allowed; ++i){
-                if (type == allowedTypes){
-                    allowed = true;
+        if (this.$class === IKColorProfileType){
+            var type = String.initWithData(data.subdataInRange(JSRange(0, 4)), String.Encoding.latin1);
+            if (allowedTypes !== undefined){
+                var allowed = false;
+                for (var i = 0, l = allowedTypes.length; i < l && !allowed; ++i){
+                    if (type === allowedTypes[i]){
+                        allowed = true;
+                    }
+                }
+                if (!allowed){
+                    return null;
                 }
             }
-            if (!allowed){
-                return null;
+            var subclass = IKColorProfileType.registeredSubclasses[type];
+            if (subclass){
+                return subclass.initWithData(data);
             }
-        }
-        var subclass = IKColorProfileType.registeredSubclasses[type];
-        if (subclass){
-            return subclass.initWithData(data);
+            this.data = data;
+        }else{
+            this.data = data;
         }
     }
 
@@ -410,7 +535,7 @@ JSClass("IKColorProfileType", JSObject, {
 
 IKColorProfileType.registeredSubclasses = {};
 
-IKColorProfile.$extend = function(extensions, name){
+IKColorProfileType.$extend = function(extensions, name){
     var subclass = JSObject.$extend.call(this, extensions, name);
     IKColorProfileType.registeredSubclasses[subclass.prototype.type] = subclass;
     return subclass;
@@ -422,6 +547,7 @@ JSClass("IKColorProfileCurve", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileCurve.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         var n = dataView.getUint32(8);
         if (n === 0){
@@ -434,11 +560,43 @@ JSClass("IKColorProfileCurve", IKColorProfileType, {
             var g = u8Fixed8(dataView.getUint16(12));
             this.fn = IKColorProfile.Curve.gamma(g);
         }else{
-            if (data.length < 12 + n + n){
+            var offset = 12;
+            var end = offset + n + n;
+            if (data.length < end){
                 logger.warn("not enough data for curve values");
                 return null;
             }
-            // TODO: interpolated
+            var table = [];
+            var sorted = true;
+            for (; offset < end; offset += 2){
+                table.push(dataView.getUint16(offset) / 0xFFFF);
+            }
+            var searcher = JSBinarySearcher(table, function(a, b){
+                return a - b;
+            });
+            this.fn = function(x){
+                var i = Math.min(1, Math.max(0, x)) * (n - 1);
+                var i0 = Math.floor(i);
+                var i1 = i0 + 1;
+                var w0 = i1 - i;
+                var w1 = 1 - w0;
+                if (w1 <= 0.00001){
+                    return table[i0];
+                }
+                return (table[i0] * w0) + (table[i1] * w1);
+            };
+            this.fn.inverse = function(y){
+                var i0 = searcher.insertionIndexForValue(y);
+                if (i0 >= n - 1){
+                    return 1;
+                }
+                var i1 = i0 + 1;
+                var y0 = table[i0];
+                var y1 = table[i1];
+                var w1 = (y - y0) / (y1 - y0);
+                var w0 = 1 - w1;
+                return (i0 * w0 + i1 * w1) / (n - 1);
+            };
         }
     },
 
@@ -450,6 +608,7 @@ JSClass("IKColorProfileParametricCurve", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileParametricCurve.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         var type = dataView.getUint16(8);
         var g, a, b, c, d, e, f;
@@ -509,15 +668,16 @@ JSClass("IKColorProfileParametricCurve", IKColorProfileType, {
 JSClass("IKColorProfileXYZ", IKColorProfileType, {
 
     type: IKColorProfile.DataType.xyz,
-    xyz: null,
+    value: null,
 
     initWithData: function(data){
+        IKColorProfileXYZ.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         if (data.length < 20){
             logger.warn("not enough data for XYZ data");
             return null;
         }
-        this.xyz = XYZ32(
+        this.value = XYZ32(
             dataView.getUint32(8),
             dataView.getUint32(12),
             dataView.getUint32(16)
@@ -532,6 +692,7 @@ JSClass("IKColorProfileLookupTable8", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileLookupTable8.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         // TODO:
     },
@@ -544,6 +705,7 @@ JSClass("IKColorProfileLookupTable16", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileLookupTable16.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         // TODO:
     },
@@ -556,6 +718,7 @@ JSClass("IKColorProfileLookupTableAToB", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileLookupTableAToB.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         // TODO:
     },
@@ -568,6 +731,7 @@ JSClass("IKColorProfileLookupTableBToA", IKColorProfileType, {
     fn: null,
 
     initWithData: function(data){
+        IKColorProfileLookupTableBToA.$super.initWithData.call(this, data);
         var dataView = data.dataView();
         // TODO:
     },
@@ -593,9 +757,9 @@ JSClass("IKColorProfileMatrixComponentConverter", IKColorProfileComponentConvert
     curves: null,
 
     initWithMatrix: function(matrix, curves){
-        this.matrix = matrix;
+        this.matrix = IKMatrix(matrix);
         this.curves = curves;
-        this.inverseMatrix = matrixInverse(matrix);
+        this.inverseMatrix = matrix.inverse();
     },
 
     connectionComponentsFromComponents: function(components){
@@ -643,7 +807,7 @@ JSClass("IKColorProfileLookupComponentConverter", IKColorProfileComponentConvert
 
 var s15Fixed16 = function(i){
     var f = ((i & 0x7FFF0000) >> 16) + ((i & 0xFFFF) / 65536.0);
-    if (i & (0x80000000) != 0){
+    if ((i & 0x80000000) != 0){
         return -f;
     }
     return f;
@@ -662,94 +826,6 @@ var XYZ32 = function(x, y, z){
         s15Fixed16(y),
         s15Fixed16(z)
     ];
-};
-
-var matrixDeterminant = function(m){
-    if (m.length === 2){
-        return m[0][0] * m[1][1] - m[0][1] * m[1][0];
-    }
-    if (m.length === 3){
-        return m[0][0] * m[1][1] * m[2][2] -
-            m[0][0] * m[1][2] * m[2][1] -
-            m[0][1] * m[1][0] * m[2][2] +
-            m[0][1] * m[1][2] * m[2][0] +
-            m[0][2] * m[1][0] * m[2][1] -
-            m[0][2] * m[1][1] * m[2][0];
-    }
-    throw new Error("cannot take determinant of matrix");
-};
-
-var matrixInverse = function(m){
-    if (m.length === 2){
-        return matrixMultiply([
-            [m[1][1], -m[0][1]],
-            [-m[1][0], m[0][0]]
-        ], 1.0 / matrixDeterminant(m));
-    }
-    if (m.length === 3){
-        return matrixMultiply([
-            [
-                matrixDeterminant([
-                    (m[1][1], m[1][2]),
-                    (m[2][1], m[2][2])
-                ]),
-                matrixDeterminant([
-                    (m[0][2], m[0][1]),
-                    (m[2][2], m[2][1])
-                ]),
-                matrixDeterminant([
-                    (m[0][1], m[0][2]),
-                    (m[1][1], m[1][2])
-                ])
-            ],
-            [
-                matrixDeterminant([
-                    (m[1][2], m[1][0]),
-                    (m[2][2], m[2][0])
-                ]),
-                matrixDeterminant([
-                    (m[0][0], m[0][2]),
-                    (m[2][0], m[2][2])
-                ]),
-                matrixDeterminant([
-                    (m[0][2], m[0][0]),
-                    (m[1][2], m[1][0])
-                ])
-            ],
-            [
-                matrixDeterminant([
-                    (m[1][0], m[1][1]),
-                    (m[2][0], m[2][1])
-                ]),
-                matrixDeterminant([
-                    (m[0][1], m[0][0]),
-                    (m[2][1], m[2][0])
-                ]),
-                matrixDeterminant([
-                    (m[0][0], m[0][1]),
-                    (m[1][0], m[1][1])
-                ])
-            ]
-        ], 1.0 / matrixDeterminant(m));
-    }
-    throw new Error("cannot take determinant of matrix");
-};
-
-var matrixMultiply = function(m, x){
-    if (m.length == 2){
-        return [
-            [m[0][0] * x, m[0][1] * x],
-            [m[1][0] * x, m[1][1] * x]
-        ];
-    }
-    if (m.length === 3){
-        return [
-            [m[0][0] * x, m[0][1] * x, m[0][2]],
-            [m[1][0] * x, m[1][1] * x, m[1][2]],
-            [m[2][0] * x, m[2][1] * x, m[2][2]]
-        ];
-    }
-    throw new Error("cannot multiply matrix");
 };
 
 })();

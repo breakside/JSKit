@@ -42,24 +42,24 @@ JSClass("IKColorSpace", JSColorSpace, {
         }
         if (profile.connectionSpace === IKColorProfile.ColorSpace.lab){
             this._connectionSpace = JSColorSpace.lab;
-        }else if (profile.connectionSpace !== IKColorProfile.ColorSpace.xyz){
+        }else if (profile.connectionSpace === IKColorProfile.ColorSpace.xyz){
             this._connectionSpace = JSColorSpace.xyz;
         }else{
             logger.warn("color profile must have a Lab or XYZ connection space");
             return null;
         }
-        if (profile.A2B0 !== null && profile.B2A0 !== null){
-            this._componentConverter = IKColorProfileLookupComponentConverter.initWithLookupTables(profile.A2B0, profile.B2A0);
-        }else if (profile.redTRC !== null && profile.greenTRC !== null && profile.blueTRC !== null && profile.redXYZ !== null && profile.greenXYZ !== null && profile.blueXYZ !== null){
+        if (profile.aToB0 !== null && profile.bToA0 !== null){
+            this._componentConverter = IKColorProfileLookupComponentConverter.initWithLookupTables(profile.aToB0, profile.bToA0);
+        }else if (profile.redToneReproductionCurve !== null && profile.greenToneReproductionCurve !== null && profile.blueToneReproductionCurve !== null && profile.redMatrixColumn !== null && profile.greenMatrixColumn !== null && profile.blueMatrixColumn !== null){
             var matrix = [
-                [profile.redXYZ.xyz[0], profile.greenXYZ.xyz[0]. profile.blueXYZ.xyz[0]],
-                [profile.redXYZ.xyz[1], profile.greenXYZ.xyz[1]. profile.blueXYZ.xyz[1]],
-                [profile.redXYZ.xyz[2], profile.greenXYZ.xyz[2]. profile.blueXYZ.xyz[2]]
+                [profile.redMatrixColumn.value[0], profile.greenMatrixColumn.value[0], profile.blueMatrixColumn.value[0]],
+                [profile.redMatrixColumn.value[1], profile.greenMatrixColumn.value[1], profile.blueMatrixColumn.value[1]],
+                [profile.redMatrixColumn.value[2], profile.greenMatrixColumn.value[2], profile.blueMatrixColumn.value[2]]
             ];
             var curves = [
-                profile.redTRC.fn,
-                profile.greenTRC.fn,
-                profile.blueTRC.fn
+                profile.redToneReproductionCurve.fn,
+                profile.greenToneReproductionCurve.fn,
+                profile.blueToneReproductionCurve.fn
             ];
             this._componentConverter = IKColorProfileMatrixComponentConverter.initWithMatrix(matrix, curves);
         }else{

@@ -21,4 +21,6 @@
 // #import "IKEncoderJPEG.js"
 // #import "IKEncoderPNG.js"
 // #import "IKColorSpace.js"
+// #import "IKColorProfile.js"
+// #import "IKMatrix.js"
 // #import "JSImage+IKBitmap.js"

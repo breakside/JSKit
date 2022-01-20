@@ -255,11 +255,12 @@ JSClass("JSRGBColorSpace", JSColorSpace, {
     d: 0.04045,
 
     curve: function(x){
-        return parametricCurve3(this.g, this.a, this.b, this.c, this.d, x);
+        return parametricCurve3(x, this.g, this.a, this.b, this.c, this.d);
     },
 
     inverseCurve: function(y){
-        return inverseParametricCurve3(this.g, this.a, this.b, this.c, this.d, y);
+        y = Math.max(0, Math.min(1, y));
+        return inverseParametricCurve3(y, this.g, this.a, this.b, this.c, this.d);
     },
 
     xyzFromComponents: function(components){
@@ -277,9 +278,9 @@ JSClass("JSRGBColorSpace", JSColorSpace, {
 
     componentsFromXYZ: function(xyz){
         return [
-            this.inverseParametricCurve3(this.xyzInverseMatrix[0][0] * xyz[0] + this.xyzInverseMatrix[0][1] * xyz[1] + this.xyzInverseMatrix[0][2] * xyz[2]),
-            this.inverseParametricCurve3(this.xyzInverseMatrix[1][0] * xyz[0] + this.xyzInverseMatrix[1][1] * xyz[1] + this.xyzInverseMatrix[1][2] * xyz[2]),
-            this.inverseParametricCurve3(this.xyzInverseMatrix[2][0] * xyz[0] + this.xyzInverseMatrix[2][1] * xyz[1] + this.xyzInverseMatrix[2][2] * xyz[2])
+            this.inverseCurve(this.xyzInverseMatrix[0][0] * xyz[0] + this.xyzInverseMatrix[0][1] * xyz[1] + this.xyzInverseMatrix[0][2] * xyz[2]),
+            this.inverseCurve(this.xyzInverseMatrix[1][0] * xyz[0] + this.xyzInverseMatrix[1][1] * xyz[1] + this.xyzInverseMatrix[1][2] * xyz[2]),
+            this.inverseCurve(this.xyzInverseMatrix[2][0] * xyz[0] + this.xyzInverseMatrix[2][1] * xyz[1] + this.xyzInverseMatrix[2][2] * xyz[2])
         ];
     },
 
