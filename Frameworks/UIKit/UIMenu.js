@@ -894,7 +894,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         var item = menu.items[itemIndex];
         var window = this.windowForMenu(menu);
         if (window !== null){
-            return window.viewForITem(item);
+            return window.viewForItem(item);
         }
         return null;
     }

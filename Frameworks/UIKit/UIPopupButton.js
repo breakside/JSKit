@@ -467,18 +467,21 @@ JSClass("UIPopupButtonStyler", UIControlStyler, {
 
 JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
 
-    showsOverState: false,
     titleInsets: null,
     normalBackgroundColor: null,
     disabledBackgroundColor: null,
+    overBackgroundColor: null,
     activeBackgroundColor: null,
     normalBackgroundGradient: null,
+    overBackgroundGradient: null,
     disabledBackgroundGradient: null,
     activeBackgroundGradient: null,
     normalBorderColor: null,
     disabledBorderColor: null,
+    overBorderColor: null,
     activeBorderColor: null,
     normalTitleColor: null,
+    overTitleColor: null,
     disabledTitleColor: null,
     activeTitleColor: null,
     borderWidth: 0,
@@ -508,7 +511,7 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
     },
 
     initWithSpec: function(spec){
-        UIPopupButtonCustomStyler.$super.initWithSpec(spec);
+        UIPopupButtonCustomStyler.$super.initWithSpec.call(this, spec);
 
         this._populateDefaults();
 
@@ -517,6 +520,9 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         }
         if (spec.containsKey("normalBackgroundColor")){
             this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
+        }
+        if (spec.containsKey("overBackgroundColor")){
+            this.overBackgroundColor = spec.valueForKey("overBackgroundColor", JSColor);
         }
         if (spec.containsKey("disabledBackgroundColor")){
             this.disabledBackgroundColor = spec.valueForKey("disabledBackgroundColor", JSColor);
@@ -527,6 +533,9 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         if (spec.containsKey("normalBackgroundGradient")){
             this.normalBackgroundGradient = spec.valueForKey("normalBackgroundGradient", JSGradient);
         }
+        if (spec.containsKey("overBackgroundGradient")){
+            this.overBackgroundGradient = spec.valueForKey("overBackgroundGradient", JSGradient);
+        }
         if (spec.containsKey("disabledBackgroundGradient")){
             this.disabledBackgroundGradient = spec.valueForKey("disabledBackgroundGradient", JSGradient);
         }
@@ -536,6 +545,9 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         if (spec.containsKey("normalBorderColor")){
             this.normalBorderColor = spec.valueForKey("normalBorderColor", JSColor);
         }
+        if (spec.containsKey("overBorderColor")){
+            this.overBorderColor = spec.valueForKey("overBorderColor", JSColor);
+        }
         if (spec.containsKey("disabledBorderColor")){
             this.disabledBorderColor = spec.valueForKey("disabledBorderColor", JSColor);
         }
@@ -544,6 +556,9 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
         }
         if (spec.containsKey("normalTitleColor")){
             this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
+        }
+        if (spec.containsKey("overTitleColor")){
+            this.overTitleColor = spec.valueForKey("overTitleColor", JSColor);
         }
         if (spec.containsKey("disabledTitleColor")){
             this.disabledTitleColor = spec.valueForKey("disabledTitleColor", JSColor);
@@ -595,12 +610,18 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
             if (this.activeBorderColor === null){
                 this.activeBorderColor = this.normalBorderColor.colorDarkenedByPercentage(0.2);
             }
+            if (this.overBorderColor === null){
+                this.overBorderColor = this.normalBorderColor.colorDarkenedByPercentage(0.2);
+            }
             if (this.disabledBorderColor === null){
                 this.disabledBorderColor = this.normalBorderColor.colorWithAlpha(0.5);
             }
         }
         if (this.normalTitleColor === null){
             this.normalTitleColor = JSColor.text;
+        }
+        if (this.overTitleColor === null){
+            this.overTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
         }
         if (this.activeTitleColor === null){
             this.activeTitleColor = this.normalTitleColor.colorDarkenedByPercentage(0.2);
@@ -628,6 +649,13 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
             button._titleLabel.textColor = this.disabledTitleColor;
             button._imageView.templateColor = this.disabledTitleColor;
             button._indicatorView.templateColor = this.disabledTitleColor;
+        }else if (button.over){
+            button.layer.backgroundColor = this.overBackgroundColor;
+            button.layer.backgroundGradient = this.overBackgroundGradient;
+            button.layer.borderColor = this.overBorderColor;
+            button._titleLabel.textColor = this.overTitleColor;
+            button._imageView.templateColor = this.overTitleColor;
+            button._indicatorView.templateColor = this.overTitleColor;
         }else if (button.active){
             button.layer.backgroundColor = this.activeBackgroundColor;
             button.layer.backgroundGradient = this.activeBackgroundGradient;
@@ -766,7 +794,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     },
 
     initWithSpec: function(spec){
-        UIPopupButtonCustomStyler.$super.initWithSpec(spec);
+        UIPopupButtonCustomStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("normalColor")){
             this.normalColor = spec.valueForKey("normalColor", JSColor);
         }

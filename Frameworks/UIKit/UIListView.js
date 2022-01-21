@@ -126,7 +126,7 @@ JSClass("UIListView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
+                    this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
                 }
             }
         }
@@ -140,7 +140,7 @@ JSClass("UIListView", UIScrollView, {
             this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
         if (spec.containsKey("showsFocusRing")){
-            this._showsFocusRing = spec.valueForKey("showsFocusRing");
+            this.showsFocusRing = spec.valueForKey("showsFocusRing");
         }
         if (spec.containsKey("listHeaderView")){
             this.listHeaderView = spec.valueForKey("listHeaderView", UIView);
@@ -339,7 +339,6 @@ JSClass("UIListView", UIScrollView, {
         var lastVisibleItem = this._visibleItems[this._visibleItems.length - 1];
         var searcher = JSBinarySearcher(this._visibleItems, VisibleItem.cellIndexPathCompare);
         var visibleSizeChanged = false;
-        var listView = this;
         var contentSize = JSSize(this.contentSize);
         var contentOffset = JSPoint(this.contentOffset);
 
@@ -391,13 +390,13 @@ JSClass("UIListView", UIScrollView, {
 
         if (animator && visibleSizeChanged){
             animator.addAnimations(function(){
-                listView.contentSize = contentSize;
-                listView.contentOffset = contentOffset;
-                listView._layoutVisibleItems(this._visibleItems, y0);
-            });
+                this.contentSize = contentSize;
+                this.contentOffset = contentOffset;
+                this._layoutVisibleItems(this._visibleItems, y0);
+            }, this);
         }else{
-            listView.contentSize = contentSize;
-            listView.contentOffset = contentOffset;
+            this.contentSize = contentSize;
+            this.contentOffset = contentOffset;
         }
 
     },

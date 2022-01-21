@@ -401,6 +401,17 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
         return JSSize(this.size);
     },
 
+    sizeControlToFitSize: function(colorWell, maxSize){
+        var size = JSSize(this.size);
+        if (maxSize.width < size.width){
+            size.width = maxSize.width;
+        }
+        if (maxSize.height < size.height){
+            size.height = maxSize.height;
+        }
+        colorWell.bounds = JSRect(JSPoint.Zero, size);
+    },
+
     layoutControl: function(colorWell){
         var wellLayer = colorWell.stylerProperties.wellLayer;
         wellLayer.frame = colorWell.bounds.rectWithInsets(this.wellInsets);
@@ -423,7 +434,7 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
                 context.fillPath();
                 context.restore();
             }
-            if (this.wellInnerShadowOffset){
+            if (this.wellInnerShadowColor !== null){
                 context.save();
                 context.addRect(layer.bounds.rectWithInsets(-100));
                 context.addPath(layer.backgroundPath());

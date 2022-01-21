@@ -214,7 +214,11 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     viewForItem: function(item){
-        return this._itemViewIndexesByItemId[item.objectID] || null;
+        var index = this._itemViewIndexesByItemId[item.objectID];
+        if (index !== undefined){
+            return this.menuView.itemViews[index];
+        }
+        return null;
     },
 
     // -----------------------------------------------------------------------

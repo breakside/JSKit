@@ -148,22 +148,56 @@ JSClass("UISplitViewController", UIViewController, {
     },
 
     _setMainViewControllerCollapsed: function(mainViewController){
+        if (this._leadingViewController.isKindOfClass(UINavigationController)){
+            this._pushMainViewControllerOnNavigationController(mainViewController, this._leadingViewController);
+        }else{
+            this._presentMainViewControllerOnViewController(mainViewController, this._leadingViewController);
+        }
+    },
+
+    _pushMainViewControllerOnNavigationController: function(mainViewController, navigationController){
+        var i = navigationController.viewControllers.length - 1;
+        // 1. Pop off all view controllers up to and including our current mainViewController
         if (this._mainViewController !== null){
-            if (this._leadingViewController.isKindOfClass(UINavigationController)){
-                if (this._mainViewController === this._leadingViewController.topViewController){
-                    this._leadingViewController.popViewController(false);
-                }
-            }else{
-                if (this._mainViewController === this._leadingViewController.presentedViewController){
-                    this._leadingViewController.dismiss(false);
-                }
+            while (i >= 1 && navigationController.viewControllers[i] !== this._mainViewController){
+                --i;
             }
-            this._leadingViewController.view.layoutIfNeeded();
+            if (i > 0){
+                if (mainViewController === this._mainViewController){
+                    // Bail if we're being asked to show the same view controller that's already shown
+                    // NOTE: this check only comes after finding that the view controller
+                    // is indeed part of the presentation tree becuase without a notification
+                    // from the navigation controller when views are popped by the user,
+                    // we may be in a situation where this._mainViewController is set, but
+                    // is not part of the navigation stack
+                    return;
+                }
+                navigationController.popToViewController(navigationController.viewControllers[i - 1], false);
+            }
+        }
+        // 2. Push the new new mainViewController, animating if we're not currently changing traits
+        if (mainViewController !== null){
+            navigationController.pushViewController(mainViewController, !this.isChangingTraits);
         }
         this._mainViewController = mainViewController;
-        if (this._mainViewController !== null){
-            this._leadingViewController.show(this._mainViewController, this);
+    },
+
+    _presentMainViewControllerOnViewController: function(mainViewController, viewController){
+        // Bail if we're being asked to show the same view controller that's already shown
+        if (mainViewController === this._mainViewController){
+            return;
         }
+        // 1. Dismiss the current mainViewController
+        if (this._mainViewController !== null){
+            if (this._mainViewController === viewController.presentedViewController){
+                viewController.dismiss();
+            }
+        }
+        // 2. Present the new mainViewController
+        if (mainViewController !== null){
+            viewController.presentViewController(mainViewController);
+        }
+        this._mainViewController = mainViewController;
     },
 
     getSplitView: function(){
