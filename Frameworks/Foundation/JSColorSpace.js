@@ -437,7 +437,7 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
     componentNames: { 'white': 0 },
 
     rgbFromComponents: function(components){
-        var white = Math.pow(components[0], this.gamma);
+        var white = components[0];
         return [white, white, white];
     },
 
@@ -466,12 +466,25 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
         ];
     },
 
+    g: 2.4,
+    a: 1.0 / 1.055,
+    b: 0.055 / 1.055,
+    c: 1.0 / 12.92,
+    d: 0.04045,
+
+    curve: function(x){
+        return parametricCurve3(x, this.g, this.a, this.b, this.c, this.d);
+    },
+
+    inverseCurve: function(y){
+        y = Math.max(0, Math.min(1, y));
+        return inverseParametricCurve3(y, this.g, this.a, this.b, this.c, this.d);
+    },
+
     // MARK: - Lab conversions
 
-    gamma: 1.8,
-
     xyzFromComponents: function(components){
-        var w = Math.pow(components[0], this.gamma);
+        var w = this.curve(components[0]);
         return [
             JSColorSpace.Whitepoint.profileConnection[0] * w,
             JSColorSpace.Whitepoint.profileConnection[1] * w,
@@ -480,8 +493,8 @@ JSClass("JSGrayColorSpace", JSColorSpace, {
     },
 
     componentsFromXYZ: function(xyz){
-        var y = Math.min(1, Math.max(0, xyz[1]));
-        return Math.pow(y, 1.0 / this.gamma);
+        var y = Math.min(JSColorSpace.Whitepoint.profileConnection[1], Math.max(0, xyz[1])) / JSColorSpace.Whitepoint.profileConnection[1];
+        return [this.inverseCurve(y)];
     },
 
 });

@@ -43,6 +43,7 @@ JSClass("IKColorSpaceTests", TKTestSuite, {
             var profile = IKColorProfile.initWithData(data);
             var space = IKColorSpace.initWithProfile(profile);
             TKAssertNotNull(space);
+            TKAssertExactEquals(space.numberOfComponents, 3);
             var rgb = [0, 0, 0];
             var xyz = space.xyzFromComponents(rgb);
             TKAssertFloatEquals(xyz[0], 0, 0.001);
@@ -158,6 +159,7 @@ JSClass("IKColorSpaceTests", TKTestSuite, {
             var profile = IKColorProfile.initWithData(data);
             var space = IKColorSpace.initWithProfile(profile);
             TKAssertNotNull(space);
+            TKAssertExactEquals(space.numberOfComponents, 4);
             var cmyk = [0, 0, 0, 0];
             var xyz = space.xyzFromComponents(cmyk);
             TKAssertFloatEquals(xyz[0], 0.9671, 0.001);
@@ -226,6 +228,108 @@ JSClass("IKColorSpaceTests", TKTestSuite, {
             TKAssertFloatEquals(cmyk[1], 0.0594, 0.01);
             TKAssertFloatEquals(cmyk[2], 0.0377, 0.01);
             TKAssertFloatEquals(cmyk[3], 0.0104, 0.01);
+        }, this);
+        this.wait(expectation, 1.0);
+    },
+
+    testGray22: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "Gray22", "icc", function(data){
+            var profile = IKColorProfile.initWithData(data);
+            var space = IKColorSpace.initWithProfile(profile);
+            TKAssertNotNull(space);
+            TKAssertExactEquals(space.numberOfComponents, 1);
+            var gray = [0];
+            var xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0);
+            TKAssertFloatEquals(xyz[1], 0);
+            TKAssertFloatEquals(xyz[2], 0);
+            gray = [1];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.9642);
+            TKAssertFloatEquals(xyz[1], 1.0);
+            TKAssertFloatEquals(xyz[2], 0.82491);
+            gray = [0.5];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.2064, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.2140, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.1766, 0.0001);
+            gray = [0.1];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.0097, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.0100, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.0083, 0.0001);
+            gray = [0.9];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.7592, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.7874, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.6495, 0.0001);
+            xyz = [0, 0, 0];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0);
+            xyz = [0.9642, 1.0, 0.82491];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 1);
+            xyz = [0.2064, 0.2140, 0.1766];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.5, 0.0001);
+            xyz = [0.0097, 0.0100, 0.0083];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.1, 0.001);
+            xyz = [0.7592, 0.7874, 0.6495];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.9, 0.001);
+        }, this);
+        this.wait(expectation, 1.0);
+    },
+
+    testGray18: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "Gray18", "icc", function(data){
+            var profile = IKColorProfile.initWithData(data);
+            var space = IKColorSpace.initWithProfile(profile);
+            TKAssertNotNull(space);
+            TKAssertExactEquals(space.numberOfComponents, 1);
+            var gray = [0];
+            var xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0);
+            TKAssertFloatEquals(xyz[1], 0);
+            TKAssertFloatEquals(xyz[2], 0);
+            gray = [1];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.9642);
+            TKAssertFloatEquals(xyz[1], 1.0);
+            TKAssertFloatEquals(xyz[2], 0.82491);
+            gray = [0.5];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.2769, 0.001);
+            TKAssertFloatEquals(xyz[1], 0.2872, 0.001);
+            TKAssertFloatEquals(xyz[2], 0.2369, 0.001);
+            gray = [0.1];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.0153, 0.001);
+            TKAssertFloatEquals(xyz[1], 0.0158, 0.001);
+            TKAssertFloatEquals(xyz[2], 0.0131, 0.001);
+            gray = [0.9];
+            xyz = space.xyzFromComponents(gray);
+            TKAssertFloatEquals(xyz[0], 0.7976, 0.001);
+            TKAssertFloatEquals(xyz[1], 0.8272, 0.001);
+            TKAssertFloatEquals(xyz[2], 0.6824, 0.001);
+            xyz = [0, 0, 0];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0);
+            xyz = [0.9642, 1.0, 0.82491];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 1);
+            xyz = [0.2769, 0.2872, 0.2369];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.5, 0.001);
+            xyz = [0.0153, 0.0158, 0.0131];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.1, 0.001);
+            xyz = [0.7976, 0.8272, 0.6824];
+            gray = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(gray[0], 0.9, 0.001);
         }, this);
         this.wait(expectation, 1.0);
     }

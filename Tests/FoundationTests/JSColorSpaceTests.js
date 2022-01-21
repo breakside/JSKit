@@ -20,6 +20,106 @@
 // JSClass("JSColorSpaceTests", TKTestSuite, {
 // });
 
+JSClass("JSGrayColorSpaceTests", TKTestSuite, {
+
+    testRGBFromComponents: function(){
+        var space = JSColorSpace.gray;
+        var gray = [0];
+        var rgb = space.rgbFromComponents(gray);
+        TKAssertFloatEquals(rgb[0], 0);
+        TKAssertFloatEquals(rgb[1], 0);
+        TKAssertFloatEquals(rgb[2], 0);
+        gray = [1];
+        rgb = space.rgbFromComponents(gray);
+        TKAssertFloatEquals(rgb[0], 1);
+        TKAssertFloatEquals(rgb[1], 1);
+        TKAssertFloatEquals(rgb[2], 1);
+        gray = [0.5];
+        rgb = space.rgbFromComponents(gray);
+        TKAssertFloatEquals(rgb[0], 0.5, 0.0001);
+        TKAssertFloatEquals(rgb[1], 0.5, 0.0001);
+        TKAssertFloatEquals(rgb[2], 0.5, 0.0001);
+        gray = [0.1];
+        rgb = space.rgbFromComponents(gray);
+        TKAssertFloatEquals(rgb[0], 0.1, 0.0001);
+        TKAssertFloatEquals(rgb[1], 0.1, 0.0001);
+        TKAssertFloatEquals(rgb[2], 0.1, 0.0001);
+        gray = [0.9];
+        rgb = space.rgbFromComponents(gray);
+        TKAssertFloatEquals(rgb[0], 0.9, 0.0001);
+        TKAssertFloatEquals(rgb[1], 0.9, 0.0001);
+        TKAssertFloatEquals(rgb[2], 0.9, 0.0001);
+    },
+
+    testGrayFromComponents: function(){
+        var space = JSColorSpace.gray;
+        var gray = [0];
+        var gray2 = space.grayFromComponents(gray);
+        TKAssertFloatEquals(gray2[0], 0);
+        gray = [1];
+        gray2 = space.grayFromComponents(gray);
+        TKAssertFloatEquals(gray2[0], 1);
+        gray = [0.5];
+        gray2 = space.grayFromComponents(gray);
+        TKAssertFloatEquals(gray2[0], 0.5, 0.0001);
+        gray = [0.1];
+        gray2 = space.grayFromComponents(gray);
+        TKAssertFloatEquals(gray2[0], 0.1, 0.0001);
+        gray = [0.9];
+        gray2 = space.grayFromComponents(gray);
+        TKAssertFloatEquals(gray2[0], 0.9, 0.0001);
+    },
+
+    testXYZFromComponents: function(){
+        var space = JSColorSpace.gray;
+        var gray = [0];
+        var xyz = space.xyzFromComponents(gray);
+        TKAssertFloatEquals(xyz[0], 0);
+        TKAssertFloatEquals(xyz[1], 0);
+        TKAssertFloatEquals(xyz[2], 0);
+        gray = [1];
+        xyz = space.xyzFromComponents(gray);
+        TKAssertFloatEquals(xyz[0], 0.9642);
+        TKAssertFloatEquals(xyz[1], 1.0);
+        TKAssertFloatEquals(xyz[2], 0.82491);
+        gray = [0.5];
+        xyz = space.xyzFromComponents(gray);
+        TKAssertFloatEquals(xyz[0], 0.2064, 0.0001);
+        TKAssertFloatEquals(xyz[1], 0.2140, 0.0001);
+        TKAssertFloatEquals(xyz[2], 0.1766, 0.0001);
+        gray = [0.1];
+        xyz = space.xyzFromComponents(gray);
+        TKAssertFloatEquals(xyz[0], 0.0097, 0.0001);
+        TKAssertFloatEquals(xyz[1], 0.0100, 0.0001);
+        TKAssertFloatEquals(xyz[2], 0.0083, 0.0001);
+        gray = [0.9];
+        xyz = space.xyzFromComponents(gray);
+        TKAssertFloatEquals(xyz[0], 0.7592, 0.0001);
+        TKAssertFloatEquals(xyz[1], 0.7874, 0.0001);
+        TKAssertFloatEquals(xyz[2], 0.6495, 0.0001);
+    },
+
+    testComponentsFromXYZ: function(){
+        var space = JSColorSpace.gray;
+        var xyz = [0, 0, 0];
+        var gray = space.componentsFromXYZ(xyz);
+        TKAssertFloatEquals(gray[0], 0);
+        xyz = [0.9642, 1.0, 0.82491];
+        gray = space.componentsFromXYZ(xyz);
+        TKAssertFloatEquals(gray[0], 1);
+        xyz = [0.2064, 0.2140, 0.1766];
+        gray = space.componentsFromXYZ(xyz);
+        TKAssertFloatEquals(gray[0], 0.5, 0.0001);
+        xyz = [0.0097, 0.0100, 0.0083];
+        gray = space.componentsFromXYZ(xyz);
+        TKAssertFloatEquals(gray[0], 0.1, 0.001);
+        xyz = [0.7592, 0.7874, 0.6495];
+        gray = space.componentsFromXYZ(xyz);
+        TKAssertFloatEquals(gray[0], 0.9, 0.001);
+    }
+
+});
+
 JSClass("JSRGBColorSpaceTests", TKTestSuite, {
 
     testModels: function(){

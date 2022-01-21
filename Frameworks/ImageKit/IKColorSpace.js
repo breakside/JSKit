@@ -48,7 +48,9 @@ JSClass("IKColorSpace", JSColorSpace, {
             logger.warn("color profile must have a Lab or XYZ connection space");
             return null;
         }
-        if (profile.aToB0 !== null && profile.bToA0 !== null){
+        if (profile.numberOfComponents === 1 && profile.grayToneReproductionCurve !== null){
+            this._componentConverter = IKColorProfileCurveComponentConverter.initWithCurve(profile.grayToneReproductionCurve.fn);
+        }else if (profile.aToB0 !== null && profile.bToA0 !== null){
             this._componentConverter = IKColorProfileLookupComponentConverter.initWithLookupTables(profile.aToB0, profile.bToA0, profile.connectionSpace);
         }else if (profile.redToneReproductionCurve !== null && profile.greenToneReproductionCurve !== null && profile.blueToneReproductionCurve !== null && profile.redMatrixColumn !== null && profile.greenMatrixColumn !== null && profile.blueMatrixColumn !== null){
             var matrix = [

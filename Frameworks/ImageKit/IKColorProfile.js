@@ -857,6 +857,30 @@ JSClass("IKColorProfileComponentConverter", JSObject, {
 
 });
 
+JSClass("IKColorProfileCurveComponentConverter", IKColorProfileComponentConverter, {
+
+    curve: null,
+
+    initWithCurve: function(curve){
+        this.curve = curve;
+    },
+
+    connectionComponentsFromComponents: function(components){
+        var white = this.curve(components[0]);
+        return [
+            white * JSColorSpace.Whitepoint.profileConnection[0],
+            white * JSColorSpace.Whitepoint.profileConnection[1],
+            white * JSColorSpace.Whitepoint.profileConnection[2]
+        ];
+    },
+
+    componentsFromConnectionComponents: function(xyz){
+        var white = Math.min(JSColorSpace.Whitepoint.profileConnection[1], Math.max(0, xyz[1])) / JSColorSpace.Whitepoint.profileConnection[1];
+        return [this.curve.inverse(white)];
+    },
+
+});
+
 JSClass("IKColorProfileMatrixComponentConverter", IKColorProfileComponentConverter, {
 
     matrix: null,
