@@ -126,7 +126,7 @@ JSClass("UIListView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
+                    this.registerHeaderFooterClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier);
                 }
             }
         }
@@ -140,7 +140,7 @@ JSClass("UIListView", UIScrollView, {
             this._headersStickToTop = spec.valueForKey("headersStickToTop");
         }
         if (spec.containsKey("showsFocusRing")){
-            this._showsFocusRing = spec.valueForKey("showsFocusRing");
+            this.showsFocusRing = spec.valueForKey("showsFocusRing");
         }
         if (spec.containsKey("listHeaderView")){
             this.listHeaderView = spec.valueForKey("listHeaderView", UIView);

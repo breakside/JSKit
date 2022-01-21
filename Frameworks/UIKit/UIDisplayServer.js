@@ -213,7 +213,11 @@ JSClass("UIDisplayServer", JSObject, {
     _flushLayerLayoutQueue: function(){
         var layer;
         while ((layer = this.layerLayoutQueue.dequeue()) !== null){
-            layer.layout();
+            if (layer.superlayer !== null && this.layerLayoutQueue.contains(layer.superlayer)){
+                this.layerLayoutQueue.enqueue(layer);
+            }else{
+                layer.layout();   
+            }
         }
     },
 

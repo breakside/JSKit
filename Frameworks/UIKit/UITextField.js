@@ -788,6 +788,9 @@ JSClass("UITextField", UIControl, {
             this.delegate.textFieldDidChange(this);
         }
         this._didChange = true;
+        if (this._textLayer.textAlignment !== JSTextAlignment.left){
+            this.setNeedsLayout();
+        }
     },
 
     _adjustCursorPositionToCenterIfNeeded: function(){

@@ -162,11 +162,19 @@ JSClass("UIViewController", UIResponder, {
         this._isViewVisible = false;
     },
 
+    // -------------------------------------------------------------------------
+    // MARK: - Layout
+
     viewDidLayoutSubviews: function(){
     },
 
     sizeViewToFitSize: function(size){
         this.view.sizeToFitSize(size);
+    },
+
+    contentSizeThatFitsSize: function(maxSize){
+        this.view.sizeToFitSize(maxSize);
+        return JSSize(this.view.bounds.size);
     },
 
     // -------------------------------------------------------------------------
