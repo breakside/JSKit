@@ -309,5 +309,22 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertFloatEquals(lightened.components[0], 0.1);
         TKAssertFloatEquals(lightened.components[1], 0.55);
         TKAssertFloatEquals(lightened.components[2], 1);
+    },
+
+    testColorInSpace: function(){
+        var color1 = JSColor.initWithRGBA(0.1, 0.2, 0.3, 0.4);
+        var color2 = color1.colorInSpace(JSColorSpace.gray);
+        TKAssertEquals(color2.space, JSColorSpace.gray);
+        TKAssertFloatEquals(color2.components[0], 0.2, 0.01);
+        TKAssertFloatEquals(color2.components[1], 0.4);
+
+        color1 = JSColor.initWithWhite(0.6, 0.9);
+        color2 = color1.colorInSpace(JSColorSpace.rgb);
+        TKAssertEquals(color2.space, JSColorSpace.rgb);
+        TKAssertFloatEquals(color2.components[0], 0.6, 0.001);
+        TKAssertFloatEquals(color2.components[1], 0.6, 0.001);
+        TKAssertFloatEquals(color2.components[2], 0.6, 0.001);
+        TKAssertFloatEquals(color2.components[3], 0.9);
+
     }
 });

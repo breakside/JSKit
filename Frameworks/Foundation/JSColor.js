@@ -300,6 +300,15 @@ JSClass('JSColor', JSObject, {
         return JSColor.initWithSpaceAndComponents(JSColorSpace.gray, gray);
     },
 
+    colorInSpace: function(space){
+        if (space === this._space){
+            return this;
+        }
+        var components = space.componentsFromSpace(this._space, this._components);
+        components.push(this._components[this._components.length - 1]);
+        return JSColor.initWithSpaceAndComponents(space, components);
+    },
+
     rgbaHexStringRepresentation: function(){
         var color = this.rgbaColor();
         var r = Math.round(color.red * 255);

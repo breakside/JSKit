@@ -803,47 +803,159 @@ JSClass("IKColorProfileLookupTable8", IKColorProfileType, {
 JSClass("IKColorProfileLookupTable16", IKColorProfileType, {
 
     type: IKColorProfile.DataType.lookupTable16,
+    numberOfInputTableEntries: 0,
+    mumberOfOutputTableEntries: 0,
+    numberOfInputChannels: 0,
+    numberOfOutputChannels: 0,
+    numberOfGridPoints: 0,
+    matrix: null,
+    inputTables: null,
+    outputTables: null,
+    lookupTableDataView: null,
+    stride: 0,
 
     initWithData: function(data){
         IKColorProfileLookupTable16.$super.initWithData.call(this, data);
         var dataView = data.dataView();
-        // TODO:
+        if (data.length < 48){
+            logger.warn("not enough data for lut8 matrix");
+            return null;
+        }
+        this.numberOfInputChannels = dataView.getUint8(8);
+        this.numberOfOutputChannels = dataView.getUint8(9);
+        this.numberOfGridPoints = dataView.getUint8(10);
+        this.matrix = IKMatrix([
+            [s15Fixed16(dataView.getUint32(12)), s15Fixed16(dataView.getUint32(16)), s15Fixed16(dataView.getUint32(20))],
+            [s15Fixed16(dataView.getUint32(24)), s15Fixed16(dataView.getUint32(28)), s15Fixed16(dataView.getUint32(32))],
+            [s15Fixed16(dataView.getUint32(36)), s15Fixed16(dataView.getUint32(40)), s15Fixed16(dataView.getUint32(44))]
+        ]);
+        this.numberOfInputTableEntries = dataView.getUint16(48);
+        this.numberOfOutputTableEntries = dataView.getUint16(50);
+        var offset = 52;
+        var end;
+        var i, j, k;
+        var table;
+        this.stride = this.numberOfOutputChannels + this.numberOfOutputChannels;
+        this.inputTables = [];
+        this.outputTables = [];
+        for (i = 0; i < this.numberOfInputChannels; ++i){
+            this.stride *= this.numberOfGridPoints;
+            end = offset + this.numberOfInputTableEntries + this.numberOfInputTableEntries;
+            if (data.length < end){
+                logger.warn("not enough data for lut16 input tables");
+                return null;
+            }
+            table = [];
+            for (; offset < end; offset += 2){
+                table.push(dataView.getUint16(offset) / 65535.0);
+            }
+            this.inputTables.push(table);
+        }
+        end = offset + this.stride;
+        if (data.length < end){
+            logger.warn("not enough data for lut8 clut");
+            return null;
+        }
+        this.lookupTableDataView = this.data.subdataInRange(JSRange(offset, this.stride)).dataView();
+        offset += this.stride;
+        for (i = 0; i < this.numberOfOutputChannels; ++i){
+            end = offset + this.numberOfOutputTableEntries + this.numberOfOutputTableEntries;
+            if (data.length < end){
+                logger.warn("not enough data for lut8 output tables");
+                return null;
+            }
+            table = [];
+            for (; offset < end; offset += 2){
+                table.push(dataView.getUint16(offset) / 65535.0);
+            }
+            this.outputTables.push(table);
+        }
     },
 
     lookup: function(components){
+        var input = [];
+        var i, j, l;
+        var x, x0, x1;
+        var offsetCount;
+        var offsets = [0];
+        var weights = [1];
+        var w0, w1;
+        var stride = this.stride;
+        var d;
+        for (i = 0; i < this.numberOfInputChannels; ++i){
+            stride /= this.numberOfGridPoints;
+            x = this.inputTables[i][Math.round(Math.max(0, Math.min(1, components[i])) * (this.numberOfInputTableEntries - 1))];
+            x *= (this.numberOfGridPoints - 1);
+            x0 = Math.floor(x);
+            d = x0 * stride;
+            for (j = 0, l = offsets.length; j < l; ++j){
+                offsets[j] += d;
+            }
+            if (x > x0){
+                x1 = x0 + 1;
+                w1 = (x - x0);
+                w0 = 1 - w1;
+                for (j = 0, l = offsets.length; j < l; ++j){
+                    offsets.push(offsets[j] + stride);
+                    weights.push(weights[j] * w1);
+                    weights[j] *= w0;
+                }
+            }
+        }
+        var output = [];
+        for (i = 0; i < this.numberOfOutputChannels; ++i){
+            output.push(0);
+        }
+        var offset;
+        for (i = 0, l = offsets.length; i < l; ++i){
+            offset = offsets[i];
+            for (j = 0; j < this.numberOfOutputChannels; ++j, offset += 2){
+                x = (this.lookupTableDataView.getUint16(offset) / 65535.0) * (this.numberOfOutputTableEntries - 1);
+                x0 = Math.floor(x);
+                if (x0 < x){
+                    x1 = x0 + 1;
+                    w1 = (x - x0);
+                    w0 = 1 - w1;
+                    output[j] += (this.outputTables[j][x0] * w0 + this.outputTables[j][x1] * w1) * weights[i];
+                }else{
+                    output[j] += this.outputTables[j][x0] * weights[i];
+                }
+            }
+        }
+        return output;
     }
 
 });
 
-JSClass("IKColorProfileLookupTableAToB", IKColorProfileType, {
+// JSClass("IKColorProfileLookupTableAToB", IKColorProfileType, {
 
-    type: IKColorProfile.DataType.lookupTableAToB,
+//     type: IKColorProfile.DataType.lookupTableAToB,
 
-    initWithData: function(data){
-        IKColorProfileLookupTableAToB.$super.initWithData.call(this, data);
-        var dataView = data.dataView();
-        // TODO:
-    },
+//     initWithData: function(data){
+//         IKColorProfileLookupTableAToB.$super.initWithData.call(this, data);
+//         var dataView = data.dataView();
+//         // TODO:
+//     },
 
-    lookup: function(components){
-    }
+//     lookup: function(components){
+//     }
 
-});
+// });
 
-JSClass("IKColorProfileLookupTableBToA", IKColorProfileType, {
+// JSClass("IKColorProfileLookupTableBToA", IKColorProfileType, {
 
-    type: IKColorProfile.DataType.lookupTableBToA,
+//     type: IKColorProfile.DataType.lookupTableBToA,
 
-    initWithData: function(data){
-        IKColorProfileLookupTableBToA.$super.initWithData.call(this, data);
-        var dataView = data.dataView();
-        // TODO:
-    },
+//     initWithData: function(data){
+//         IKColorProfileLookupTableBToA.$super.initWithData.call(this, data);
+//         var dataView = data.dataView();
+//         // TODO:
+//     },
 
-    lookup: function(components){
-    }
+//     lookup: function(components){
+//     }
 
-});
+// });
 
 JSClass("IKColorProfileComponentConverter", JSObject, {
 

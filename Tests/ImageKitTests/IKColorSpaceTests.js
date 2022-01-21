@@ -232,6 +232,85 @@ JSClass("IKColorSpaceTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testSWOPCMYK: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "USWebCoatedSWOP", "icc", function(data){
+            var profile = IKColorProfile.initWithData(data);
+            var space = IKColorSpace.initWithProfile(profile);
+            TKAssertNotNull(space);
+            TKAssertExactEquals(space.numberOfComponents, 4);
+            var cmyk = [0, 0, 0, 0];
+            var xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.9545, 0.001);
+            TKAssertFloatEquals(xyz[1], 0.9900, 0.001);
+            TKAssertFloatEquals(xyz[2], 0.8166, 0.001);
+            cmyk = [1, 1, 1, 1];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0, 0.01);
+            TKAssertFloatEquals(xyz[1], 0, 0.01);
+            TKAssertFloatEquals(xyz[2], 0, 0.01);
+            cmyk = [0, 0, 0, 1];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.0146, 0.0001);
+            TKAssertFloatEquals(xyz[1], 0.0145, 0.0001);
+            TKAssertFloatEquals(xyz[2], 0.0118, 0.0001);
+            cmyk = [0.5, 0.5, 0.5, 0.5];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.0725, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.0721, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.0537, 0.01);
+            cmyk = [0.1, 0.2, 0.3, 0.4];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.2511, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.2501, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.1579, 0.01);
+            cmyk = [0.9, 0.8, 0.7, 0.6];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.0119, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.0132, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.0160, 0.01);
+            cmyk = [1, 0, 0, 0];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.1933, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.3052, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.6490, 0.01);
+            cmyk = [0, 1, 0, 0];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.3994, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.2000, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.1965, 0.01);
+            cmyk = [0, 0, 1, 0];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.8023, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.8667, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.0899, 0.01);
+            cmyk = [0.1, 0.5, 0.7, 0];
+            xyz = space.xyzFromComponents(cmyk);
+            TKAssertFloatEquals(xyz[0], 0.4471, 0.01);
+            TKAssertFloatEquals(xyz[1], 0.3710, 0.01);
+            TKAssertFloatEquals(xyz[2], 0.1139, 0.01);
+            xyz = [0.9642, 1.0, 0.82491];
+            cmyk = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(cmyk[0], 0.0000, 0.01);
+            TKAssertFloatEquals(cmyk[1], 0.0000, 0.01);
+            TKAssertFloatEquals(cmyk[2], 0.0000, 0.01);
+            TKAssertFloatEquals(cmyk[3], 0.0000, 0.01);
+            xyz = [0.3947, 0.3280, 0.1041];
+            cmyk = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(cmyk[0], 0.1755, 0.01);
+            TKAssertFloatEquals(cmyk[1], 0.5265, 0.01);
+            TKAssertFloatEquals(cmyk[2], 0.7037, 0.01);
+            TKAssertFloatEquals(cmyk[3], 0.0177, 0.01);
+            xyz = [0.1761, 0.2726, 0.5356];
+            cmyk = space.componentsFromXYZ(xyz);
+            TKAssertFloatEquals(cmyk[0], 0.9649, 0.01);
+            TKAssertFloatEquals(cmyk[1], 0.1659, 0.01);
+            TKAssertFloatEquals(cmyk[2], 0.1090, 0.01);
+            TKAssertFloatEquals(cmyk[3], 0.0000, 0.01);
+        }, this);
+        this.wait(expectation, 1.0);
+    },
+
     testGray22: function(){
         var expectation = TKExpectation.init();
         expectation.call(this.getResourceData, this, "Gray22", "icc", function(data){
