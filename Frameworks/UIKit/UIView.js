@@ -145,6 +145,9 @@ JSClass('UIView', UIResponder, {
                 this.addSubview(subview);
             }
         }
+        if (spec.containsKey("clipsToBounds")){
+            this.clipsToBounds = spec.valueForKey("clipsToBounds");
+        }
         // NOTE: constraints are still and work in progress, and aren't actually
         // used yet during layout
         if (spec.containsKey("constraints")){
