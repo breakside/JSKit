@@ -664,4 +664,73 @@ JSClass("APIRequestTests", TKTestSuite, {
         this.wait(expectation, 2.0);
     },
 
+    testAcceptContentTypes: function(){
+        var url = JSURL.initWithString("http://breakside.io/test/request");
+        var request = APIRequest.initWithMethodAndURL("GET", url);
+        TKAssertExactEquals(request.acceptContentTypes.length, 0);
+
+        var headers = JSMIMEHeaderMap();
+        headers.add("Accept", "application/json");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 1);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "application/json");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "application/json, text/csv");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 2);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "application/json");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "text/csv");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "application/json;q=0.9, text/csv");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 2);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "text/csv");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "application/json");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "application/json, text/csv;q=0.6, text/plain");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 3);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "application/json");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "text/plain");
+        TKAssertExactEquals(request.acceptContentTypes[2].toString(), "text/csv");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "audio/*; q=0.2, audio/basic");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 2);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "audio/basic");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "audio/*");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "text/plain; q=0.5, text/html,\ttext/x-dvi; q=0.8, text/x-c");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 4);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "text/html");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "text/x-c");
+        TKAssertExactEquals(request.acceptContentTypes[2].toString(), "text/x-dvi");
+        TKAssertExactEquals(request.acceptContentTypes[3].toString(), "text/plain");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "text/*, text/plain, text/plain;format=flowed, */*");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 4);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "text/plain; format=\"flowed\"");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "text/plain");
+        TKAssertExactEquals(request.acceptContentTypes[2].toString(), "text/*");
+        TKAssertExactEquals(request.acceptContentTypes[3].toString(), "*/*");
+
+        headers = JSMIMEHeaderMap();
+        headers.add("Accept", "text/*;q=0.3, text/html;q=0.7, text/html;level=1,\ttext/html;level=2;q=0.4, */*;q=0.5");
+        request = APIRequest.initWithMethodAndURL("GET", url,headers);
+        TKAssertExactEquals(request.acceptContentTypes.length, 5);
+        TKAssertExactEquals(request.acceptContentTypes[0].toString(), "text/html; level=\"1\"");
+        TKAssertExactEquals(request.acceptContentTypes[1].toString(), "text/html");
+        TKAssertExactEquals(request.acceptContentTypes[2].toString(), "*/*");
+        TKAssertExactEquals(request.acceptContentTypes[3].toString(), "text/html; level=\"2\"");
+        TKAssertExactEquals(request.acceptContentTypes[4].toString(), "text/*");
+    }
+
 });

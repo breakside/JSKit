@@ -107,6 +107,24 @@ JSClass("JSMediaTypeTests",TKTestSuite, {
         var media = JSMediaType("application/json", {charset: 'utf-8'});
         var str = media.toString();
         TKAssertEquals(str, 'application/json; charset="utf-8"');
+    },
+
+    testWildcard: function(){
+        var media = JSMediaType("image/*");
+        TKAssertNotNull(media);
+        TKAssertEquals(media.type, "image");
+        TKAssertEquals(media.subtype, "*");
+
+        media = JSMediaType("*/*");
+        TKAssertNotNull(media);
+        TKAssertEquals(media.type, "*");
+        TKAssertEquals(media.subtype, "*");
+
+        media = JSMediaType("*/*;q=0.8");
+        TKAssertNotNull(media);
+        TKAssertEquals(media.type, "*");
+        TKAssertEquals(media.subtype, "*");
+        TKAssertExactEquals(media.parameters.q, "0.8");
     }
 
 });

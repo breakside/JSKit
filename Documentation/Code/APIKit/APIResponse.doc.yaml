@@ -133,7 +133,7 @@ topics:
           and the response `data` to the UTF-8 encoded JSON serialization of the
           given object.
       - name: contentType
-        type: String
+        type: JSMediaType
         summary: The content type of the response body
       - name: conentLength
         type: Number
