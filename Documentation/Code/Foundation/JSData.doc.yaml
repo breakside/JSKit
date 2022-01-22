@@ -63,6 +63,11 @@ topics:
         name: initWithArray
         kind: init
         summary: Create a byte array from a list of numbers
+        arguments:
+          -
+            name: array
+            type: Number[]
+            summary: The array with numbers that represent byte values
         description: |
           Most useful when hard-coding fixed byte arrays, this initializer takes
           an array of numbers and creates an array of bytes.
@@ -73,6 +78,11 @@ topics:
         environment: node
         kind: init
         summary: Create a byte array from a node `Buffer`
+        arguments:
+          -
+            name: buffer
+            type: Buffer
+            summary: The node buffer
         description: |
           Node.js uses a `Buffer` class that is similar to, but distinct from
           `Uint8Array`.  Therefore, the `JSData` extensions are not available
@@ -88,6 +98,11 @@ topics:
         introduced: 2020.39.0
         kind: init
         summary: Create a byte array by copying another byte array
+        arguments:
+          -
+            name: data
+            type: JSData
+            summary: The data to copy
         description: |
           Copies the given buffer into a new buffer so changes to one will not
           affect changes to the other.
