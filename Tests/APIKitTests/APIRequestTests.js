@@ -731,6 +731,55 @@ JSClass("APIRequestTests", TKTestSuite, {
         TKAssertExactEquals(request.acceptContentTypes[2].toString(), "*/*");
         TKAssertExactEquals(request.acceptContentTypes[3].toString(), "text/html; level=\"2\"");
         TKAssertExactEquals(request.acceptContentTypes[4].toString(), "text/*");
+    },
+
+    testBearerToken: function(){
+        var url = JSURL.initWithString("http://breakside.io/test/request");
+        var headers = JSMIMEHeaderMap();
+        var request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.bearerToken);
+
+        headers.set("Authorization", "Bearer thisisatoken");
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertEquals(request.bearerToken, "thisisatoken");
+    },
+
+    testBasicAuthorization: function(){
+        var url = JSURL.initWithString("http://breakside.io/test/request");
+        var headers = JSMIMEHeaderMap();
+        var request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.username);
+        TKAssertNull(request.password);
+
+        headers.set("Authorization", "Bearer thisisatoken");
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.username);
+        TKAssertNull(request.password);
+
+        headers.set("Authorization", "Basic");
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.username);
+        TKAssertNull(request.password);
+
+        headers.set("Authorization", "Basic ");
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertExactEquals(request.username, "");
+        TKAssertNull(request.password);
+
+        headers.set("Authorization", "Basic one:two");
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertNull(request.username);
+        TKAssertNull(request.password);
+
+        headers.set("Authorization", "Basic " + "one:two".utf8().base64StringRepresentation());
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertExactEquals(request.username, "one");
+        TKAssertExactEquals(request.password, "two");
+
+        headers.set("Authorization", "Basic " + "one".utf8().base64StringRepresentation());
+        request = APIRequest.initWithMethodAndURL("GET", url, headers);
+        TKAssertExactEquals(request.username, "one");
+        TKAssertNull(request.password);
     }
 
 });

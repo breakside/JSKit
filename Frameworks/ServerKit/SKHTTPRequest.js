@@ -72,6 +72,50 @@ JSClass("SKHTTPRequest", JSObject, {
     _getOrigin: function(){
         return this.headerMap.get('Origin', null);
     },
+    
+    acceptContentTypes: JSLazyInitProperty(function(){
+        var mediaStrings = this.headerMap.get("Accept", "").split(/\s*,\s*/);
+        var contentTypesAndWeights = [];
+        var contentType;
+        var q;
+        for (var i = 0, l = mediaStrings.length; i < l; ++i){
+            contentType = JSMediaType(mediaStrings[i]);
+            if (contentType !== null){
+                q = 1;
+                if (contentType.parameters.q !== undefined){
+                    q = parseFloat(contentType.parameters.q);
+                    if (isNaN(q)){
+                        q = 0;
+                    }
+                    delete contentType.parameters.q;
+                }
+                contentTypesAndWeights.push([contentType, q]);
+            }
+        }
+        contentTypesAndWeights.sort(function(a, b){
+            var d = b[1] - a[1];
+            if (d !== 0){
+                return d;
+            }
+            if (a[0].type !== "*" && b[0].type === "*"){
+                return -1;
+            }
+            if (a[0].type === "*" && b[0].type !== "*"){
+                return 1;
+            }
+            if (a[0].subtype !== "*" && b[0].subtype === "*"){
+                return -1;
+            }
+            if (a[0].subtype === "*" && b[0].subtype !== "*"){
+                return 1;
+            }
+            d = Object.keys(b[0].parameters).length - Object.keys(a[0].parameters).length;
+            return d;
+        });
+        return contentTypesAndWeights.map(function(pair){
+            return pair[0];
+        });
+    }),
 
     createWebsocket: function(){
     },
