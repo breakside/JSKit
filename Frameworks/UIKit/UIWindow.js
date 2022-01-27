@@ -229,12 +229,14 @@ JSClass('UIWindow', UIView, {
         }
         this.contentView = contentView;
         if (this._isVisible){
-            if (previousViewController !== null){
-                previousViewController.viewDidDisappear(false);
-            }
-            if (contentViewController !== null){
-                contentViewController.viewDidAppear(false);
-            }
+            this.layer._displayServer.schedule(function(){
+                if (previousViewController !== null){
+                    previousViewController.viewDidDisappear(false);
+                }
+                if (contentViewController !== null){
+                    contentViewController.viewDidAppear(false);
+                }
+            }, this);
         }
         this._contentViewController = contentViewController;
     },
