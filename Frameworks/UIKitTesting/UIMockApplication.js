@@ -59,6 +59,10 @@ JSClass("UIMockApplication", UIApplication, {
         UIMockApplication.$super.deinit.call(this);
     },
 
+    setScreenSize: function(size){
+        this.windowServer.screen.frame = JSRect(JSPoint.Zero, size);
+    },
+
     displayTime: 0,
 
     updateDisplay: function(dt){
