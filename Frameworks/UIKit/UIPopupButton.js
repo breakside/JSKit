@@ -782,6 +782,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     activeBackgroundColor: null,
     overBackgroundColor: null,
     cornerRadius: 0,
+    titleInsets: null,
 
     init: function(){
         this.initWithColor(JSColor.text);
@@ -814,6 +815,9 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         if (spec.containsKey("cornerRadius")){
             this.cornerRadius = spec.valueForKey("cornerRadius");
         }
+        if (spec.containsKey("titleInsets")){
+            this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
+        }
         this._fillInMissingColors();
     },
 
@@ -823,6 +827,9 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         }
         if (this.disabledColor === null){
             this.disabledColor = this.normalColor.colorWithAlpha(0.5);
+        }
+        if (this.titleInsets === null){
+            this.titleInsets = JSInsets.Zero;
         }
     },
 
@@ -835,6 +842,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         button._indicatorView.frame = JSRect.Zero;
         button._imageView.hidden = false;
         button.cornerRadius = this.cornerRadius;
+        button.titleInsets = this.titleInsets;
         this.updateControl(button);
     },
 
