@@ -35,6 +35,7 @@ JSClass("UINavigationController", UIViewController, {
         this.addChildViewController(rootViewController);
         this._viewControllers = [rootViewController];
         this.navigationBar = UINavigationBar.initWithRootItem(rootViewController.navigationItem, barStyler);
+        this.navigationItem.hidesNavigationBar = true;
     },
 
     initWithSpec: function(spec){
@@ -54,6 +55,7 @@ JSClass("UINavigationController", UIViewController, {
         if (spec.containsKey("delegate")){
             this.delegate = spec.valueForKey("delegate");
         }
+        this.navigationItem.hidesNavigationBar = true;
     },
 
     delegate: null,
@@ -109,16 +111,8 @@ JSClass("UINavigationController", UIViewController, {
     viewControllers: JSDynamicProperty('_viewControllers', null),
 
     setViewControllers: function(viewControllers){
+        var oldTopViewController = this.topViewController;
         var newTopViewController = viewControllers[viewControllers.length - 1];
-        var newView = newTopViewController.view;
-        if (newTopViewController !== this.topViewController){
-            this.topViewController.viewWillDisappear();
-            newTopViewController.viewWillAppear();
-            if (this.delegate && this.delegate.navigationControllerWillShowViewController){
-                this.delegate.navigationControllerWillShowViewController(this, newTopViewController);
-            }
-        }
-        this.topViewController.view.removeFromSuperview();
         var i, l;
         for (i = 0, l = this._viewControllers.length; i < l; ++i){
             this._viewControllers[i].removeFromParentViewController();
@@ -130,8 +124,32 @@ JSClass("UINavigationController", UIViewController, {
             items.push(this._viewControllers[i].navigationItem);
         }
         this._navigationBar.items = items;
-        this.view.insertSubviewBelowSibling(this.topViewController.view, this._navigationBar);
-        this.view.setNeedsLayout();
+        if (this.isViewLoaded){
+            oldTopViewController.view.removeFromSuperview();
+            if (this.isViewVisible){
+                if (newTopViewController !== oldTopViewController){
+                    oldTopViewController.viewWillDisappear(false);
+                    newTopViewController.viewWillAppear(false);
+                    if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+                        this.delegate.navigationControllerWillShowViewController(this, newTopViewController);
+                    }
+                }
+                this.view.layer._displayServer.schedule(function(){
+                    oldTopViewController.viewDidDisappear(false);
+                    newTopViewController.viewDidAppear(false);
+                    if (this.delegate && this.delegate.navigationControllerDidShowViewController){
+                        this.delegate.navigationControllerDidShowViewController(this, newTopViewController);
+                    }
+                }, this);
+            }
+            if (newTopViewController.navigationItem.hidesNavigationBar){
+                this.view.addSubview(newTopViewController.view);
+            }else{
+                this.view.insertSubviewBelowSibling(newTopViewController.view, this._navigationBar);
+            }
+            this.navigationBar.hidden = newTopViewController.navigationItem.hidesNavigationBar;
+            this.view.setNeedsLayout();
+        }
     },
 
     topViewController: JSReadOnlyProperty(),
@@ -163,59 +181,92 @@ JSClass("UINavigationController", UIViewController, {
         if (this.popAnimator !== null || this.pushAnimator !== null){
             return;
         }
-        if (!this.isViewVisible){
-            animated = false;
-        }
-        if (animated){
-            this.pushAnimator = this.createPushAnimator();
-        }
         var fromViewController = this.topViewController;
+        var fromItem = fromViewController.navigationItem;
+        var fromView = fromViewController.view;
         var view = viewController.view;
-        if (this.isViewVisible){
-            fromViewController.viewWillDisappear(animated);
-            viewController.viewWillAppear(animated);
-        }
-        if (this.delegate && this.delegate.navigationControllerWillShowViewController){
-            this.delegate.navigationControllerWillShowViewController(this, viewController);
-        }
+        var item = viewController.navigationItem;
+        var navigationBar = this._navigationBar;
         this.addChildViewController(viewController);
         this._viewControllers.push(viewController);
-        this._navigationBar.pushItem(viewController.navigationItem, animated);
-        this.view.insertSubviewBelowSibling(view, this._navigationBar);
-        if (!animated){
+        if (this.isViewLoaded){
+            var isHidingNavigationBar = !fromItem.hidesNavigationBar && item.hidesNavigationBar;
+            var isShowingNavigationBar = fromItem.hidesNavigationBar && !item.hidesNavigationBar;
             if (this.isViewVisible){
-                fromViewController.enqueueDidDisappear();
-                viewController.enqueueDidAppear();
-            }
-            if (this.delegate && this.delegate.navigationControllerDidShowViewController){
-                this.delegate.navigationControllerDidShowViewController(this, viewController);
-            }
-            fromViewController.view.removeFromSuperview();
-            this.view.setNeedsLayout();
-        }else{
-            var navController = this;
-            this.layoutChildView(viewController.view);
-            viewController.view.transform = JSAffineTransform.Translated(viewController.view.bounds.size.width, 0);
-            viewController.view.shadowColor = JSColor.windowShadow;
-            viewController.view.shadowRadius = 20;
-            this.pushAnimator.addAnimations(function(){
-                viewController.view.transform = JSAffineTransform.Identity;
-                fromViewController.view.transform = JSAffineTransform.Translated(-fromViewController.view.bounds.size.width / 2, 0);
-            });
-            this.pushAnimator.addCompletion(function(){
-                navController.pushAnimator = null;
-                fromViewController.view.removeFromSuperview();
-                fromViewController.viewDidDisappear(true);
-                fromViewController.view.transform = JSAffineTransform.Identity;
-                viewController.shadowColor = null;
-                viewController.viewDidAppear(true);
-                if (navController.delegate && navController.delegate.navigationControllerDidShowViewController){
-                    navController.delegate.navigationControllerDidShowViewController(navController, viewController);
+                fromViewController.viewWillDisappear(animated);
+                viewController.viewWillAppear(animated);
+                if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+                    this.delegate.navigationControllerWillShowViewController(this, viewController);
                 }
-            });
-            JSRunLoop.main.schedule(function(){
-                this.pushAnimator.start();
-            }, this);
+                var completion = function(){
+                    fromViewController.viewDidDisappear(animated);
+                    viewController.viewDidAppear(animated);
+                    if (this.delegate && this.delegate.navigationControllerDidShowViewController){
+                        this.delegate.navigationControllerDidShowViewController(this, viewController);
+                    }
+                };
+                if (isShowingNavigationBar){
+                    this.view.addSubview(navigationBar);
+                    this.view.insertSubviewBelowSibling(view, navigationBar);
+                    navigationBar.pushItem(item, false);
+                }else if (isHidingNavigationBar){
+                    this.view.addSubview(view);
+                }else{
+                    this.view.insertSubviewAboveSibling(view, fromView);
+                    navigationBar.pushItem(item, animated);
+                }
+                if (animated){
+                    this.pushAnimator = this.createPushAnimator();
+                    this.layoutChildViewController(viewController);
+                    view.transform = JSAffineTransform.Translated(view.bounds.size.width, 0);
+                    view.shadowColor = JSColor.windowShadow;
+                    view.shadowRadius = 20;
+                    if (isShowingNavigationBar){
+                        navigationBar.transform = view.transform;
+                        navigationBar.hidden = false;
+                    }
+                    this.pushAnimator.addAnimations(function(){
+                        view.transform = JSAffineTransform.Identity;
+                        fromView.transform = JSAffineTransform.Translated(-fromView.bounds.size.width / 2, 0);
+                        if (isShowingNavigationBar){
+                            navigationBar.transform = JSAffineTransform.Identity;
+                        }else if (isHidingNavigationBar){
+                            navigationBar.transform = fromView.transform;
+                        }
+                    });
+                    this.pushAnimator.addCompletion(function(){
+                        this.pushAnimator = null;
+                        navigationBar.hidden = item.hidesNavigationBar;
+                        if (isHidingNavigationBar){
+                            navigationBar.transform = JSAffineTransform.Identity;
+                            navigationBar.pushItem(item, false);
+                        }
+                        fromView.removeFromSuperview();
+                        fromView.transform = JSAffineTransform.Identity;
+                        view.shadowColor = null;
+                    }, this);
+                    this.pushAnimator.addCompletion(completion, this);
+                    this.pushAnimator.start();
+                }else{
+                    fromView.removeFromSuperview();
+                    this.view.setNeedsLayout();
+                    this.view.layer._displayServer.schedule(completion, this);
+                    navigationBar.hidden = item.hidesNavigationBar;
+                }
+            }else{
+                fromView.removeFromSuperview();
+                if (item.hidesNavigationBar){
+                    this.view.addSubview(view);
+                }else{
+                    this.view.insertSubviewBelowSibling(view, navigationBar);
+                }
+                navigationBar.pushItem(item, false);
+                navigationBar.hidden = item.hidesNavigationBar;
+                this.view.setNeedsLayout();
+            }
+        }else{
+            navigationBar.hidden = item.hidesNavigationBar;
+            navigationBar.pushItem(item, false);
         }
     },
 
@@ -241,59 +292,101 @@ JSClass("UINavigationController", UIViewController, {
         if (index === this._viewControllers.length - 1){
             return;
         }
-        if (!this.isViewVisible){
-            animated = false;
-        }
-        if (animated){
-            this.popAnimator = this.createPopAnimator();
-        }
         var fromViewController = this.topViewController;
+        var fromView = fromViewController.view;
+        var fromItem = fromViewController.navigationItem;
         var view = viewController.view;
-        if (this.isViewVisible){
-            fromViewController.viewWillDisappear(animated);
-            viewController.viewWillAppear(animated);
+        var item = viewController.navigationItem;
+        var navigationBar = this._navigationBar;
+        var poppedViewControllers = [];
+        var i, l;
+        for (i = this._viewControllers.length - 1; i > index; --i){
+            poppedViewControllers.push(this._viewControllers.pop());
         }
-        if (this.delegate && this.delegate.navigationControllerWillShowViewController){
-            this.delegate.navigationControllerWillShowViewController(this, viewController);
-        }
-        this._viewControllers.splice(index + 1, this._viewControllers.length - index);
-        this._navigationBar.popToItem(viewController.navigationItem, animated);
-        this.view.insertSubviewBelowSibling(view, fromViewController.view);
-        if (!animated){
+        if (this.isViewLoaded){
             if (this.isViewVisible){
-                fromViewController.enqueueDidDisappear();
-                viewController.enqueueDidAppear();
-            }
-            if (this.delegate && this.delegate.navigationControllerDidShowViewController){
-                this.delegate.navigationControllerDidShowViewController(this, viewController);
-            }
-            fromViewController.view.removeFromSuperview();
-            this.view.setNeedsLayout();
-        }else{
-            var navController = this;
-            this.layoutChildView(viewController.view);
-            viewController.view.transform = JSAffineTransform.Translated(-viewController.view.bounds.size.width / 2, 0);
-            fromViewController.view.shadowColor = JSColor.windowShadow;
-            fromViewController.view.shadowRadius = 20;
-            this.popAnimator.addAnimations(function(){
-                viewController.view.transform = JSAffineTransform.Identity;
-                fromViewController.view.transform = JSAffineTransform.Translated(fromViewController.view.bounds.size.width, 0);
-            });
-            this.popAnimator.addCompletion(function(){
-                fromViewController.view.removeFromSuperview();
-                navController.popAnimator = null;
-                fromViewController.removeFromParentViewController();
-                fromViewController.shadowColor = null;
-                viewController.viewDidAppear(animated);
-                fromViewController.viewDidDisappear(animated);
-                fromViewController.view.transform = JSAffineTransform.Identity;
-                if (navController.delegate && navController.delegate.navigationControllerDidShowViewController){
-                    navController.delegate.navigationControllerDidShowViewController(navController, viewController);
+                fromViewController.viewWillDisappear(animated);
+                viewController.viewWillAppear(animated);
+                if (this.delegate && this.delegate.navigationControllerWillShowViewController){
+                    this.delegate.navigationControllerWillShowViewController(this, viewController);
                 }
-            });
-            JSRunLoop.main.schedule(function(){
-                this.popAnimator.start();
-            }, this);
+                var completion = function(){
+                    fromViewController.viewDidDisappear(animated);
+                    viewController.viewDidAppear(animated);
+                    var i, l;
+                    for (i = 0, l = poppedViewControllers.length; i < l; ++i){
+                        poppedViewControllers[i].removeFromParentViewController();
+                    }
+                    if (this.delegate && this.delegate.navigationControllerDidShowViewController){
+                        this.delegate.navigationControllerDidShowViewController(this, viewController);
+                    }
+                };
+                var isHidingNavigationBar = !fromItem.hidesNavigationBar && item.hidesNavigationBar;
+                var isShowingNavigationBar = fromItem.hidesNavigationBar && !item.hidesNavigationBar;
+                if (isShowingNavigationBar){
+                    this.view.insertSubviewBelowSibling(view, navigationBar);
+                    navigationBar.popToItem(item, false);
+                }else if (isHidingNavigationBar){
+                    this.view.insertSubviewBelowSibling(view, fromView);
+                }else{
+                    this.view.insertSubviewBelowSibling(view, fromView);
+                    navigationBar.popToItem(item, animated);   
+                }
+                if (animated){
+                    this.popAnimator = this.createPopAnimator();
+                    this.layoutChildViewController(viewController);
+                    view.transform = JSAffineTransform.Translated(-view.bounds.size.width / 2, 0);
+                    fromView.shadowColor = JSColor.windowShadow;
+                    fromView.shadowRadius = 20;
+                    if (isShowingNavigationBar){
+                        navigationBar.transform = view.transform;
+                        navigationBar.hidden = false;
+                    }
+                    this.popAnimator.addAnimations(function(){
+                        view.transform = JSAffineTransform.Identity;
+                        fromView.transform = JSAffineTransform.Translated(fromView.bounds.size.width, 0);
+                        if (isShowingNavigationBar){
+                            navigationBar.transform = JSAffineTransform.Identity;
+                        }else if (isHidingNavigationBar){
+                            navigationBar.transform = fromView.transform;
+                        }
+                    });
+                    this.popAnimator.addCompletion(function(){
+                        this.popAnimator = null;
+                        navigationBar.hidden = item.hidesNavigationBar;
+                        if (isHidingNavigationBar){
+                            navigationBar.transform = JSAffineTransform.Identity;
+                            navigationBar.setItem(item, false);
+                        }
+                        fromView.removeFromSuperview();
+                        fromView.shadowColor = null;
+                        fromView.transform = JSAffineTransform.Identity;
+                    }, this);
+                    this.popAnimator.addCompletion(completion, this);
+                    this.popAnimator.start();
+                }else{
+                    fromView.removeFromSuperview();
+                    this.view.setNeedsLayout();
+                    this.view.layer._displayServer.schedule(completion, this);
+                    navigationBar.hidden = item.hidesNavigationBar;
+                }
+            }else{
+                fromView.removeFromSuperview();
+                if (item.hidesNavigationBar){
+                    this.view.addSubview(view);
+                }else{
+                    this.view.insertSubviewBelowSibling(view, navigationBar);
+                }
+                navigationBar.popToItem(item, false);
+                navigationBar.hidden = item.hidesNavigationBar;
+                this.view.setNeedsLayout();
+            }
+        }else{
+            for (i = 0, l = poppedViewControllers.length; i < l; ++i){
+                poppedViewControllers.removeFromParentViewController();
+            }
+            navigationBar.hidden = item.hidesNavigationBar;
+            navigationBar.popToItem(item, false);
         }
     },
 
@@ -321,18 +414,19 @@ JSClass("UINavigationController", UIViewController, {
     viewDidLayoutSubviews: function(){
         var barHeight = this._navigationBar.intrinsicSize.height;
         var size = this.view.bounds.size;
-        var contentView = this.topViewController.view;
         this._navigationBar.frame = JSRect(0, 0, size.width, barHeight);
-        this.layoutChildView(contentView);
+        this.layoutChildViewController(this.topViewController);
     },
 
-    layoutChildView: function(view){
+    layoutChildViewController: function(viewController){
         var y;
+        var view = viewController.view;
         var size = this.view.bounds.size;
         var barFrame = this._navigationBar.frame;
-        if (this._navigationBar.coversContent){
+        var barHidden = viewController.navigationItem.hidesNavigationBar;
+        if (barHidden || this._navigationBar.coversContent){
             y = barFrame.origin.y;
-            if (this.automaticallyAdjustsInsets && view.isKindOfClass(UIScrollView)){
+            if (!barHidden && this.automaticallyAdjustsInsets && view.isKindOfClass(UIScrollView)){
                 var insets = JSInsets(view.contentInsets);
                 insets.top = this._navigationBar.coveredContentTopInset;
                 view.contentInsets = insets;
