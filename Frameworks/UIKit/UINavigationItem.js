@@ -21,6 +21,7 @@ JSClass("UINavigationItem", JSObject, {
 
     title: JSDynamicProperty('_title', null),
     view: JSDynamicProperty('_view', null),
+    hidesNavigationBar: false,
     backBarButtonItem: JSDynamicProperty('_backBarButtonItem', null),
     rightBarItems: JSDynamicProperty('_rightBarItems', null),
     leftBarItems: JSDynamicProperty('_leftBarItems', null),
@@ -39,6 +40,9 @@ JSClass("UINavigationItem", JSObject, {
         }
         if (spec.containsKey("view")){
             this._view = spec.valueForKey("view", UIView);
+        }
+        if (spec.containsKey("hidesNavigationBar")){
+            this.hidesNavigationBar = spec.valueForKey("hidesNavigationBar");
         }
         if (spec.containsKey("backBarButtonItem")){
             this._backBarButtonItem = spec.valueForKey("backBarButtonItem", UINavigationItem);
