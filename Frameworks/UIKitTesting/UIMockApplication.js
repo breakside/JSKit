@@ -60,7 +60,9 @@ JSClass("UIMockApplication", UIApplication, {
     },
 
     setScreenSize: function(size){
+        var oldFrame = this.windowServer.screen.frame;
         this.windowServer.screen.frame = JSRect(JSPoint.Zero, size);
+        this.windowServer.screenDidChangeFrame(oldFrame);
     },
 
     displayTime: 0,
