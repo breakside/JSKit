@@ -87,8 +87,7 @@ JSClass("UIBrowserViewController", UIViewController, {
         this._viewControllers.push(viewController);
         this.view.pushView(viewController.view);
         if (this.isViewVisible){
-            viewController.viewWillAppear(false);
-            viewController.viewDidAppear(false);
+            viewController.scheduleAppearance();
         }
     },
 
@@ -102,13 +101,10 @@ JSClass("UIBrowserViewController", UIViewController, {
             vc = this._viewControllers.pop();
             --count;
             if (this.isViewVisible){
-                vc.viewWillDisappear(false);
+                vc.scheduleDisappearance();
             }
             this.view.popView();
             this.removeFromParentViewController(vc);
-            if (this.isViewVisible){
-                vc.viewDidDisappear(false);
-            }
         }
     }
 

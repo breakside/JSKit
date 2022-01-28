@@ -139,34 +139,25 @@ JSClass("UITabViewController", UIViewController, {
 
     tabViewWillSelectItemAtIndex: function(tabView, index){
         if (this.isViewVisible && this._previouslySelectedViewController !== null){
-            this._previouslySelectedViewController.viewWillDisappear();
+            this._previouslySelectedViewController.scheduleDisappearance();
         }
         var viewController = null;
-        if (index < this._viewControllers.length){
+        if (index >= 0 && index < this._viewControllers.length){
             viewController = this._viewControllers[index];
         }
         if (viewController !== null){
-            // Ensure that the view controller's view is loaded before its item
-            // is selected
-            viewController.tabViewItem.view = viewController.view;
             if (this.isViewVisible){
-                viewController.viewWillAppear();
+                viewController.scheduleAppearance();
             }
         }
     },
 
     tabViewDidSelectItemAtIndex: function(tabView, index){
         var viewController = null;
-        if (index < this._viewControllers.length){
+        if (index >= 0 && index < this._viewControllers.length){
             viewController = this._viewControllers[index];
         }
-        if (this.isViewVisible && this._previouslySelectedViewController !== null){
-            this._previouslySelectedViewController.viewDidDisappear();
-        }
         this._previouslySelectedViewController = viewController;
-        if (this.isViewVisible && viewController !== null){
-            viewController.viewDidAppear();
-        }
     }
 
 });

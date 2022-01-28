@@ -214,29 +214,16 @@ JSClass('UIWindow', UIView, {
 
     setContentViewController: function(contentViewController){
         var previousViewController = this._contentViewController;
-        var contentView = null;
-        // load the view before calling viewWillAppear
-        if (contentViewController){
-            contentView = contentViewController.view;
-        }
         if (this._isVisible){
             if (previousViewController !== null){
-                previousViewController.viewWillDisappear(false);
+                previousViewController.scheduleDisappearance();
             }
             if (contentViewController !== null){
-                contentViewController.viewWillAppear(false);
+                contentViewController.scheduleAppearance();
             }
         }
-        this.contentView = contentView;
-        if (this._isVisible){
-            this.layer._displayServer.schedule(function(){
-                if (previousViewController !== null){
-                    previousViewController.viewDidDisappear(false);
-                }
-                if (contentViewController !== null){
-                    contentViewController.viewDidAppear(false);
-                }
-            }, this);
+        if (contentViewController !== null){
+            this.contentView = contentViewController.view;
         }
         this._contentViewController = contentViewController;
     },
