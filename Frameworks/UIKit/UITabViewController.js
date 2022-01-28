@@ -146,6 +146,9 @@ JSClass("UITabViewController", UIViewController, {
             viewController = this._viewControllers[index];
         }
         if (viewController !== null){
+            // Ensure that the view controller's view is loaded before its item
+            // is selected
+            viewController.tabViewItem.view = viewController.view;
             if (this.isViewVisible){
                 viewController.scheduleAppearance();
             }
