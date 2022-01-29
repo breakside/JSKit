@@ -299,6 +299,9 @@ JSClass("UISplitViewController", UIViewController, {
             var mainNavigationController = this._mainViewController;
             var i = navigationController.viewControllers.indexOf(this._mainNavigationRootViewController);
             if (i > 0){
+                if (mainNavigationController.view.superview === null){
+                    this.view.mainView = mainNavigationController.view;
+                }
                 mainNavigationController.scheduleAppearance();
                 var viewControllers = navigationController.viewControllers.slice(i);
                 navigationController.popToViewController(navigationController.viewControllers[i - 1], false);
