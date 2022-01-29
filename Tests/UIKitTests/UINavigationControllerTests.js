@@ -78,174 +78,104 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
     },
 
     testViewLifecycle: function(){
-        var counts = {
-            viewWillAppear: 0,
-            viewDidAppear: 0,
-            viewWillDisappear: 0,
-            viewDidDisappear: 0
-        };
-        var contentClass = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear;
-            },
-            viewDidAppear: function(animated){
-                contentClass.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear;
-            },
-            viewWillDisappear: function(animated){
-                contentClass.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear;
-            },
-            viewDidDisappear: function(animated){
-                contentClass.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear;
-            }
-        }, "UINavigationControllerTestsClass1");
-        var viewController = contentClass.init();
+        var viewController = UINavigationControllerTestsViewController.init();
         var navigationController = UINavigationController.initWithRootViewController(viewController);
-        TKAssertEquals(counts.viewWillAppear, 0);
-        TKAssertEquals(counts.viewDidAppear, 0);
-        TKAssertEquals(counts.viewWillDisappear, 0);
-        TKAssertEquals(counts.viewDidDisappear, 0);
+        TKAssertEquals(viewController.viewWillAppearCount, 0);
+        TKAssertEquals(viewController.viewDidAppearCount, 0);
+        TKAssertEquals(viewController.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController.isViewVisible, false);
         navigationController.viewWillAppear(false);
-        TKAssertEquals(counts.viewWillAppear, 1);
-        TKAssertEquals(counts.viewDidAppear, 0);
-        TKAssertEquals(counts.viewWillDisappear, 0);
-        TKAssertEquals(counts.viewDidDisappear, 0);
+        TKAssertEquals(viewController.viewWillAppearCount, 1);
+        TKAssertEquals(viewController.viewDidAppearCount, 0);
+        TKAssertEquals(viewController.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController.isViewVisible, false);
         navigationController.viewDidAppear(false);
-        TKAssertEquals(counts.viewWillAppear, 1);
-        TKAssertEquals(counts.viewDidAppear, 1);
-        TKAssertEquals(counts.viewWillDisappear, 0);
-        TKAssertEquals(counts.viewDidDisappear, 0);
+        TKAssertEquals(viewController.viewWillAppearCount, 1);
+        TKAssertEquals(viewController.viewDidAppearCount, 1);
+        TKAssertEquals(viewController.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController.isViewVisible, true);
         navigationController.viewWillDisappear(false);
-        TKAssertEquals(counts.viewWillAppear, 1);
-        TKAssertEquals(counts.viewDidAppear, 1);
-        TKAssertEquals(counts.viewWillDisappear, 1);
-        TKAssertEquals(counts.viewDidDisappear, 0);
+        TKAssertEquals(viewController.viewWillAppearCount, 1);
+        TKAssertEquals(viewController.viewDidAppearCount, 1);
+        TKAssertEquals(viewController.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController.isViewVisible, true);
         navigationController.viewDidDisappear(false);
-        TKAssertEquals(counts.viewWillAppear, 1);
-        TKAssertEquals(counts.viewDidAppear, 1);
-        TKAssertEquals(counts.viewWillDisappear, 1);
-        TKAssertEquals(counts.viewDidDisappear, 1);
+        TKAssertEquals(viewController.viewWillAppearCount, 1);
+        TKAssertEquals(viewController.viewDidAppearCount, 1);
+        TKAssertEquals(viewController.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController.viewDidDisappearCount, 1);
         TKAssertExactEquals(viewController.isViewVisible, false);
     },
 
     testPushPopNotAnimated: function(){
-        var counts = {
-            viewWillAppear1: 0,
-            viewDidAppear1: 0,
-            viewWillDisappear1: 0,
-            viewDidDisappear1: 0,
-            viewWillAppear2: 0,
-            viewDidAppear2: 0,
-            viewWillDisappear2: 0,
-            viewDidDisappear2: 0
-        };
-        var contentClass1 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass1.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear1;
-            },
-            viewDidAppear: function(animated){
-                contentClass1.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear1;
-            },
-            viewWillDisappear: function(animated){
-                contentClass1.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear1;
-            },
-            viewDidDisappear: function(animated){
-                contentClass1.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear1;
-            }
-        }, "UINavigationControllerTestsClass1");
-        var contentClass2 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass2.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear2;
-            },
-            viewDidAppear: function(animated){
-                contentClass2.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear2;
-            },
-            viewWillDisappear: function(animated){
-                contentClass2.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear2;
-            },
-            viewDidDisappear: function(animated){
-                contentClass2.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear2;
-            }
-        }, "UINavigationControllerTestsClass2");
-        var viewController1 = contentClass1.init();
-        var viewController2 = contentClass2.init();
+        var viewController1 = UINavigationControllerTestsViewController.init();
+        var viewController2 = UINavigationControllerTestsViewController.init();
         var navigationController = UINavigationController.initWithRootViewController(viewController1);
         this.window.contentViewController = navigationController;
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 0);
-        TKAssertEquals(counts.viewWillDisappear1, 0);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 0);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 0);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, true);
 
         navigationController.pushViewController(viewController2, false);
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertExactEquals(viewController2.isViewVisible, false);
         TKAssertEquals(viewController1.parentViewController, navigationController);
         TKAssertEquals(viewController2.parentViewController, navigationController);
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         TKAssertExactEquals(viewController2.isViewVisible, true);
         TKAssertEquals(viewController1.parentViewController, navigationController);
         TKAssertEquals(viewController2.parentViewController, navigationController);
 
         navigationController.popViewController(false);
-        TKAssertEquals(counts.viewWillAppear1, 2);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 1);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 2);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         TKAssertExactEquals(viewController2.isViewVisible, true);
         TKAssertEquals(viewController1.parentViewController, navigationController);
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 2);
-        TKAssertEquals(counts.viewDidAppear1, 2);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 1);
-        TKAssertEquals(counts.viewDidDisappear2, 1);
+        TKAssertEquals(viewController1.viewWillAppearCount, 2);
+        TKAssertEquals(viewController1.viewDidAppearCount, 2);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 1);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertExactEquals(viewController2.isViewVisible, false);
         TKAssertEquals(viewController1.parentViewController, navigationController);
@@ -253,66 +183,20 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
     },
 
     testPushPopAnimated: function(){
-        var counts = {
-            viewWillAppear1: 0,
-            viewDidAppear1: 0,
-            viewWillDisappear1: 0,
-            viewDidDisappear1: 0,
-            viewWillAppear2: 0,
-            viewDidAppear2: 0,
-            viewWillDisappear2: 0,
-            viewDidDisappear2: 0
-        };
-        var contentClass1 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass1.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear1;
-            },
-            viewDidAppear: function(animated){
-                contentClass1.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear1;
-            },
-            viewWillDisappear: function(animated){
-                contentClass1.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear1;
-            },
-            viewDidDisappear: function(animated){
-                contentClass1.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear1;
-            }
-        }, "UINavigationControllerTestsClass1");
-        var contentClass2 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass2.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear2;
-            },
-            viewDidAppear: function(animated){
-                contentClass2.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear2;
-            },
-            viewWillDisappear: function(animated){
-                contentClass2.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear2;
-            },
-            viewDidDisappear: function(animated){
-                contentClass2.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear2;
-            }
-        }, "UINavigationControllerTestsClass2");
-        var viewController1 = contentClass1.init();
-        var viewController2 = contentClass2.init();
+        var viewController1 = UINavigationControllerTestsViewController.init();
+        var viewController2 = UINavigationControllerTestsViewController.init();
         var navigationController = UINavigationController.initWithRootViewController(viewController1);
         this.window.contentViewController = navigationController;
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 0);
-        TKAssertEquals(counts.viewWillDisappear1, 0);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 0);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 0);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertFloatEquals(navigationController.view.bounds.size.width, 200);
         TKAssertFloatEquals(navigationController.view.bounds.size.height, 400);
@@ -321,26 +205,26 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
         TKAssertEquals(viewController1.parentViewController, navigationController);
 
         navigationController.pushViewController(viewController2, true);
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertExactEquals(viewController2.isViewVisible, false);
         this.app.updateDisplay();
         this.app.updateDisplay(UIAnimation.Duration.transition / 2);
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertExactEquals(viewController2.isViewVisible, false);
         TKAssertExactEquals(viewController1.view.superview, navigationController.view);
@@ -350,14 +234,14 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
         TKAssertEquals(viewController1.parentViewController, navigationController);
         TKAssertEquals(viewController2.parentViewController, navigationController);
         this.app.updateDisplay(UIAnimation.Duration.transition / 2 + 0.1);
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         TKAssertExactEquals(viewController2.isViewVisible, true);
         TKAssertExactEquals(viewController1.view.superview, null);
@@ -366,26 +250,26 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
         TKAssertEquals(viewController2.parentViewController, navigationController);
 
         navigationController.popViewController(true);
-        TKAssertEquals(counts.viewWillAppear1, 2);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 1);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 2);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         TKAssertExactEquals(viewController2.isViewVisible, true);
         this.app.updateDisplay();
         this.app.updateDisplay(UIAnimation.Duration.transition / 2);
-        TKAssertEquals(counts.viewWillAppear1, 2);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 1);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 2);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
         TKAssertExactEquals(viewController1.isViewVisible, false);
         TKAssertExactEquals(viewController2.isViewVisible, true);
         TKAssertExactEquals(viewController1.view.superview, navigationController.view);
@@ -393,16 +277,16 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
         TKAssertFloatEquals(viewController1.view.layer.presentation.transform.tx, -50);
         TKAssertFloatEquals(viewController2.view.layer.presentation.transform.tx, 100);
         TKAssertEquals(viewController1.parentViewController, navigationController);
-        TKAssertEquals(viewController2.parentViewController, navigationController);
+        TKAssertEquals(viewController2.parentViewController, null);
         this.app.updateDisplay(UIAnimation.Duration.transition / 2 + 0.1);
-        TKAssertEquals(counts.viewWillAppear1, 2);
-        TKAssertEquals(counts.viewDidAppear1, 2);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 1);
-        TKAssertEquals(counts.viewDidAppear2, 1);
-        TKAssertEquals(counts.viewWillDisappear2, 1);
-        TKAssertEquals(counts.viewDidDisappear2, 1);
+        TKAssertEquals(viewController1.viewWillAppearCount, 2);
+        TKAssertEquals(viewController1.viewDidAppearCount, 2);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 1);
+        TKAssertEquals(viewController2.viewDidAppearCount, 1);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 1);
         TKAssertExactEquals(viewController1.isViewVisible, true);
         TKAssertExactEquals(viewController2.isViewVisible, false);
         TKAssertExactEquals(viewController1.view.superview, navigationController.view);
@@ -482,92 +366,24 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
     },
 
     testSetViewControllers: function(){
-        var counts = {
-            viewWillAppear1: 0,
-            viewDidAppear1: 0,
-            viewWillDisappear1: 0,
-            viewDidDisappear1: 0,
-            viewWillAppear2: 0,
-            viewDidAppear2: 0,
-            viewWillDisappear2: 0,
-            viewDidDisappear2: 0,
-            viewWillAppear3: 0,
-            viewDidAppear3: 0,
-            viewWillDisappear3: 0,
-            viewDidDisappear3: 0
-        };
-        var contentClass1 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass1.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear1;
-            },
-            viewDidAppear: function(animated){
-                contentClass1.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear1;
-            },
-            viewWillDisappear: function(animated){
-                contentClass1.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear1;
-            },
-            viewDidDisappear: function(animated){
-                contentClass1.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear1;
-            }
-        }, "UINavigationControllerTestsClass1");
-        var contentClass2 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass2.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear2;
-            },
-            viewDidAppear: function(animated){
-                contentClass2.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear2;
-            },
-            viewWillDisappear: function(animated){
-                contentClass2.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear2;
-            },
-            viewDidDisappear: function(animated){
-                contentClass2.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear2;
-            }
-        }, "UINavigationControllerTestsClass2");
-        var contentClass3 = UIViewController.$extend({
-            viewWillAppear: function(animated){
-                contentClass3.$super.viewWillAppear.call(this, animated);
-                ++counts.viewWillAppear3;
-            },
-            viewDidAppear: function(animated){
-                contentClass3.$super.viewDidAppear.call(this, animated);
-                ++counts.viewDidAppear3;
-            },
-            viewWillDisappear: function(animated){
-                contentClass3.$super.viewWillDisappear.call(this, animated);
-                ++counts.viewWillDisappear3;
-            },
-            viewDidDisappear: function(animated){
-                contentClass3.$super.viewDidDisappear.call(this, animated);
-                ++counts.viewDidDisappear3;
-            }
-        }, "UINavigationControllerTestsClass3");
-        var viewController1 = contentClass1.init();
-        var viewController2 = contentClass2.init();
-        var viewController3 = contentClass3.init();
+        var viewController1 = UINavigationControllerTestsViewController.init();
+        var viewController2 = UINavigationControllerTestsViewController.init();
+        var viewController3 = UINavigationControllerTestsViewController.init();
         var navigationController = UINavigationController.initWithRootViewController(viewController1);
         this.window.contentViewController = navigationController;
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 0);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
-        TKAssertEquals(counts.viewWillAppear2, 0);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
-        TKAssertEquals(counts.viewWillAppear3, 0);
-        TKAssertEquals(counts.viewDidAppear3, 0);
-        TKAssertEquals(counts.viewWillDisappear3, 0);
-        TKAssertEquals(counts.viewDidDisappear3, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController2.viewWillAppearCount, 0);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController3.viewWillAppearCount, 0);
+        TKAssertEquals(viewController3.viewDidAppearCount, 0);
+        TKAssertEquals(viewController3.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController3.viewDidDisappearCount, 0);
 
         navigationController.viewControllers = [viewController2, viewController3];
         TKAssertExactEquals(navigationController.viewControllers.length, 2);
@@ -577,30 +393,59 @@ JSClass("UINavigationControllerTests", TKTestSuite, {
         TKAssertExactEquals(viewController1.parentViewController, null);
         TKAssertExactEquals(viewController2.parentViewController, navigationController);
         TKAssertExactEquals(viewController3.parentViewController, navigationController);
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 0);
-        TKAssertEquals(counts.viewWillAppear2, 0);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
-        TKAssertEquals(counts.viewWillAppear3, 1);
-        TKAssertEquals(counts.viewDidAppear3, 0);
-        TKAssertEquals(counts.viewWillDisappear3, 0);
-        TKAssertEquals(counts.viewDidDisappear3, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController2.viewWillAppearCount, 0);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController3.viewWillAppearCount, 1);
+        TKAssertEquals(viewController3.viewDidAppearCount, 0);
+        TKAssertEquals(viewController3.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController3.viewDidDisappearCount, 0);
         this.app.updateDisplay();
-        TKAssertEquals(counts.viewWillAppear1, 1);
-        TKAssertEquals(counts.viewDidAppear1, 1);
-        TKAssertEquals(counts.viewWillDisappear1, 1);
-        TKAssertEquals(counts.viewDidDisappear1, 1);
-        TKAssertEquals(counts.viewWillAppear2, 0);
-        TKAssertEquals(counts.viewDidAppear2, 0);
-        TKAssertEquals(counts.viewWillDisappear2, 0);
-        TKAssertEquals(counts.viewDidDisappear2, 0);
-        TKAssertEquals(counts.viewWillAppear3, 1);
-        TKAssertEquals(counts.viewDidAppear3, 1);
-        TKAssertEquals(counts.viewWillDisappear3, 0);
-        TKAssertEquals(counts.viewDidDisappear3, 0);
+        TKAssertEquals(viewController1.viewWillAppearCount, 1);
+        TKAssertEquals(viewController1.viewDidAppearCount, 1);
+        TKAssertEquals(viewController1.viewWillDisappearCount, 1);
+        TKAssertEquals(viewController1.viewDidDisappearCount, 1);
+        TKAssertEquals(viewController2.viewWillAppearCount, 0);
+        TKAssertEquals(viewController2.viewDidAppearCount, 0);
+        TKAssertEquals(viewController2.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController2.viewDidDisappearCount, 0);
+        TKAssertEquals(viewController3.viewWillAppearCount, 1);
+        TKAssertEquals(viewController3.viewDidAppearCount, 1);
+        TKAssertEquals(viewController3.viewWillDisappearCount, 0);
+        TKAssertEquals(viewController3.viewDidDisappearCount, 0);
     }
+});
+
+JSClass("UINavigationControllerTestsViewController", UIViewController, {
+
+    viewWillAppearCount: 0,
+    viewDidAppearCount: 0,
+    viewWillDisappearCount: 0,
+    viewDidDisappearCount: 0,
+
+    viewWillAppear: function(animated){
+        UINavigationControllerTestsViewController.$super.viewWillAppear.call(this, animated);
+        ++this.viewWillAppearCount;
+    },
+
+    viewDidAppear: function(animated){
+        UINavigationControllerTestsViewController.$super.viewDidAppear.call(this, animated);
+        ++this.viewDidAppearCount;
+    },
+
+    viewWillDisappear: function(animated){
+        UINavigationControllerTestsViewController.$super.viewWillDisappear.call(this, animated);
+        ++this.viewWillDisappearCount;
+    },
+
+    viewDidDisappear: function(animated){
+        UINavigationControllerTestsViewController.$super.viewDidDisappear.call(this, animated);
+        ++this.viewDidDisappearCount;
+    }
+
 });

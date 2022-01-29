@@ -303,6 +303,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     contentSeparatorSize: 0,
     titleColor: null,
     titleTextAlignment: JSTextAlignment.center,
+    titleInsets: null,
     itemColor: null,
     activeItemColor: null,
     disabledItemColor: null,
@@ -346,6 +347,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         }
         if (spec.containsKey("titleTextAlignment")){
             this.titleTextAlignment = spec.valueForKey("titleTextAlignment", JSTextAlignment);
+        }
+        if (spec.containsKey("titleInsets")){
+            this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
         }
         if (spec.containsKey("itemColor")){
             this.itemColor = spec.valueForKey("itemColor", JSColor);
@@ -702,10 +706,13 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         var itemHeight = size.height - this.itemInsets.height;
         var y = this.itemInsets.top;
         var barItemView = props.backBarItemView;
+        var titleTextAlignment = item ? item.titleTextAlignment || this.titleTextAlignment : this.titleTextAlignment;
         barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
         barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
         if (!barItemView.hidden){
             xLeft += barItemView.bounds.size.width;
+        }else if (props.leftBarItemViews.length === 0 && titleTextAlignment === JSTextAlignment.left && this.titleInsets !== null){
+            xLeft = this.titleInsets.left;
         }
         for (i = 0, l = props.leftBarItemViews.length; i < l; ++i){
             barItemView = props.leftBarItemViews[i];
@@ -738,7 +745,6 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             var maxX = xRight - viewSize.width;
             var centeredX = (size.width - viewSize.width) / 2;
             var centeredY = (size.height - viewSize.height) / 2;
-            var titleTextAlignment = item ? item.titleTextAlignment || this.titleTextAlignment : this.titleTextAlignment;
             if (titleTextAlignment === JSTextAlignment.center){
                 titleView.frame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
             }else if (titleTextAlignment === JSTextAlignment.right){

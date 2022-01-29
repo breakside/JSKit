@@ -16,7 +16,7 @@
 // #import Foundation
 // #import "UIResponder.js"
 // #import "UITabView.js"
-/* global UINavigationItem, UINavigationController */
+/* global UINavigationItem, UINavigationController, UIApplication */
 'use strict';
 
 JSClass("UIViewController", UIResponder, {
@@ -98,33 +98,9 @@ JSClass("UIViewController", UIResponder, {
     // -------------------------------------------------------------------------
     // MARK: - View Lifecycle
 
-    _needsDidAppear: false,
-    _needsDidDisappear: false,
     isViewVisible: JSReadOnlyProperty("_isViewVisible", false),
 
-    enqueueDidAppear: function(){
-        if (!this._needsDidAppear){
-            this._needsDidAppear = true;
-            this.view.layer._displayServer.schedule(function(){
-                if (this._needsDidAppear){
-                    this._needsDidAppear = false;
-                    this.viewDidAppear(false);
-                }
-            }, this);
-        }
-    },
-
-    enqueueDidDisappear: function(){
-        if (!this._needsDidDisappear){
-            this._needsDidDisappear = true;
-            this.view.layer._displayServer.schedule(function(){
-                if (this._needsDidDisappear){
-                    this._needsDidDisappear = false;
-                    this.viewDidDisappear(false);
-                }
-            }, this);
-        }
-    },
+    lifecycleState: JSReadOnlyProperty("_lifecycleState", 0),
 
     viewDidLoad: function(){
     },
@@ -132,15 +108,18 @@ JSClass("UIViewController", UIResponder, {
     viewDidUnload: function(){
     },
 
-    viewWillAppear: function(){
+    viewWillAppear: function(animated){
+        this._lifecycleState = UIViewController.LifecycleState.appearing;
         this._loadViewIfNeeded();
     },
 
-    viewDidAppear: function(){
+    viewDidAppear: function(animated){
+        this._lifecycleState = UIViewController.LifecycleState.appeared;
         this._isViewVisible = true;
     },
 
-    viewWillDisappear: function(){
+    viewWillDisappear: function(animated){
+        this._lifecycleState = UIViewController.LifecycleState.disappearing;
         if (this.isViewLoaded){
             var window = this.view.window;
             if (window !== null){
@@ -158,8 +137,101 @@ JSClass("UIViewController", UIResponder, {
         }
     },
 
-    viewDidDisappear: function(){
+    viewDidDisappear: function(animated){
+        this._lifecycleState = UIViewController.LifecycleState.disappeared;
         this._isViewVisible = false;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Lifecycle Control Methods
+
+    beginAppearance: function(animated){
+        this.beginAppearanceTransition(true, animated);
+    },
+
+    endAppearance: function(){
+        this.endAppearanceTransition();
+    },
+
+    beginAppearanceWithAnimator: function(animator){
+        this.beginAppearance(true);
+        animator.addCompletion(function(){
+            this.endAppearance();
+        }, this);
+    },
+
+    scheduleAppearance: function(){
+        this.beginAppearance(false);
+        this._scheduleAppearanceTransition();
+    },
+
+    beginDisappearance: function(animated){
+        this.beginAppearanceTransition(false, animated);
+    },
+
+    endDisappearance: function(){
+        this.endAppearanceTransition();
+    },
+
+    beginDisappearanceWithAnimator: function(animator){
+        this.beginDisappearance(true);
+        animator.addCompletion(function(){
+            this.endDisappearance();
+        }, this);
+    },
+
+    scheduleDisappearance: function(){
+        this.beginDisappearance(false);
+        this._scheduleAppearanceTransition();
+    },
+
+    beginAppearanceTransition: function(isAppearing, animated){
+        this._appearanceTransitionAnimated = animated;
+        if (isAppearing){
+            if (this._lifecycleState === UIViewController.LifecycleState.disappeared || this._lifecycleState === UIViewController.LifecycleState.disappearing){
+                this.viewWillAppear(animated);
+            }
+        }else{
+            if (this._lifecycleState === UIViewController.LifecycleState.appeared || this._lifecycleState === UIViewController.LifecycleState.appearing){
+                this.viewWillDisappear(animated);
+            }
+        }
+    },
+
+    endAppearanceTransition: function(){
+        if (this._appearanceTransitionAnimated){
+            this._endAppearanceTransition(true);
+        }else{
+            this._scheduleAppearanceTransition();
+        }
+    },
+
+    _endAppearanceTransition: function(){
+        this._appearanceTransitionScheduled = false;
+        if (this._lifecycleState === UIViewController.LifecycleState.appearing){
+            this.viewDidAppear(this._appearanceTransitionAnimated);
+        }else if (this._lifecycleState === UIViewController.LifecycleState.disappearing){
+            this.viewDidDisappear(this._appearanceTransitionAnimated);
+        }
+    },
+
+    _appearanceTransitionAnimated: false,
+    _appearanceTransitionScheduled: false,
+
+    _scheduleAppearanceTransition: function(){
+        if (this._appearanceTransitionScheduled){
+            return;
+        }
+        this._appearanceTransitionScheduled = true;
+        this.schedule(this._endAppearanceTransition);
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Display Loop Syncrhonization
+
+    schedule: function(callback){
+        var displayServer = UIApplication.shared.windowServer.displayServer;
+        displayServer.schedule(callback, this);
     },
 
     // -------------------------------------------------------------------------
@@ -183,12 +255,21 @@ JSClass("UIViewController", UIResponder, {
     parentViewController: null,
 
     addChildViewController: function(viewController){
+        if (viewController.parentViewController === this){
+            return;
+        }
+        if (viewController.parentViewController !== null){
+            viewController.removeFromParentViewController();
+        }
         viewController.willMoveToParentViewController(this);
         viewController.parentViewController = this;
         viewController.didMoveToParentViewController(this);
     },
 
     removeFromParentViewController: function(){
+        if (this.parentViewController === null){
+            return;
+        }
         this.willMoveToParentViewController(null);
         this.parentViewController = null;
         this.didMoveToParentViewController(null);
@@ -205,29 +286,24 @@ JSClass("UIViewController", UIResponder, {
             return;
         }
         if (this.isViewLoaded && this.isViewVisible){
-            var animated = animator !== undefined && animator !== null;
-            if (previousChildViewController !== null){
-                previousChildViewController.viewWillDisappear(animated);
-                previousChildViewController.removeFromParentViewController();
-            }
-            if (childViewController !== null){
-                // trigger childViewController.viewDidLoad by accessing .view
-                var view = childViewController.view;
-                this.addChildViewController(childViewController);
-                childViewController.viewWillAppear(animated);
-            }
-            var completion = function(){
+            if (animator !== undefined && animator !== null){
                 if (previousChildViewController !== null){
-                    previousChildViewController.viewDidDisappear(animated);
+                    previousChildViewController.beginDisappearanceWithAnimator(animator);
+                    previousChildViewController.removeFromParentViewController();
                 }
                 if (childViewController !== null){
-                    childViewController.viewDidAppear(animated);
+                    this.addChildViewController(childViewController);
+                    childViewController.beginAppearanceWithAnimator(animator);
                 }
-            };
-            if (animated){
-                animator.addCompletion(completion, this);
-            }else{
-                this.view.layer._displayServer.schedule(completion, this);
+            }else{                
+                if (previousChildViewController !== null){
+                    previousChildViewController.scheduleDisappearance();
+                    previousChildViewController.removeFromParentViewController();
+                }
+                if (childViewController !== null){
+                    this.addChildViewController(childViewController);
+                    childViewController.scheduleAppearance();
+                }
             }
         }else{
             if (previousChildViewController !== null){
@@ -336,3 +412,10 @@ JSClass("UIViewController", UIResponder, {
 
 
 });
+
+UIViewController.LifecycleState = {
+    disappeared: 0,
+    appearing: 1,
+    appeared: 2,
+    disappearing: 3
+};
