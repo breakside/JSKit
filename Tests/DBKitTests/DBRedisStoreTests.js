@@ -544,6 +544,126 @@ JSClass("DBRedisStoreTests", TKTestSuite, {
         this.wait(expectation, 1.0);
     },
 
+    testExclusiveSaveV4: function(){
+        var calls = {
+            createClient: 0,
+            watchWatch: 0,
+            watchGet: 0,
+            watchTTL: 0,
+            watchMulti: 0,
+            multiExec: 0,
+            multiSet: 0,
+            quit: 0,
+            watchQuit: 0,
+            change: 0
+        };
+        var client = null;
+        var watchClient = null;
+        var redis = {
+            createClient: function(options){
+                ++calls.createClient;
+                if (calls.createClient == 1){
+                    client = new MockRedisClient(options);
+                    client.connect = function(){
+                        return Promise.resolve();
+                    };
+                    client.quit = function(callback){
+                        ++calls.quit;
+                        if (callback){
+                            JSRunLoop.main.schedule(callback, undefined, null, "OK");
+                        }
+                    };
+                    return client;
+                }
+                watchClient = new MockRedisClient(options);
+                watchClient.connect = function(){
+                    return Promise.resolve();
+                };
+                watchClient.watch = function(key, callback){
+                    ++calls.watchWatch;
+                    TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                    JSRunLoop.main.schedule(callback, undefined, null, "OK");
+                };
+                watchClient.get = function(key, callback){
+                    ++calls.watchGet;
+                    TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                    var json = JSON.stringify({
+                        id: "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1",
+                        a: calls.watchGet,
+                        b: ["one", "two"]
+                    });
+                    JSRunLoop.main.schedule(callback, undefined, null, json);
+                };
+                watchClient.ttl = function(key, callback){
+                    ++calls.watchTTL;
+                    TKAssertEquals(key, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                    JSRunLoop.main.schedule(callback, undefined, null, 123);
+                };
+                watchClient.quit = function(callback){
+                    ++calls.watchQuit;
+                    if (callback){
+                        JSRunLoop.main.schedule(callback, undefined, null, "OK");
+                    }
+                };
+                watchClient.multi = function(){
+                    ++calls.watchMulti;
+                    var multi = new MockRedisClient();
+                    multi.set = function(args){
+                        ++calls.multiSet;
+                        TKAssertEquals(args.length, 4);
+                        TKAssertEquals(args[0], "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1");
+                        if (calls.multiSet === 1){
+                            TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":1,"b":["one","two","three"]}');
+                        }else{
+                            TKAssertEquals(args[1], '{"id":"obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1","a":2,"b":["one","two","three"]}');
+                        }
+                        TKAssertEquals(args[2], "EX");
+                        TKAssertEquals(args[3], 123);
+                        return multi;
+                    };
+                    multi.exec = function(callback){
+                        ++calls.multiExec;
+                        if (calls.multiExec === 1){
+                            JSRunLoop.main.schedule(callback, undefined, null, null);    
+                        }else{
+                            JSRunLoop.main.schedule(callback, undefined, null, [1]);
+                        }
+                    };
+                    return multi;
+                };
+                return watchClient;
+            }
+        };
+        var url = JSURL.initWithString("redis://localhost:1234");
+        var store = DBRedisStore.initWithURL(url, redis);
+        var expectation = TKExpectation.init();
+        expectation.call(store.open, store, function(success){
+            expectation.call(store.exclusiveSave, store, "obj_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx1", function(obj, changeCompletion){
+                obj.b.push("three");
+                ++calls.change;
+                expectation.continue();
+                changeCompletion(obj);
+            }, function(success){
+                TKAssert(success);
+                TKAssertEquals(calls.createClient, 2);
+                TKAssertEquals(calls.watchWatch, 2);
+                TKAssertEquals(calls.watchGet, 2);
+                TKAssertEquals(calls.watchTTL, 2);
+                TKAssertEquals(calls.watchMulti, 2);
+                TKAssertEquals(calls.multiSet, 2);
+                TKAssertEquals(calls.multiExec, 2);
+                TKAssertEquals(calls.change, 2);
+                TKAssertEquals(calls.quit, 0);
+                TKAssertEquals(calls.watchQuit, 0);
+                expectation.call(store.close, store, function(){
+                    TKAssertEquals(calls.watchQuit, 1);
+                    TKAssertEquals(calls.quit, 1);
+                });
+            });
+        });
+        this.wait(expectation, 1.0);
+    },
+
     testDelete: function(){
         var client = null;
         var redis = {

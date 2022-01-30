@@ -46,7 +46,7 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
         if (this.openPromise === null){
             this.openPromise = new Promise(function(resolve, reject){
                 logger.info("Redis client connecting to %{public}:%d...", queue.url.host, queue.url.port || 6379);
-                var client = queue.redis.createClient({url: queue.url.encodedString});
+                var client = queue.redis.createClient({url: queue.url.encodedString, legacyMode: true});
                 var errorHandler = function(error){
                     logger.info("Failed to open Redis connection: %{error}", error);
                     queue.openPromise = null;
@@ -61,8 +61,12 @@ JSClass("SKRedisJobQueue", SKJobQueue, {
                     queue.client = client;
                     resolve();
                 };
-                client.on("error", errorHandler);
-                client.on("ready", readyHandler);
+                if (client.connect){
+                    client.connect().then(readyHandler, errorHandler);
+                }else{
+                    client.on("error", errorHandler);
+                    client.on("ready", readyHandler);
+                }
             });
         }
         return this.openPromise;
