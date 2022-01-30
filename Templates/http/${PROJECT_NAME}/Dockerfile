@@ -2,7 +2,7 @@ FROM node:lts-alpine
 
 COPY ${PROJECT_NAME_FILE_SAFE} /${PROJECT_NAME_FILE_SAFE}
 
-RUN npm install /${PROJECT_NAME_FILE_SAFE}
+RUN cd /${PROJECT_NAME_FILE_SAFE} && npm install
 
 EXPOSE 80
 
