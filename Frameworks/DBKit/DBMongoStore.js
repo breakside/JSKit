@@ -40,6 +40,7 @@ JSClass("DBMongoStore", DBObjectStore, {
         this.databaseName = url.pathComponents[1];
         url = url.copy();
         url.path = null;
+        url.query.set("retryWrites", "false");
         this.tlsCertificateName = url.query.get("ssl_ca_certs", null);
         if (this.tlsCertificateName !== null){
             url.query.unset("ssl_ca_certs");
