@@ -153,7 +153,7 @@ JSClass("DBMongoStoreTests", TKTestSuite, {
         var store = DBMongoStore.initWithURL(url, mongodb);
         TKAssertExactEquals(store.mongodb, mongodb);
         TKAssertEquals(url.encodedString, "mongodb://localhost:1234/testdb");
-        TKAssertEquals(store.connectionURL.encodedString, "mongodb://localhost:1234");
+        TKAssertEquals(store.connectionURL.encodedString, "mongodb://localhost:1234?retryWrites=false");
         TKAssertEquals(store.databaseName, "testdb");
         TKAssertNull(store.client);
         TKAssertNull(store.database);
