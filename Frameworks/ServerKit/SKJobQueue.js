@@ -35,7 +35,7 @@ JSClass("SKJobQueue", JSObject, {
             return SKFileJobQueue.initWithURL(url, fileManager);
         }else if (url.scheme === "redis"){
             return SKRedisJobQueue.initWithURL(url, service);
-        }else if (url.scheme === "amqp"){
+        }else if (url.scheme === "amqp" || url.scheme === "amqps"){
             return SKAMQPJobQueue.initWithURL(url, service);
         }else if (url.scheme === "memory"){
             return SKMemoryJobQueue.init();
