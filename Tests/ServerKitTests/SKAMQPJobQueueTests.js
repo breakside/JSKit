@@ -109,6 +109,7 @@ JSClass("SKAMQPJobQueueTests", TKTestSuite, {
         TKAssertEquals(job.id.length, 44);
         TKAssertEquals(channel.sendToQueue.calls.length, 1);
         TKAssertEquals(channel.sendToQueue.calls[0].queue, "queue1");
+        TKAssertInstance(channel.sendToQueue.calls[0].content, Buffer);
         var json = channel.sendToQueue.calls[0].content.stringByDecodingUTF8();
         var dictionary = JSON.parse(json);
         TKAssertExactEquals(channel.sendToQueue.calls[0].options.persistent, true);

@@ -151,7 +151,7 @@ JSClass("SKAMQPJobQueue", SKJobQueue, {
 
     enqueueDictionary: async function(dictionary){
         var json = JSON.stringify(dictionary);
-        var content = json.utf8();
+        var content = json.utf8().nodeBuffer();
         await this.channel.sendToQueue(this.identifier, content, {persistent: true, priority: dictionary.priority});
     },
 
