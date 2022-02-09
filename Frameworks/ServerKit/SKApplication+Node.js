@@ -54,18 +54,20 @@ SKApplication.definePropertiesFromExtensions({
                 var logs = JSLog.getRecords();
                 var promise = this.delegate.applicationDidCrash(this, error, logs);
                 if (promise instanceof Promise){
-                    promise.catch(function(error){
-                        logger.error("Error while handling crash: %{error}", error);
+                    promise.catch(function(e){
+                        logger.error("SKApplication crash: %{error}", error);
+                        logger.error("Error while handling crash: %{error}", e);
                     }).finally(stop);
                 }else{
                     stop();
                 }
             }catch (e){
+                logger.error("SKApplication crash: %{error}", error);
                 logger.error("Error while handling crash: %{error}", e);
                 stop();
             }
         }else{
-            logger.error(error);
+            logger.error("SKApplication crash: %{error}", error);
             stop();
         }
     }

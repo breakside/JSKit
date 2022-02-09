@@ -190,7 +190,27 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _crash: function(error){
-        logger.error(error);
+        if (this.delegate && this.delegate.applicationDidCrash){
+            try{
+                var logs = JSLog.getRecords();
+                var promise = this.delegate.applicationDidCrash(this, error, logs);
+                if (promise instanceof Promise){
+                    promise.catch(function(e){
+                        logger.error("UIApplication crash: %{error}", error);
+                        logger.error("Error while handling crash: %{error}", e);
+                    });
+                }
+            }catch (e){
+                logger.error("UIApplication crash: %{error}", error);
+                logger.error("Error while handling crash: %{error}", e);
+            }
+        }else{
+            logger.error("UIApplication crash: %{error}", error);
+        }
+        this._showCrashScreen();
+    },
+
+    _showCrashScreen: function(){
         this.windowServer.stop();
         var root = this.windowServer.displayServer.rootElement;
         var cover = root.appendChild(root.ownerDocument.createElement('div'));
@@ -201,10 +221,6 @@ JSClass("UIHTMLApplication", UIApplication, {
         cover.style.right = '0';
         cover.style.bottom = '0';
         var message;
-        if (this.delegate && this.delegate.applicationDidCrash){
-            var logs = JSLog.getRecords();
-            message = this.delegate.applicationDidCrash(this, error, logs);
-        }
         if (!message){
             message = "Sorry, there was a problem and the application needs to restart.\n\nPlease reload the page to continue.";
         }
