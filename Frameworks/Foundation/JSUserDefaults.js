@@ -29,12 +29,17 @@ var logger = JSLog("foundation", "user-defaults");
 JSClass("JSUserDefaults", JSObject, {
 
     identifier: JSReadOnlyProperty('_identifier', null),
+    _fileManager: null,
     _defaults: null,
     _values: null,
 
-    initWithIdentifier: function(identifier){
+    initWithIdentifier: function(identifier, fileManager){
+        if (fileManager === undefined){
+            fileManager = JSFileManager.shared;
+        }
+        this._fileManager = fileManager;
         this._identifier = identifier;
-        this._url = JSFileManager.shared.persistentContainerURL.appendingPathComponents(['Preferences', '%s.prefs.json'.sprintf(this._identifier)]);
+        this._url = this._fileManager.persistentContainerURL.appendingPathComponents(['Preferences', '%s.prefs.json'.sprintf(this._identifier)]);
         this._defaults = {};
     },
 
@@ -42,7 +47,7 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        JSFileManager.shared.contentsAtURL(this._url, function JSUserDefaults_open_contents(data){
+        this._fileManager.contentsAtURL(this._url, function JSUserDefaults_open_contents(data){
             try{
                 if (data !== null){
                     var json = String.initWithData(data, String.Encoding.utf8);
@@ -63,6 +68,19 @@ JSClass("JSUserDefaults", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
+        this.synchronize(function(success){
+            if (success){
+                this._values = null;
+            }
+            completion.call(target, success);
+        }, this);
+        return completion.promise;
+    },
+
+    synchronize: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveTrue);
+        }
         var needsSave = false;
         if (this._persistScheduled){
             this._persistScheduled = false;
@@ -75,9 +93,6 @@ JSClass("JSUserDefaults", JSObject, {
         }
         if (needsSave){
             this._persist(function JSUserDefaults_close_persisted(success){
-                if (success){
-                    this._values = null;
-                }
                 completion.call(target, success);
             }, this);
         }else{
@@ -89,6 +104,9 @@ JSClass("JSUserDefaults", JSObject, {
     // MARK: - Getting and Setting values
 
     valueForKey: function(key){
+        if (this._values === null){
+            throw new Error("JSUserDefaults is closed, cannot get value.  Be sure to call open() first.");
+        }
         if (key in this._values){
             return this._values[key];
         }
@@ -99,6 +117,9 @@ JSClass("JSUserDefaults", JSObject, {
     },
 
     setValueForKey: function(value, key){
+        if (this._values === null){
+            throw new Error("JSUserDefaults is closed, cannot set value.  Be sure to call open() first.");
+        }
         this._values[key] = value;
         this._persistAfterDelay();
         this._definePropertyForKey(key);
@@ -161,7 +182,7 @@ JSClass("JSUserDefaults", JSObject, {
         }else{
             var data = JSON.stringify(this._values).utf8();
             logger.info("saving user defaults");
-            JSFileManager.shared.createFileAtURL(this._url, data, function JSUserDefaults_persist_createFile(success){
+            this._fileManager.createFileAtURL(this._url, data, function JSUserDefaults_persist_createFile(success){
                 if (!success){
                     logger.error("failed to write user defaults");
                 }else{
