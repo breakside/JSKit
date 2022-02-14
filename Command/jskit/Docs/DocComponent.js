@@ -275,6 +275,16 @@ JSClass("DocComponent", JSObject, {
             script = head.appendChild(document.createElement('script'));
             script.appendChild(document.createTextNode(googleAnalyticsTemplate.replacingTemplateParameters({TRACKING_ID: page.googleAnalytics, PATH: path})));
         }
+        if (page.telemetryKey){
+            let path = this.outputURL.removingFileExtension().encodedStringRelativeTo(documentation.wwwURL);
+            if (path == 'index'){
+                path = '/';
+            }else{
+                path = '/' + path;
+            }
+            let script = head.appendChild(document.createElement('script'));
+            script.appendChild(document.createTextNode(telemetryTemplate.replacingTemplateParameters({KEY: page.telemetryKey, PATH: path})));
+        }
         var breadcrumb = this.jsonLdBreadcrumbList();
         if (breadcrumb){
             let script = head.appendChild(document.createElement("script"));
@@ -884,6 +894,7 @@ JSClass("DocComponent", JSObject, {
 });
 
 var googleAnalyticsTemplate = "window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());gtag('config', '{{TRACKING_ID}}', {page_path: '{{PATH}}'});";
+var telemetryTemplate = "(function(w, d){ var key = '{{KEY}}'; var s = d.createElement('script'); s.async = true; s.src = 'https://api.telemetry.rocketlaunch.studio/client/telemetry.js'; s.setAttribute('data-key', key); var e = (d.currentScript || d.head.childNodes[d.head.childNodes.length - 1]); e.parentNode.insertBefore(s, e); w._telemetry = function(){ _telemetry.q.push(arguments); }; _telemetry.q = []; })(window, document); _telemetry('count', 'screen', '{{PATH}}');";
 
 DocComponent.Environments = [{id: 'html', name: 'HTML'}, {id: 'node', name: 'Node'}];
 
