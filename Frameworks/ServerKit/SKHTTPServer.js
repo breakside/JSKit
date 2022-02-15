@@ -148,7 +148,7 @@ JSClass("SKHTTPServer", JSObject, {
                 if (this.delegate && this.delegate.serverRouteNotFoundForRequest){
                     this.delegate.serverRouteNotFoundForRequest(this, request);
                 }
-                request.logger.warn("%{public} %{public} No route for request", request.method, request.url.path);
+                request.logger.info("%{public} %{public} No route for request", request.method, request.url.path);
                 throw new SKHTTPError(SKHTTPResponse.StatusCode.notFound);
             }
 
