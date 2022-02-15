@@ -56,6 +56,10 @@ JSClass("UIScene", JSObject, {
     },
 
     show: function(){
+        if (UIScene._visible !== null){
+            UIScene._visible.close();
+        }
+        UIScene._visible = this;
         if (this.menuBar){
             this.application.windowServer.menuBar = this.menuBar;
         }
@@ -67,7 +71,6 @@ JSClass("UIScene", JSObject, {
         if (window !== null){
             window.makeKey();
         }
-        UIScene._visible = this;
     },
 
     close: function(){
@@ -80,6 +83,7 @@ JSClass("UIScene", JSObject, {
             window = windowServer.windowStack[i];
             window.close();
         }
+        UIScene._visible = null;
     },
 
 });
