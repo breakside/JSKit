@@ -246,7 +246,8 @@ JSClass("DBRedisStore", DBObjectStore, {
                 this.cleanupWatchClientQueueTimer.invalidate();
                 this.cleanupWatchClientQueueTimer = null;
             }
-            return this.watchClientQueue.shift();
+            completion.call(target, this.watchClientQueue.shift());
+            return;
         }
         logger.info("opening watch client to %{public}:%d", this.url.host, this.url.port || 6379);
         var client = this.redis.createClient({url: this.url.encodedString, legacyMode: true});
