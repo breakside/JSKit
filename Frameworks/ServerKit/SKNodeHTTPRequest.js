@@ -25,6 +25,9 @@ JSClass("SKNodeHTTPRequest", SKHTTPRequest, {
 
     initWithNodeRequest: function(nodeRequest, nodeResponse){
         var url = JSURL.initWithString(nodeRequest.url);
+        if (url === null){
+            return null;
+        }
         if (url.pathComponents.length === 0){
             url.path = "/";
         }

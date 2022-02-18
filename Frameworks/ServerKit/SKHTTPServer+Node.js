@@ -85,6 +85,10 @@ SKHTTPServer.definePropertiesFromExtensions({
     _handleNodeRequest: function(nodeRequest, nodeResponse){
         try{
             var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, nodeResponse);
+            if (request === null){
+                nodeRequest.socket.destroy();
+                return;
+            }
             if (this.tlsCertificate && this.tlsPrivateKey){
                 request.url.scheme = "https";
             }
@@ -98,6 +102,10 @@ SKHTTPServer.definePropertiesFromExtensions({
     _handleNodeUpgrade: function(nodeRequest, socket, headPacket){
         try{
             var request = SKNodeHTTPRequest.initWithNodeRequest(nodeRequest, null);
+            if (request === null){
+                nodeRequest.socket.destroy();
+                return;
+            }
             this.handleUpgrade(request);
         }catch(e){
             nodeRequest.socket.destroy();
