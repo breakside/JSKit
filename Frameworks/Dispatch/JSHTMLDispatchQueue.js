@@ -43,8 +43,10 @@ JSClass("JSHTMLDispatchQueue", JSWorkerBasedDispatchQueue, {
     },
 
     close: function(){
-        this.worker.terminate();
-        this.worker = null;
+        if (this.worker !== null){
+            this.worker.terminate();
+            this.worker = null;
+        }
     }
 
 });
