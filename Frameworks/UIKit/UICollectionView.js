@@ -19,6 +19,8 @@
 // #import "UICollectionViewLayout.js"
 "use strict";
 
+(function(){
+
 JSProtocol("UICollectionViewDelegate", JSProtocol, {
 
     // Selection
@@ -289,9 +291,6 @@ JSClass("UICollectionView", UIScrollView, {
         if (this._visibleElements.length === 0){
             return;
         }
-        var firstVisibleElement = this._visibleElements[0];
-        var lastVisibleElement = this._visibleElements[this._visibleElements.length - 1];
-        var searcher = JSBinarySearcher(this._visibleElements, VisibleElement.indexPathCompare);
 
         indexPaths = JSCopy(indexPaths);
         indexPaths.sort(function(a, b){
@@ -301,28 +300,25 @@ JSClass("UICollectionView", UIScrollView, {
         var i, l;
         var indexPath;
         var comparison;
-        var elementIndex;
+        var elementIndex = 0;
+        var elementCount = this._visibleElements.length;
         var cell;
         var element;
 
         for (i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
-            comparison = VisibleElement.indexPathCompare(indexPath, lastVisibleElement);
-            if (comparison <= 0){
-                comparison = VisibleElement.indexPathCompare(indexPath, firstVisibleElement);
-                if (comparison >= 0){
-                    elementIndex = searcher.indexMatchingValue(indexPath);
-                    if (elementIndex !== null){
-                        element = this._visibleElements[elementIndex];
-                        cell = element.view;
-                        this._enqueueReusableCell(cell);
-                        cell = this._createCellWithAttributes(element.attributes);
-                        if (cell !== element.view){
-                            this._elementsContainerView.insertSubviewBelowSibling(cell, element.view);
-                            element.view.removeFromSuperview();
-                            element.view = cell;
-                        }
-                    }
+            while (elementIndex < elementCount && !this._visibleElements[elementIndex].indexPath.isEqual(indexPath)){
+                ++elementIndex;
+            }
+            if (elementIndex < elementCount){
+                element = this._visibleElements[elementIndex];
+                cell = element.view;
+                this._enqueueReusableCell(cell);
+                cell = this._createCellWithAttributes(element.attributes);
+                if (cell !== element.view){
+                    this._elementsContainerView.insertSubviewBelowSibling(cell, element.view);
+                    element.view.removeFromSuperview();
+                    element.view = cell;
                 }
             }
         }
@@ -1249,6 +1245,4 @@ VisibleElement.prototype = Object.create(Function.prototype, {
 
 });
 
-VisibleElement.indexPathCompare = function VisibleElement_indexPathCompare(indexPath, element){
-    return indexPath.compare(element.indexPath);
-};
+})();
