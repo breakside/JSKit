@@ -59,6 +59,10 @@ JSClass("JSIndexPathTests", TKTestSuite, {
         a = JSIndexPath(1, 2);
         b = JSIndexPath(2, 1);
         TKAssertObjectNotEquals(a, b);
+
+        a = JSIndexPath([]);
+        b = JSIndexPath([]);
+        TKAssertObjectEquals(a, b);
     },
 
     testLessThan: function(){
@@ -84,6 +88,18 @@ JSClass("JSIndexPathTests", TKTestSuite, {
 
         a = JSIndexPath(1, 2);
         b = JSIndexPath(2, 3);
+        TKAssert(a.isLessThan(b));
+
+        a = JSIndexPath([]);
+        b = JSIndexPath([0]);
+        TKAssert(a.isLessThan(b));
+
+        a = JSIndexPath([]);
+        b = JSIndexPath([0, 0]);
+        TKAssert(a.isLessThan(b));
+
+        a = JSIndexPath([0]);
+        b = JSIndexPath([0, 0]);
         TKAssert(a.isLessThan(b));
     },
 
@@ -136,6 +152,18 @@ JSClass("JSIndexPathTests", TKTestSuite, {
 
         a = JSIndexPath(1, 2);
         b = JSIndexPath(2, 3);
+        TKAssert(b.isGreaterThan(a));
+
+        a = JSIndexPath([]);
+        b = JSIndexPath([0]);
+        TKAssert(b.isGreaterThan(a));
+
+        a = JSIndexPath([]);
+        b = JSIndexPath([0, 0]);
+        TKAssert(b.isGreaterThan(a));
+
+        a = JSIndexPath([0]);
+        b = JSIndexPath([0, 0]);
         TKAssert(b.isGreaterThan(a));
     },
 
