@@ -274,6 +274,63 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "endElement"
         ];
         TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<xml:root>',
+            '  <xml:test>',
+            '    <c one="1" two="2"/>',
+            '  </xml:test>',
+            '  <xml:test2/>',
+            '</xml:root>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        expected = [
+            "beginDocument",
+            "beginElement",
+            "root",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
+            "false",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
+            "false",
+            "handleText",
+            "\n    ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "1",
+            "two",
+            "null",
+            "null",
+            "2",
+            "true",
+            "handleText",
+            "\n  ",
+            "endElement",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test2",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
+            "true",
+            "handleText",
+            "\n",
+            "endElement"
+        ];
+        TKAssertArrayEquals(listener.output, expected);
     },
 
     testCommentsAndCData: function(){
@@ -421,7 +478,279 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "endElement"
         ];
         TKAssertArrayEquals(listener.output, expected);
-    }
+    },
+
+    testDoctypes: function(){
+        var parser = JSXMLParser.init();
+        var xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        var listener = TestListener();
+        parser.parse(xml, listener);
+        var expected = [
+            "beginDocument",
+            "handleDocumentType",
+            "name",
+            "null",
+            "null",
+            "beginElement",
+            "abc",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "testing 123",
+            "endElement",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "1",
+            "two",
+            "null",
+            "null",
+            "2",
+            "true",
+            "handleText",
+            "\n",
+            "endElement"
+        ];
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name',
+            '>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name [',
+            ']>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name SYSTEM "test">',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        expected = [
+            "beginDocument",
+            "handleDocumentType",
+            "name",
+            "null",
+            "test",
+            "beginElement",
+            "abc",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "testing 123",
+            "endElement",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "1",
+            "two",
+            "null",
+            "null",
+            "2",
+            "true",
+            "handleText",
+            "\n",
+            "endElement"
+        ];
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name PUBLIC "test" "test2">',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        expected = [
+            "beginDocument",
+            "handleDocumentType",
+            "name",
+            "test",
+            "test2",
+            "beginElement",
+            "abc",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "testing 123",
+            "endElement",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "1",
+            "two",
+            "null",
+            "null",
+            "2",
+            "true",
+            "handleText",
+            "\n",
+            "endElement"
+        ];
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name PUBLIC "test" "test2" []>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name PUBLIC "test" "test2" [',
+            ']>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        TKAssertArrayEquals(listener.output, expected);
+
+        parser = JSXMLParser.init();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE name PUBLIC "test" "test2" [',
+            '  <!ENTITY entity1 "hello">',
+            '  <!ENTITY entity2 "world">',
+            ']>',
+            '<abc>',
+            '  <test>&entity1;</test>',
+            '  <c one="&entity2;" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        listener = TestListener();
+        parser.parse(xml, listener);
+        expected = [
+            "beginDocument",
+            "handleDocumentType",
+            "name",
+            "test",
+            "test2",
+            "beginElement",
+            "abc",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "null",
+            "null",
+            "false",
+            "handleText",
+            "hello",
+            "endElement",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "world",
+            "two",
+            "null",
+            "null",
+            "2",
+            "true",
+            "handleText",
+            "\n",
+            "endElement"
+        ];
+        TKAssertArrayEquals(listener.output, expected);
+    },
 
 });
 

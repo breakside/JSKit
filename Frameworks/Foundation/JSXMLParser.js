@@ -36,6 +36,7 @@ JSClass("JSXMLParser", JSObject, {
         var c;
         var lineNumber = 1;
         var lineOffset;
+        var entityMap = JSCopy(defaultEntityMap);
         var readToken = function(){
             if (offset >= length){
                 return null;
@@ -131,8 +132,77 @@ JSClass("JSXMLParser", JSObject, {
                 return {kind: 'PI', name: name, value: readUntil('?>')};
             }
             if (token == '<!DOCTYPE'){
-                var parts = readUntil('>').trim().split(' ');
-                return {kind: 'Doctype', name: parts[0], publicId: parts[1], systemId: parts[2]};
+                readWhitespace();
+                name = readName();
+                readWhitespace();
+                var doctype = {kind: 'Doctype', name: name, publicId: null, systemId: null, entities: {}};
+                if (offset < length && input[offset] !== '>'){
+                    if (input[offset] != '['){
+                        name = readName();
+                        readWhitespace();
+                        if (name == "SYSTEM"){
+                            if (offset < length && (input[offset] == "'" || input[offset] == '"')){
+                                doctype.systemId = readAttributeValue();
+                                readWhitespace();
+                            }else{
+                                throw new Error("Expecting quote at " + lineNumber  + ':' + (offset - lineOffset));
+                            }
+                        }else if (name === "PUBLIC"){
+                            if (offset < length && (input[offset] == "'" || input[offset] == '"')){
+                                doctype.publicId = readAttributeValue();
+                                readWhitespace();
+                                if (offset < length && (input[offset] == "'" || input[offset] == '"')){
+                                    doctype.systemId = readAttributeValue();
+                                    readWhitespace();
+                                }else{
+                                    throw new Error("Expecting quote at " + lineNumber  + ':' + (offset - lineOffset));
+                                }
+                            }else{
+                                throw new Error("Expecting quote at " + lineNumber  + ':' + (offset - lineOffset));
+                            }
+                        }else{
+                            throw new Error("Expecting SYSTEM or PUBLIC at " + lineNumber  + ':' + (offset - lineOffset));
+                        }
+                    }
+                    if (offset < length && input[offset] == '['){
+                        ++offset;
+                        readWhitespace();
+                        while (offset < length && input[offset] !== ']'){
+                            token = readToken();
+                            if (token == '<!'){
+                                name = readName();
+                                if (name === "ENTITY"){
+                                    readWhitespace();
+                                    if (offset >= length){
+                                        throw new Error("Expecting ENTITY name at " + lineNumber  + ':' + (offset - lineOffset));
+                                    }
+                                    name = readName();
+                                    readWhitespace();
+                                    if (offset >= length){
+                                        throw new Error("Expecting ENTITY value at " + lineNumber  + ':' + (offset - lineOffset));
+                                    }
+                                    entityMap[name] = readAttributeValue();
+                                }
+                                readUntil('>');
+                            }else if (token == '<?'){
+                                readUntil('?>');
+                            }else if (token == '<!--'){
+                                readUntil('-->');
+                            }
+                            readWhitespace();
+                        }
+                        if (offset >= length || input[offset] !== ']'){
+                            throw new Error("Expecting ] at end of DOCTYPE at " + lineNumber  + ':' + (offset - lineOffset));
+                        }
+                        ++offset;
+                        readWhitespace();
+                    }
+                }
+                if (offset >= length || input[offset] !== '>'){
+                    throw new Error("Expecting > at end of DOCTYPE at " + lineNumber  + ':' + (offset - lineOffset));
+                }
+                ++offset;
+                return doctype;
             }
             if (token == '<![CDATA['){
                 return {kind: 'CDATA', value: readUntil(']]>')};
@@ -154,7 +224,7 @@ JSClass("JSXMLParser", JSObject, {
                     if (offset < length && input[offset] == '='){
                         ++offset;
                         readWhitespace();
-                        attributes.push({name: attrName, value: textByDecodingEntities(readAttributeValue())});
+                        attributes.push({name: attrName, value: textByDecodingEntities(readAttributeValue(), entityMap)});
                     }else{
                         attributes.push({name: attrName, value: null});
                     }
@@ -189,7 +259,7 @@ JSClass("JSXMLParser", JSObject, {
                 ++offset;
                 return {kind: 'ElementEnd', name: name};
             }
-            return {kind: 'Text', value: textByDecodingEntities(token)};
+            return {kind: 'Text', value: textByDecodingEntities(token, entityMap)};
         };
         var readUntil = function(token){
             var index = input.indexOf(token, offset);
@@ -267,7 +337,10 @@ JSClass("JSXMLParser", JSObject, {
         }
         obj = readObject();
         var elementNameStack = [];
-        var namespaces = {':default:': null};
+        var namespaces = {
+            ':default:': null,
+            'xml': 'http://www.w3.org/XML/1998/namespace'
+        };
         var namespacesStack = [];
         var hasDocumentElement = false;
         var hasSentDoctype = false;
@@ -361,7 +434,7 @@ JSClass("JSXMLParser", JSObject, {
 
 });
 
-var textByDecodingEntities = function(text){
+var textByDecodingEntities = function(text, map){
     var index = text.indexOf('&');
     var length = text.length;
     var end;
@@ -390,7 +463,7 @@ var textByDecodingEntities = function(text){
                     value = String.fromCharCode(code);
                 }
             }else{
-                value = entityMap[entity] || null;
+                value = map[entity] || null;
                 if (value === null){
                     throw new Error("Cannot lookup entity: &" + entity + ';');
                 }
@@ -404,7 +477,7 @@ var textByDecodingEntities = function(text){
     return text;
 };
 
-var entityMap = {
+var defaultEntityMap = {
     'lt': '<',
     'LT': '<',
     'gt': '>',
