@@ -1,6 +1,6 @@
 JSBundleType: node
 JSBundleIdentifier: io.breakside.jskit
-JSBundleVersion: 2022.7.1
+JSBundleVersion: 2022.9.0
 JSExecutableName: jskit
 NPMOrganization: breakside
 JSResources:
