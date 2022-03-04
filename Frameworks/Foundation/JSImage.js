@@ -417,7 +417,7 @@ _JSDataImage.sizeFromSVGData = function(data){
                     size.width = px(attrs.width);
                     size.height = px(attrs.height);
                 }else if (attrs.viewBox){
-                    var box = attrs.viewBox.split(/\s+/).map(function(n){ parseInt(n); });
+                    var box = attrs.viewBox.split(/\s+/).map(function(n){ return parseInt(n); });
                     size.width = box[2];
                     size.height = box[3];
                 }
