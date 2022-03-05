@@ -42,13 +42,16 @@ JSClass("FNTFontDescriptor", JSDataFontDescriptor, {
         }
         var os2 = this.font.tables['OS/2'];
         if (os2){
-            this._weight = Math.floor(os2.weight / 100) * 100;
+            this._weight = Math.floor(os2.usWeightClass / 100) * 100;
             this._style = (os2.selection & 0x1) ? JSFont.Style.italic : JSFont.Style.normal;
         }
-        // this._family
-        // this._name
-        // this._face
-        // this._postScriptName
+        var name = font.tables.name;
+        if (name){
+            this._family = name.family;
+            this._postScriptName = name.postscript;
+            this._face = name.face;
+            this._name = name.fullName;
+        }
         this._characterToGlyphMap = {};
         this._glyphToCharacterMap = {};
     },
