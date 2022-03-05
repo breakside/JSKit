@@ -37,16 +37,19 @@ JSClass('UIScrollView', UIView, {
     initWithSpec: function(spec){
         UIScrollView.$super.initWithSpec.call(this, spec);
 
-        // 1. If any subviews were added directly to this view, we'll move them
-        //    to the contentView once it's ready
-        var contentSubviews = JSCopy(this.subviews);
+        var contentSubviews = [];
 
-        // 2. If the content view and scrollers are specified in the spec, create them
-        //    before doing the _commonScrollViewInit, so it won't try to create them itself.
-        //    These properties are optional in the spec, and are typically only provided if
-        //    the user wants to provide specialized customization
+        // If the content view and scrollers are specified in the spec, create them
+        // before doing the _commonScrollViewInit, so it won't try to create them itself.
+        // These properties are optional in the spec, and are typically only provided if
+        // the user wants to provide specialized customization
         if (spec.containsKey('contentView')){
             this._contentView = spec.valueForKey("contentView", UIView);
+        }else{
+            // If any subviews were added directly to this view, and a 
+            // contentView was not provided, treat the subviews as children
+            // of the contentView
+            contentSubviews = JSCopy(this.subviews);
         }
         if (spec.containsKey('verticalScroller')){
             this._verticalScroller = spec.valueForKey("verticalScroller", UIScroller);
@@ -59,13 +62,13 @@ JSClass('UIScrollView', UIView, {
         }
         this._commonScrollViewInit();
 
-        // 3. Finish the work from step #1 after _commonScrollViewInit, when we can be sure that
-        //    a contentView has been created
+        // Finish the contentSubvies work after _commonScrollViewInit,
+        // when we can be sure that a contentView has been created
         for (var i = 0, l = contentSubviews.length; i < l; ++i){
             this._contentView.addSubview(contentSubviews[i]);
         }
 
-        // 4. Handle all the other properties
+        // Handle all the other properties
         if (spec.containsKey('contentInsets')){
             this.contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
@@ -105,7 +108,7 @@ JSClass('UIScrollView', UIView, {
         this._maxContentOffset = JSPoint.Zero;
         this._horizontalScroller.addAction("_horizontalScrollerValueChanged", this, UIControl.Event.valueChanged);
         this._verticalScroller.addAction("_verticalScrollerValueChanged", this, UIControl.Event.valueChanged);
-        this.addSubview(this._contentView);
+        this.insertSubviewAtIndex(this._contentView, 0);
         this.addSubview(this._verticalScroller);
         this.addSubview(this._horizontalScroller);
         this._updateScrollers();
