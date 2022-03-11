@@ -769,6 +769,21 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
         }
     },
 
+    sizeControlToFitSize: function(control, maxSize){
+        var intrinsicSize = this.intrinsicSizeOfControl(control);
+        var size = JSSize(control.bounds.size);
+        if (maxSize.width < Number.MAX_VALUE){
+            size.width = maxSize.width;
+        }
+        if (intrinsicSize.width < maxSize.width){
+            size.width = intrinsicSize.width;
+        }
+        if (intrinsicSize.height < maxSize.height){
+            size.height = intrinsicSize.height;
+        }
+        control.bounds = JSRect(JSPoint.Zero, size);
+    },
+
     intrinsicSizeOfControl: function(control){
         var itemView;
         var size = JSSize.Zero;
