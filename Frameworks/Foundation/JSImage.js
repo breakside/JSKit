@@ -449,14 +449,21 @@ JSClass("_JSURLImage", JSImage, {
 
     getData: function(completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         var session = JSURLSession.shared;
         var task = session.dataTaskWithURL(this.url, function(error){
-            if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
-                completion.call(target, null);
+            if (error !== null){
+                completion.call(target, null, error);
+                return;
             }
-            completion.call(target, task.response.data);
+            try{
+                task.response.assertSuccess();
+            }catch (e){
+                completion.call(target, null, e);
+                return;
+            }
+            completion.call(target, task.response.data, null);
         });
         task.resume();
         return completion.promise;
