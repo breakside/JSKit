@@ -163,6 +163,16 @@ JSURLResponse.StatusClass = {
     serverError: 5
 };
 
+JSURLResponse.error = function(statusCode, object){
+    var response = JSURLResponse.init();
+    response.statusCode = statusCode;
+    if (object !== undefined){
+        response.data = JSON.stringify(object).utf8();
+        response.headerMap.add("Content-Type", response.jsonMime);
+    }
+    return new JSURLResponseError(response);
+};
+
 JSGlobalObject.JSURLResponseError = function(response){
     if (this === undefined){
         return new JSURLResponseError();
