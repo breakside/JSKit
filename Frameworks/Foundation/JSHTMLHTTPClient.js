@@ -38,7 +38,15 @@ JSClass("JSHTMLHTTPClient", JSObject, {
             }
         };
         var failEventHandler = function(e){
-            complete(new Error(e.type));
+            if (e.type == "error"){
+                complete(new Error("XMLHttpRequest error (network down, timeout, CORS, etc)"));
+            }else if (e.type == "timeout"){
+                complete(new Error("XMLHttpRequest timeout"));
+            }else if (e.type == "abort"){
+                complete(new Error("XMLHttpRequest aborted"));
+            }else{
+                complete(new Error("XMLHttpRequest failed with event: " + e.type));
+            }
         };
         try {
             var response = null;
