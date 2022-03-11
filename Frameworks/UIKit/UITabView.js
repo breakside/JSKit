@@ -59,16 +59,14 @@ JSClass("UITabView", UIView, {
         if (spec.containsKey('delegate')){
             this.delegate = spec.valueForKey("delegate");
         }
-        if (spec.containsKey('items')){
-            var items = [];
-            var specItems = spec.valueForKey('items');
-            for (var i = 0, l = specItems.length; i < l; ++i){
-                items.push(specItems.valueForKey(i, UITabViewItem));
-            }
-            this.items = items;
-        }
         if (spec.containsKey("font")){
             this.font = spec.valueForKey("font", JSFont);
+        }
+        if (spec.containsKey('items')){
+            var specItems = spec.valueForKey('items');
+            for (var i = 0, l = specItems.length; i < l; ++i){
+                this.insertItemAtIndex(specItems.valueForKey(i, UITabViewItem), i);
+            }
         }
     },
 
@@ -1067,6 +1065,7 @@ JSClass("UITabViewTablessStyler", UITabViewStyler, {
     showContentViewInTabView: function(contentView, tabView){
         tabView.addSubview(contentView);
         tabView.stylerProperties.contentView = contentView;
+        this.layoutTabView(tabView);
     },
 
     removeContentViewFromTabView: function(contentView, tabView){
