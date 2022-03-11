@@ -43,7 +43,7 @@ JSClass("FNTFontDescriptor", JSDataFontDescriptor, {
         var os2 = this.font.tables['OS/2'];
         if (os2){
             this._weight = Math.floor(os2.usWeightClass / 100) * 100;
-            this._style = (os2.selection & 0x1) ? JSFont.Style.italic : JSFont.Style.normal;
+            this._style = (os2.fsSelection & 0x1) ? JSFont.Style.italic : JSFont.Style.normal;
         }
         var name = font.tables.name;
         if (name){
