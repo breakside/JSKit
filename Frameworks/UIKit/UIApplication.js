@@ -126,7 +126,7 @@ JSClass('UIApplication', UIResponder, {
                 JSFont.Size[size] = Math.round(JSFont.Size[size] * 1.2);
             }
         }
-        this.windowServer.displayServer.registerFontDescriptors(descriptors, function(error){
+        this.registerFontDescriptors(descriptors, function(error){
             completion.call(target, error);
         }, this);
     },
@@ -427,8 +427,22 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
     },
 
+    // MARK: - Fonts
+
+    registerFontDescriptor: function(descriptor, completion, target){
+        return this.registerFontDescriptors([descriptor], completion, target);
+    },
+
+    registerFontDescriptors: function(descriptors, completion, target){
+        return this.windowServer.displayServer.registerFontDescriptors(descriptors, completion, target);
+    },
+
+    // MARK: - URLs
+
     openURL: function(url, options){
     },
+
+    // MARK: - Environment
 
     getenv: function(name, defaultValue){
         return this.environment.get(name, defaultValue);
