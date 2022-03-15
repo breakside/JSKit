@@ -288,6 +288,9 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     reloadCellsAtIndexPaths: function(indexPaths, animator){
+        if (this._needsReload){
+            return;
+        }
         if (this._visibleElements.length === 0){
             return;
         }
@@ -1222,15 +1225,7 @@ VisibleElement.prototype = Object.create(Function.prototype, {
     indexPath: { value: null, writable: true },
     rect: { value: null, writable: true, configurable: true },
     kind: { value: null, writable: true },
-    view: {
-        configurable: true,
-        set: function(view){
-            Object.defineProperty(this, 'view', {value: view});
-        },
-        get: function(){
-            return null;
-        }
-    },
+    view: { value: null, writable: true },
     state: { value: null, writable: true },
     animation: { value: null, writable: true },
 
