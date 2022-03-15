@@ -59,10 +59,6 @@ topics:
           - name: callback
             type:
               arguments:
-                - name: directory
-                  type: String
-                  summary: The directory prefix for the file, relative to the
-                    common ancestor directory among all the files
                 - name: file
                   type: JSFile
                   nullable: true
@@ -74,7 +70,7 @@ topics:
             summary: The object to use as `this`() when calling `callback`()
       - name: all
         kind: method
-        summary: Get a list of all the files, only if the enumerator contains one file
+        summary: Get a list of all the files
         arguments:
           - name: callback
             type:
