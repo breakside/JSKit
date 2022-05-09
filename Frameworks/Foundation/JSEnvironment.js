@@ -112,6 +112,11 @@ JSClass("JSEnvironment", JSObject, {
             }
         }
         return null;
+    },
+
+    booleanForName: function(name){
+        var stringValue = this.stringForName(name);
+        return (stringValue === 'true' || stringValue === '1' || stringValue === 'yes' || stringValue === 'on');
     }
 
 });
