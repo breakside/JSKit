@@ -1156,6 +1156,16 @@ JSClass("UIWindowStyler", JSObject, {
             return;
         }
         var view = responder;
+        var views = [];
+        while (view !== window){
+            views.push(view);
+            view = view.superview;
+        }
+        view = responder;
+        var i;
+        for (i = views.length - 1; i >= 0; --i){
+            views[i].layoutIfNeeded();
+        }
         var path = view.focusRingPath;
         if (path === null){
             focusRingLayer.hidden = true;
