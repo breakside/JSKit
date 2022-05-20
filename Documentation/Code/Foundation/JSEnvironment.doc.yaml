@@ -83,6 +83,26 @@ topics:
         note: |
           Will return `null`() for unknown name
       -
+        name: booleanForName
+        introduced: 2022.20.0
+        kind: method
+        type: Boolean
+        nullable: false
+        summary: Get the boolean value for the given name
+        arguments:
+          -
+            name: name
+            type: String
+            summary: The name of the variable to lookup
+        note: |
+          Will return `true` if the variable's string value is
+          * `"true"`
+          * `"yes"`
+          * `"on"`
+          * `"1"`
+
+          Will return `false`() for unknown name
+      -
         name: urlForName
         introduced: 2021.9.0
         kind: method
