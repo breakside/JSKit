@@ -36,6 +36,7 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
     active: JSDynamicProperty(null, null, 'isActive'),
     selected: JSDynamicProperty(null, null, 'isSelected'),
     contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
+    dropTarget: JSDynamicProperty(null, null, 'isDropTarget'),
 
     _updateState: function(newState){
         if (newState != this._state){
@@ -94,6 +95,14 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
         this._toggleState(UICollectionViewCell.State.contextSelected, isContextSelected);
     },
 
+    isDropTarget: function(){
+        return (this._state & UICollectionViewCell.State.dropTarget) === UICollectionViewCell.State.dropTarget;
+    },
+
+    setDropTarget: function(isDropTarget){
+        this._toggleState(UICollectionViewCell.State.dropTarget, isDropTarget);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Accessibility
 
@@ -117,5 +126,6 @@ UICollectionViewCell.State = {
     active:   1 << 1,
     selected: 1 << 2,
     contextSelected: 1 << 3,
-    firstUserState: 1 << 4
+    dropTarget: 1 << 4,
+    firstUserState: 1 << 5
 };

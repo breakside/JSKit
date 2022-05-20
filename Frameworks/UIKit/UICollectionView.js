@@ -36,7 +36,13 @@ JSProtocol("UICollectionViewDelegate", JSProtocol, {
     // Dragging cells
     collectionViewShouldDragCellAtIndexPath: function(collectionView, indexPath){},
     pasteboardItemsForCollectionViewAtIndexPath: function(collectionView, indexPath){},
-    collectionViewWillBeginDraggingSession: function(collectionView, session){}
+    collectionViewWillBeginDraggingSession: function(collectionView, session){},
+
+    // Dragging destination
+    collectionViewDraggingSessionDidEnter: function(collectionView, sesssion){},
+    collectionViewDraggingSessionDidUpdate: function(collectionView, sesssion, indexPath){},
+    collectionViewDraggingSessionDidExit: function(collectionView, sesssion){},
+    collectionViewPerformDragOperation: function(collectionView, sesssion, operation, indexPath){}
 
 });
 
@@ -344,6 +350,9 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     deleteCellsAtIndexPaths: function(indexPaths, animation){
+        if (this.selectedIndexPaths.length > 0){
+            this._setSelectedIndexPaths([], {notifyDelegate: true});
+        }
         // TODO:
         this.reloadData();
     },
@@ -837,11 +846,13 @@ JSClass("UICollectionView", UIScrollView, {
         this._updateVisibleCellStates();
     },
 
+
     mouseDragged: function(event){
         var location = event.locationInView(this);
         var cell = this._cellHitTest(location);
         if (this._shouldDrag){
             var dragItems = [];
+            var indexPaths = [];
             if (cell !== null){
                 var cellItems = [];
                 if (this.allowsMultipleSelection && this._selectionContainsIndexPath(cell.indexPath)){
@@ -853,6 +864,7 @@ JSClass("UICollectionView", UIScrollView, {
                             if (cellItems !== null){
                                 dragItems = dragItems.concat(cellItems);
                             }
+                            indexPaths.push(indexPath);
                         }
                     }
                 }else{
@@ -861,13 +873,14 @@ JSClass("UICollectionView", UIScrollView, {
                         if (cellItems !== null){
                             dragItems = cellItems;
                         }
+                        indexPaths.push(cell.indexPath);
                     }
                 }
             }
             if (dragItems.length > 0){
                 var session = this.beginDraggingSessionWithItems(dragItems, event);
                 if (this.delegate && this.delegate.collectionViewWillBeginDraggingSession){
-                    this.delegate.collectionViewWillBeginDraggingSession(this, session);
+                    this.delegate.collectionViewWillBeginDraggingSession(this, session, indexPaths, location);
                 }
             }
         }else{
@@ -1018,6 +1031,62 @@ JSClass("UICollectionView", UIScrollView, {
         this._cancelTouchSelection();
     },
 
+    // ----------------------------------------------------------------------
+    // MARK: - Drag Destination
+
+    draggingEntered: function(session){
+        if (this.delegate && this.delegate.collectionViewDraggingSessionDidEnter){
+            this.delegate.collectionViewDraggingSessionDidEnter(this, session);
+        }
+        return UIDragOperation.none;
+    },
+
+    draggingUpdated: function(session){
+        var location = this.convertPointFromScreen(session.screenLocation);
+        var indexPath = null;
+        var cell = this._cellHitTest(location);
+        if (cell !== null){
+            indexPath = cell.indexPath;
+        }
+        var operation = UIDragOperation.none;
+        if (this.delegate && this.delegate.collectionViewDraggingSessionDidUpdate){
+            operation = this.delegate.collectionViewDraggingSessionDidUpdate(this, session, indexPath);
+        }
+        if (operation === UIDragOperation.none){
+            this._updateDropTarget(null);
+        }else{
+            this._updateDropTarget(cell);
+        }
+        return operation;
+    },
+
+    draggingExited: function(session){
+        this._updateDropTarget(null);
+        if (this.delegate && this.delegate.collectionViewDraggingSessionDidExit){
+            this.delegate.collectionViewDraggingSessionDidExit(this, session);
+        }
+    },
+
+    performDragOperation: function(session, operation){
+        var location = this.convertPointFromScreen(session.screenLocation);
+        var cell = this._cellHitTest(location);
+        this._updateDropTarget(null);
+        if (cell && this.delegate && this.delegate.collectionViewPerformDragOperation){
+            this.delegate.collectionViewPerformDragOperation(this, session, operation, cell.indexPath);
+        }
+    },
+
+    _updateDropTarget: function(cell){
+        var i, l;
+        var item;
+        for (i = 0, l = this._visibleElements.length; i < l; ++i){
+            item = this._visibleElements[i];
+            if (item.attributes.elementCategory === UICollectionView.ElementCategory.cell){
+                item.view.dropTarget = item.view === cell;
+            }
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Finding Cells by Location
 
@@ -1117,6 +1186,7 @@ JSClass("UICollectionView", UIScrollView, {
     // MARK: - Scrolling
 
     scrollToCellAtIndexPath: function(indexPath, position){
+        this.layoutIfNeeded();
         if (position === undefined){
             position = UICollectionView.ScrollPosition.auto;
         }

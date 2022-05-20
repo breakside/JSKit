@@ -35,7 +35,7 @@ JSClass("UICollectionViewLayout", JSObject, {
     layoutAttributesForCellAtIndexPath: function(indexPath){
     },
 
-    layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath){
+    layoutAttributesForSupplimentaryViewAtIndexPath: function(indexPath, kind){
     },
 
     shouldInvalidateLayoutForBounds: function(bounds){
