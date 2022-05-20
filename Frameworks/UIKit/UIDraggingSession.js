@@ -83,6 +83,9 @@ JSClass("UIDraggingSession", JSObject, {
     },
 
     cancel: function(){
+        if (this.destination){
+            this.destination.draggingExited(this);
+        }
     },
 
     isValidDestination: function(destination){
