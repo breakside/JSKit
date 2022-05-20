@@ -1148,7 +1148,18 @@ JSClass("UIWindowStyler", JSObject, {
         window.layer.addSublayer(window.stylerProperties.focusRingLayer);
     },
 
+    _isUpdatingFocusRing: false,
+
     updateFocusRingInWindow: function(window, animated){
+        if (this._isUpdatingFocusRing){
+            return;
+        }
+        this._isUpdatingFocusRing = true;
+        this._updateFocusRingInWindow(window, animated);
+        this._isUpdatingFocusRing = false;
+    },
+
+    _updateFocusRingInWindow: function(window, animated){
         var responder = window.firstResponder;
         var focusRingLayer = window.stylerProperties.focusRingLayer;
         if (!window.isKeyWindow || responder === null || !responder.isKindOfClass(UIView)){
