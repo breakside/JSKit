@@ -562,7 +562,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     dragend: function(e){
         // dragend is not cancelable, so no need for preventDefault()
         if (this._dragImageElement !== null){
-            if (this._dragImageElement.parentNode !== null){
+            if (this._dragImageElement.parentNode !== null && this._createdDragImageElement){
                 this._dragImageElement.parentNode.removeChild(this._dragImageElement);
             }
             this._dragImageElement = null;
@@ -839,6 +839,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // MARK: - Drag & Drop Support
 
     _dragImageElement: null,
+    _createdDragImageElement: false,
 
     prerenderDragImage: function(image){
         // Safari is picky here and requires that the image element be in the document and
@@ -852,6 +853,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         imageElement.src = image.htmlURLString();
         this.rootElement.appendChild(imageElement);
         this._dragImageElement = imageElement;
+        this._createdDragImageElement = true;
     },
 
     createDraggingSessionWithItems: function(items, event, view){
@@ -863,6 +865,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             context.element.draggable = true;
             // Could use a subclass here, but this seems to work too
             var originalSetImage = session.setImage;
+            var originalSetImageFromView = session.setImageFromView;
             var windowServer = this;
             Object.defineProperties(session, {
                 setImage: {
@@ -870,6 +873,15 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                     value: function UIHTMLWindowServer_UIDragSession_setImage(image, imageOffset){
                         originalSetImage.call(this, image, imageOffset);
                         windowServer.prerenderDragImage(image);
+                    }
+                },
+                setImageFromView: {
+                    configurable: true,
+                    value: function UIHTMLWindowServer_UIDragSession_setImageFromView(view, imageOffset){
+                        originalSetImageFromView.call(this, view, imageOffset);
+                        var context = windowServer.displayServer.contextForLayer(view.layer);
+                        windowServer._dragImageElement = context.element;
+                        windowServer._createdDragImageElement = false;
                     }
                 }
             });

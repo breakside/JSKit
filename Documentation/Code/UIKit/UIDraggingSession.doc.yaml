@@ -111,6 +111,33 @@ topics:
         name: imageOffset
         type: JSPoint
         summary: What location of the image should be placed at the cursor point
+      -
+        name: setImage
+        kind: method 
+        summary: Set the drag image and offset
+        arguments:
+          -
+            name: image
+            type: JSImage
+            summary: The drag image
+          -
+            name: offset
+            type: JSPoint
+            summary: What location of the image should be placed at the cursor point
+      -
+        name: setImageFromView
+        introduced: 2022.20.0
+        kind: method 
+        summary: Set the drag image and offset
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The view to capture and use as an image
+          -
+            name: offset
+            type: JSPoint
+            summary: What location of the image should be placed at the cursor point
   -
     name: Source & Destination
     members:

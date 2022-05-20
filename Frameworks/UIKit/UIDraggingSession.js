@@ -98,6 +98,10 @@ JSClass("UIDraggingSession", JSObject, {
         this.imageOffset = JSPoint(offset);
     },
 
+    setImageFromView: function(view, offset){
+        this.imageOffset = JSPoint(offset);
+    },
+
     centerImageScreenLocation: JSReadOnlyProperty(),
 
     getCenterImageScreenLocation: function(){
