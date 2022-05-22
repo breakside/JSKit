@@ -125,11 +125,19 @@ JSClass("JSUserDefaults", JSObject, {
         this._definePropertyForKey(key);
     },
 
+    deleteValueForKey: function(key){
+        if (this._values === null){
+            throw new Error("JSUserDefaults is closed, cannot set value.  Be sure to call open() first.");
+        }
+        delete this._values[key];
+        this._persistAfterDelay();
+    },
+
     // MARK: - Register defaults
 
     registerDefaults: function(defaults){
-        this._defaults = defaults;
         for (var key in defaults){
+            this._defaults[key] = defaults[key];
             this._definePropertyForKey(key);
         }
     },
@@ -141,10 +149,15 @@ JSClass("JSUserDefaults", JSObject, {
                     return this.valueForKey(key);
                 },
                 set: function JSUserDefaults_setValue(value){
+                    this.willChangeValueForKey(key);
                     this.setValueForKey(value, key);
+                    this.didChangeValueForKey(key);
                 }
             });
         }
+    },
+
+    defineObservablePropertyForKey: function(){
     },
 
     // MARK: - Saving to Persistent Storage
