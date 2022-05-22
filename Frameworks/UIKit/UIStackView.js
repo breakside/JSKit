@@ -215,6 +215,22 @@ JSClass("UIStackView", UIView, {
 
     subviewsDidChange: function(){
         this.setNeedsLayout();
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        var top = this._contentInsets.top;
+        if (this._arrangedSubviews.length > 0){
+            top += this._arrangedSubviews[0].firstBaselineOffsetFromTop;
+        }
+        return top;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        var bottom = this._contentInsets.bottom;
+        if (this._arrangedSubviews.length > 0){
+            bottom += this._arrangedSubviews[this._arrangedSubviews.length - 1].lastBaselineOffsetFromBottom;
+        }
+        return bottom;
     }
 
 });
