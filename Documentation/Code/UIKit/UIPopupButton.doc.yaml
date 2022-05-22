@@ -558,7 +558,7 @@ topics:
             members:
               -
                 name: initWithColor
-                type: init
+                kind: init
                 summary: Create an image styler with the given normal color
                 arguments:
                   -

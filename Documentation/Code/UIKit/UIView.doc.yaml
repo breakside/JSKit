@@ -1262,6 +1262,10 @@ topics:
           need it.  But for those that do, such as views that change their
           style when a pointer enters the view, this method can selectively
           enable tracking.
+        see:
+          - UIResponder.mouseMoved()
+          - UIResponder.mouseEntered()
+          - UIResponder.mouseExited()
       -
         name: stopMouseTracking
         kind: method
@@ -1280,12 +1284,21 @@ topics:
               -
                 name: move
                 summary: Tracks mouse movements withing the view's bounds
+                see:
+                  - UIResponder.mouseMoved()
               -
                 name: enterAndExit
                 summary: Tracks only when the mouse entres and exits a view's bounds
+                see:
+                  - UIResponder.mouseEntered()
+                  - UIResponder.mouseExited()
               -
                 name: all
                 summary: All tracking
+        see:
+          - UIResponder.mouseMoved()
+          - UIResponder.mouseEntered()
+          - UIResponder.mouseExited()
   -
     name: Drag & Drop Source
     members:
