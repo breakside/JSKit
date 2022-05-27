@@ -61,6 +61,60 @@ topics:
             summary: The object to use as `this` when calling the action
               function
       -
+        name: initWithView
+        introduced: 2022.21.0
+        kind: init
+        summary: Create an item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The custom view to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+      -
+        name: initWithView
+        introduced: 2022.21.0
+        suffix: targeted
+        kind: init
+        summary: Create an item with the given view and action
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The custom view to display for the item
+          -
+            name: action
+            type: String
+            summary: The action to send when the item is clicked
+          -
+            name: target
+            type: UIResponder
+            summary: The specific responder that should receive the action
+      -
+        name: initWithView
+        introduced: 2022.21.0
+        suffix: function
+        kind: init
+        summary: Create an item with the given view and action function
+        arguments:
+          -
+            name: view
+            type: UIView
+            summary: The custom view to display for the item
+          -
+            name: action
+            type: function
+            summary: The function that will be called when the item is selected
+          -
+            name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the action
+              function
+      -
         name: initSeparator
         kind: init
         summary: Create a separator item

@@ -101,6 +101,12 @@ JSClass("UIMenuItem", JSObject, {
         this.target = target || null;
     },
 
+    initWithView: function(view, action, target){
+        this.view = view;
+        this.action = action || null;
+        this.target = target || null;
+    },
+
     initSeparator: function(){
         this._isSeparator = true;
         this._isEnabled = false;
