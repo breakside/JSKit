@@ -747,10 +747,6 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         }
 
         // Figure out how much space we have on either side of the target rect
-        // IMPORTANT: target rect is assumed to leave enough room on at least
-        // one side.   In our two uses cases 1) submenus, and 2) context menus,
-        // menu must be true because 1) a menu is < 1/3 screen wide, leaving
-        // at least 1/3 on one side, and 2) context menu rects are Zero size
         var viewFrame = view.convertRectToScreen(rect);
 
         // If our rect if offscreen to the left or right, move it over
@@ -777,6 +773,11 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             origin.x = viewFrame.origin.x + viewFrame.size.width;
         }else{
             origin.x = viewFrame.origin.x - size.width;
+        }
+
+        // Adjust our x position if we've overflowed
+        if (origin.x < screenMetrics.safeFrame.origin.x){
+            origin.x = screenMetrics.safeFrame.origin.x;
         }
 
         // Prefer the y origin at the top of our rect
@@ -840,9 +841,13 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
 
     metricsForScreen: function(screen){
         var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
+        var maxPercent = 0.3;
+        if (screen.traitCollection.horizontalSizeClass === UIUserInterface.SizeClass.compact){
+            maxPercent = 0.75;
+        }
         return {
             safeFrame: safeFrame,
-            maximumWidth: Math.floor(safeFrame.size.width * 0.3)
+            maximumWidth: Math.floor(safeFrame.size.width * maxPercent)
         };
     },
 

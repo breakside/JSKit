@@ -646,9 +646,13 @@ JSClass("UIMenuView", UIView, {
 
     addViewForItem: function(item){
         var view = item.view;
+        var separatorInsets = this.menuWindow.itemContentInsets.insetsWithInsets(0, item.menu.showStatusColumn ? (item.menu.font.displayLineHeight + this.menuWindow.itemContentInsets.left) : 0, 0, 0);
+        if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            separatorInsets = JSInsets.Zero;
+        }
         if (view === null){
             if (item.separator){
-                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.separatorLineWidth, this.menuWindow.itemContentInsets.insetsWithInsets(0, item.menu.showStatusColumn ? (item.menu.font.displayLineHeight + this.menuWindow.itemContentInsets.left) : 0, 0, 0));
+                view = UIMenuItemSeparatorView.initWithColor(this.menuWindow.separatorColor, this.menuWindow.separatorLineWidth, separatorInsets);
                 view.frame = JSRect(0, 0, 1, this.menuWindow.separatorSize);
             }else{
                 view = UIMenuItemView.init();
@@ -661,6 +665,13 @@ JSClass("UIMenuView", UIView, {
                 view.keyWidth = this.menuWindow._keyWidth;
                 view.setItem(item);
             }
+        }
+        if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            if (!item.separator && this.itemViews.length > 0 && !(this.itemViews[this.itemViews.length - 1] instanceof UIMenuItemSeparatorView)){
+                view.borderWidth = 1;
+            }
+            view.maskedBorders = UIView.Sides.minY;
+            view.borderColor = this.menuWindow.separatorColor;
         }
         view.hidden = item.alternate;
         this.addSubview(view);
