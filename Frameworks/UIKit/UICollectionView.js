@@ -17,6 +17,7 @@
 // #import "UIScrollView.js"
 // #import "UIPlatform.js"
 // #import "UICollectionViewLayout.js"
+// #import "UIPressGestureRecognizer.js"
 "use strict";
 
 (function(){
@@ -823,6 +824,10 @@ JSClass("UICollectionView", UIScrollView, {
         if (cell === null){
             return;
         }
+        this._contextSelectCell(cell, location);
+    },
+
+    _contextSelectCell: function(cell, location){
         if (this.delegate && this.delegate.menuForCollectionViewCellAtIndexPath){
             var contextSelectedIndexPaths;
             if (this._selectionContainsIndexPath(cell.indexPath)){
@@ -968,7 +973,7 @@ JSClass("UICollectionView", UIScrollView, {
         this._touch = null;
     },
 
-    _makeTouchActiveCell: function(touch){
+    _makeTouchActiveCell: function(touch, waitForLongPress){
         var location = touch.locationInView(this);
         var cell = this._cellHitTest(location);
         if (cell === null){
@@ -980,6 +985,19 @@ JSClass("UICollectionView", UIScrollView, {
         }
         cell.active = true;
         this._touch.cell = cell;
+        if (waitForLongPress){
+            this._touch.timer = JSTimer.scheduledTimerWithInterval(UIPressGestureRecognizer.PressInterval.long, function(){
+                this._touch.timer = null;
+                this._longPressCell(location);
+            }, this);
+        }
+    },
+
+    _longPressCell: function(location){
+        var cell = this._touch.cell;
+        var indexPath = cell.indexPath;
+        this._cancelTouchSelection();
+        this._contextSelectCell(cell, location);
     },
 
     touchesBegan: function(touches, event){
@@ -992,7 +1010,7 @@ JSClass("UICollectionView", UIScrollView, {
             cell: null,
             timer: JSTimer.scheduledTimerWithInterval(0.05, function(){
                 this._touch.timer = null;
-                this._makeTouchActiveCell(touches[0]);
+                this._makeTouchActiveCell(touches[0], true);
             }, this)
         };
     },

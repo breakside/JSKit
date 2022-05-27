@@ -18,14 +18,21 @@
 
 JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
 
+    init: function(){
+        UIPressGestureRecognizer.$super.init.call(this);
+        this.minimumPressInterval = UIPressGestureRecognizer.PressInterval.long;
+    },
+
     initWithSpec: function(spec){
         UIPressGestureRecognizer.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("minimumPressInterval")){
             this.minimumPressInterval = spec.valueForKey("minimumPressInterval");
+        }else{
+            this.minimumPressInterval = UIPressGestureRecognizer.PressInterval.long;
         }
     },
 
-    minimumPressInterval: 1.0,
+    minimumPressInterval: 0,
 
     // MARK: - Events
 
@@ -107,3 +114,7 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
     }
 
 });
+
+UIPressGestureRecognizer.PressInterval = {
+    long: 1
+};
