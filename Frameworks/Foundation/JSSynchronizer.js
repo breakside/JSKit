@@ -93,6 +93,7 @@ JSClass("JSSynchronizer", JSObject, {
                     if (error === null || error === undefined){
                         controller._setState(JSSynchronizer.State.success);
                     }else{
+                        logger.error(error);
                         controller._setState(JSSynchronizer.State.error);
                         controller.error = error;
                     }
