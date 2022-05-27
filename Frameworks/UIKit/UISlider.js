@@ -29,6 +29,7 @@ JSClass("UISlider", UIControl, {
     minimumValue: JSDynamicProperty("_minimumValue", 0),
     maximumValue: JSDynamicProperty("_maximumValue", 1),
     value: JSDynamicProperty("_value", 0),
+    integerValue: JSDynamicProperty(),
 
     setMinimumValue: function(minimumValue){
         this._minimumValue = minimumValue;
@@ -51,6 +52,14 @@ JSClass("UISlider", UIControl, {
     setValue: function(value){
         this._value = Math.min(this._maximumValue, Math.max(this._minimumValue, value));
         this.setNeedsLayout();
+    },
+
+    getIntegerValue: function(){
+        return Math.round(this._value);
+    },
+
+    setIntegerValue: function(value){
+        this.value = value;
     },
 
     minimumPoint: JSReadOnlyProperty(),
