@@ -517,7 +517,7 @@ JSClass('UIView', UIResponder, {
     },
 
     sizeToFit: function(){
-        this.layer.sizeToFit();
+        this.sizeToFitSize(JSSize(Number.MAX_VALUE, Number.MAX_VALUE));
     },
 
     sizeToFitSize: function(maxSize){
