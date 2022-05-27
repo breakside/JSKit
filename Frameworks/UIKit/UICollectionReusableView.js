@@ -69,7 +69,7 @@ JSClass("UICollectionReusableView", UIView, {
         var view;
         var i, l;
         while (stack.length > 0){
-            view = stack.pop();
+            view = stack.shift();
             if (view.isKindOfClass(UILabel)){
                 return view.text;
             }
