@@ -747,6 +747,9 @@ JSClass("UIWindowServer", JSObject, {
             return false;
         }
         var window = view.window;
+        if (window === null){
+            return false;
+        }
         if (window.shouldReceiveTrackingInBack){
             return true;
         }
