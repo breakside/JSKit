@@ -896,7 +896,17 @@ JSClass('UIWindow', UIView, {
     },
 
     _sendTouchEvent: function(event){
-        if (this._modal !== null){
+        var modal = this._modal;
+        while (modal !== null && modal._modal !== null){
+            modal = modal._modal;
+        }
+        if (modal !== null){
+            if (event.type == UIEvent.Type.touchesBegan || event.type == UIEvent.Type.touchesMoved){
+                if (modal._isOpen){
+                    modal.makeKeyAndOrderFront();
+                    modal.indicateModalStatus();
+                }
+            }
             return;
         }
         var i, l;
