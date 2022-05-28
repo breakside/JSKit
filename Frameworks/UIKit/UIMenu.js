@@ -841,13 +841,15 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
 
     metricsForScreen: function(screen){
         var safeFrame = screen.availableFrame.rectWithInsets(4, 7);
-        var maxPercent = 0.3;
         if (screen.traitCollection.horizontalSizeClass === UIUserInterface.SizeClass.compact){
-            maxPercent = 0.75;
+            return {
+                safeFrame: safeFrame,
+                maximumWidth: Math.floor(safeFrame.size.width * 0.75)
+            };
         }
         return {
             safeFrame: safeFrame,
-            maximumWidth: Math.floor(safeFrame.size.width * maxPercent)
+            maximumWidth: Math.min(450, Math.floor(safeFrame.size.width * 0.5))
         };
     },
 

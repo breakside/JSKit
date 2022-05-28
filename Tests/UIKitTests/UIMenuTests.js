@@ -110,7 +110,7 @@ JSClass("UIMenuTests", TKTestSuite, {
     testOpenAdjacentToView: function(){
         // Screen frame is 0,0 1500x1000
         // Safe rect is 7,4 1486x992
-        // max width is floor(1486 * .3) = 445
+        // max width is min(450, floor(1486/2))
 
         var menu;
 
@@ -124,7 +124,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         // Max width
         menu = this._createMenuWithItemCount(2);
         menu.openAdjacentToView(this.testView);
-        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 445);
+        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 450);
         menu.close();
 
         // Below
@@ -351,7 +351,7 @@ JSClass("UIMenuTests", TKTestSuite, {
     testOpenAtLocationInContextView: function(){
         // Screen frame is 0,0 1500x1000
         // Safe rect is 7,4 1486x992
-        // max width is floor(1486 * .3) = 445
+        // max width is min(450, floor(1486/2))
         // item 1 is offset at 0,5 from window (FIXME: how can we make the tests not depend on this?)
 
         var item1Offset = JSPoint(0, 5);
@@ -367,7 +367,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         // Max width
         menu = this._createMenuWithItemCount(2);
         menu.openAtLocationInContextView(JSPoint(5, 5), this.testView);
-        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 445);
+        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 450);
         menu.close();
 
         // Enough room to the right & bottom
@@ -472,7 +472,7 @@ JSClass("UIMenuTests", TKTestSuite, {
     testOpenWithItemAtLocationInView: function(){
         // Screen frame is 0,0 1500x1000
         // Safe rect is 7,4 1486x992
-        // max width is floor(1486 * .3) = 445
+        // max width is min(450, floor(1486/2))
         // item 1 is offset at 0,5 from window (FIXME: how can we make the tests not depend on this?)
 
         var item1Offset = JSPoint(0, 5);
@@ -489,7 +489,7 @@ JSClass("UIMenuTests", TKTestSuite, {
         // Max width
         menu = this._createMenuWithItemCount(2);
         menu.openWithItemAtLocationInView(menu.items[1], JSPoint(5, 5), this.testView);
-        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 445);
+        TKAssertEquals(menu.stylerProperties.window.frame.size.width, 450);
         menu.close();
 
         // Enough room for whole menu
