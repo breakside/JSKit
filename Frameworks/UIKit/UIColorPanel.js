@@ -257,7 +257,9 @@ JSClass("UIColorPanelViewController", UIViewController, {
 
     viewDidAppear: function(animated){
         UIColorPanelViewController.$super.viewDidAppear.call(this, animated);
-        this.view.window.firstResponder = this.hexField;
+        if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType !== UIUserInterface.PointerType.touch){
+            this.view.window.firstResponder = this.hexField;
+        }
     },
 
     viewWillDisappear: function(animated){
@@ -656,6 +658,7 @@ JSClass("UIColorPanelViewController", UIViewController, {
     componentFieldSpacing: 4,
 
     contentSizeThatFitsSize: function(maxSize){
+        var view = this.view; // force view load
         var size = JSSize(this.contentInsets.width + 220, this.contentInsets.height);
         if (size.width > maxSize.width){
             size.width = maxSize.width;
