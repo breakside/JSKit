@@ -159,6 +159,7 @@ JSClass("UITextField", UIControl, {
         }else{
             this._textLayer.text = text;
         }
+        this.setNeedsLayout();
         this._updateIsEmpty(!this._textLayer.hasText());
     },
 
@@ -172,6 +173,7 @@ JSClass("UITextField", UIControl, {
             return;
         }
         this._textLayer.attributedText = attributedText;
+        this.setNeedsLayout();
         this._updateIsEmpty(!this._textLayer.hasText());
     },
 
