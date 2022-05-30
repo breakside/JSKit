@@ -48,7 +48,7 @@ topics:
         description: |
           Defaults to `minimumValue`.
       - name: integerValue
-        introduced: 2022.21.0
+        introduced: 2022.22.0
         type: Number
         summary: The current rounded integer value of the control
   - name: Styling

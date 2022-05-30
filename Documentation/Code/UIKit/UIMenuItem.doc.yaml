@@ -62,7 +62,7 @@ topics:
               function
       -
         name: initWithView
-        introduced: 2022.21.0
+        introduced: 2022.22.0
         kind: init
         summary: Create an item with the given view and action
         arguments:
@@ -76,7 +76,7 @@ topics:
             summary: The action to send when the item is clicked
       -
         name: initWithView
-        introduced: 2022.21.0
+        introduced: 2022.22.0
         suffix: targeted
         kind: init
         summary: Create an item with the given view and action
@@ -95,7 +95,7 @@ topics:
             summary: The specific responder that should receive the action
       -
         name: initWithView
-        introduced: 2022.21.0
+        introduced: 2022.22.0
         suffix: function
         kind: init
         summary: Create an item with the given view and action function
