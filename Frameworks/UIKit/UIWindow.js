@@ -901,7 +901,7 @@ JSClass('UIWindow', UIView, {
             modal = modal._modal;
         }
         if (modal !== null){
-            if (event.type == UIEvent.Type.touchesBegan || event.type == UIEvent.Type.touchesMoved){
+            if (event.type == UIEvent.Type.touchesBegan){
                 if (modal._isOpen){
                     modal.makeKeyAndOrderFront();
                     modal.indicateModalStatus();
