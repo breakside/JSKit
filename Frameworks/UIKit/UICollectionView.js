@@ -351,11 +351,11 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     deleteCellsAtIndexPaths: function(indexPaths, animation){
+        // TODO:
+        this.reloadData();
         if (this.selectedIndexPaths.length > 0){
             this._setSelectedIndexPaths([], {notifyDelegate: true});
         }
-        // TODO:
-        this.reloadData();
     },
 
     insertSection: function(section, animation){
@@ -374,6 +374,9 @@ JSClass("UICollectionView", UIScrollView, {
     deleteSections: function(sections, animation){
         // TODO:
         this.reloadData();
+        if (this.selectedIndexPaths.length > 0){
+            this._setSelectedIndexPaths([], {notifyDelegate: true});
+        }
     },
 
     // -------------------------------------------------------------------------
