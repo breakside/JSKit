@@ -239,7 +239,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this.didChangeValueForBinding('text');
         this.didChangeValueForBinding('integerValue');
         this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
-        this.sendActionsForEvents(UIControl.Event.valueChanged);
+        this.sendActionsForEvents(UIControl.Event.editingChanged);
         if (this.delegate && this.delegate.textFieldDidChange){
             this.delegate.textFieldDidChange(this);
         }
@@ -903,6 +903,8 @@ JSClass("UIHTMLTextField", UIControl, {
 UIHTMLTextField.layerClass = UIHTMLElementLayer;
 
 UIHTMLTextField.sharedStyleElement = null;
+
+UIHTMLTextField.Styler = UITextField.Styler;
 
 var htmlInputModeByKeyboardType = {};
 htmlInputModeByKeyboardType[UITextInput.KeyboardType.default] = "";
