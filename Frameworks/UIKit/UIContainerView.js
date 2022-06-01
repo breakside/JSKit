@@ -104,7 +104,7 @@ JSClass("UIContainerView", UIView, {
                 maxSize.height < Number.MAX_VALUE ? maxSize.height - this._contentInsets.height : Number.MAX_VALUE
             );
             this._contentView.sizeToFitSize(maxContentSize);
-            this.bounds = JSRect(0, 0, this._contentView.bounds.size.width + this._contentInsets.width, this._contentView.bounds.size.height - this._contentInsets.height);
+            this.bounds = JSRect(0, 0, this._contentView.bounds.size.width + this._contentInsets.width, this._contentView.bounds.size.height + this._contentInsets.height);
         }
     },
 
