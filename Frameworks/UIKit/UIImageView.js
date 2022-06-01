@@ -155,6 +155,10 @@ JSClass("UIImageView", UIView, {
         return JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
     },
 
+    sizeToFit: function(){
+        this.layer.sizeToFit();
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Accessibility
 
