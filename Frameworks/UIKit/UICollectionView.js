@@ -37,13 +37,13 @@ JSProtocol("UICollectionViewDelegate", JSProtocol, {
     // Dragging cells
     collectionViewShouldDragCellAtIndexPath: function(collectionView, indexPath){},
     pasteboardItemsForCollectionViewAtIndexPath: function(collectionView, indexPath){},
-    collectionViewWillBeginDraggingSession: function(collectionView, session){},
+    collectionViewWillBeginDraggingSession: function(collectionView, session, indexPath, location){},
 
     // Dragging destination
-    collectionViewDraggingSessionDidEnter: function(collectionView, sesssion){},
-    collectionViewDraggingSessionDidUpdate: function(collectionView, sesssion, indexPath){},
-    collectionViewDraggingSessionDidExit: function(collectionView, sesssion){},
-    collectionViewPerformDragOperation: function(collectionView, sesssion, operation, indexPath){}
+    collectionViewDraggingSessionDidEnter: function(collectionView, session){},
+    collectionViewDraggingSessionDidUpdate: function(collectionView, session, indexPath){},
+    collectionViewDraggingSessionDidExit: function(collectionView, session){},
+    collectionViewPerformDragOperation: function(collectionView, session, operation, indexPath){}
 
 });
 
@@ -1091,9 +1091,13 @@ JSClass("UICollectionView", UIScrollView, {
     performDragOperation: function(session, operation){
         var location = this.convertPointFromScreen(session.screenLocation);
         var cell = this._cellHitTest(location);
+        var indexPath = null;
+        if (cell !== null){
+            indexPath = cell.indexPath;
+        }
         this._updateDropTarget(null);
-        if (cell && this.delegate && this.delegate.collectionViewPerformDragOperation){
-            this.delegate.collectionViewPerformDragOperation(this, session, operation, cell.indexPath);
+        if (this.delegate && this.delegate.collectionViewPerformDragOperation){
+            this.delegate.collectionViewPerformDragOperation(this, session, operation, indexPath);
         }
     },
 
