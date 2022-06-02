@@ -294,6 +294,44 @@ JSClass("JSAttributedString", JSObject, {
         return new JSAttributedStringRunIterator(this, index);
     },
 
+    longestRangeOfAttributeAtIndex: function(attributeName, index){
+        return this.longestRangeOfAttributesAtIndex([attributeName], index);
+    },
+
+    longestRangeOfAttributesAtIndex: function(attributeNames, index){
+        var runIndex = this._runIndexForStringIndex(index);
+        var run = this._runs[runIndex];
+        var range = JSRange(run.range);
+        var attributes = {};
+        var i, l;
+        for (i = 0, l = attributeNames.length; i < l; ++i){
+            attributes[attributeNames[i]] = run.attributes[attributeNames[i]];
+        }
+        i = runIndex - 1;
+        while (i >= 0){
+            run = this._runs[i];
+            if (run.containsEqualAttributes(attributes)){
+                range.length = range.end - run.range.location;
+                range.location = run.range.location;
+            }else{
+                break;
+            }
+            --i;
+        }
+        i = runIndex + 1;
+        l = this._runs.length;
+        while (i < l){
+            run = this._runs[i];
+            if (run.containsEqualAttributes(attributes)){
+                range.length = run.range.end - range.location;
+            }else{
+                break;
+            }
+            ++i;
+        }
+        return range;
+    },
+
     // MARK: - Formatting
 
     replaceFormat: function(){
@@ -339,7 +377,7 @@ JSClass("JSAttributedString", JSObject, {
         var runA;
         for (var runIndex = lastRunIndex - 1; runIndex >= expandedRunRange.location; --runIndex){
             runA = this._runs[runIndex];
-            if (runA.hasIdenticalAttributes(runB)){
+            if (runA.onlyContainsEqualAttributes(runB.attributes)){
                 this._runs.splice(runIndex, 1);
                 runB.range.location = runA.range.location;
                 runB.range.length += runA.range.length;
@@ -358,7 +396,7 @@ JSClass("JSAttributedString", JSObject, {
         }
         var runA = this._runs[runIndex - 1];
         var runB = this._runs[runIndex];
-        if (runA.hasIdenticalAttributes(runB)){
+        if (runA.onlyContainsEqualAttributes(runB.attributes)){
             this._runs.splice(runIndex, 1);
             runA.range.length += runB.range.length;
         }
@@ -471,35 +509,46 @@ function JSAttributedStringRun(range, attributes){
 
 JSAttributedStringRun.prototype = {
 
-    hasIdenticalAttributes: function(other){
+    containsEqualAttributes: function(attributes){
         var attribute;
         var a, b;
-        for (attribute in this.attributes){
-            if (attribute in other.attributes){
-                a = this.attributes[attribute];
-                b = other.attributes[attribute];
-                if (a.isEqual){
-                    if (!a.isEqual(b)){
-                        return false;
-                    }
-                }else if (b.isEqual){
-                    if (!b.isEqual(a)){
-                        return false;
-                    }
-                }else if (a != b){
+        for (attribute in attributes){
+            a = attributes[attribute];
+            b = this.attributes[attribute];
+            if (a === undefined){
+                if (!!b){
                     return false;
                 }
-            }else{
-                return false;
-            }
-        }
-        for (attribute in other.attributes){
-            if (!(attribute in this.attributes)){
+            }else if (a === null){
+                if (b !== null && b !== undefined){
+                    return false;
+                }
+            }else if (a.isEqual){
+                if (b === null || b === undefined){
+                    return false;
+                }
+                if (!a.isEqual(b)){
+                    return false;
+                }
+            }else if (a != b){
                 return false;
             }
         }
         return true;
-    }
+    },
+
+    onlyContainsEqualAttributes: function(attributes){
+        if (!this.containsEqualAttributes(attributes)){
+            return false;
+        }
+        var attribute;
+        for (attribute in this.attributes){
+            if (!(attribute in attributes)){
+                return false;
+            }
+        }
+        return true;
+    },
 
 };
 

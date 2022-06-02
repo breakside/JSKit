@@ -208,8 +208,13 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
 
     testSetAttributes: function(){
         var string = JSAttributedString.initWithString("Hello, world!", {bold: true});
-        var range = JSRange(0, 5);
+        var range = JSRange(0, 2);
         string.setAttributesInRange({bold: true, italics: true}, range);
+        range = JSRange(2, 3);
+        string.setAttributesInRange({bold: true, italics: true}, range);
+        range = string.rangeOfRunAtIndex(1);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 5);
         this.assertRunIteratorIsConsistent(string);
         var attributes = string.attributesAtIndex(0);
         TKAssertExactEquals(attributes.bold, true);
@@ -771,6 +776,30 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
             count++;
         }
         TKAssertEquals(count, expectedCount);
+    },
+
+    testLongestRangeOfAttributeAtIndex: function(){
+        var str = JSAttributedString.init();
+        str.appendAttributedString(JSAttributedString.initWithString("one ", {bold: true, link: JSURL.initWithString("https://test.jskit.dev")}));
+        str.appendAttributedString(JSAttributedString.initWithString("two ", {link: JSURL.initWithString("https://test.jskit.dev")}));
+        str.appendAttributedString(JSAttributedString.initWithString("three ", {textColor: JSColor.blue, link: JSURL.initWithString("https://test.jskit.dev")}));
+        str.appendAttributedString(JSAttributedString.initWithString("four ", {textColor: JSColor.blue}));
+        str.appendAttributedString(JSAttributedString.initWithString("five ", {bold: false, link: JSURL.initWithString("https://test.jskit.dev")}));
+        var range = str.longestRangeOfAttributeAtIndex("link", 0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 14);
+        range = str.longestRangeOfAttributeAtIndex("bold", 0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+        range = str.longestRangeOfAttributeAtIndex("bold", 5);
+        TKAssertExactEquals(range.location, 4);
+        TKAssertExactEquals(range.length, 20);
+        range = str.longestRangeOfAttributeAtIndex("textColor", 5);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 8);
+        range = str.longestRangeOfAttributeAtIndex("textColor", 8);
+        TKAssertExactEquals(range.location, 8);
+        TKAssertExactEquals(range.length, 11);
     }
 
     
