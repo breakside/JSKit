@@ -151,7 +151,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
                 if (attachmentInfo.context.element.parentNode !== attachmentInfo.run.element){
                     attachmentInfo.run.element.appendChild(attachmentInfo.context.element);
                 }
+                attachmentInfo.context.save();
+                attachmentInfo.context.setFillColor(attachmentInfo.run.attributes.textColor);
                 attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
+                attachmentInfo.context.restore();
             }
         }else{
             UIHTMLTextFrame.$super.drawInContextAtPoint.call(this, context, point);

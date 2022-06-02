@@ -55,7 +55,12 @@ JSClass("JSTextAttachment", JSObject, {
     },
 
     drawInContextAtPoint: function(context, point){
-        context.drawImage(this._image, JSRect(point, this._size));
+        var rect = JSRect(point, this._size);
+        if (this._image.renderMode === JSImage.RenderMode.template){
+            context.fillMaskedRect(rect, this._image);
+        }else{
+            context.drawImage(this._image, rect);
+        }
     }
 
 });

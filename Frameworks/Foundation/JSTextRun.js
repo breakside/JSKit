@@ -61,7 +61,10 @@ JSClass("JSTextRun", JSObject, {
         // context.fillEllipseInRect(JSRect(this.origin.x - 2.5, this.origin.y - 2.5, 5, 5));
         // context.restore();
         if (this.attachment){
+            context.save();
+            context.setFillColor(this.attributes.textColor);
             this.attachment.drawInContextAtPoint(context, point);
+            context.restore();
         }else{
             context.save();
             context.translateBy(point.x, point.y + this.font.ascender);
