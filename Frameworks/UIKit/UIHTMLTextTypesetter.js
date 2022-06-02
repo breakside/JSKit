@@ -434,6 +434,20 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.color = '';
             this.span.style.backgroundColor = '';
             this.span.style.pointerEvents = 'all';
+
+            // Cursor
+            var cursor = this.attributes[JSAttributedString.Attribute.cursor];
+            if (cursor){
+                var cssCursorStrings = cursor.cssStrings();
+                for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+                    this.span.style.cursor = cssCursorStrings[i];
+                    if (this.span.style.cursor !== ''){
+                        break;
+                    }
+                }
+            }else{
+                this.span.style.cursor = '';
+            }
         }else{
             this.span.style.display = '';
             this.span.style.width = '';
