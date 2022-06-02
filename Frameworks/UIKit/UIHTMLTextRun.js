@@ -37,7 +37,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // not enough room for a line even when there really is.
         // NOTE: we do NOT want to measure the html element here and cause an expensive layout.
         // Only the UIHTMLTextFrame does the final measuring.
-        this._size.height = font.displayLineHeight;
+        if (!this.attachment){
+            this._size.height = font.displayLineHeight;
+        }
         if (element.childNodes.length > 0 && element.firstChild.nodeType === element.TEXT_NODE){
             this.textNode = element.firstChild;
         }
