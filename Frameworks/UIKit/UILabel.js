@@ -174,11 +174,14 @@ JSClass('UILabel', UIView, {
         var attributes = this.attributedText.attributesAtIndex(index);
         this._didDrag = false;
         if (attributes.link){
-            var range = this.attributedText.rangeOfRunAtIndex(index);
-            var layer = UILayer.init();
-            layer.frame = this.layer.textLayoutManager.rectsForCharacterRange(range)[0].rectWithInsets(JSInsets(-1, -2));
-            layer.cornerRadius = 2;
-            layer.backgroundColor = JSColor.black.colorWithAlpha(0.2);
+            var range = this.attributedText.longestRangeOfAttributeAtIndex("link", index);
+            var layer = UILabelLinkLayer.init();
+            layer.pathColor = (attributes.textColor || this.textColor).colorWithAlpha(0.2);
+            var rects = this.layer.textLayoutManager.rectsForCharacterRange(range);
+            var i, l;
+            for (i = 0, l = rects.length; i < l; ++i){
+                layer.addRect(rects[i]);
+            }
             this.layer.addSublayer(layer);
             this._mouseDownAction = {
                 link: attributes.link,
@@ -271,11 +274,14 @@ JSClass('UILabel', UIView, {
         var index = this.layer.textLayoutManager.characterIndexAtPoint(location);
         var attributes = this.attributedText.attributesAtIndex(index);
         if (attributes.link){
-            var range = this.attributedText.rangeOfRunAtIndex(index);
-            var layer = UILayer.init();
-            layer.frame = this.layer.textLayoutManager.rectsForCharacterRange(range)[0].rectWithInsets(JSInsets(-1, -2));
-            layer.cornerRadius = 2;
-            layer.backgroundColor = JSColor.black.colorWithAlpha(0.2);
+            var range = this.attributedText.longestRangeOfAttributeAtIndex("link", index);
+            var layer = UILabelLinkLayer.init();
+            layer.pathColor = (attributes.textColor || this.textColor).colorWithAlpha(0.2);
+            var rects = this.layer.textLayoutManager.rectsForCharacterRange(range);
+            var i, l;
+            for (i = 0, l = rects.length; i < l; ++i){
+                layer.addRect(rects[i]);
+            }
             this.layer.addSublayer(layer);
             this._touchAction = {
                 link: attributes.link,
@@ -375,6 +381,33 @@ JSClass('UILabel', UIView, {
 
     getFocusRingPath: function(){
         return null;
+    },
+
+});
+
+JSClass("UILabelLinkLayer", UILayer, {
+
+    pathColor: null,
+
+    init: function(){
+        UILabelLinkLayer.$super.init.call(this);
+        this.path = JSPath.init();
+        this.pathColor = JSColor.black;
+        this.setNeedsDisplay();
+    },
+
+    addRect: function(rect){
+        this.path.addRoundedRect(rect.rectWithInsets(JSInsets(-1, -2)), 2);
+        this.frame = this.path.boundingRect;
+    },
+
+    drawInContext: function(context){
+        context.save();
+        context.translateBy(-this.path.boundingRect.origin.x, -this.path.boundingRect.origin.y);
+        context.setFillColor(this.pathColor);
+        context.addPath(this.path);
+        context.fillPath();
+        context.restore();
     },
 
 });
