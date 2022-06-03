@@ -443,7 +443,21 @@ JSClass("Project", JSObject, {
                 let url = await this.urlForFrameworkName(name, includeDirectoryURLs);
                 if (url !== null){
                     if (url.fileExtension === '.jsframework'){
-                        // TODO: extract from built framework
+                        let sourcesURL = url.appendingPathComponent("sources.json");
+                        let data = await this.fileManager.contentsAtURL(sourcesURL);
+                        let sources = JSON.parse(data.stringByDecodingUTF8());
+                        if (sources.generic.globals){
+                            for (let name of sources.generic.globals){
+                                globals.push(name);
+                            }
+                        }
+                        for (let env of envs){
+                            if ((env in sources) && sources[env].globals){
+                                for (let name of sources[env].globals){
+                                    globals.push(name);
+                                }
+                            }
+                        }
                     }else{
                         let frameworkProject = Project.initWithURL(url);
                         try{
