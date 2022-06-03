@@ -310,7 +310,8 @@ JSClass("Project", JSObject, {
         var result = {
             files: [],
             frameworks: [],
-            features: []
+            features: [],
+            globals: []
         };
         var visited = {
             paths: new Set(),
@@ -358,6 +359,11 @@ JSClass("Project", JSObject, {
                     if (!visited.features.has(feature)){
                         result.features.push(feature);
                     }
+                }
+                let globals = js.globals();
+                for (let i = 0, l = globals.length; i < l; ++i){
+                    let name = globals[i];
+                    result.globals.push(name);
                 }
             }
         };

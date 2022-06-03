@@ -138,9 +138,10 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFrameworks = new Set();
         var genericFiles = new Set();
         var genericFeatures = new Set();
+        var genericGlobals = new Set();
         var sources = {};
         for (let env in this.bundleEnvironments){
-            sources[env] = {frameworks: [], files: [], features: []};
+            sources[env] = {frameworks: [], files: [], features: [], globals: []};
             let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                 let framework = imports.frameworks[i];
@@ -176,6 +177,15 @@ JSClass("FrameworkBuilder", Builder, {
                     sources[env].features.push(feature);
                 }
             }
+            for (let i = 0, l = imports.globals.length; i < l; ++i){
+                let name = imports.globals[i];
+                if (env == 'generic'){
+                    genericGlobals.add(name);
+                }
+                if (env == 'generic' || !genericGlobals.has(name)){
+                    sources[env].globals.push(name);
+                }
+            }
         }
         return sources;
     },
@@ -185,6 +195,7 @@ JSClass("FrameworkBuilder", Builder, {
         var genericFrameworks = new Set();
         var genericFiles = new Set();
         var genericFeatures = new Set();
+        var genericGlobals = new Set();
         var sources = {};
         var copyright  = this.project.getInfoString("JSCopyright", this.resources);
         var licenseString = await this.project.licenseNoticeString();
@@ -195,7 +206,7 @@ JSClass("FrameworkBuilder", Builder, {
         }
         var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
         for (let env in this.bundleEnvironments){
-            sources[env] = {frameworks: [], files: [], features: []};
+            sources[env] = {frameworks: [], files: [], features: [], globals: []};
             let filename = this.bundleEnvironments[env];
             let compilation = JavascriptCompilation.initWithName(filename, this.sourcesURL, this.fileManager);
             var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
@@ -236,6 +247,15 @@ JSClass("FrameworkBuilder", Builder, {
                 }
                 if (env == 'generic' || !genericFeatures.has(feature)){
                     sources[env].features.push(feature);
+                }
+            }
+            for (let i = 0, l = imports.globals.length; i < l; ++i){
+                let name = imports.globals[i];
+                if (env == 'generic'){
+                    genericGlobals.add(name);
+                }
+                if (env == 'generic' || !genericGlobals.has(name)){
+                    sources[env].globals.push(name);
                 }
             }
         }
