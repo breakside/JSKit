@@ -174,20 +174,31 @@ JSClass("Builder", JSObject, {
                 if (!seen.has(name)){
                     seen.add(name);
                     // If the framework was pre-built, then it can only have
-                    // dependencies on standard frameworks, so that's the only
-                    // place we'll look.
-                    //
+                    // dependencies on other pre-built frameworks, which
+                    // are other .jsframework bundles or JSKit frameworks
+                    // 
                     // If we built the framework, then we already added its
                     // dependencies based on its build reuslts and won't get here.
-                    let candidateURL = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponents(["Frameworks", name], true);
-                    let exists = await this.fileManager.itemExistsAtURL(candidateURL);
-                    if (!exists){
-                        throw new Error("Cannot find framework %s, (required by %s)".sprintf(name, url.lastPathComponent));
+                    let includeDirectoryURLs = this.project.includeDirectoryURLs;
+                    let url = null;
+                    for (let i = 0, l = includeDirectoryURLs.length; i < l && url === null; ++i){
+                        let directoryURL = includeDirectoryURLs[i];
+                        let candidateURL = directoryURL.appendingPathComponent(name + '.jsframework', true);
+                        let found = await this.fileManager.itemExistsAtURL(candidateURL);
+                        if (found){
+                            url = candidateURL;
+                        }
                     }
-                    this.printer.print("\nAdding dependency %s\n".sprintf(name));
+                    if (url === null){
+                        url = this.fileManager.urlForPath(JSKitRootDirectoryPath).appendingPathComponents(["Frameworks", name], true);
+                        let found = await this.fileManager.itemExistsAtURL(url);
+                        if (!found){
+                            throw new Error("Cannot find framework %s, (required by %s)".sprintf(name, url.lastPathComponent));
+                        }
+                    }
                     imports.push({
                         name: name,
-                        url: candidateURL
+                        url: url
                     });
                 }
             }
