@@ -113,10 +113,15 @@ XMLSerializer.prototype = {
                     str += " " + node.name;
                 }
                 if (node.publicId.length > 0){
-                    str += " " + node.publicId;
-                }
-                if (node.systemId.length > 0){
-                    str += " " + node.systemId;
+                    value = node.publicId.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+                    str += ' PUBLIC "%s"'.sprintf(value);
+                    if (node.systemId.length > 0){
+                        value = node.systemId.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+                        str += ' "%s"'.sprintf(value);
+                    }
+                }else if (node.systemId.length > 0){
+                    value = node.systemId.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+                    str += ' SYSTEM "%s"'.sprintf(value);
                 }
                 str += ">\n";
             }

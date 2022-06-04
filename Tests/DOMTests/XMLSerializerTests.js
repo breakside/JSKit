@@ -38,6 +38,50 @@ JSClass('XMLSerializerTests', TKTestSuite, {
         TKAssertEquals(str, xml);
     },
 
+    testDoctype: function(){
+        var parser = new DOMParser();
+        var xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE something>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        var document = parser.parseFromString(xml, "text/xml");
+        var serializer = new XMLSerializer();
+        var str = serializer.serializeToString(document);
+        TKAssertEquals(str, xml);
+
+        parser = new DOMParser();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE something PUBLIC "-//SOMETHING//" "http://something.somewhere/test">',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        document = parser.parseFromString(xml, "text/xml");
+        serializer = new XMLSerializer();
+        str = serializer.serializeToString(document);
+        TKAssertEquals(str, xml);
+
+        parser = new DOMParser();
+        xml = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<!DOCTYPE something SYSTEM "http://something.somewhere/test">',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        document = parser.parseFromString(xml, "text/xml");
+        serializer = new XMLSerializer();
+        str = serializer.serializeToString(document);
+        TKAssertEquals(str, xml);
+    },
+
     testNamespaces: function(){
         var parser = new DOMParser();
         var xml = [
