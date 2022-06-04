@@ -212,6 +212,38 @@ topics:
             name: index
             type: Number
             summary: The string index to query for attributes
+      -
+        name: longestRangeOfAttributeAtIndex
+        introduced: 2022.23.0
+        kind: method
+        type: JSRange
+        summary: Get the longest range surrounding the given index that contains
+          the same value for the given attribute name
+        arguments:
+          -
+            name: attributeName
+            type: JSAttributedString.Attribute
+            summary: The attribute to match
+          -
+            name: index
+            type: Number
+            summary: The location in the string to match againts
+      -
+        name: longestRangeOfAttributesAtIndex
+        introduced: 2022.23.0
+        kind: method
+        type: JSRange
+        summary: Get the longest range surrounding the given index that contains
+          the same value for each of the given attribute names
+        arguments:
+          -
+            name: attributeNames
+            type: JSAttributedString.Attribute[]
+            summary: The attributes to match
+          -
+            name: index
+            type: Number
+            summary: The location in the string to match againts
   -
     name: Modifying Attributes
     members:

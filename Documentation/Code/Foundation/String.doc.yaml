@@ -271,6 +271,24 @@ topics:
 
           Equivalent to calling `dataUsingEncoding(String.Encoding.utf8)`
       -
+        name: utf16be
+        introduced: 2022.23.0
+        kind: method
+        type: JSData
+        return: The UTF-16 big-endian encoded byte representation of this string
+        summary: Encode this string into data using the UTF-16 big-endian Encoding
+        description: |
+          Equivalent to calling `dataUsingEncoding(String.Encoding.utf16be)`
+      -
+        name: utf16le
+        introduced: 2022.23.0
+        kind: method
+        type: JSData
+        return: The UTF-16 little-endian encoded byte representation of this string
+        summary: Encode this string into data using the UTF-16 little-endian Encoding
+        description: |
+          Equivalent to calling `dataUsingEncoding(String.Encoding.utf16le)`
+      -
         name: latin1
         kind: method
         type: JSData
