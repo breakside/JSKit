@@ -781,6 +781,54 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertEquals(utf8[3], 0x80);
     },
 
+    testUTF16BE: function(){
+        var str = "Hèllo";
+        var utf16 = str.utf16be();
+        TKAssertEquals(utf16.length, 10);
+        TKAssertEquals(utf16[0], 0x00);
+        TKAssertEquals(utf16[1], 0x48);
+        TKAssertEquals(utf16[2], 0x00);
+        TKAssertEquals(utf16[3], 0xe8);
+        TKAssertEquals(utf16[4], 0x00);
+        TKAssertEquals(utf16[5], 0x6c);
+        TKAssertEquals(utf16[6], 0x00);
+        TKAssertEquals(utf16[7], 0x6c);
+        TKAssertEquals(utf16[8], 0x00);
+        TKAssertEquals(utf16[9], 0x6f);
+
+        str = "😀";
+        utf16 = str.utf16be();
+        TKAssertEquals(utf16.length, 4);
+        TKAssertEquals(utf16[0], 0xd8);
+        TKAssertEquals(utf16[1], 0x3d);
+        TKAssertEquals(utf16[2], 0xde);
+        TKAssertEquals(utf16[3], 0x00);
+    },
+
+    testUTF16LE: function(){
+        var str = "Hèllo";
+        var utf16 = str.utf16le();
+        TKAssertEquals(utf16.length, 10);
+        TKAssertEquals(utf16[0], 0x48);
+        TKAssertEquals(utf16[1], 0x00);
+        TKAssertEquals(utf16[2], 0xe8);
+        TKAssertEquals(utf16[3], 0x00);
+        TKAssertEquals(utf16[4], 0x6c);
+        TKAssertEquals(utf16[5], 0x00);
+        TKAssertEquals(utf16[6], 0x6c);
+        TKAssertEquals(utf16[7], 0x00);
+        TKAssertEquals(utf16[8], 0x6f);
+        TKAssertEquals(utf16[9], 0x00);
+
+        str = "😀";
+        utf16 = str.utf16le();
+        TKAssertEquals(utf16.length, 4);
+        TKAssertEquals(utf16[0], 0x3d);
+        TKAssertEquals(utf16[1], 0xd8);
+        TKAssertEquals(utf16[2], 0x00);
+        TKAssertEquals(utf16[3], 0xde);
+    },
+
     testLatin1: function(){
         var str = "Hello";
         var data = str.latin1();

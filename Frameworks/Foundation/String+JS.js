@@ -359,6 +359,34 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    utf16be: {
+        configurable: true,
+        enumerable: false,
+        value: function String_utf16be(){
+            var utf16 = JSData.initWithLength(this.length * 2);
+            var dataView = utf16.dataView();
+            var j = 0;
+            for (var i = 0, l = this.length; i < l; ++i, j += 2){
+                dataView.setUint16(j, this.charCodeAt(i));
+            }
+            return utf16;
+        }
+    },
+
+    utf16le: {
+        configurable: true,
+        enumerable: false,
+        value: function String_utf16le(){
+            var utf16 = JSData.initWithLength(this.length * 2);
+            var dataView = utf16.dataView();
+            var j = 0;
+            for (var i = 0, l = this.length; i < l; ++i, j += 2){
+                dataView.setUint16(j, this.charCodeAt(i), true);
+            }
+            return utf16;
+        }
+    },
+
     latin1: {
         enumerable: false,
         value: function String_latin1(){
@@ -386,6 +414,12 @@ Object.defineProperties(String.prototype, {
             }
             if (encoding == String.Encoding.latin1){
                 return this.latin1();
+            }
+            if (encoding == String.Encoding.utf16be){
+                return this.utf16be();
+            }
+            if (encoding == String.Encoding.utf16le){
+                return this.utf16le();
             }
             return null;
         }
