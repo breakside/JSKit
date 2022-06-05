@@ -86,6 +86,23 @@ JSClass("JSFont", JSObject, {
         return null;
     },
 
+    initFromDictionary: function(dictionary){
+        var descriptor = JSResourceFontDescriptor.descriptorWithFamily(dictionary.family, dictionary.weight, dictionary.style);
+        if (descriptor !== null){
+            return JSFont.initWithDescriptor(descriptor, dictionary.size);
+        }
+        return null;
+    },
+
+    dictionaryRepresentation: function(){
+        return {
+            family: this._descriptor.family,
+            weight: this._descriptor.weight,
+            style: this._descriptor.style,
+            size: this.pointSize
+        };
+    },
+
     getFullName: function(){
         return this._descriptor.name;
     },
