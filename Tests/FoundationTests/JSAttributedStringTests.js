@@ -19,6 +19,40 @@
 
 JSClass('JSAttributedStringTests', TKTestSuite, {
 
+    bundle: null,
+    fontDescriptors: null,
+
+    setup: function(){
+        this.bundle = JSBundle.initWithDictionary({
+            Info: {},
+            Resources: [
+                JSAttributedStringMockFontDescriptor.Resources.normal,
+                JSAttributedStringMockFontDescriptor.Resources.bold,
+                JSAttributedStringMockFontDescriptor.Resources.boldItalic,
+            ],
+            ResourceLookup:{
+                global: {
+                    "Dummy-Regular": [0],
+                    "Dummy-Regular.otf": [0],
+                    "Dummy-Bold": [1],
+                    "Dummy-Bold.otf": [1],
+                    "Dummy-BoldItalic": [2],
+                    "Dummy-BoldItalic.otf": [2],
+                }
+            },
+            Fonts: [
+                 0,
+                 1,
+                 2
+            ]
+        });
+        this.fontDescriptors = JSFont.registerBundleFonts(this.bundle);
+    },
+
+    teardown: function(){
+        JSFont.unregisterAllFonts();
+    },
+
     testInit: function(){
         var string = JSAttributedString.init();
         TKAssertNotNull(string);
@@ -828,6 +862,38 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(dictionary.runs[2].length, 1);
         TKAssertExactEquals(dictionary.runs[2].attributes.bold, true);
         TKAssertExactEquals(dictionary.runs[2].attributes.textColor, undefined);
+
+        var font = JSFont.initWithDescriptor(this.fontDescriptors[0], 20);
+        string.addAttributesInRange({font: font}, JSRange(0, 4));
+        dictionary = string.dictionaryRepresentation();
+        TKAssertExactEquals(dictionary.string, "test");
+        TKAssertExactEquals(dictionary.runs.length, 3);
+        TKAssertExactEquals(dictionary.runs[0].length, 1);
+        TKAssertExactEquals(dictionary.runs[0].attributes.bold, true);
+        TKAssertExactEquals(dictionary.runs[0].attributes.textColor, undefined);
+        TKAssertExactEquals(dictionary.runs[0].attributes.font.family, "Dummy");
+        TKAssertExactEquals(dictionary.runs[0].attributes.font.weight, 400);
+        TKAssertExactEquals(dictionary.runs[0].attributes.font.style, "normal");
+        TKAssertExactEquals(dictionary.runs[0].attributes.font.size, 20);
+        TKAssertExactEquals(dictionary.runs[1].length, 2);
+        TKAssertExactEquals(dictionary.runs[1].attributes.bold, undefined);
+        TKAssertExactEquals(dictionary.runs[1].attributes.textColor.space, "rgb");
+        TKAssertExactEquals(dictionary.runs[1].attributes.textColor.components.length, 4);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[0], 0);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[1], 0.5);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[2], 1);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[3], 1);
+        TKAssertExactEquals(dictionary.runs[1].attributes.font.family, "Dummy");
+        TKAssertExactEquals(dictionary.runs[1].attributes.font.weight, 400);
+        TKAssertExactEquals(dictionary.runs[1].attributes.font.style, "normal");
+        TKAssertExactEquals(dictionary.runs[1].attributes.font.size, 20);
+        TKAssertExactEquals(dictionary.runs[2].length, 1);
+        TKAssertExactEquals(dictionary.runs[2].attributes.bold, true);
+        TKAssertExactEquals(dictionary.runs[2].attributes.textColor, undefined);
+        TKAssertExactEquals(dictionary.runs[2].attributes.font.family, "Dummy");
+        TKAssertExactEquals(dictionary.runs[2].attributes.font.weight, 400);
+        TKAssertExactEquals(dictionary.runs[2].attributes.font.style, "normal");
+        TKAssertExactEquals(dictionary.runs[2].attributes.font.size, 20);
     },
 
     testInitFromDictionary: function(){
@@ -854,7 +920,13 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
                 {
                     length: 1,
                     attributes: {
-                        bold: true
+                        bold: true,
+                        font: {
+                            family: "Dummy",
+                            weight: 700,
+                            style: "italic",
+                            size: 30
+                        }
                     }
                 },
                 {
@@ -878,6 +950,9 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(string.string, "test");
         TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 1));
         TKAssertExactEquals(string.attributeAtIndex("bold", 0), true);
+        var font = string.attributeAtIndex("font", 0);
+        TKAssertExactEquals(font.descriptor, this.fontDescriptors[2]);
+        TKAssertExactEquals(font.pointSize, 30);
         TKAssertObjectEquals(string.rangeOfRunAtIndex(1), JSRange(1, 2));
         TKAssertExactEquals(string.attributeAtIndex("bold", 1), undefined);
         var color = string.attributeAtIndex("textColor", 1);
@@ -982,3 +1057,94 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
     }
     
 });
+
+
+JSClass("JSAttributedStringMockFontDescriptor", JSFontDescriptor, {
+
+    init: function(){
+        this._family = "Dummy";
+        this._weight = JSFont.Weight.regular;
+        this._style = JSFont.Style.normal;
+        this._face = "NA";
+        this._postScriptName = "Dummy";
+        this._ascender = 1700;
+        this._descender = -300;
+        this._unitsPerEM = 2048;
+    },
+
+    descriptorWithWeight: function(weight){
+        var descriptor = JSAttributedStringMockFontDescriptor.init();
+        descriptor._weight = weight;
+        return descriptor;
+    },
+
+    descriptorWithStyle: function(style){
+        var descriptor = JSAttributedStringMockFontDescriptor.init();
+        descriptor._style = style;
+        return descriptor;
+    },
+
+    widthOfGlyph: function(){
+        return 1;
+    }
+});
+
+JSAttributedStringMockFontDescriptor.Resources = {
+    normal: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "Regular",
+            family: "Dummy",
+            name: "Dummy Regular",
+            postscript_name: "Dummy-Regular",
+            style: "normal",
+            unique_identifier: "UIKitTesting;dummy-regular",
+            unitsPerEM: 2048,
+            weight: 400,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    },
+    bold: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "Bold",
+            family: "Dummy",
+            name: "Dummy Bold",
+            postscript_name: "Dummy-Bold",
+            style: "normal",
+            unique_identifier: "UIKitTesting;dummy-bold",
+            unitsPerEM: 2048,
+            weight: 700,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    },
+    boldItalic: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "Bold Italic",
+            family: "Dummy",
+            name: "Dummy Bold Italic",
+            postscript_name: "Dummy-BoldItalic",
+            style: "italic",
+            unique_identifier: "UIKitTesting;dummy-bold-italic",
+            unitsPerEM: 2048,
+            weight: 700,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    }
+};
