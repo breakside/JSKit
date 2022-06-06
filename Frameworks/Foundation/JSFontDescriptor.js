@@ -18,6 +18,8 @@
 // #import "UnicodeChar.js"
 // #import "Zlib.js"
 // #import "CoreTypes.js"
+// #import "JSURLSession.js"
+/* global JSFont */
 'use strict';
 
 (function(){
@@ -38,11 +40,11 @@ JSClass("JSFontDescriptor", JSObject, {
     unitsPerEM: JSReadOnlyProperty('_unitsPerEM', 0),
 
     descriptorWithWeight: function(weight){
-        return this;
+        return JSFontDescriptor.descriptorWithFamily(this.family, weight, this.style) || this;
     },
 
     descriptorWithStyle: function(style){
-        return this;
+        return JSFontDescriptor.descriptorWithFamily(this.family, this.weight, style) || this;
     },
 
     glyphForCharacter: function(character){
@@ -89,6 +91,29 @@ JSClass("JSFontDescriptor", JSObject, {
 
 });
 
+JSFontDescriptor.system = null;
+
+JSFontDescriptor.descriptorsByFamily = {
+};
+
+JSFontDescriptor.registerDescriptor = function(descriptor){
+    if (!(descriptor._family in JSFontDescriptor.descriptorsByFamily)){
+        JSFontDescriptor.descriptorsByFamily[descriptor._family] = {};
+    }
+    if (!(descriptor._weight in JSFontDescriptor.descriptorsByFamily[descriptor._family])){
+        JSFontDescriptor.descriptorsByFamily[descriptor._family][descriptor._weight] = {};
+    }
+    if (!(descriptor._style in JSFontDescriptor.descriptorsByFamily[descriptor._family][descriptor._weight])){
+        JSFontDescriptor.descriptorsByFamily[descriptor._family][descriptor._weight][descriptor._style] = descriptor;
+    }
+};
+
+JSFontDescriptor.descriptorWithFamily = function(family, weight, style){
+    var weights = JSFontDescriptor.descriptorsByFamily[family] || {};
+    var styles = weights[weight] || {};
+    return styles[style] || null;
+};
+
 JSClass("JSDataFontDescriptor", JSFontDescriptor, {
 
     data: null,
@@ -131,23 +156,6 @@ JSClass("JSResourceFontDescriptor", JSFontDescriptor, {
             widths: null,
         };
         JSResourceFontDescriptor.descriptorsByName[metadata.font.unique_identifier] = this;
-        if (!(this._family in JSResourceFontDescriptor.descriptorsByFamily)){
-            JSResourceFontDescriptor.descriptorsByFamily[this._family] = {};
-        }
-        if (!(this._weight in JSResourceFontDescriptor.descriptorsByFamily[this._family])){
-            JSResourceFontDescriptor.descriptorsByFamily[this._family][this._weight] = {};
-        }
-        if (!(this._style in JSResourceFontDescriptor.descriptorsByFamily[this._family][this._weight])){
-            JSResourceFontDescriptor.descriptorsByFamily[this._family][this._weight][this._style] = this;
-        }
-    },
-
-    descriptorWithWeight: function(weight){
-        return JSResourceFontDescriptor.descriptorWithFamily(this.family, weight, this.style) || this;
-    },
-
-    descriptorWithStyle: function(style){
-        return JSResourceFontDescriptor.descriptorWithFamily(this.family, this.weight, style) || this;
     },
 
     glyphForCharacter: function(character){
@@ -228,17 +236,87 @@ JSClass("JSResourceFontDescriptor", JSFontDescriptor, {
 
 });
 
-JSResourceFontDescriptor.descriptorWithFamily = function(family, weight, style){
-    var weights = JSResourceFontDescriptor.descriptorsByFamily[family] || {};
-    var styles = weights[weight] || {};
-    return styles[style];
-};
-
-JSResourceFontDescriptor.descriptorsByFamily = {
-};
-
 JSResourceFontDescriptor.descriptorsByName = {
 };
+
+JSClass("JSURLFontDescriptor", JSFontDescriptor, {
+
+    url: null,
+
+    initWithURL: function(url, family, weight, style){
+        this.url = url;
+        this._family = family;
+        this._weight = weight;
+        this._style = style;
+        this._postScriptName = "%s-%s".sprintf(family.replace(" ", ""), this.face.replce(" ", ""));
+        // this._ascender
+        // this._descender
+        // this._unitsPerEM
+    },
+
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
+        }
+        var session = JSURLSession.shared;
+        var task = session.dataTaskWithURL(this.url, function(error){
+            if (error !== null){
+                completion.call(target, null, error);
+                return;
+            }
+            try{
+                task.response.assertSuccess();
+            }catch (e){
+                completion.call(target, null, e);
+                return;
+            }
+            completion.call(target, task.response.data, null);
+        });
+        task.resume();
+        return completion.promise;
+    },
+
+    face: JSLazyInitProperty(function(){
+        if (this.weight === JSFont.Weight.regular){
+            if (this.style === JSFont.Style.italic){
+                return "Italic";
+            }
+            return "Regular";
+        }
+        var name = "";
+        switch (this.weight){
+            case JSFont.Weight.ultraLight:
+                name = "UltraLight";
+                break;
+            case JSFont.Weight.thin:
+                name = "Thin";
+                break;
+            case JSFont.Weight.light:
+                name = "Light";
+                break;
+            case JSFont.Weight.medium:
+                name = "Medium";
+                break;
+            case JSFont.Weight.semibold:
+                name = "SemiBold";
+                break;
+            case JSFont.Weight.bold:
+                name = "Bold";
+                break;
+            case JSFont.Weight.heavy:
+                name = "Heavy";
+                break;
+            case JSFont.Weight.black:
+                name = "Black";
+                break;
+        }
+        if (this.style === JSFont.Style.italic){
+            name += " Italic";
+        }
+        return name;
+    }),
+
+});
 
 var CMap = function(format, data){
     if (this === undefined){

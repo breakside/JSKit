@@ -5,6 +5,7 @@
 JSClass("JSFontTests", TKTestSuite, {
 
     bundle: null,
+    descriptors: null,
 
     setup: function(){
         this.bundle = JSBundle.initWithDictionary({
@@ -12,17 +13,86 @@ JSClass("JSFontTests", TKTestSuite, {
             Resources: [
                 JSFontMockDescriptor.Resources.normal,
                 JSFontMockDescriptor.Resources.bold,
+                JSFontMockDescriptor.Resources.boldItalic,
             ],
+            ResourceLookup:{
+                global: {
+                    "Dummy-Regular": [0],
+                    "Dummy-Regular.otf": [0],
+                    "Dummy-Bold": [1],
+                    "Dummy-Bold.otf": [1],
+                    "Dummy-BoldItalic": [2],
+                    "Dummy-BoldItalic.otf": [2],
+                }
+            },
             Fonts: [
                  0,
-                 1
+                 1,
+                 2
             ]
         });
-        JSFont.registerBundleFonts(this.bundle);
+        this.descriptors = JSFont.registerBundleFonts(this.bundle);
     },
 
     teardown: function(){
         JSFont.unregisterAllFonts();
+    },
+
+    testSystemFont: function(){
+        JSFont.registerSystemFontDescriptor(this.descriptors[0]);
+        var font = JSFont.systemFontOfSize(30);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.regular);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[0]);
+    },
+
+    testFontWithWeight: function(){
+        var font = JSFont.initWithDescriptor(this.descriptors[0], 30).fontWithWeight(JSFont.Weight.bold);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+    },
+
+    testFontWithStyle: function(){
+        var font = JSFont.initWithDescriptor(this.descriptors[1], 30).fontWithStyle(JSFont.Style.italic);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.italic);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[2]);
+    },
+
+    testFontWithFamily: function(){
+        var font = JSFont.fontWithFamily("Dummy", 20);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.regular);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 20);
+        TKAssertExactEquals(font.descriptor, this.descriptors[0]);
+
+        font = JSFont.fontWithFamily("Dummy", 30, JSFont.Weight.bold);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+
+        font = JSFont.fontWithFamily("Dummy", 30, JSFont.Weight.bold, JSFont.Style.italic);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.italic);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[2]);
     },
 
     testInitFromDictionary: function(){
@@ -37,18 +107,72 @@ JSClass("JSFontTests", TKTestSuite, {
         TKAssertExactEquals(font.descriptor.family, "Dummy");
         TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.regular);
         TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.descriptor, this.descriptors[0]);
         TKAssertExactEquals(font.pointSize, 20);
+
+        dictionary = {
+            family: "Dummy",
+            weight: 700,
+            style: "normal",
+            size: 20
+        };
+        font = JSFont.initFromDictionary(dictionary);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+        TKAssertExactEquals(font.pointSize, 20);
+
+        dictionary = {
+            family: "Dummy",
+            weight: 700,
+            style: "italic",
+            size: 30
+        };
+        font = JSFont.initFromDictionary(dictionary);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.italic);
+        TKAssertExactEquals(font.descriptor, this.descriptors[2]);
+        TKAssertExactEquals(font.pointSize, 30);
 
     },
 
     testDictionaryRepresentation: function(){
-        var font = JSFont.fontWithFamily("Dummy", 20, JSFont.Weight.bold, JSFont.Style.normal);
+        var font = JSFont.initWithDescriptor(this.descriptors[0], 20);
         var dictionary = font.dictionaryRepresentation();
         TKAssertExactEquals(dictionary.family, "Dummy");
-        TKAssertExactEquals(dictionary.weight, 700);
+        TKAssertExactEquals(dictionary.weight, 400);
         TKAssertExactEquals(dictionary.style, "normal");
         TKAssertExactEquals(dictionary.size, 20);
-    }
+
+        font = JSFont.initWithDescriptor(this.descriptors[2], 30);
+        dictionary = font.dictionaryRepresentation();
+        TKAssertExactEquals(dictionary.family, "Dummy");
+        TKAssertExactEquals(dictionary.weight, 700);
+        TKAssertExactEquals(dictionary.style, "italic");
+        TKAssertExactEquals(dictionary.size, 30);
+    },
+
+    testRegisterSystemFontResource: function(){
+        JSFont.registerSystemFontResource("Dummy-Regular", this.bundle);
+        var font = JSFont.systemFontOfSize(10);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.regular);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.descriptor, this.descriptors[0]);
+        TKAssertExactEquals(font.pointSize, 10);
+
+        JSFont.registerSystemFontResource("Dummy-BoldItalic", this.bundle);
+        font = JSFont.systemFontOfSize(30);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.italic);
+        TKAssertExactEquals(font.descriptor, this.descriptors[2]);
+        TKAssertExactEquals(font.pointSize, 30);
+    },
 
 });
 
@@ -117,6 +241,25 @@ JSFontMockDescriptor.Resources = {
             postscript_name: "Dummy-Bold",
             style: "normal",
             unique_identifier: "UIKitTesting;dummy-bold",
+            unitsPerEM: 2048,
+            weight: 700,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    },
+    boldItalic: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "Bold Italic",
+            family: "Dummy",
+            name: "Dummy Bold Italic",
+            postscript_name: "Dummy-BoldItalic",
+            style: "italic",
+            unique_identifier: "UIKitTesting;dummy-bold-italic",
             unitsPerEM: 2048,
             weight: 700,
             widths: "eJwBAgD9/wAIAAoACQ=="
