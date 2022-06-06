@@ -16,6 +16,8 @@
 // #import "Javascript.js"
 // #import "JSObject.js"
 // #import "JSTextAttachment.js"
+// #import "JSFont.js"
+// #import "JSColor.js"
 'use strict';
 
 (function(){
@@ -38,6 +40,123 @@ JSClass("JSAttributedString", JSObject, {
         var run = JSAttributedStringRun(JSRange(0, string.length), attributes);
         this._string = string;
         this._runs = [run];
+    },
+
+    initFromDictionary: function(dictionary){
+        this._string = typeof(dictionary.string) === "string" ? dictionary.string : "";
+        this._runs = [];
+        var i, l;
+        var runDictionary;
+        var run;
+        var attributes;
+        var name;
+        var location = 0;
+        var length;
+        var maxLength = this._string.length;
+        var decodeAttribute = function(name, value){
+            switch (name){
+                case JSAttributedString.Attribute.font:
+                    return JSAttributedString.AttributeDecoder.font(value);
+                case JSAttributedString.Attribute.textColor:
+                case JSAttributedString.Attribute.backgroundColor:
+                    return JSAttributedString.AttributeDecoder.color(value);
+                case JSAttributedString.Attribute.link:
+                    return JSAttributedString.AttributeDecoder.url(value);
+                case JSAttributedString.Attribute.cursor:
+                    return JSAttributedString.AttributeDecoder.skip(value);
+                case JSAttributedString.Attribute.attachment:
+                    // TODO:
+                    return JSAttributedString.AttributeDecoder.skip(value);
+                case JSAttributedString.Attribute.maskCharacter:
+                    return JSAttributedString.AttributeDecoder.string(value);
+                case JSAttributedString.Attribute.bold:
+                case JSAttributedString.Attribute.italic:
+                case JSAttributedString.Attribute.underline:
+                case JSAttributedString.Attribute.strike:
+                    return JSAttributedString.AttributeDecoder.boolean(value);
+                case JSAttributedString.Attribute.lineHeight:
+                case JSAttributedString.Attribute.lineSpacing:
+                    return JSAttributedString.AttributeDecoder.number(value);
+                case JSAttributedString.Attribute.textAlignment:
+                    // TODO: validate
+                case JSAttributedString.Attribute.lineBreakMode:
+                    // TODO: validate
+                default:
+                    return value;
+            }
+            
+        };
+        if (dictionary.runs instanceof Array){
+            for (i = 0, l = dictionary.runs.length; i < l && maxLength > 0; ++i){
+                runDictionary = dictionary.runs[i];
+                attributes = {};
+                length = typeof(runDictionary.length) === "number" ? Math.min(maxLength, Math.floor(runDictionary.length)) : 0;
+                if (length > 0 && typeof(runDictionary.attributes) === "object"){
+                    for (name in runDictionary.attributes){
+                        attributes[name] = decodeAttribute(name, runDictionary.attributes[name]);
+                    }
+                    this._runs.push(JSAttributedStringRun(JSRange(location, length), attributes));
+                }
+                location += length;
+                maxLength -= length;
+            }
+        }
+        if (maxLength > 0){
+            this._runs.push(JSAttributedStringRun(JSRange(location, maxLength), {}));
+        }
+        if (this._runs.length === 0){
+            this._runs.push(JSAttributedStringRun(JSRange(0, 0), {}));
+        }
+    },
+
+    dictionaryRepresentation: function(){
+        var dictionary = {
+            string: this._string,
+            runs: []
+        };
+        var i, l;
+        var run;
+        var name;
+        var runDictionary;
+        var encodeAttribute = function(name, value){
+            switch (name){
+                case JSAttributedString.Attribute.font:
+                    return JSAttributedString.AttributeEncoder.font(value);
+                case JSAttributedString.Attribute.textColor:
+                case JSAttributedString.Attribute.backgroundColor:
+                    return JSAttributedString.AttributeEncoder.color(value);
+                case JSAttributedString.Attribute.link:
+                    return JSAttributedString.AttributeEncoder.url(value);
+                case JSAttributedString.Attribute.cursor:
+                    return JSAttributedString.Attribute.Encoder.skip(value);
+                case JSAttributedString.Attribute.attachment:
+                    // TODO:
+                    return JSAttributedString.Attribute.Encoder.skip(value);
+                case JSAttributedString.Attribute.bold:
+                case JSAttributedString.Attribute.italic:
+                case JSAttributedString.Attribute.underline:
+                case JSAttributedString.Attribute.strike:
+                case JSAttributedString.Attribute.lineHeight:
+                case JSAttributedString.Attribute.lineSpacing:
+                case JSAttributedString.Attribute.textAlignment:
+                case JSAttributedString.Attribute.lineBreakMode:
+                case JSAttributedString.Attribute.maskCharacter:
+                default:
+                    return value;
+            }
+        };
+        for (i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
+            runDictionary = {
+                length: run.range.length,
+                attributes: {}
+            };
+            for (name in run.attributes){
+                runDictionary.attributes[name] = encodeAttribute(name, run.attributes[name]);
+            }
+            dictionary.runs.push(runDictionary);
+        }
+        return dictionary;
     },
 
     initWithAttributedString: function(attributedString, defaultAttributes){
@@ -479,6 +598,31 @@ JSAttributedString.Attribute = {
     maskCharacter: "maskCharacter",
     cursor: "cursor",
     link: "link"
+};
+
+JSAttributedString.AttributeEncoder = {
+    skip: function(value){ return undefined; },
+    identity: function(value){ return value; },
+    dataBase64: function(value){ return value.base64StringRepresentation(); },
+    dataBase64URL: function(value){ return value.base64URLStringRepresentation(); },
+    dataHex: function(value){ return value.hexStringRepresentation(); },
+    url: function(value){ return value.encodedString; },
+    font: function(value){ return value.dictionaryRepresentation(); },
+    color: function(value){ return value.dictionaryRepresentation(); },
+};
+
+JSAttributedString.AttributeDecoder = {
+    skip: function(value){ return undefined; },
+    identity: function(value){ return value; },
+    dataBase64: function(value){ return value.dataByDecodingBase64(); },
+    dataBase64URL: function(value){ return value.dataByDecodingBase64URL(); },
+    dataHex: function(value){ return value.dataByDecodingHex(); },
+    url: function(value){ return JSURL.initWithString(value); },
+    font: function(value){ return JSFont.initFromDictionary(value); },
+    color: function(value){ return JSColor.initFromDictionary(value); },
+    boolean: function(value){ return typeof(value) === "boolean" ? value : undefined; },
+    number: function(value){ return typeof(value) === "number" ? value : undefined; },
+    string: function(value){ return typeof(value) === "string" ? value : undefined; },
 };
 
 JSAttributedString.SpecialCharacter = {

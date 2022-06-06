@@ -800,7 +800,185 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         range = str.longestRangeOfAttributeAtIndex("textColor", 8);
         TKAssertExactEquals(range.location, 8);
         TKAssertExactEquals(range.length, 11);
-    }
+    },
 
+    testDictionaryRepresentation: function(){
+        var string = JSAttributedString.initWithString("test", {bold: true});
+        var dictionary = string.dictionaryRepresentation();
+        TKAssertExactEquals(dictionary.string, "test");
+        TKAssertExactEquals(dictionary.runs.length, 1);
+        TKAssertExactEquals(dictionary.runs[0].length, 4);
+        TKAssertExactEquals(dictionary.runs[0].attributes.bold, true);
+
+        string.setAttributesInRange({textColor: JSColor.initWithRGBA(0, 0.5, 1)}, JSRange(1, 2));
+        dictionary = string.dictionaryRepresentation();
+        TKAssertExactEquals(dictionary.string, "test");
+        TKAssertExactEquals(dictionary.runs.length, 3);
+        TKAssertExactEquals(dictionary.runs[0].length, 1);
+        TKAssertExactEquals(dictionary.runs[0].attributes.bold, true);
+        TKAssertExactEquals(dictionary.runs[0].attributes.textColor, undefined);
+        TKAssertExactEquals(dictionary.runs[1].length, 2);
+        TKAssertExactEquals(dictionary.runs[1].attributes.bold, undefined);
+        TKAssertExactEquals(dictionary.runs[1].attributes.textColor.space, "rgb");
+        TKAssertExactEquals(dictionary.runs[1].attributes.textColor.components.length, 4);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[0], 0);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[1], 0.5);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[2], 1);
+        TKAssertFloatEquals(dictionary.runs[1].attributes.textColor.components[3], 1);
+        TKAssertExactEquals(dictionary.runs[2].length, 1);
+        TKAssertExactEquals(dictionary.runs[2].attributes.bold, true);
+        TKAssertExactEquals(dictionary.runs[2].attributes.textColor, undefined);
+    },
+
+    testInitFromDictionary: function(){
+        var dictionary = {
+            string: "test",
+            runs: [
+                {
+                    location: 0,
+                    length: 4,
+                    attributes: {
+                        bold: true
+                    }
+                }
+            ]
+        };
+        var string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 4));
+        TKAssertExactEquals(string.attributeAtIndex("bold", 0), true);
+
+        dictionary = {
+            string: "test",
+            runs: [
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+                {
+                    length: 2,
+                    attributes: {
+                        textColor: {
+                            space: "rgb",
+                            components: [0, 0.5, 1, 1]
+                        }
+                    }
+                },
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+            ]
+        };
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 1));
+        TKAssertExactEquals(string.attributeAtIndex("bold", 0), true);
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(1), JSRange(1, 2));
+        TKAssertExactEquals(string.attributeAtIndex("bold", 1), undefined);
+        var color = string.attributeAtIndex("textColor", 1);
+        TKAssertInstance(color, JSColor);
+        TKAssertFloatEquals(color.red, 0);
+        TKAssertFloatEquals(color.green, 0.5);
+        TKAssertFloatEquals(color.blue, 1);
+        TKAssertFloatEquals(color.alpha, 1);
+
+        dictionary = {};
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 0));
+
+
+        dictionary = {
+            string: "test"
+        };
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 4));
+
+        dictionary = {
+            string: "test",
+            runs: [
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+            ]
+        };
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 1));
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(1), JSRange(1, 3));
+        TKAssertExactEquals(string.attributeAtIndex("bold", 1), undefined);
+
+        dictionary = {
+            string: "test",
+            runs: [
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+                {
+                    length: 20,
+                    attributes: {
+                        textColor: {
+                            space: "rgb",
+                            components: [0, 0.5, 1, 1]
+                        }
+                    }
+                },
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+            ]
+        };
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 1));
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(1), JSRange(1, 3));
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(4), JSRange(1, 3));
+
+        dictionary = {
+            string: "test",
+            runs: [
+                {
+                    length: 10,
+                    attributes: {
+                        bold: true
+                    }
+                },
+                {
+                    length: 20,
+                    attributes: {
+                        textColor: {
+                            space: "rgb",
+                            components: [0, 0.5, 1, 1]
+                        }
+                    }
+                },
+                {
+                    length: 1,
+                    attributes: {
+                        bold: true
+                    }
+                },
+            ]
+        };
+        string = JSAttributedString.initFromDictionary(dictionary);
+        TKAssertExactEquals(string.string, "test");
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 4));
+        TKAssertObjectEquals(string.rangeOfRunAtIndex(4), JSRange(0, 4));
+    }
     
 });
