@@ -49,7 +49,7 @@ JSClass("JSFont", JSObject, {
         var weight;
         var style;
         var size;
-        var defaults = JSFont._systemFontDescriptor;
+        var defaults = JSFontDescriptor.system;
         // if ('descriptor' in values){
         //     values = values.descriptor;
         // }
