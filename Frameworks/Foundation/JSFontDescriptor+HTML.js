@@ -94,4 +94,12 @@ JSDataFontDescriptor.definePropertiesFromExtensions({
 
 });
 
+JSURLFontDescriptor.definePropertiesFromExtensions({
+
+    htmlURLString: function(){
+        return this.url.encodedString;
+    }
+
+});
+
 })();
