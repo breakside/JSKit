@@ -764,7 +764,7 @@ Object.defineProperties(JSAttributedStringRunIterator.prototype, {
                 return null;
             }
             var run = this._attributedString._runs[this._runIndex];
-            if (run.range.length === 1 && this._attributedString.charCodeAt(run.range.location) === JSAttributedString.SpecialCharacter.attachment){
+            if (run.range.length === 1 && this._attributedString.string.charCodeAt(run.range.location) === JSAttributedString.SpecialCharacter.attachment){
                 return run.attributes[JSAttributedString.Attribute.attachment];
             }
             return null;
