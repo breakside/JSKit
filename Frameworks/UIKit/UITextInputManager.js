@@ -110,7 +110,7 @@ keyBindingsByPlatform[UIPlatform.Identifier.mac] = [
     {action: "moveForwardAndModifySelection",               key: UIEvent.Key.right,     modifiers: UIEvent.Modifier.shift},
     {action: "moveWordForwardAndModifySelection",           key: UIEvent.Key.right,     modifiers: UIEvent.Modifier.shift | UIEvent.Modifier.option},
     {action: "moveToEndOfLineAndModifySelection",           key: UIEvent.Key.right,     modifiers: UIEvent.Modifier.shift | UIEvent.Modifier.command},
-    {action: "moveUpAndModifySelection",                    key: UIEvent.Key.down,      modifiers: UIEvent.Modifier.shift},
+    {action: "moveDownAndModifySelection",                  key: UIEvent.Key.down,      modifiers: UIEvent.Modifier.shift},
     {action: "moveToEndOfDocumentAndModifySelection",       key: UIEvent.Key.down,      modifiers: UIEvent.Modifier.shift | UIEvent.Modifier.command},
     {action: "moveToEndOfDocumentAndModifySelection",       key: UIEvent.Key.end,       modifiers: UIEvent.Modifier.shift},
 
@@ -165,7 +165,7 @@ keyBindingsByPlatform[UIPlatform.Identifier.win] = [
     {action: "moveForwardAndModifySelection",               key: UIEvent.Key.right,     modifiers: UIEvent.Modifier.shift},
     {action: "moveWordForwardAndModifySelection",           key: UIEvent.Key.right,     modifiers: UIEvent.Modifier.shift | UIEvent.Modifier.control},
     {action: "moveToEndOfLineAndModifySelection",           key: UIEvent.Key.end,       modifiers: UIEvent.Modifier.shift},
-    {action: "moveUpAndModifySelection",                    key: UIEvent.Key.down,      modifiers: UIEvent.Modifier.shift},
+    {action: "moveDownAndModifySelection",                  key: UIEvent.Key.down,      modifiers: UIEvent.Modifier.shift},
     {action: "moveToEndOfDocumentAndModifySelection",       key: UIEvent.Key.end,       modifiers: UIEvent.Modifier.shift | UIEvent.Modifier.control},
 
     {action: "selectAll",                                   key: "a",                   modifiers: UIEvent.Modifier.control},
