@@ -210,6 +210,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             sharedElementForSizing.style.position = "absolute";
             sharedElementForSizing.style.zIndex = -100;
             sharedElementForSizing.style.right = "0";
+            sharedElementForSizing.style.whiteSpace = "pre";
             sharedElementForSizing.ownerDocument.body.appendChild(sharedElementForSizing);
         }
         sharedElementForSizing.style.font = this.element.style.font;
