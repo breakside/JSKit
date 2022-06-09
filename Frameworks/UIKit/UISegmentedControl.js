@@ -26,13 +26,13 @@ JSClass("UISegmentedControl", UIControl, {
     // MARK: - Creating a segment control
 
     initWithSpec: function(spec){
+        UISegmentedControl.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('font')){
             this._font = spec.valueForKey("font", JSFont);
         }
         if (spec.containsKey('titleInsets')){
             this._titleInsets  = spec.valueForKey("titleInsets", JSInsets);
         }
-        UISegmentedControl.$super.initWithSpec.call(this, spec);
         var i, l;
         if (spec.containsKey('items')){
             var items = spec.valueForKey('items');
