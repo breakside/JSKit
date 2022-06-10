@@ -126,6 +126,7 @@ JSClass("UITextField", UIControl, {
         this._textLayer.widthTracksText = true;
         this._textLayer.heightTracksText = true;
         this._textLayer.maximumNumberOfLines = 1;
+        this._textLayer.textContainer.framesetter.typesetter.delegate = this;
         this._localEditor = UITextEditor.initWithTextLayer(this._textLayer);
         this._localEditor.delegate = this;
         this._clipView.layer.addSublayer(this._textLayer);
@@ -703,10 +704,16 @@ JSClass("UITextField", UIControl, {
     },
 
     sizeToFitText: function(maxSize){
+        if (this._multiline){
+            this._textLayer.sizeToFitSize(maxSize);
+            if (this._isShowingPlaceholder){
+                this._placeholderLabel.sizeToFitSize(maxSize);
+            }
+        }
         this._textLayer.layoutIfNeeded();
+        this._placeholderLabel.layoutIfNeeded();
         var size = JSSize(this._textLayer.bounds.size);
         if (this._isShowingPlaceholder){
-            this._placeholderLabel.layoutIfNeeded();
             size = JSSize(this._placeholderLabel.bounds.size);
         }
         if (size.width > maxSize.width){
@@ -1456,6 +1463,10 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
             return UITextFieldCustomStyler.$super.focusRingPathForControl.call(this, textField);
         }
         return null;
+    },
+
+    updateSelectionWithAttributes: function(attributes){
+        this._textEditor.updateSelectionWithAttributes(attributes);
     }
 
 });

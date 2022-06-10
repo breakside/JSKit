@@ -31,7 +31,6 @@ JSClass("UITextEditor", JSObject, {
     delegate: null,
     cursorColor: JSDynamicProperty('_cursorColor', null),
     cursorWidth: 2.0,
-    insertAttributes: null,
     _isFirstResponder: false,
     _isWindowKey: false,
     _cursorBlinkRate: 0.5,
@@ -416,6 +415,81 @@ JSClass("UITextEditor", JSObject, {
     // -------------------------------------------------------------------------
     // MARK: - Common editing operations
 
+    bold: function(sender){
+        this._toggleBooleanAttribute("bold", "Bold");
+    },
+
+    italic: function(sender){
+        this._toggleBooleanAttribute("italic", "Italic");
+    },
+
+    underline: function(sender){
+        this._toggleBooleanAttribute("underline", "Underline");
+    },
+
+    _toggleBooleanAttribute: function(name, undoName){
+        var selection;
+        var textStorage = this.textLayoutManager.textStorage;
+        var locationAdjustment = 0;
+        var attributes;
+        var i, l;
+        var currentValue = true;
+        var runIterator;
+        for (i = 0, l = this.selections.length; i < l && currentValue === true; ++i){
+            selection = this.selections[i];
+            if (selection.range.length > 0){
+                runIterator = textStorage.runIterator(selection.range.location);
+                var j = 0;
+                while (runIterator.range.location < selection.range.end && currentValue === true && j < 10000){
+                    if (!runIterator.attributes[name]){
+                        currentValue = false;
+                    }
+                    runIterator.increment();
+                }
+                if (j === 10000){
+                    throw new Error("infinite loop");
+                }
+            }else{
+                attributes = this._insertAttributesForSelection(selection);
+                if (!attributes[name]){
+                    currentValue = false;
+                }
+            }
+        }
+        this.undoManager.beginUndoGrouping();
+        var selections = this._selectionsCopy();
+        for (i = 0, l = selections.length; i < l; ++i){
+            selection = selections[i];
+            this._setBooleanAttributeForSelection(name, !currentValue, selection);
+        }
+        this._setSelectionsAllowingUndo(selections);
+        this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName(undoName);
+        this._resetSelectionAffinity();
+    },
+
+    _setBooleanAttributeForSelection: function(name, value, selection){
+        var textStorage = this.textLayoutManager.textStorage;
+        var replacementString;
+        if (selection.range.length > 0){
+            replacementString = textStorage.attributedSubstringInRange(selection.range);
+            if (value){
+                replacementString.addAttributeInRange(name, true, JSRange(0, replacementString.string.length));
+            }else{
+                replacementString.removeAttributeInRange(name, JSRange(0, replacementString.string.length));
+            }
+            this._replaceTextStorageRangeAllowingUndo(textStorage, selection.range, replacementString);
+        }else{
+            selection.attributes = this._insertAttributesForSelection(selection);
+            if (value){
+                selection.attributes[name] = true;
+            }else{
+                delete selection.attributes[name];
+            }
+            this.undoManager.registerUndo(this, this._setBooleanAttributeForSelection, name, !value, selection);
+        }
+    },
+
     _createSelectionAtLocation: function(location){
         var index = this.textLayoutManager.characterIndexAtPoint(location);
         var rect = this.textLayoutManager.rectForCharacterAtIndex(index);
@@ -462,6 +536,20 @@ JSClass("UITextEditor", JSObject, {
         this.layout();
     },
 
+    _selectionsCopy: function(){
+        var selections = [];
+        var i, l;
+        for (i = 0, l = this.selections.length; i < l; ++i){
+            selections.push(UITextInputSelection(this.selections[i]));
+        }
+        return selections;
+    },
+
+    _setSelectionsAllowingUndo: function(selections){
+        this.undoManager.registerUndo(this, this._setSelectionsAllowingUndo, this._selectionsCopy());
+        this.setSelections(selections);
+    },
+
     _insertSelection: function(selection){
         var searcher = JSBinarySearcher(this.selections, function(a, b){
             return a.range.location - b.range.location;
@@ -489,8 +577,8 @@ JSClass("UITextEditor", JSObject, {
         var adjustedRange;
         var locationAdjustment = 0;
         var textStorage = this.textLayoutManager.textStorage;
-        this._isHandlingSelectionAdjustments = true;
         this.undoManager.beginUndoGrouping();
+        var selections = this._selectionsCopy();
         for (i = 0, l = ranges.length; i < l; ++i){
             range = ranges[i];
             adjustedRange = JSRange(range.location + locationAdjustment, range.length);
@@ -498,19 +586,20 @@ JSClass("UITextEditor", JSObject, {
                 this._replaceTextStorageRangeAllowingUndo(textStorage, adjustedRange, null);
             }
             locationAdjustment -= range.length;
-            if (i == this.selections.length){
-                this.selections.push(this._createSelection(JSRange(0, 0)));
+            if (i == selections.length){
+                selections.push(this._createSelection(JSRange(0, 0)));
             }
-            this.selections[i].range = JSRange(adjustedRange.location, 0);
+            selections[i].range = JSRange(adjustedRange.location, 0);
         }
-        this._isHandlingSelectionAdjustments = false;
-        for (var j = this.selections.length - 1; j >= i; --j){
-            this.selections.splice(j, 1);
+        for (var j = selections.length - 1; j >= i; --j){
+            selections.splice(j, 1);
         }
+        for (i = 0, l = selections.length; i < l; ++i){
+            selections[i].affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
+        }
+        this._setSelectionsAllowingUndo(selections);
         this.undoManager.endUndoGrouping();
         this.undoManager.setActionName("Typing");
-        this._collapseOverlappingSelections();
-        this._resetSelectionAffinity();
     },
 
     _replaceTextStorageRangeAllowingUndo: function(textStorage, range, attributedString){
@@ -523,10 +612,12 @@ JSClass("UITextEditor", JSObject, {
             insertedLength = attributedString.string.length;
         }
         this.undoManager.registerUndo(this, this._replaceTextStorageRangeAllowingUndo, textStorage, JSRange(range.location, insertedLength), replacedString);
+        this._isHandlingSelectionAdjustments = true;
         textStorage.replaceCharactersInRangeWithAttributedString(range, attributedString);
+        this._isHandlingSelectionAdjustments = false;
     },
 
-    _collapseOverlappingSelections: function(){
+    _collapseOverlappingSelections: function(sections){
         var removed = [];
         for (var i = this.selections.length - 1; i > 0; --i){
             if (this.selections[i - 1].range.end >= this.selections[i].range.location){
@@ -545,10 +636,12 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _insertAttributesForSelection: function(selection){
+        if (selection.attributes){
+            return selection.attributes;
+        }
         var index = selection.range.location > 0 ? selection.range.location - 1 : 0;
-        var attributes = this.textLayoutManager.textStorage.attributesAtIndex(index);
+        var attributes = JSCopy(this.textLayoutManager.textStorage.attributesAtIndex(index));
         if (JSAttributedString.Attribute.attachment in attributes){
-            attributes = JSCopy(attributes);
             delete attributes[JSAttributedString.Attribute.attachment];
         }
         return attributes;
@@ -587,23 +680,21 @@ JSClass("UITextEditor", JSObject, {
         var locationAdjustment = 0;
         var adjustedRange;
         var insertAttributes;
-        this._isHandlingSelectionAdjustments = true;
+        var i, l;
+        var selections = this._selectionsCopy();
         this.undoManager.beginUndoGrouping();
-        for (var i = 0, l = this.selections.length; i < l; ++i){
-            selection = this.selections[i];
-            insertAttributes = this.insertAttributes;
-            if (insertAttributes === null){
-                insertAttributes = this._insertAttributesForSelection(selection);
-            }
+        for (i = 0, l = selections.length; i < l; ++i){
+            selection = selections[i];
+            insertAttributes = this._insertAttributesForSelection(selection);
             adjustedRange = JSRange(selection.range.location + locationAdjustment, selection.range.length);
             this._replaceTextStorageRangeAllowingUndo(textStorage, adjustedRange, JSAttributedString.initWithString(text, insertAttributes));
             selection.range = JSRange(adjustedRange.location + textLength, 0);
+            selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
             locationAdjustment += textLength - adjustedRange.length;
         }
+        this._setSelectionsAllowingUndo(selections);
         this.undoManager.endUndoGrouping();
         this.undoManager.setActionName("Typing");
-        this._isHandlingSelectionAdjustments = false;
-        this._resetSelectionAffinity();
     },
 
     setMarkedText: function(text){
@@ -812,6 +903,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.range.length === 0){
                 if (selection.range.location > 0){
                     perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location - 1);
@@ -834,6 +926,7 @@ JSClass("UITextEditor", JSObject, {
         var indexOfPreviousWord;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             indexOfPreviousWord = textStorage.string.indexOfWordStartBeforeIndex(selection.range.location);
             selection.range = JSRange(indexOfPreviousWord, 0);
         }
@@ -849,6 +942,7 @@ JSClass("UITextEditor", JSObject, {
         var line;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             line = this._lineForSelectionStart(selection);
             if (line !== null){
                 selection.range = JSRange(line.range.location, 0);
@@ -872,6 +966,7 @@ JSClass("UITextEditor", JSObject, {
         var cursorX;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             selection.insertionPoint = UITextInput.SelectionInsertionPoint.start;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
@@ -915,6 +1010,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.range.length === 0){
                 if (selection.range.location < textStorage.string.length){
                     perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
@@ -937,6 +1033,7 @@ JSClass("UITextEditor", JSObject, {
         var nextWordIndex;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             nextWordIndex = textStorage.string.indexOfWordEndAfterIndex(selection.range.end);
             selection.range = JSRange(nextWordIndex, 0);
         }
@@ -952,6 +1049,7 @@ JSClass("UITextEditor", JSObject, {
         var line;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             line = this._lineForSelectionEnd(selection);
             if (line !== null && line.range.end > selection.range.location){
                 var iterator = textStorage.string.userPerceivedCharacterIterator(line.range.end - 1);
@@ -981,6 +1079,7 @@ JSClass("UITextEditor", JSObject, {
         var lineEnumerator;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             selection.insertionPoint = UITextInput.SelectionInsertionPoint.end;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
@@ -1025,6 +1124,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.range.length > 0 && selection.insertionPoint == UITextInput.SelectionInsertionPoint.end){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.end - 1);
                 selection.range.length -= perceivedCharacterRange.length;
@@ -1050,6 +1150,7 @@ JSClass("UITextEditor", JSObject, {
         var end;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 end = selection.range.end;
             }else{
@@ -1072,6 +1173,7 @@ JSClass("UITextEditor", JSObject, {
         var end;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             line = this._lineForSelectionStart(selection);
             if (line !== null){
                 if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
@@ -1101,6 +1203,7 @@ JSClass("UITextEditor", JSObject, {
         var lineEnumerator;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextInput.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
@@ -1166,6 +1269,7 @@ JSClass("UITextEditor", JSObject, {
         var perceivedCharacterRange;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.range.length > 0 && selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 perceivedCharacterRange = textStorage.string.rangeForUserPerceivedCharacterAtIndex(selection.range.location);
                 selection.range.advance(perceivedCharacterRange.length);
@@ -1191,6 +1295,7 @@ JSClass("UITextEditor", JSObject, {
         var start;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 start = selection.range.end;
             }else{
@@ -1213,6 +1318,7 @@ JSClass("UITextEditor", JSObject, {
         var start;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             line = this._lineForSelectionEnd(selection);
             if (selection.insertionPoint == UITextInput.SelectionInsertionPoint.start){
                 start = selection.range.end;
@@ -1248,6 +1354,7 @@ JSClass("UITextEditor", JSObject, {
         var cursorX;
         for (var i = 0, l = this.selections.length; i < l; ++i){
             selection = this.selections[i];
+            selection.attributes = null;
             cursorRect = this._cursorRectForSelection(selection);
             cursorX = cursorRect.origin.x + Math.floor(cursorRect.size.width / 2.0);
             lineEnumerator = this.textLayoutManager.lineEnumerator((selection.insertionPoint == UITextInput.SelectionInsertionPoint.start ? selection.range.location : selection.range.end) - (selection.affinity === UITextInput.SelectionAffinity.afterPreviousCharacter ? 1 : 0));
@@ -1334,7 +1441,7 @@ JSClass("UITextEditor", JSObject, {
             return this.textLayoutManager.lineForCharacterAtIndex(selection.range.end - 1);
         }
         return this.textLayoutManager.lineForCharacterAtIndex(selection.range.end);
-    }
+    },
 
 });
 

@@ -138,6 +138,7 @@ JSGlobalObject.UITextInputSelection = function(range, insertionPoint, affinity){
             this.range = JSRange(range.range);
             this.insertionPoint = range.insertionPoint;
             this.affinity = range.affinity;
+            this.attributes = JSCopy(range.attributes);
         }else{
             if (insertionPoint === undefined){
                 insertionPoint = UITextInput.SelectionInsertionPoint.end;
@@ -157,6 +158,7 @@ UITextInputSelection.prototype = {
     range: null,
     insertionPoint: null,
     affinity: null,
+    attributes: null,
 
     containsIndex: function(index){
         return this.range.length > 0 && this.range.contains(index);
