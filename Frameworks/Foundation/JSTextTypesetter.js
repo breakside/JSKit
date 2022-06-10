@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "JSObject.js"
+// #import "JSProtocol.js"
 // #import "CoreTypes.js"
 // #import "JSAttributedString.js"
 // #import "JSFont.js"
@@ -25,6 +26,12 @@
 (function(){
 
 var logger = JSLog("foundation", "text");
+
+JSProtocol("JSTextTypesetterDelegate", JSProtocol, {
+
+    typesetterAttributesForStringAttributes: function(typesetter, stringAttributes){}
+
+});
 
 JSClass("JSTextTypesetter", JSObject, {
 
@@ -68,7 +75,8 @@ JSClass("JSTextTypesetter", JSObject, {
 
     _createEmptyLine: function(range){
         var attributes = this._attributedString.attributesAtIndex(range.location);
-        var font = JSTextTypesetter.FontFromAttributes(attributes);
+        attributes = this.resolveAttributes(attributes);
+        var font = attributes.font;
         return JSTextLine.initWithHeight(font.lineHeight, -font.descender, range.location);
     },
 
@@ -129,16 +137,18 @@ JSClass("JSTextTypesetter", JSObject, {
 
         var iterator = this._attributedString.string.userPerceivedCharacterIterator(range.location);
         var runIterator = this._attributedString.runIterator(range.location);
-        var initialLineAttributes = runIterator.attributes;
         var codeIterator;
         var attachment;
+        var attributes;
         // TODO: support mask character (only important if we need to rasterize a password field, which isn't a major use case)
         // Create run descriptors that at fill the line, maybe going a bit over
         do {
 
+            attributes = this.resolveAttributes(runIterator.attributes);
+
             // If we're at the start of a new run, make a new run descriptor
             if (runDescriptor === null){
-                runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
+                runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, attributes);
                 runDescriptors.push(runDescriptor);
                 preferredFont = runDescriptor.font;
             }
@@ -156,7 +166,7 @@ JSClass("JSTextTypesetter", JSObject, {
                 // here is actually a specially drawn attachment.  The attachment font has a single glyph
                 // that corresponds to the 0xFFFC attachment character code, whose width matches the
                 // attachment's width
-                attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+                attachment = attributes[JSAttributedString.Attribute.attachment];
                 attachment.layout(preferredFont, width);
                 usedWidth += attachment.size.width;
                 runDescriptor.glyphs.push(0);
@@ -169,7 +179,7 @@ JSClass("JSTextTypesetter", JSObject, {
                     // If our preferred font has a glyph for the character, but we're in a run
                     // that is using a fallback font, create a new run, switching back to the preferred font
                     if (runDescriptor.font !== preferredFont){
-                        runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
+                        runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, attributes);
                         runDescriptors.push(runDescriptor);
                     }
                 }else{
@@ -179,7 +189,7 @@ JSClass("JSTextTypesetter", JSObject, {
                     // If the fallback doesn't match our run, adjust the run or create a new run depending on if it's emtpy
                     if (fallbackFont !== runDescriptor.font){
                         if (runDescriptor.length > 0){
-                            runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, runIterator.attributes);
+                            runDescriptor = JSTextTypesetterRunDescriptor(remainingRange.location, attributes);
                             runDescriptors.push(runDescriptor);
                         }
                         runDescriptor.font = fallbackFont;
@@ -317,7 +327,27 @@ JSClass("JSTextTypesetter", JSObject, {
         if (ranges.length === 0){
             ranges.push(JSTextTypesetterPrintableRange(location, 0, 0));
         }
-    }
+    },
+
+    delegate: null,
+
+    resolveAttributes: function(attributes){
+        if (attributes.font){
+            if (attributes.bold || attributes.italic){
+                attributes = JSCopy(attributes);
+                if (attributes.bold){
+                    attributes.font = attributes.font.fontWithWeight(JSFont.Weight.bold);
+                }
+                if (attributes.italic){
+                    attributes.font = attributes.font.fontWithStyle(JSFont.Style.italic);
+                }
+            }
+        }
+        if (this.delegate && this.delegate.typesetterAttributesForStringAttributes){
+            attributes = this.delegate.typesetterAttributesForStringAttributes(this, attributes);
+        }
+        return attributes;
+    },
 
 });
 
@@ -338,7 +368,7 @@ var JSTextTypesetterRunDescriptor = function(location, attributes){
         this.length = 0;
         this.glyphs = [];
         this.glyphCharacterLengths = [];
-        this.font = JSTextTypesetter.FontFromAttributes(attributes);
+        this.font = attributes.font || null;
     }
 };
 
@@ -355,20 +385,6 @@ var JSTextTypesetterPrintableRange = function(location, length, width){
         this.length = length;
         this.width = width;
     }
-};
-
-JSTextTypesetter.FontFromAttributes = function(attributes){
-    var font = attributes[JSAttributedString.Attribute.font];
-    if (!font){
-        return null;
-    }
-    if (attributes[JSAttributedString.Attribute.bold]){
-        font = font.fontWithWeight(JSFont.Weight.bold);
-    }
-    if (attributes[JSAttributedString.Attribute.italic]){
-        font = font.fontWithStyle(JSFont.Style.italic);
-    }
-    return font;
 };
 
 })();

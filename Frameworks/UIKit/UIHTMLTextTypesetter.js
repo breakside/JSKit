@@ -153,6 +153,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attachments = [];
         var previousAttachmentsByID = {};
         var superview;
+        var attributes;
         if (this._cachedLayout !== null){
             for (i = 0; i < this._cachedLayout.attachments.length; ++i){
                 previousAttachmentsByID[this._cachedLayout.attachments[i].objectID] = this._cachedLayout.attachments[i];
@@ -160,12 +161,13 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
         i = 0;
         while (remainingRange.length > 0){
+            attributes = this.resolveAttributes(runIterator.attributes);
             var utf16 = this._attributedString.string.substringInRange(runIterator.range.intersection(remainingRange));
-            if (runIterator.attributes[JSAttributedString.Attribute.maskCharacter]){
-                utf16 = utf16.stringByMaskingWithCharacter(runIterator.attributes[JSAttributedString.Attribute.maskCharacter]);
+            if (attributes[JSAttributedString.Attribute.maskCharacter]){
+                utf16 = utf16.stringByMaskingWithCharacter(attributes[JSAttributedString.Attribute.maskCharacter]);
             }
             if (runIterator.range.length === 1 && utf16 == JSAttributedString.SpecialCharacter.attachmentUTF16){
-                attachment = runIterator.attributes[JSAttributedString.Attribute.attachment];
+                attachment = attributes[JSAttributedString.Attribute.attachment];
                 utf16 = '';
             }else{
                 attachment = null;
@@ -184,9 +186,9 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                     delete previousAttachmentsByID[attachment.objectID];
                 }
                 attachments.push(attachment);
-                attachment.layout(JSTextTypesetter.FontFromAttributes(runIterator.attributes), size.width);
+                attachment.layout(attributes.font || null, size.width);
             }
-            runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, runIterator.attributes, runIterator.range.intersection(remainingRange), attachment);
+            runDescriptor = UIHTMLTextTypesetterRunDescriptor(span, attributes, runIterator.range.intersection(remainingRange), attachment);
             runDescriptors.push(runDescriptor);
             remainingRange.advance(runIterator.range.length);
             runIterator.increment();
@@ -302,7 +304,8 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     _createEmptyLine: function(range){
         var attributes = this._attributedString.attributesAtIndex(range.location);
-        var font = JSTextTypesetter.FontFromAttributes(attributes);
+        attributes = this.resolveAttributes(attributes);
+        var font = attributes.font || null;
         var element = this._createLineElement();
         return UIHTMLTextLine.initWithElementAndFont(element, font, font.displayLineHeight, range.location);
     },
@@ -382,7 +385,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 // when an italicized run was followed by another run.  The endX of the italicized run was
                 // greater than the startX of the following run.  So, using the startX of the previous run
                 // works just as well, provided the text is left justified.
-                x = runDescriptor.startX + 1;
+                x = runDescriptor.minX + 1;
                 remainingRange.advance(fragment.range.length);
                 fragments.push(fragment);
             }
@@ -413,7 +416,7 @@ var UIHTMLTextTypesetterRunDescriptor = function(span, attributes, range, attach
         return new UIHTMLTextTypesetterRunDescriptor(span, attributes, range, attachment);
     }
     this.span = span;
-    this.font = JSTextTypesetter.FontFromAttributes(attributes);
+    this.font = attributes.font || null;
     this.attributes = attributes;
     this.range = JSRange(range);
     this.attachment = attachment || null;
@@ -423,6 +426,9 @@ var UIHTMLTextTypesetterRunDescriptor = function(span, attributes, range, attach
 UIHTMLTextTypesetterRunDescriptor.prototype = {
 
     updateStyle: function(){
+        var cursor;
+        var cssCursorStrings;
+        var i, l;
         if (this.attachment !== null){
             this.span.style.display = 'inline-block';
             this.span.style.position = 'relative';
@@ -436,10 +442,10 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.pointerEvents = 'all';
 
             // Cursor
-            var cursor = this.attributes[JSAttributedString.Attribute.cursor];
+            cursor = this.attributes[JSAttributedString.Attribute.cursor];
             if (cursor){
-                var cssCursorStrings = cursor.cssStrings();
-                for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+                cssCursorStrings = cursor.cssStrings();
+                for (i = 0, l = cssCursorStrings.length; i < l; ++i){
                     this.span.style.cursor = cssCursorStrings[i];
                     if (this.span.style.cursor !== ''){
                         break;
@@ -456,8 +462,7 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.verticalAlign = '';
             this.span.style.borderBottomWidth = '100%';
             // Font
-            var font = JSTextTypesetter.FontFromAttributes(this.attributes);
-            this.span.style.font = font.cssString();
+            this.span.style.font = this.font.cssString();
 
             // Decorations (underline, strike)
             var decorations = [];
@@ -476,10 +481,10 @@ UIHTMLTextTypesetterRunDescriptor.prototype = {
             this.span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
 
             // Cursor
-            var cursor = this.attributes[JSAttributedString.Attribute.cursor];
+            cursor = this.attributes[JSAttributedString.Attribute.cursor];
             if (cursor){
-                var cssCursorStrings = cursor.cssStrings();
-                for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
+                cssCursorStrings = cursor.cssStrings();
+                for (i = 0, l = cssCursorStrings.length; i < l; ++i){
                     this.span.style.cursor = cssCursorStrings[i];
                     if (this.span.style.cursor !== ''){
                         break;
@@ -564,6 +569,18 @@ Object.defineProperties(UIHTMLTextTypesetterRunDescriptor.prototype, {
         get: function UIHTMLTextTypesetterRunDescriptor_getStartX(){
             var firstRect = this.clientRects[0];
             return firstRect.x;
+        }
+    },
+
+    minX: {
+        get: function UIHTMLTextTypesetterRunDescriptor_getStartX(){
+            var x = this.clientRects[0].x;
+            for (var i = 1, l = this.clientRects.length; i < l; ++i){
+                if (this.clientRects[i].x < x){
+                    x = this.clientRects[i].x;
+                }
+            }
+            return x;
         }
     },
 
