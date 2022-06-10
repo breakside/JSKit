@@ -1146,10 +1146,18 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     },
 
     withDataTransfer: function(dataTransfer, action, target){
+        var locallySetTypes = JSCopy(this._locallySetTypes);
         try{
             this.dataTransfer = dataTransfer;
+            this._updateDataTransferTypeSet();
+            for (var type in this._dataTransferTypeSet){
+                if (type in this._locallySetTypes){
+                    delete this._locallySetTypes[type];
+                }
+            }
             action.call(target);
         }finally{
+            this._locallySetTypes = locallySetTypes;
             this.dataTransfer = null;
         }
     },
