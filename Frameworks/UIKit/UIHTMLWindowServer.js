@@ -498,6 +498,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                         preventDefault = true;
                     }
                     break;
+                case 66: // b
+                case 73: // i
+                case 85: // u
+                    // For common formatting commands, we should prevent
+                    // the browser's default behavior even if the text input
+                    // system hinted that there was input.
+                    preventDefault = true;
+                    break;
             }
         }
         if (preventDefault){
