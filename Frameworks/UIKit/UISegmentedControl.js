@@ -771,15 +771,15 @@ JSClass("UISegmentedControlDefaultStyler", UISegmentedControlStyler, {
 
     sizeControlToFitSize: function(control, maxSize){
         var intrinsicSize = this.intrinsicSizeOfControl(control);
-        var size = JSSize(control.bounds.size);
+        var size = JSSize(intrinsicSize);
         if (maxSize.width < Number.MAX_VALUE){
             size.width = maxSize.width;
         }
-        if (intrinsicSize.width < maxSize.width){
-            size.width = intrinsicSize.width;
+        if (maxSize.width < size.width){
+            size.width = maxSize.width;
         }
-        if (intrinsicSize.height < maxSize.height){
-            size.height = intrinsicSize.height;
+        if (maxSize.height < size.height){
+            size.height = maxSize.height;
         }
         control.bounds = JSRect(JSPoint.Zero, size);
     },
