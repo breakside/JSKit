@@ -128,33 +128,33 @@ JSClass("JSTextRunTests", TKTestSuite, {
         var run = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
 
         // 0
-        var rect = run.rectForCharacterAtIndex(0);
+        var rect = run.rectForCharacterAtIndex(12);
         TKAssertFloatEquals(rect.origin.x, 0);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 30);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // mid
-        rect = run.rectForCharacterAtIndex(5);
+        rect = run.rectForCharacterAtIndex(17);
         TKAssertFloatEquals(rect.origin.x, 120);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 20);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // end
-        rect = run.rectForCharacterAtIndex(13);
+        rect = run.rectForCharacterAtIndex(25);
         TKAssertFloatEquals(rect.origin.x, 300);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 20);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // past end
-        rect = run.rectForCharacterAtIndex(14);
+        rect = run.rectForCharacterAtIndex(26);
         TKAssertFloatEquals(rect.origin.x, 320);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 0);
         TKAssertFloatEquals(rect.size.height, 16.40625);
-        rect = run.rectForCharacterAtIndex(20);
+        rect = run.rectForCharacterAtIndex(32);
         TKAssertFloatEquals(rect.origin.x, 320);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 0);

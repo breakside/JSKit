@@ -353,13 +353,13 @@ JSClass("JSTextLayoutManager", JSObject, {
                     rightX += 8;
                 }
             }else{
-                characterRect = line.rectForCharacterAtIndex(remainingRange.end - line.range.location);
+                characterRect = line.rectForCharacterAtIndex(remainingRange.end);
                 rightX = characterRect.origin.x;
             }
             if (remainingRange.location === line.range.location){
                 leftX = 0;
             }else{
-                characterRect = line.rectForCharacterAtIndex(remainingRange.location - line.range.location);
+                characterRect = line.rectForCharacterAtIndex(remainingRange.location);
                 leftX = characterRect.origin.x;
             }
             rect = JSRect(line.origin.x + leftX, line.origin.y, rightX - leftX, line.size.height);
@@ -406,7 +406,7 @@ var JSTextLayoutManagerLineEnumerator = function(layoutManager, index){
         this._containerIndex = layoutManager._textContainerIndexForCharacterAtIndex(index);
         var container = this.container;
         if (container !== null){
-            this._lineIndex = container.lineIndexForCharacterAtIndex(index - container.range.location);
+            this._lineIndex = container.lineIndexForCharacterAtIndex(index);
         }else{
             this._lineIndex = 0;
         }

@@ -113,7 +113,7 @@ JSClass("JSTextRun", JSObject, {
         var glyph = null;
         var width;
         var characterLength;
-        var runningIndex = 0;
+        var runningIndex = this.range.location;
         for (var i = 0, l = this.glyphs.length; runningIndex < index && i < l; ++i){
             glyph = this.glyphs[i];
             width = this.font.widthOfGlyph(glyph);

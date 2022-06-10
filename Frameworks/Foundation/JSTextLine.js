@@ -105,7 +105,7 @@ JSClass("JSTextLine", JSObject, {
     rectForCharacterAtIndex: function(index){
         var run = this.runForCharacterAtIndex(index);
         if (run !== null){
-            var rect = run.rectForCharacterAtIndex(index - (run.range.location - this.range.location));
+            var rect = run.rectForCharacterAtIndex(index);
             rect.origin.x += run.origin.x;
             rect.origin.y += run.origin.y;
             return rect;
@@ -132,7 +132,7 @@ JSClass("JSTextLine", JSObject, {
         while (min < max){
             mid = Math.floor(min + (max - min) / 2);
             run = this._runs[mid];
-            i = run.range.location - this.range.location;
+            i = run.range.location;
             l = run.range.length;
             if (index < i){
                 max = mid;

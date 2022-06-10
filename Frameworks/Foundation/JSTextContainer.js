@@ -125,7 +125,7 @@ JSClass("JSTextContainer", JSObject, {
     rectForCharacterAtIndex: function(index, useLineHeight){
         var line = this.lineForCharacterAtIndex(index);
         if (line !== null){
-            var rect = line.rectForCharacterAtIndex(index - (line.range.location - this._textFrame.range.location));
+            var rect = line.rectForCharacterAtIndex(index);
             if (useLineHeight){
                 rect.origin.y = line.origin.y;
                 rect.size.height = line.size.height;

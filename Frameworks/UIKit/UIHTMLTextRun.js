@@ -118,8 +118,8 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     },
 
     characterIndexAtPoint: function(point){
-        var min = 0;
-        var max = this.range.length;
+        var min = this.range.location;
+        var max = this.range.end;
         var mid;
         var rect;
         var i = 0;
@@ -145,7 +145,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
                 }
             }
         }
-        return this.range.location + min;
+        return min;
     },
 
     _textFrameConstructionWidthOfRange: function(range){
@@ -169,17 +169,17 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     rectForCharacterAtIndex: function(index){
         // attachment run
         if (this.textNode === null){
-            if (index === 0){
+            if (index === this.range.location){
                 return JSRect(0, 0, this.size.width, this.size.height);
             }
-            if (index === 1){
+            if (index === this.range.location){
                 return JSRect(this.size.width, 0, 0, this.size.height);
             }
             return JSRect.Zero;
         }
 
         // at end, which we know without measuring
-        if (index >= this.range.length){
+        if (index >= this.range.end){
             return JSRect(this.size.width, 0, 0, this.size.height);
         }
 
@@ -190,8 +190,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // Create a DOM range for the character in the span because the DOM range can
         // report its size and coordinates
         var rect;
-        index *= this._maskFactor;
-        var iterator = sharedElementForSizing.firstChild.nodeValue.userPerceivedCharacterIterator(index);
+        var localIndex = index - this.range.location;
+        localIndex *= this._maskFactor;
+        var iterator = sharedElementForSizing.firstChild.nodeValue.userPerceivedCharacterIterator(localIndex);
         sharedDomRange.setStart(sharedElementForSizing.firstChild, iterator.range.location);
         sharedDomRange.setEnd(sharedElementForSizing.firstChild, iterator.range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());

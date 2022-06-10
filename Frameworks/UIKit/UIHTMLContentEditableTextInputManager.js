@@ -155,6 +155,9 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             var selection = this.textInputClient.textInputSelections()[0];
             var anchor = textFrame.domSelectionPointForCharacterAtIndex(selection.startLocation);
             var focus = textFrame.domSelectionPointForCharacterAtIndex(selection.insertionLocation);
+            if (anchor.offset < 0 || focus.offset < 0){
+                throw new Error("negative dom offset");
+            }
             domSelection.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
             // logger.debug("setting dom selection: %d->%d", anchor.offset, focus.offset);
             if (domSelection.anchorNode){

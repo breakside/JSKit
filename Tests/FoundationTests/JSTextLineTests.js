@@ -92,7 +92,7 @@ JSClass("JSTextLineTests", TKTestSuite, {
 
     },
 
-    testCharacterAtPoint: function(){
+    testCharacterIndexAtPoint: function(){
         var font = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var glyphs = this._glyphsFromString("This is a test", font);
         var run1 = JSTextRun.initWithGlyphs(glyphs.glyphs, glyphs.lengths, font, {}, JSRange(12, 14));
@@ -179,42 +179,42 @@ JSClass("JSTextLineTests", TKTestSuite, {
         var line = JSTextLine.initWithRuns([run1, run2], 0);
 
         // 0
-        var rect = line.rectForCharacterAtIndex(0);
+        var rect = line.rectForCharacterAtIndex(12);
         TKAssertFloatEquals(rect.origin.x, 0);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 30);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // mid
-        rect = line.rectForCharacterAtIndex(5);
+        rect = line.rectForCharacterAtIndex(17);
         TKAssertFloatEquals(rect.origin.x, 120);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 20);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // start of run 1
-        rect = line.rectForCharacterAtIndex(13);
+        rect = line.rectForCharacterAtIndex(25);
         TKAssertFloatEquals(rect.origin.x, 300);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 20);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // start of run 2
-        rect = line.rectForCharacterAtIndex(14);
+        rect = line.rectForCharacterAtIndex(26);
         TKAssertFloatEquals(rect.origin.x, 320);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 30);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // mid of run 2
-        rect = line.rectForCharacterAtIndex(21);
+        rect = line.rectForCharacterAtIndex(33);
         TKAssertFloatEquals(rect.origin.x, 490);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 20);
         TKAssertFloatEquals(rect.size.height, 16.40625);
 
         // past end
-        rect = line.rectForCharacterAtIndex(40);
+        rect = line.rectForCharacterAtIndex(52);
         TKAssertFloatEquals(rect.origin.x, 660);
         TKAssertFloatEquals(rect.origin.y, 0);
         TKAssertFloatEquals(rect.size.width, 0);
