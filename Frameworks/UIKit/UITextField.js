@@ -711,9 +711,9 @@ JSClass("UITextField", UIControl, {
             }
         }
         this._textLayer.layoutIfNeeded();
-        this._placeholderLabel.layoutIfNeeded();
         var size = JSSize(this._textLayer.bounds.size);
         if (this._isShowingPlaceholder){
+            this._placeholderLabel.layoutIfNeeded();
             size = JSSize(this._placeholderLabel.bounds.size);
         }
         if (size.width > maxSize.width){
