@@ -351,7 +351,6 @@ JSClass("UITextField", UIControl, {
         this._textLayer.widthTracksText = !multiline;
         if (this._placeholderLabel !== null){
             this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
-            this._placeholderLabel.maximumNumberOfLines = multiline ? 0 : 1;
         }
         this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
     },
