@@ -216,7 +216,7 @@ JSClass("UITextLayer", UILayer, {
             size.width += this._textInsets.width;
             size.height += this._textInsets.height;
             this.bounds = JSRect(JSPoint.Zero, size);
-            this._textContainer.size = this._textContainer.textFrame.usedSize;
+            this._textContainer.size = this._availableTextSize();
         }
     },
 
