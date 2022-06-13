@@ -40,6 +40,9 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.runs.length, 2);
         TKAssertEquals(truncated.runs[0].textNode.nodeValue, "This is a test");
         TKAssertEquals(truncated.runs[1].textNode.nodeValue, " of a text line");
+        TKAssertExactEquals(truncated.element.childNodes.length, 2);
+        TKAssertExactEquals(truncated.element.childNodes[0], truncated.runs[0].element);
+        TKAssertExactEquals(truncated.element.childNodes[1], truncated.runs[1].element);
 
         // need to pop a character
         truncated = line.truncatedLine(659);
@@ -51,6 +54,10 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.runs[0].textNode.nodeValue, "This is a test");
         TKAssertEquals(truncated.runs[1].textNode.nodeValue, " of a text lin");
         TKAssertEquals(truncated.runs[2].textNode.nodeValue, "\u2026");
+        TKAssertExactEquals(truncated.element.childNodes.length, 3);
+        TKAssertExactEquals(truncated.element.childNodes[0], truncated.runs[0].element);
+        TKAssertExactEquals(truncated.element.childNodes[1], truncated.runs[1].element);
+        TKAssertExactEquals(truncated.element.childNodes[2], truncated.runs[2].element);
 
         // need to pop entire second run
         truncated = line.truncatedLine(330);
@@ -61,6 +68,9 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.runs.length, 2);
         TKAssertEquals(truncated.runs[0].textNode.nodeValue, "This is a test");
         TKAssertEquals(truncated.runs[1].textNode.nodeValue, "\u2026");
+        TKAssertExactEquals(truncated.element.childNodes.length, 2);
+        TKAssertExactEquals(truncated.element.childNodes[0], truncated.runs[0].element);
+        TKAssertExactEquals(truncated.element.childNodes[1], truncated.runs[1].element);
 
         // need to pop into first run
         truncated = line.truncatedLine(320);
@@ -71,6 +81,9 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.runs.length, 2);
         TKAssertEquals(truncated.runs[0].textNode.nodeValue, "This is a tes");
         TKAssertEquals(truncated.runs[1].textNode.nodeValue, "\u2026");
+        TKAssertExactEquals(truncated.element.childNodes.length, 2);
+        TKAssertExactEquals(truncated.element.childNodes[0], truncated.runs[0].element);
+        TKAssertExactEquals(truncated.element.childNodes[1], truncated.runs[1].element);
 
         // room for only ellipsis
         truncated = line.truncatedLine(15);
@@ -80,6 +93,8 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.range.length, 0);
         TKAssertEquals(truncated.runs.length, 1);
         TKAssertEquals(truncated.runs[0].textNode.nodeValue, "\u2026");
+        TKAssertExactEquals(truncated.element.childNodes.length, 1);
+        TKAssertExactEquals(truncated.element.childNodes[0], truncated.runs[0].element);
 
         // no room for even ellipsis
         truncated = line.truncatedLine(5);
@@ -88,6 +103,7 @@ JSClass("UIHTMLTextLineTests", TKTestSuite, {
         TKAssertEquals(truncated.range.location, 12);
         TKAssertEquals(truncated.range.length, 0);
         TKAssertEquals(truncated.runs.length, 0);
+        TKAssertExactEquals(truncated.element.childNodes.length, 0);
     }
 
 });

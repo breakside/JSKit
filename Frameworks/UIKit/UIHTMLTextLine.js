@@ -79,6 +79,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         while (runIndex > 0 && line.size.width - line.runs[runIndex].size.width >= width){
             line.size.width -= line.runs[runIndex].size.width;
             line.range.length -= line.runs[runIndex].range.length;
+            line.element.removeChild(line.runs[runIndex].element);
             line.runs.pop();
             --runIndex;
         }
@@ -95,6 +96,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
                     break;
                 }
             }
+            line.element.removeChild(run.element);
             line.runs.pop();
             line.size.width -= run.size.width;
             line.range.length -= run.range.length;
@@ -113,6 +115,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             var tokenRun = UIHTMLTextRun.initWithElement(span, run.font, run.attributes, JSRange.Zero);
             tokenRun.size.width = metrics.width;
             line.runs.push(tokenRun);
+            line.element.appendChild(tokenRun.element);
             line.size.width += tokenRun.size.width;
 
             var iterator = run.textNode.nodeValue.userPerceivedCharacterIterator(run.textNode.nodeValue.length - 1);
@@ -132,6 +135,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             }
 
             if (run.range.length === 0){
+                line.element.removeChild(line.runs[line.runs.length - 2].element);
                 line.runs.splice(line.runs.length - 2, 1);
             }
 
@@ -149,6 +153,9 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         if (this.emptyTextNode !== null){
             line.emptyTextNode = this.emptyTextNode.cloneNode();
             line.element.appendChild(line.emptyTextNode);
+        }
+        for (var i = 0, l = line.runs.length; i < l; ++i){
+            line.element.appendChild(line.runs[i].element);
         }
         line.attachmentRuns = JSCopy(this.attachmentRuns);
         line.fontLineHeight = this.fontLineHeight;
