@@ -1,0 +1,52 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSParagraphStyle
+kind: class
+inherits: JSObject
+introduced: 2022.24.0
+summary: Attributes for paragraphs
+description: |
+  Used by the text layout system to track paragraph-related attributes from a `JSAttributedString`
+topics:
+  - name: Properties
+    members:
+      - name: minimumLineHeight
+        type: Number
+        summary: The minimum height for a line, defaults to `0`()
+      - name: lineSpacing
+        type: Number
+        summary: The spacing factor for lines, as a multiple of the font's
+          `lineHeight`, defaults to `1.0`()
+      - name: textAlignment
+        type: JSTextAlignment
+        summary: The text alignment, defaults to `JSTextAlignment.left`
+      - name: lineBreakMode
+        type: JSLineBreakMode
+        summary: The method for calculating line breaks, defaults to `JSLineBreakMode.truncateTail`
+      - name: lineHeightMultiple
+        summary: A `Number` that adjusts the line height by mutliplying
+          the natural line height
+      - name: paragraphSpacing
+        summary: A `Number` that adds spacing between paragraphs
+      - name: firstLineHeadIndent
+        summary: A `Number` that indents the first line of the paragraph
+      - name: headIndent
+        summary: A `Number` that indents all lines of the paragraph
+          except the first
+      - name: tailInent
+        summary: A `Number` that indents all lines of the paragraph
+          on the right side
+  - name: Creating Similar Style
+    members:
+      - name: styleWithAttributes
+        kind: method
+        type: JSParagraphStyle
+        return: A copy of this style with the given attributes changed
+        arguments:
+          - name: attributes
+            type: dictionary
+            summary: The style attributes to change in the returned copy
+        description: |
+          The `attributes` argument is a dictionary with keys corresponding
+          to the paragraph attributes of `JSAttributedString.Attribute`.
+          
+          For convenicene, the keys have the same names as the properties of `JSParagraphStyle`.
