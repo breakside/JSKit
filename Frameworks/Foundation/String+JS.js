@@ -244,6 +244,25 @@ Object.defineProperties(String.prototype, {
         }
     },
 
+    rangeForParagraphAtIndex: {
+        enumerable: false,
+        value: function String_rangeForLineAtIndex(index){
+            var iterator1 = this.userPerceivedCharacterIterator(index);
+            var startIndex = iterator1.range.location;
+            var iterator2 = UserPerceivedCharacterIterator(iterator1);
+            iterator1.decrement();
+            while (!iterator1.isParagraphBreak){
+                startIndex = iterator1.range.location;
+                iterator1.decrement();
+            }
+            while (!iterator2.isParagraphBreak){
+                iterator2.increment();
+            }
+            var endIndex = iterator2.range.end;
+            return JSRange(startIndex, endIndex - startIndex);
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Changing a String
 
@@ -1158,6 +1177,22 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
             // the CR is checked, but since no other user perceived character
             // can start with CR, we know the second character must be LF.
             return this._unicodeIterator.character.isLineBreak;
+        }
+    },
+
+    isParagraphBreak: {
+        enumerable: true,
+        configurable: false,
+        get: function UserPerceivedCharacterIterator_isMandatoryLineBreak(){
+            if (this._unicodeIterator.character === null){
+                return true;
+            }
+            // Note that even though we're only checking the first character,
+            // it will match the multi-char CRLF sequence, which is considered
+            // to be a single user perceived character.  In this case, only
+            // the CR is checked, but since no other user perceived character
+            // can start with CR, we know the second character must be LF.
+            return this._unicodeIterator.character.isParagraphBreak;
         }
     }
 
