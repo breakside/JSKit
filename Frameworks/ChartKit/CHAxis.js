@@ -178,14 +178,14 @@ JSClass("CHAxis", JSObject, {
             var labelInsets = JSInsets(this.style.labelInsets);
             var labelTextFrame;
             if (this.edge === CHAxis.Edge.leading){
-                this.framesetter.attributes.textAlignment = JSTextAlignment.right;
+                this.framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.right;
                 labelInsets.bottom += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }else{
-                this.framesetter.attributes.textAlignment = JSTextAlignment.left;
+                this.framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.left;
                 labelInsets.top += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }
             var labelOrigin = JSPoint(0, rect.origin.y + this.style.labelInsets.top);
-            this.framesetter.attributes.textAlignment = JSTextAlignment.left;
+            this.framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.left;
             for (i = 0, l = labels.length; i < l; ++i){
                 if (labels[i] !== null && labels[i] !== undefined && labels[i] !== ""){
                     this.framesetter.attributedString = JSAttributedString.initWithString(labels[i], {
@@ -303,10 +303,10 @@ JSClass("CHAxis", JSObject, {
             var labelInsets = JSInsets(this.style.labelInsets);
             var labelTextFrame;
             if (this.edge === CHAxis.Edge.leading){
-                this.framesetter.attributes.textAlignment = JSTextAlignment.right;
+                this.framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.right;
                 labelInsets.right += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }else{
-                this.framesetter.attributes.textAlignment = JSTextAlignment.left;
+                this.framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.left;
                 labelInsets.left += Math.max(this.style.lineWidth / 2, majorTickMarkLength, minorTickMarkLength);
             }
             var maxLabelSize = JSSize(rect.size.width - this.style.labelInsets.width, 0);
