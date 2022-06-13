@@ -722,7 +722,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     insertLineBreak: function(){
-        this.insertText("\n");
+        this.insertText("\u2028");
     },
 
     insertTab: function(){
