@@ -45,7 +45,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.element.nodeName.toLowerCase(), "div");
         TKAssertExactEquals(line.runs[0].element.parentNode, line.element);
         TKAssertEquals(line.runs[0].element.nodeName.toLowerCase(), "span");
-        TKAssertEquals(line.runs[0].element.style.fontFamily, "Test");
+        TKAssert(line.runs[0].element.style.fontFamily === "Test" || line.runs[0].element.style.fontFamily  === '"Test"');
         TKAssertEquals(line.runs[0].element.style.fontSize, "14px");
         TKAssertEquals(line.runs[0].element.style.lineHeight, "16px");
         TKAssertEquals(line.runs[0].textNode.nodeValue, "Testing 123");
@@ -563,7 +563,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.element.nodeName.toLowerCase(), "div");
         TKAssertExactEquals(line.runs[0].element.parentNode, line.element);
         TKAssertEquals(line.runs[0].element.nodeName.toLowerCase(), "span");
-        TKAssertEquals(line.runs[0].element.style.fontFamily, "Test");
+        TKAssert(line.runs[0].element.style.fontFamily === "Test" || line.runs[0].element.style.fontFamily  === '"Test"');
         TKAssertEquals(line.runs[0].element.style.fontSize, "14px");
         TKAssertEquals(line.runs[0].element.style.lineHeight, "16px");
         TKAssertEquals(line.runs[0].textNode.nodeValue, "***********");
@@ -593,7 +593,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.element.nodeName.toLowerCase(), "div");
         TKAssertExactEquals(line.runs[0].element.parentNode, line.element);
         TKAssertEquals(line.runs[0].element.nodeName.toLowerCase(), "span");
-        TKAssertEquals(line.runs[0].element.style.fontFamily, "Test");
+        TKAssert(line.runs[0].element.style.fontFamily === "Test" || line.runs[0].element.style.fontFamily  === '"Test"');
         TKAssertEquals(line.runs[0].element.style.fontSize, "14px");
         TKAssertEquals(line.runs[0].element.style.lineHeight, "16px");
         TKAssertEquals(line.runs[0].textNode.nodeValue, "😀😀😀😀😀😀😀😀😀😀😀");
