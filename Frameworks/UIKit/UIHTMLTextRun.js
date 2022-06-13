@@ -258,6 +258,17 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         return diff;
     },
 
+    copy: function(){
+        var run = UIHTMLTextRun.$super.copy.call(this);
+        run.element = this.element.cloneNode();
+        if (this.textNode !== null){
+            run.textNode = this.textNode.cloneNode();
+            run.element.appendChild(run.textNode);
+        }
+        run._maskFactor = this._maskFactor;
+        return run;
+    }
+
 });
 
 var sharedElementForSizing = null;

@@ -12,9 +12,11 @@ topics:
       - name: attributedString
         type: JSAttributedString
         summary: The string to use for source text when creating frames
-      - name: attributes
-        type: JSTextParagraphAttributes
-        summary: Paragraph attributes for the created text frame
+      - name: defaultParagraphStyle
+        introduced: 2022.24.0
+        type: JSParagraphStyle
+        summary: The default paragraph styling to use when the attributed string
+          doesn't specify paragraph attributes
   - name: Creating Frames
     members:
       - name: createFrame
@@ -40,3 +42,13 @@ topics:
           The `range`() provided may not fit within the size and lines
           constraints.  You can check the returned frame's `range`(JSTextFrame.range)
           for an indication of what range was actually used.
+  - name: Deprecated
+    members:
+      - name: attributes
+        deprecated: 2022.24.0
+        type: JSTextParagraphAttributes
+        summary: Paragraph attributes for the created text frame
+        description: |
+          Deprecated.
+
+          Use `defaultParagraphStyle` instead.

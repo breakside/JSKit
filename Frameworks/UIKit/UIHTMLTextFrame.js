@@ -28,37 +28,12 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
     element: null,
     attachments: null,
 
-    initWithElement: function(element, lines, size, attributes){
+    initWithElement: function(element, lines, size){
         this.element = element;
         this.attachments = [];
         var line;
         var i, l;
         var j, k;
-
-        // If our element is not in the document, we need to add it so calls
-        // to getBoundingClientRect() will work.
-        // The HTML framesetter always adds a newly created frame to the document,
-        // but it's possible to be removed from the document if we're reusing a
-        // frame that's in a view that itself has been removed from the document.
-        // After we're done making calls, we'll add it back to the original parent
-        // in its original location.
-        //
-        // UPDATE 2020-07-26 - When text frames are drawn inside a scaled or rotated
-        // view, the getBoundingClientRect() based calculations return transformed
-        // values, which we don't want.  The quickest fix is to ALWAYS remove the
-        // frame element from its parent and attach it to the document body so
-        // it will be untransformed.  This doesn't appear to be a major performance
-        // issue, but it would be nice to find another way around.  For now, I'm
-        // preserving the original code with the addition of `true || ` to always
-        // enter the conditional.
-        var originalParent = null;
-        var originalSibling = null;
-        if (true || !this.element.isConnected){
-            originalParent = this.element.parentNode;
-            originalSibling = this.element.nextSibling;
-            this.element.ownerDocument.body.appendChild(this.element);
-            this.element.style.visibility = 'hidden';
-        }
 
         // add all the lines to our element
         for (i = 0, l = lines.length; i < l; ++i){
@@ -67,19 +42,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
                 line.element.style.position = 'absolute';
                 this.element.appendChild(line.element);
             }
-        }
-
-        // set the size of all the lines and runs
-        // NOTE: this could be a job for the typesetter, but doing so incrementally
-        // as runs/lines are created would force a extra layouts that aren't necessary.
-        // So we try to force only one layout here and then grab all the metrics
-        var origin = JSPoint(0, 0);
-        for (i = 0, l = lines.length; i < l; ++i){
-            line = lines[i];
-            line.recalculateSize();
-            line.recalculateTrailingWhitespace();
-            line._origin = JSPoint(origin);
-            origin.y += line._size.height;
         }
 
         var attachmentInfo;
@@ -97,10 +59,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             }
         }
 
-        if (originalParent !== null){
-            originalParent.insertBefore(this.element, originalSibling);
-        }
-
         if (size.width === 0 || size.width === Number.MAX_VALUE){
             this._widthMatchesUsedWidth = true;
         }
@@ -108,35 +66,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             this._heightMatchesUsedHeight = true;
         }
 
-        // Superclass init will adjust origins according to text alignment, but
-        // we must have properly set the line size and trailingWhitespaceWidth first
-        UIHTMLTextFrame.$super.initWithLines.call(this, lines, size, attributes);
-        this._updateSizesAndPositions();
+        UIHTMLTextFrame.$super.initWithLines.call(this, lines, size);
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
         this.element.dataset.jstext = "frame";
-    },
-
-    adjustSize: function(newSize){
-        UIHTMLTextFrame.$super.adjustSize.call(this, newSize);
-        this._updateSizesAndPositions();
-    },
-
-    _updateSizesAndPositions: function(){
-        var i, l;
-        var line;
-
-        // set our size
-        this.element.style.width = '%dpx'.sprintf(this.size.width);
-        this.element.style.height = '%dpx'.sprintf(this.size.height);
-
-        // position the lines
-        for (i = 0, l = this.lines.length; i < l; ++i){
-            line = this.lines[i];
-            line.element.style.height = '%dpx'.sprintf(line.size.height);
-            line.element.style.left = '%dpx'.sprintf(line.origin.x);
-            line.element.style.top = '%dpx'.sprintf(line.origin.y);
-        }
     },
 
     drawInContextAtPoint: function(context, point){
@@ -219,7 +152,6 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
         if (this._heightMatchesUsedHeight){
             this._size = JSSize(this._size.width, this._usedSize.height);
         }
-        this._updateSizesAndPositions();
     }
 
 });

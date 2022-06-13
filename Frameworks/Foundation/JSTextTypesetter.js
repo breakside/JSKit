@@ -359,8 +359,8 @@ var JSTextTypesetterRunDescriptor = function(location, attributes){
         this.location = location.location;
         this.attributes = location.attributes;
         this.length = location.length;
-        this.glyphs = location.glyphs;
-        this.glyphCharacterLengths = location.glyphCharacterLengths;
+        this.glyphs = JSCopy(location.glyphs);
+        this.glyphCharacterLengths = JSCopy(location.glyphCharacterLengths);
         this.font = location.font;
     }else{
         this.location = location;

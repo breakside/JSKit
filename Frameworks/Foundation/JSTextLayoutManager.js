@@ -17,6 +17,7 @@
 // #import "CoreTypes.js"
 // #import "JSAttributedString.js"
 // #import "JSColor.js"
+// #import "JSParagraphStyle.js"
 'use strict';
 
 (function(){
@@ -26,6 +27,7 @@ JSClass("JSTextLayoutManager", JSObject, {
     textStorage: JSDynamicProperty('_textStorage', null),
     defaultFont: JSDynamicProperty('_defaultFont', null),
     defaultTextColor: JSDynamicProperty('_defaultTextColor', null),
+    defaultParagraphStyle: JSDynamicProperty("_defaultParagraphStyle", null),
     includeEmptyFinalLine: false,
 
     delegate: null,
@@ -37,6 +39,7 @@ JSClass("JSTextLayoutManager", JSObject, {
     init: function(){
         this._textContainers = [];
         this._defaultTextColor = JSColor.black;
+        this._defaultParagraphStyle = JSParagraphStyle.init();
     },
 
     // MARK: - Managing Containers
@@ -103,6 +106,11 @@ JSClass("JSTextLayoutManager", JSObject, {
             return;
         }
         this._defaultTextColor = color;
+        this.setNeedsLayout();
+    },
+
+    setDefaultParagraphStyle: function(paragraphStyle){
+        this._defaultParagraphStyle = paragraphStyle;
         this.setNeedsLayout();
     },
 

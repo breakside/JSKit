@@ -25,10 +25,10 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     element: null,
     emptyTextNode: null,
     attachments: null,
-    overflowed: false,
     fontLineHeight: 0,
+    canvasContext: null,
 
-    initWithElementAndFont: function(element, font, height, location){
+    initWithElementAndFont: function(element, font, height, location, canvasContext){
         UIHTMLTextLine.$super.initWithHeight.call(this, height, -font.displayDescender, location);
         this.element = element;
         element.style.font = font.cssString(height);
@@ -38,9 +38,10 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         this.element.dataset.rangeLocation = location;
         this.element.dataset.rangeLength = 0;
         this.element.dataset.jstext = "line";
+        this.canvasContext = canvasContext;
     },
 
-    initWithElement: function(element, runs, trailingWhitespaceWidth, attachments){
+    initWithElement: function(element, runs, trailingWhitespaceWidth, attachments, canvasContext){
         // constructing this.element before super init because super init calls
         // this.align, which neesd to use this.element
         UIHTMLTextLine.$super.initWithRuns.call(this, runs, trailingWhitespaceWidth);
@@ -56,6 +57,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
         this.element.dataset.jstext = "line";
+        this.canvasContext = canvasContext;
     },
 
     // verticallyAlignRuns: function(){
@@ -63,39 +65,95 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     // },
 
     truncatedLine: function(width, token){
-        if (!this.overflowed || width === Number.MAX_VALUE || width === 0){
+        if (width + 0.1 >= this._size.width){
             return this;
         }
 
         if (token === undefined){
-            token = '\u2026';
+            token = "\u2026";
+        }
+        var line = this.copy();
+
+        // get rid of any runs that put us over the limit
+        var runIndex = line.runs.length - 1;
+        while (runIndex > 0 && line.size.width - line.runs[runIndex].size.width >= width){
+            line.size.width -= line.runs[runIndex].size.width;
+            line.range.length -= line.runs[runIndex].range.length;
+            line.runs.pop();
+            --runIndex;
         }
 
-        this.element.style.maxWidth = '%dpx'.sprintf(width);
-        this.element.style.overflow = 'hidden';
-        // only firefox supports an arbitrary string as the token, so for now
-        // we'll just hard code ellipsis
-        this.element.style.textOverflow = 'ellipsis';
+        // Find the run that has space for ellipis
+        var run;
+        var metrics = null;
+        do {
+            run = line.runs[runIndex];
+            if (!run.attachment){
+                this.canvasContext.font = run.font.cssString();
+                metrics = this.canvasContext.measureText(token);
+                if (line.size.width - run.size.width + metrics.width <= width){
+                    break;
+                }
+            }
+            line.runs.pop();
+            line.size.width -= run.size.width;
+            line.range.length -= run.range.length;
+            --runIndex;
+        }while (runIndex >= 0);
 
-        // Adopt relevant styles from the final run, otherwise the ellipis will
-        // use the style of the line div.  Currently this only adopts text color,
-        // and font, taking care to keep our line height 0;
-        if (this._runs.length > 0){
-            var lastRun = this._runs[this._runs.length - 1];
-            this.element.style.color = lastRun.element.style.color;
-            this.element.style.font = lastRun.element.style.font;
-            this.element.style.lineHeight = '0';
+        // Bail if there's no room for even the token
+        if (runIndex < 0){
+            return line;
         }
 
-        // Add an ellipsis...if it fits, great!  If not, we'll get the html generated ellipis
-        this.element.appendChild(this.element.ownerDocument.createTextNode(token));
+        if (metrics !== null){
+            var span = this.element.ownerDocument.createElement("span");
+            span.setAttribute("style", run.element.getAttribute("style"));
+            span.appendChild(this.element.ownerDocument.createTextNode(token));
+            var tokenRun = UIHTMLTextRun.initWithElement(span, run.font, run.attributes, JSRange.Zero);
+            tokenRun.size.width = metrics.width;
+            line.runs.push(tokenRun);
+            line.size.width += tokenRun.size.width;
 
-        // TODO: add JSTextRun with ellipsis (in case this line is drawn to a non-html context, and so .runs is consistent)
-        // but this would also possibly require backing up 1+ characters to make enough room for the ellipis
+            var iterator = run.textNode.nodeValue.userPerceivedCharacterIterator(run.textNode.nodeValue.length - 1);
+            while (iterator.character !== null && iterator.isMandatoryLineBreak){
+                iterator.decrement();
+                run.range.length -= iterator.range.length;
+                line.range.length -= iterator.range.length;
+            }
+            while (iterator.character !== null && line.size.width > width){
+                metrics = this.canvasContext.measureText(iterator.utf16);
+                run.size.width -= metrics.width;
+                run.range.length -= iterator.range.length;
+                line.size.width -= metrics.width;
+                line.range.length -= iterator.range.length;
+                run.textNode.nodeValue = run.textNode.nodeValue.substr(0, run.textNode.nodeValue.length - iterator.range.length);
+                iterator.decrement();
+            }
 
-        // This should perhaps return a copy, but for our current use cases,
-        // there's no need to copy since the original line gets abandoned.
-        return this;
+            if (run.range.length === 0){
+                line.runs.splice(line.runs.length - 2, 1);
+            }
+
+            tokenRun.origin.x = line.size.width - tokenRun.size.width;
+
+            line.verticallyAlignRuns();
+        }
+
+        return line;
+    },
+
+    copy: function(){
+        var line = UIHTMLTextLine.$super.copy.call(this);
+        line.element = this.element.cloneNode();
+        if (this.emptyTextNode !== null){
+            line.emptyTextNode = this.emptyTextNode.cloneNode();
+            line.element.appendChild(line.emptyTextNode);
+        }
+        line.attachments = JSCopy(this.attachments);
+        line.fontLineHeight = this.fontLineHeight;
+        this.canvasContext = this.canvasContext;
+        return line;
     },
 
     rectForEmptyCharacter: function(){
@@ -179,7 +237,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
         return diff;
-    }
+    },
 
 });
 

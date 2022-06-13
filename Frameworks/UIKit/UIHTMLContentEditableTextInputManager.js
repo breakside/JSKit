@@ -787,6 +787,7 @@ JSTextLayoutManager.definePropertiesFromExtensions({
             container = this._textContainers[i];
             offset += container._textFrame.recalculateRange(offset);
             container._textFrame.recalculateSize();
+            container.framesetter._updateSizesAndPositionsOfLinesInFrame(container._textFrame);
         }
     }
 

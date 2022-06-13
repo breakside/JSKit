@@ -21,37 +21,13 @@
 
 (function(){
 
-var JSTextContainerAttributeProperty = function(){
-    if (this === undefined){
-        return new JSTextContainerAttributeProperty();
-    }
-};
-
-JSTextContainerAttributeProperty.prototype = Object.create(JSCustomProperty.prototype);
-
-JSTextContainerAttributeProperty.prototype.define = function(C, key, extensions){
-    Object.defineProperty(C.prototype, key, {
-        configurable: false,
-        enumerable: false,
-        set: function JSTextContainer_setAttributeProperty(value){
-            this.framesetter.attributes[key] = value;
-            this._notifyLayoutManager();
-        },
-        get: function JSTextContainer_getAttributeProperty(){
-            return this.framesetter.attributes[key];
-        }
-    });
-};
+var logger = JSLog("foundation", "text");
 
 JSClass("JSTextContainer", JSObject, {
 
     origin: JSDynamicProperty('_origin', JSPoint.Zero),
     size: JSDynamicProperty('_size', null),
     range: JSReadOnlyProperty(),
-    lineBreakMode: JSTextContainerAttributeProperty(),
-    textAlignment: JSTextContainerAttributeProperty(),
-    lineSpacing: JSTextContainerAttributeProperty(),
-    minimumLineHeight: JSTextContainerAttributeProperty(),
     textLayoutManager: JSDynamicProperty('_textLayoutManager', null),
     maximumNumberOfLines: JSDynamicProperty('_maximumNumberOfLines', 0),
     framesetter: null,
@@ -86,7 +62,7 @@ JSClass("JSTextContainer", JSObject, {
                         if (size.width >= this._textFrame.usedSize.width && size.height >= this._textFrame.usedSize.height){
                             // Text frame can do a shortcut update by trimming excess size without affecting truncation
                             shouldNotify = false;
-                            this._textFrame.adjustSize(size);
+                            this.framesetter._resizeFrame(this._textFrame, size);
                         }
                     }
                     if (shouldNotify){
@@ -110,6 +86,7 @@ JSClass("JSTextContainer", JSObject, {
 
     createTextFrame: function(attributedString, range){
         this.framesetter.attributedString = attributedString;
+        this.framesetter.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle;
         this._textFrame = this.framesetter.createFrame(this.size, range, this._maximumNumberOfLines);
     },
 
@@ -167,7 +144,57 @@ JSClass("JSTextContainer", JSObject, {
         if (this._textLayoutManager !== null){
             this._textLayoutManager.setNeedsLayout();
         }
-    }
+    },
+
+    // MARK: - Deprecated
+
+    lineBreakMode: JSDynamicProperty(),
+
+    getLineBreakMode: function(){
+        logger.warn("JSTextContainer.lineBreakMode is deprecated");
+        return this._textLayoutManager.defaultParagraphStyle.lineBreakMode;
+    },
+
+    setLineBreakMode: function(lineBreakMode){
+        logger.warn("JSTextContainer.lineBreakMode is deprecated");
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({lineBreakMode: lineBreakMode});
+    },
+
+    textAlignment: JSDynamicProperty(),
+
+    getTextAlignment: function(){
+        logger.warn("JSTextContainer.textAlignment is deprecated");
+        return this._textLayoutManager.defaultParagraphStyle.textAlignment;
+    },
+
+    setTextAlignment: function(textAlignment){
+        logger.warn("JSTextContainer.textAlignment is deprecated");
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({textAlignment: textAlignment});
+    },
+
+    lineSpacing: JSDynamicProperty(),
+
+    getLineSpacing: function(){
+        logger.warn("JSTextContainer.lineSpacing is deprecated");
+        return this._textLayoutManager.defaultParagraphStyle.lineSpacing;
+    },
+
+    setLineSpacing: function(lineSpacing){
+        logger.warn("JSTextContainer.lineSpacing is deprecated");
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({lineSpacing: lineSpacing});
+    },
+
+    minimumLineHeight: JSDynamicProperty(),
+
+    getMinimumLineHeight: function(){
+        logger.warn("JSTextContainer.minimumLineHeight is deprecated");
+        return this._textLayoutManager.defaultParagraphStyle.minimumLineHeight;
+    },
+
+    setMinimumLineHeight: function(minimumLineHeight){
+        logger.warn("JSTextContainer.minimumLineHeight is deprecated");
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({minimumLineHeight: minimumLineHeight});
+    },
 
 });
 

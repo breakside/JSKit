@@ -130,7 +130,7 @@ JSClass("JSTextRun", JSObject, {
     },
 
     copy: function(){
-        var run = JSTextRun.init();
+        var run = this.$class.init();
         run._origin = JSPoint(this._origin);
         run._size = JSSize(this._size);
         run._range = JSRange(this._range);

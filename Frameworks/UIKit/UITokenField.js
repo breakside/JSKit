@@ -40,25 +40,25 @@ JSClass("UITokenField", UITextField, {
         UITokenField.$super.commonUIControlInit.call(this);
         this.tokensView = UIView.initWithFrame(JSRect.Zero);
         this._clipView.addSubview(this.tokensView);
-        this._updateLineSpacing();
+        this._updateLineHeightMultiple();
         this.setNeedsLayout();
     },
 
     setFont: function(font){
         UITokenField.$super.setFont.call(this, font);
-        this._updateLineSpacing();
+        this._updateLineHeightMultiple();
     },
 
     getFont: function(){
         return this._textLayer.font;
     },
 
-    _updateLineSpacing: function(){
+    _updateLineHeightMultiple: function(){
         if (this.font === null){
             return;
         }
         var lineHeight = this.font.displayLineHeight;
-        this._textLayer.lineSpacing = (lineHeight + 4) / lineHeight;
+        this._textLayer.lineHeightMultiple = (lineHeight + 4) / lineHeight;
         this.setNeedsLayout();
     },
 

@@ -178,7 +178,7 @@ JSClass("JSTextLine", JSObject, {
     },
 
     copy: function(){
-        var line = JSTextLine.init();
+        var line = this.$class.init();
         line._origin = JSPoint(this._origin);
         line._size = JSSize(this._size);
         line._trailingWhitespaceWidth = this._trailingWhitespaceWidth;

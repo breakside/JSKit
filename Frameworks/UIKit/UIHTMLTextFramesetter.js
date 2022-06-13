@@ -28,27 +28,23 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
     _domDocument: null,
     _htmlTypesetter: null,
     _frameElement: null,
-    _frame: null,
 
     initWithDocument: function(domDocument, htmlDisplayServer){
+        this._domDocument = domDocument;
         this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument, htmlDisplayServer);
         UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
-        this._domDocument = domDocument;
     },
 
     createFrame: function(size, range, maximumLines){
-        this._creatingFrame = true;
         this._createFrameElementIfNeeded();
-        var lineBreakMode = this.effectiveLineBreakMode(this.attributes.lineBreakMode, 1, maximumLines);
         this._enqueueElements();
-        this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
         var frame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
         this._removeQueuedElements();
         return frame;
     },
 
-    constructFrame: function(lines, size, attributes){
-        return UIHTMLTextFrame.initWithElement(this._frameElement, lines, size, attributes);
+    constructFrame: function(lines, size){
+        return UIHTMLTextFrame.initWithElement(this._frameElement, lines, size);
     },
 
     _createFrameElementIfNeeded: function(){
@@ -114,7 +110,29 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
             }
             element = this._htmlTypesetter.dequeueRunElement();
         }
-    }
+    },
+
+    _alignLinesInFrame: function(frame){
+        UIHTMLTextFramesetter.$super._alignLinesInFrame.call(this, frame);
+        this._updateSizesAndPositionsOfLinesInFrame(frame);
+    },
+
+    _updateSizesAndPositionsOfLinesInFrame: function(frame){
+        var i, l;
+        var line;
+
+        // set our size
+        frame.element.style.width = '%dpx'.sprintf(frame.size.width);
+        frame.element.style.height = '%dpx'.sprintf(frame.size.height);
+
+        // position the lines
+        for (i = 0, l = frame.lines.length; i < l; ++i){
+            line = frame.lines[i];
+            line.element.style.height = '%dpx'.sprintf(line.size.height);
+            line.element.style.left = '%dpx'.sprintf(line.origin.x);
+            line.element.style.top = '%dpx'.sprintf(line.origin.y);
+        }
+    },
 
 });
 

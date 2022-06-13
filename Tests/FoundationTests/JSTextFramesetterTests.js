@@ -25,8 +25,6 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
         var frame = framesetter.createFrame(JSSize(0, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertNotNull(frame);
         TKAssertEquals(frame.lines.length, 1);
@@ -78,8 +76,6 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
         var frame = framesetter.createFrame(JSSize(0, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
@@ -239,8 +235,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123\nAnd more', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(350, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
@@ -478,8 +473,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(0, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -502,8 +496,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('    ', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(0, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -532,8 +525,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('\n', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(0, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -562,8 +554,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -586,8 +577,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('    ', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -617,8 +607,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('\n', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -647,8 +636,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 3);
         TKAssertEquals(frame.range.location, 0);
@@ -713,8 +701,8 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.right;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
+        framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.right;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 3);
         TKAssertEquals(frame.range.location, 0);
@@ -775,8 +763,8 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.center;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.characterWrap;
+        framesetter.defaultParagraphStyle.textAlignment = JSTextAlignment.center;
         var frame = framesetter.createFrame(JSSize(100, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 3);
         TKAssertEquals(frame.range.location, 0);
@@ -836,8 +824,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.wordWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.wordWrap;
         var frame = framesetter.createFrame(JSSize(230, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
@@ -1011,8 +998,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing          123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.wordWrap;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.wordWrap;
         var frame = framesetter.createFrame(JSSize(230, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
@@ -1093,8 +1079,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         var attributedString = JSAttributedString.initWithString('Testing 123', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.truncateTail;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.truncateTail;
         var frame = framesetter.createFrame(JSSize(230, 0), JSRange(0, attributedString.string.length), 1);
         TKAssertEquals(frame.lines.length, 1);
         TKAssertEquals(frame.range.location, 0);
@@ -1259,15 +1244,14 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.size.height, 16.40625);
     },
 
-    testLineSpacing: function(){
+    testLineHeightMultiple: function(){
         var attributes = {};
         attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var attributedString = JSAttributedString.initWithString('Testing 123\nSecond line', attributes);
         var framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.truncateTail;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
-        framesetter.attributes.lineSpacing = 1.5;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.truncateTail;
+        framesetter.defaultParagraphStyle.lineHeightMultiple = 1.5;
         var frame = framesetter.createFrame(JSSize(300, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
@@ -1301,65 +1285,25 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         TKAssertEquals(line.runs[0].size.width, 240);
         TKAssertEquals(line.runs[0].size.height, 16.40625);
 
-        // Allow line even if there's not enough height for the spacing, making it as big as possible
-        framesetter = JSTextFramesetter.init();
-        framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.truncateTail;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
-        framesetter.attributes.lineSpacing = 1.5;
-        frame = framesetter.createFrame(JSSize(300, 44.609375), JSRange(0, attributedString.string.length), 0);
-        TKAssertEquals(frame.lines.length, 2);
-        TKAssertEquals(frame.range.location, 0);
-        TKAssertEquals(frame.range.length, 23);
-        TKAssertFloatEquals(frame.size.width, 300);
-        TKAssertFloatEquals(frame.size.height, 44.609375);
-        line = frame.lines[0];
-        TKAssertEquals(line.range.location, 0);
-        TKAssertEquals(line.range.length, 12);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 24.609375);
-        TKAssertEquals(line.runs[0].range.location, 0);
-        TKAssertEquals(line.runs[0].range.length, 12);
-        TKAssertEquals(line.runs[0].origin.x, 0);
-        TKAssertEquals(line.runs[0].origin.y, 0);
-        TKAssertEquals(line.runs[0].size.width, 270);
-        TKAssertEquals(line.runs[0].size.height, 16.40625);
-        line = frame.lines[1];
-        TKAssertEquals(line.range.location, 12);
-        TKAssertEquals(line.range.length, 11);
-        TKAssertFloatEquals(line.origin.x, 0);
-        TKAssertFloatEquals(line.origin.y, 24.609375);
-        TKAssertFloatEquals(line.size.width, 240);
-        TKAssertFloatEquals(line.size.height, 20);
-        TKAssertEquals(line.runs[0].range.location, 12);
-        TKAssertEquals(line.runs[0].range.length, 11);
-        TKAssertEquals(line.runs[0].origin.x, 0);
-        TKAssertEquals(line.runs[0].origin.y, 0);
-        TKAssertEquals(line.runs[0].size.width, 240);
-        TKAssertEquals(line.runs[0].size.height, 16.40625);
-
-        // Less than 1.0 spacing should cause overlapping lines, but should not shorten line height
+        // Less than 1.0 should cause overlapping lines
         // Frame height should be as tall as the end of the final line, not the y offset of the hypothetical next line
         framesetter = JSTextFramesetter.init();
         framesetter.attributedString = attributedString;
-        framesetter.attributes.lineBreakMode = JSLineBreakMode.truncateTail;
-        framesetter.attributes.textAlignment = JSTextAlignment.left;
-        framesetter.attributes.lineSpacing = 0.5;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.truncateTail;
+        framesetter.defaultParagraphStyle.lineHeightMultiple = 0.5;
         frame = framesetter.createFrame(JSSize(300, 0), JSRange(0, attributedString.string.length), 0);
         TKAssertEquals(frame.lines.length, 2);
         TKAssertEquals(frame.range.location, 0);
         TKAssertEquals(frame.range.length, 23);
         TKAssertFloatEquals(frame.size.width, 300);
-        TKAssertFloatEquals(frame.size.height, 24.609375);
+        TKAssertFloatEquals(frame.size.height, 16.40625);
         line = frame.lines[0];
         TKAssertEquals(line.range.location, 0);
         TKAssertEquals(line.range.length, 12);
         TKAssertFloatEquals(line.origin.x, 0);
         TKAssertFloatEquals(line.origin.y, 0);
         TKAssertFloatEquals(line.size.width, 270);
-        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertFloatEquals(line.size.height, 8.203125);
         TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 12);
         TKAssertEquals(line.runs[0].origin.x, 0);
@@ -1372,6 +1316,48 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         TKAssertFloatEquals(line.origin.x, 0);
         TKAssertFloatEquals(line.origin.y, 8.203125);
         TKAssertFloatEquals(line.size.width, 240);
+        TKAssertFloatEquals(line.size.height, 8.203125);
+        TKAssertEquals(line.runs[0].range.location, 12);
+        TKAssertEquals(line.runs[0].range.length, 11);
+        TKAssertEquals(line.runs[0].origin.x, 0);
+        TKAssertEquals(line.runs[0].origin.y, 0);
+        TKAssertEquals(line.runs[0].size.width, 240);
+        TKAssertEquals(line.runs[0].size.height, 16.40625);
+    },
+
+    testLineSpacing: function(){
+        var attributes = {};
+        attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
+        var attributedString = JSAttributedString.initWithString('Testing 123\u2028Second line', attributes);
+        var framesetter = JSTextFramesetter.init();
+        framesetter.attributedString = attributedString;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.truncateTail;
+        framesetter.defaultParagraphStyle.lineSpacing = 10;
+        var frame = framesetter.createFrame(JSSize(300, 0), JSRange(0, attributedString.string.length), 0);
+        TKAssertEquals(frame.lines.length, 2);
+        TKAssertEquals(frame.range.location, 0);
+        TKAssertEquals(frame.range.length, 23);
+        TKAssertFloatEquals(frame.size.width, 300);
+        TKAssertFloatEquals(frame.size.height, 42.8125);
+        var line = frame.lines[0];
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 12);
+        TKAssertFloatEquals(line.origin.x, 0);
+        TKAssertFloatEquals(line.origin.y, 0);
+        TKAssertFloatEquals(line.size.width, 270);
+        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 12);
+        TKAssertEquals(line.runs[0].origin.x, 0);
+        TKAssertEquals(line.runs[0].origin.y, 0);
+        TKAssertEquals(line.runs[0].size.width, 270);
+        TKAssertEquals(line.runs[0].size.height, 16.40625);
+        line = frame.lines[1];
+        TKAssertEquals(line.range.location, 12);
+        TKAssertEquals(line.range.length, 11);
+        TKAssertFloatEquals(line.origin.x, 0);
+        TKAssertFloatEquals(line.origin.y, 26.40625);
+        TKAssertFloatEquals(line.size.width, 240);
         TKAssertFloatEquals(line.size.height, 16.40625);
         TKAssertEquals(line.runs[0].range.location, 12);
         TKAssertEquals(line.runs[0].range.length, 11);
@@ -1379,7 +1365,50 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         TKAssertEquals(line.runs[0].origin.y, 0);
         TKAssertEquals(line.runs[0].size.width, 240);
         TKAssertEquals(line.runs[0].size.height, 16.40625);
-    }
+
+        // Allow line even if there's not enough height for the spacing, making it as big as possible
+        framesetter = JSTextFramesetter.init();
+        framesetter.attributedString = attributedString;
+        framesetter.defaultParagraphStyle.lineBreakMode = JSLineBreakMode.truncateTail;
+        framesetter.defaultParagraphStyle.lineSpacing = 10;
+        frame = framesetter.createFrame(JSSize(300, 16.40625), JSRange(0, attributedString.string.length), 0);
+        TKAssertEquals(frame.lines.length, 1);
+        TKAssertEquals(frame.range.location, 0);
+        TKAssertEquals(frame.range.length, 12);
+        TKAssertFloatEquals(frame.size.width, 300);
+        TKAssertFloatEquals(frame.size.height, 16.40625);
+        line = frame.lines[0];
+        TKAssertEquals(line.range.location, 0);
+        TKAssertEquals(line.range.length, 12);
+        TKAssertFloatEquals(line.origin.x, 0);
+        TKAssertFloatEquals(line.origin.y, 0);
+        TKAssertFloatEquals(line.size.width, 270);
+        TKAssertFloatEquals(line.size.height, 16.40625);
+        TKAssertEquals(line.runs[0].range.location, 0);
+        TKAssertEquals(line.runs[0].range.length, 12);
+        TKAssertEquals(line.runs[0].origin.x, 0);
+        TKAssertEquals(line.runs[0].origin.y, 0);
+        TKAssertEquals(line.runs[0].size.width, 270);
+        TKAssertEquals(line.runs[0].size.height, 16.40625);
+    },
+
+    testAttributes: function(){
+        var framesetter = JSTextFramesetter.init();
+        TKAssertExactEquals(framesetter.attributes.lineBreakMode, JSLineBreakMode.truncateTail);
+        TKAssertFloatEquals(framesetter.attributes.lineSpacing, 1.0);
+        TKAssertExactEquals(framesetter.attributes.textAlignment, JSTextAlignment.left);
+        TKAssertExactEquals(framesetter.attributes.minimumLineHeight, 0);
+
+        framesetter.attributes.lineBreakMode = JSLineBreakMode.characterWrap;
+        TKAssertExactEquals(framesetter.defaultParagraphStyle.lineBreakMode, JSLineBreakMode.characterWrap);
+        framesetter.attributes.lineSpacing = 2.0;
+        TKAssertFloatEquals(framesetter.defaultParagraphStyle.lineSpacing, 0);
+        TKAssertFloatEquals(framesetter.defaultParagraphStyle.lineHeightMultiple, 2.0);
+        framesetter.attributes.textAlignment = JSTextAlignment.center;
+        TKAssertExactEquals(framesetter.defaultParagraphStyle.textAlignment, JSTextAlignment.center);
+        framesetter.attributes.minimumLineHeight = 10;
+        TKAssertFloatEquals(framesetter.defaultParagraphStyle.minimumLineHeight, 10);
+    },
 
     // TODO: maximum lines
     // TODO: height restriction

@@ -19,37 +19,16 @@
 
 (function(){
 
-var UITextLayerContainerProperty = function(){
-    if (this === undefined){
-        return new UITextLayerContainerProperty();
-    }
-};
-
-UITextLayerContainerProperty.prototype = Object.create(JSCustomProperty.prototype);
-
-UITextLayerContainerProperty.prototype.define = function(C, key, extensions){
-    Object.defineProperty(C.prototype, key, {
-        configurable: false,
-        enumerable: false,
-        set: function UITextLayer_setContainerProperty(value){
-            this.textContainer[key] = value;
-        },
-        get: function UITextLayer_getContainerProperty(){
-            return this.textContainer[key];
-        }
-    });
-};
-
 JSClass("UITextLayer", UILayer, {
 
     text: JSDynamicProperty(),
     attributedText: JSDynamicProperty(),
     font: JSDynamicProperty(),
     textColor: UILayerAnimatedProperty(),
-    lineBreakMode: UITextLayerContainerProperty(),
-    textAlignment: UITextLayerContainerProperty(),
-    lineSpacing: UITextLayerContainerProperty(),
-    minimumLineHeight: UITextLayerContainerProperty(),
+    lineBreakMode: JSDynamicProperty(),
+    textAlignment: JSDynamicProperty(),
+    lineSpacing: JSDynamicProperty(),
+    minimumLineHeight: JSDynamicProperty(),
     textInsets: JSDynamicProperty('_textInsets', JSInsets.Zero),
     maximumNumberOfLines: JSDynamicProperty(),
     widthTracksText: JSDynamicProperty('_widthTracksText', false),
@@ -127,6 +106,40 @@ JSClass("UITextLayer", UILayer, {
     setHeightTracksText: function(heightTracksText){
         this._heightTracksText = heightTracksText;
         this._textContainer.size = this._availableTextSize();
+    },
+
+    // MARK: - Paragraph Styling
+
+    getLineBreakMode: function(){
+        return this._textLayoutManager.defaultParagraphStyle.lineBreakMode;
+    },
+
+    setLineBreakMode: function(lineBreakMode){
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({lineBreakMode: lineBreakMode});
+    },
+
+    getTextAlignment: function(){
+        return this._textLayoutManager.defaultParagraphStyle.textAlignment;
+    },
+
+    setTextAlignment: function(textAlignment){
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({textAlignment: textAlignment});
+    },
+
+    getLineSpacing: function(){
+        return this._textLayoutManager.defaultParagraphStyle.lineSpacing;
+    },
+
+    setLineSpacing: function(lineSpacing){
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({lineSpacing: lineSpacing});
+    },
+
+    getMinimumLineHeight: function(){
+        return this._textLayoutManager.defaultParagraphStyle.minimumLineHeight;
+    },
+
+    setMinimumLineHeight: function(minimumLineHeight){
+        this._textLayoutManager.defaultParagraphStyle = this._textLayoutManager.defaultParagraphStyle.styleWithAttributes({minimumLineHeight: minimumLineHeight});
     },
 
     // MARK: - Fetching & Updating Text
