@@ -24,7 +24,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
 
     element: null,
     emptyTextNode: null,
-    attachments: null,
+    attachmentRuns: null,
     fontLineHeight: 0,
     canvasContext: null,
 
@@ -34,19 +34,19 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         element.style.font = font.cssString(height);
         this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
         this.fontLineHeight = font.displayLineHeight;
-        this.attachments = [];
+        this.attachmentRuns = [];
         this.element.dataset.rangeLocation = location;
         this.element.dataset.rangeLength = 0;
         this.element.dataset.jstext = "line";
         this.canvasContext = canvasContext;
     },
 
-    initWithElement: function(element, runs, trailingWhitespaceWidth, attachments, canvasContext){
+    initWithElement: function(element, runs, trailingWhitespaceWidth, attachmentRuns, canvasContext){
         // constructing this.element before super init because super init calls
         // this.align, which neesd to use this.element
         UIHTMLTextLine.$super.initWithRuns.call(this, runs, trailingWhitespaceWidth);
         this.element = element;
-        this.attachments = attachments || [];
+        this.attachmentRuns = attachmentRuns || [];
         var run;
         for (var i = 0, l = runs.length; i < l; ++i){
             run = this.runs[i];
@@ -150,7 +150,7 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             line.emptyTextNode = this.emptyTextNode.cloneNode();
             line.element.appendChild(line.emptyTextNode);
         }
-        line.attachments = JSCopy(this.attachments);
+        line.attachmentRuns = JSCopy(this.attachmentRuns);
         line.fontLineHeight = this.fontLineHeight;
         this.canvasContext = this.canvasContext;
         return line;

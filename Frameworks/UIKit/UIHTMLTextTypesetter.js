@@ -25,12 +25,10 @@ var sharedCanvas = null;
 JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
 
     domDocument: JSReadOnlyProperty('_domDocument'),
-    _htmlDisplayServer: null,
 
-    initWithDocument: function(domDocument, htmlDisplayServer){
+    initWithDocument: function(domDocument){
         UIHTMLTextTypesetter.$super.init.call(this);
         this._domDocument = domDocument;
-        this._htmlDisplayServer = htmlDisplayServer;
         if (sharedCanvas === null){
             sharedCanvas = this._domDocument.createElement("canvas");
         }
@@ -137,7 +135,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var x = 0;
         var runDescriptor;
         var span;
-        var attachments = [];
+        var attachmentRuns = [];
         for (var i = 0, l = layout.runDescriptors.length; i < l; ++i){
             runDescriptor = layout.runDescriptors[i];
             span = this._createRunElement();
@@ -153,30 +151,25 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                     span.appendChild(span.ownerDocument.createTextNode(utf16));
                 }
             }else{
-                this._styleAttachmentElement(span, runDescriptor.attributes, runDescriptor.attachment);
+                this._styleAttachmentElementWithAttributes(span, runDescriptor.attributes, runDescriptor.attachment);
                 if (span.childNodes.length > 0){
                     span.removeChild(span.childNodes[0]);
                 }
             }
-            // TODO: attachment inserted/removed
             run = UIHTMLTextRun.initWithElement(span, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length));
             run.origin.x = x;
             run.size.width = runDescriptor.width;
             x += run.size.width;
             runs.push(run);
             if (runDescriptor.attachment){
-                attachments.push({
-                    context: this._htmlDisplayServer.contextForAttachment(runDescriptor.attachment),
-                    attachment: runDescriptor.attachment,
-                    run: run
-                });
+                attachmentRuns.push(run);
             }
         }
         if (runs.length === 0){
             return this._createEmptyHTMLLine(layout.range);
         }
         var div = this._createLineElement();
-        return UIHTMLTextLine.initWithElement(div, runs, layout.trailingWhitespaceWidth, attachments, this.canvasContext);
+        return UIHTMLTextLine.initWithElement(div, runs, layout.trailingWhitespaceWidth, attachmentRuns, this.canvasContext);
     },
 
     _styleTextElementWithAttributes: function(span, attributes, font){
@@ -227,7 +220,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         span.style.position = 'relative';
         span.style.width = '%dpx'.sprintf(attachment.size.width);
         span.style.height = '%dpx'.sprintf(attachment.size.height);
-        span.style.verticalAlign = '%dpx'.sprintf(attachment.baselineAdjustment);
+        span.style.verticalAlign = '%dpx'.sprintf(-attachment.baselineAdjustment);
         span.style.font = '';
         span.style.textDecoration = '';
         span.style.color = '';
@@ -273,16 +266,19 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 runDescriptor = UIHTMLTextTypesetterRunDescriptor(remainingRange.location, attributes);
                 runDescriptors.push(runDescriptor);
                 preferredFont = runDescriptor.font;
-                this.canvasContext.font = preferredFont.cssString();
+                if (preferredFont !== null){
+                    this.canvasContext.font = preferredFont.cssString();
+                }
             }
             newline = iterator.isMandatoryLineBreak;
             printable = !newline && !iterator.isWhiteSpace;
-            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.attachment){
-                attachment = attributes[JSAttributedString.Attribute.attachment];
+            attachment = runIterator.attachment;
+            if (attachment !== null){
                 attachment.layout(preferredFont, width);
                 usedWidth += attachment.size.width;
                 runDescriptor.userPerceivedCharacterWidths.push(attachment.size.width);
                 runDescriptor.userPerceivedCharacterLengths.push(1);
+                runDescriptor.attachment = attachment;
             }else{
                 if (!newline){
                     if (attributes[JSAttributedString.Attribute.maskCharacter] !== undefined){
@@ -427,6 +423,7 @@ var UIHTMLTextTypesetterRunDescriptor = function(location, attributes){
         this.userPerceivedCharacterWidths = JSCopy(location.userPerceivedCharacterWidths);
         this.userPerceivedCharacterLengths = JSCopy(location.userPerceivedCharacterLengths);
         this.font = location.font;
+        this.attachment = location.attachment;
     }else{
         this.location = location;
         this.attributes = attributes;
@@ -434,6 +431,7 @@ var UIHTMLTextTypesetterRunDescriptor = function(location, attributes){
         this.userPerceivedCharacterWidths = [];
         this.userPerceivedCharacterLengths = [];
         this.font = attributes.font || null;
+        this.attachment = null;
     }
 };
 

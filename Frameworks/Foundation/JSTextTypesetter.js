@@ -156,9 +156,10 @@ JSClass("JSTextTypesetter", JSObject, {
             // Check some properties of this character
             newline = iterator.isMandatoryLineBreak;
             printable = !newline && !iterator.isWhiteSpace;
+            attachment = runIterator.attachment;
 
             // Adjust the run's font if needed
-            if (runIterator.range.length == 1 && iterator.firstCharacter.code == JSAttributedString.SpecialCharacter.attachment){
+            if (attachment !== null){
                 // 1. Attachment font:
                 // Attachment runs use a special "attachment font" that can draw the attachment rather
                 // than draw a glyph.  It's perhaps a little strange to call an attachment a font, but
@@ -166,7 +167,6 @@ JSClass("JSTextTypesetter", JSObject, {
                 // here is actually a specially drawn attachment.  The attachment font has a single glyph
                 // that corresponds to the 0xFFFC attachment character code, whose width matches the
                 // attachment's width
-                attachment = attributes[JSAttributedString.Attribute.attachment];
                 attachment.layout(preferredFont, width);
                 usedWidth += attachment.size.width;
                 runDescriptor.glyphs.push(0);

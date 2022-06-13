@@ -39,7 +39,7 @@ JSClass("JSTextRun", JSObject, {
         this.attachment = attributes[JSAttributedString.Attribute.attachment] || null;
         if (this.attachment){
             this.baseline = this.attachment.baselineAdjustment;
-            this._size = JSSize(this.attachment.size.width, this.attachment.size.height - Math.min(0, this.attachment.baselineAdjustment));
+            this._size = JSSize(this.attachment.size);
         }else{
             this.font = font;
             this.baseline = -font.descender;
@@ -133,8 +133,10 @@ JSClass("JSTextRun", JSObject, {
         var run = this.$class.init();
         run._origin = JSPoint(this._origin);
         run._size = JSSize(this._size);
+        run.baseline = this.baseline;
         run._range = JSRange(this._range);
         run.attributes = this.attributes;
+        run.attachment = this.attachment;
         run.font = this.font;
         run.glyphs = [];
         run.glyphCharacterLengths = [];

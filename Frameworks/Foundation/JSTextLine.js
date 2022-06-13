@@ -72,6 +72,7 @@ JSClass("JSTextLine", JSObject, {
         }
         var height = this._size.height;
         for (i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
             if (run.size.height - run.baseline + baseline > height){
                 height = run.size.height - run.baseline + baseline;
             }

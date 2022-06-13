@@ -59,7 +59,7 @@ JSClass("JSTextContainer", JSObject, {
                     // If we are a single line label and we have all of the string, we *may not* need to do a new layout
                     if (this._maximumNumberOfLines == 1 && this._textFrame.range.location === 0 && this._textFrame.range.length >= this._textLayoutManager.textStorage.string.length){
                         // If the new size can still fit the entire layout, then no need to do a new layout manager layout
-                        if (size.width >= this._textFrame.usedSize.width && size.height >= this._textFrame.usedSize.height){
+                        if (size.width < Number.MAX_VALUE && size.height < Number.MAX_VALUE && size.width >= this._textFrame.usedSize.width && size.height >= this._textFrame.usedSize.height){
                             // Text frame can do a shortcut update by trimming excess size without affecting truncation
                             shouldNotify = false;
                             this.framesetter._resizeFrame(this._textFrame, size);

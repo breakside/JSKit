@@ -26,11 +26,11 @@
 JSClass("UIHTMLTextFrame", JSTextFrame, {
 
     element: null,
-    attachments: null,
+    attachmentRuns: null,
 
     initWithElement: function(element, lines, size){
         this.element = element;
-        this.attachments = [];
+        this.attachmentRuns = [];
         var line;
         var i, l;
         var j, k;
@@ -44,18 +44,12 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             }
         }
 
-        var attachmentInfo;
+        var run;
         for (i = 0, l = lines.length; i < l; ++i){
             line = lines[i];
-            for (j = 0, k = line.attachments.length; j < k; ++j){
-                attachmentInfo = line.attachments[j];
-                if (attachmentInfo.attachment.isKindOfClass(UITextAttachmentView)){
-                    // attachmentInfo.attachment.view.frame = JSRect(
-                    //     JSPoint(line.origin.x + attachmentInfo.run.origin.x, line.origin.y + attachmentInfo.run.origin.y),
-                    //     attachmentInfo.attachment.view.frame.size
-                    // );
-                }
-                this.attachments.push(attachmentInfo);
+            for (j = 0, k = line.attachmentRuns.length; j < k; ++j){
+                run = line.attachmentRuns[j];
+                this.attachmentRuns.push(run);
             }
         }
 
@@ -78,16 +72,18 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
                 this.element.style.visibility = '';
             }
             context.addExternalElementInRect(this.element, JSRect(point, this.size));
-            var attachmentInfo;
-            for (var i = 0, l = this.attachments.length; i < l; ++i){
-                attachmentInfo = this.attachments[i];
-                if (attachmentInfo.context.element.parentNode !== attachmentInfo.run.element){
-                    attachmentInfo.run.element.appendChild(attachmentInfo.context.element);
+            var run;
+            var attachmentContext;
+            for (var i = 0, l = this.attachmentRuns.length; i < l; ++i){
+                run = this.attachmentRuns[i];
+                attachmentContext = context.displayServer.contextForAttachment(run.attachment);
+                if (attachmentContext.element.parentNode !== run.element){
+                    run.element.appendChild(attachmentContext.element);
                 }
-                attachmentInfo.context.save();
-                attachmentInfo.context.setFillColor(attachmentInfo.run.attributes.textColor);
-                attachmentInfo.attachment.drawInContextAtPoint(attachmentInfo.context, JSPoint.Zero);
-                attachmentInfo.context.restore();
+                attachmentContext.save();
+                attachmentContext.setFillColor(run.attributes.textColor);
+                run.attachment.drawInContextAtPoint(attachmentContext, JSPoint.Zero);
+                attachmentContext.restore();
             }
         }else{
             UIHTMLTextFrame.$super.drawInContextAtPoint.call(this, context, point);

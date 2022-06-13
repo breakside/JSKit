@@ -477,7 +477,7 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             this.layerRemoved(layer);
         }else{
             var context = this.contextsByObjectID[attachment.objectID];
-            if (context !== null){
+            if (context){
                 context.destroy();
                 delete this.contextsByObjectID[attachment.objectID];
             }

@@ -26,19 +26,44 @@
 JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     _domDocument: null,
+    _htmlDisplayServer: null,
     _htmlTypesetter: null,
     _frameElement: null,
+    _attachments: null,
 
     initWithDocument: function(domDocument, htmlDisplayServer){
         this._domDocument = domDocument;
-        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument, htmlDisplayServer);
+        this._htmlDisplayServer = htmlDisplayServer;
+        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument);
+        this._attachments = [];
         UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
     },
 
     createFrame: function(size, range, maximumLines){
         this._createFrameElementIfNeeded();
         this._enqueueElements();
+        var attachmentsByObjectID = {};
+        var attachment;
+        var i, l;
+        for (i = 0, l = this._attachments.length; i < l; ++i){
+            attachment = this._attachments[i];
+            attachmentsByObjectID[attachment.objectID] = attachment;
+        }
         var frame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
+        this._attachments = [];
+        for (i = 0, l = frame.attachmentRuns.length; i < l; ++i){
+            attachment = frame.attachmentRuns[i].attachment;
+            this._attachments.push(attachment);
+            if (attachment.objectID in attachmentsByObjectID){
+                delete attachmentsByObjectID[attachment.objectID];
+            }else{
+                this._htmlDisplayServer.attachmentInserted(attachment);
+            }
+        }
+        for (i in attachmentsByObjectID){
+            attachment = attachmentsByObjectID[i];
+            this._htmlDisplayServer.attachmentRemoved(attachment);
+        }
         this._removeQueuedElements();
         return frame;
     },

@@ -600,7 +600,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertExactEquals(line.runs[0].textNode.parentNode, line.runs[0].element);
     },
 
-    _testAttachment: function(){
+    testAttachment: function(){
         var attributes = {};
         attributes[JSAttributedString.Attribute.font] = JSFont.initWithDescriptor(JSTestFontDescriptor.initWithName("Test"), 14.0);
         var typesetter = UIHTMLTextTypesetter.initWithDocument(document, null);
@@ -609,6 +609,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         var image = JSImage.initWithResourceName("attachment", JSBundle.testBundle);
         var attachment = JSTextAttachment.initWithImage(image);
         var attachmentString = JSAttributedString.initWithAttachment(attachment);
+        attachmentString.addAttributeInRange(JSAttributedString.Attribute.font, attributes.font, JSRange(0, attachmentString.string.length));
         attributedString.replaceCharactersInRangeWithAttributedString(JSRange(8, 0), attachmentString);
 
         typesetter.attributedString = attributedString;
@@ -621,13 +622,16 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.runs[1].range.location, 8);
         TKAssertEquals(line.runs[1].range.length, 1);
         TKAssertEquals(line.runs[1].origin.x, 180);
-        TKAssertEquals(line.runs[1].origin.y, 2.98828125);
+        TKAssertEquals(line.runs[1].origin.y, 3);
         TKAssertEquals(line.runs[1].size.width, 15);
         TKAssertEquals(line.runs[1].size.height, 10);
         TKAssertEquals(line.runs[2].origin.x, 195);
         TKAssertEquals(line.runs[2].origin.y, 0);
         TKAssertEquals(line.runs[2].range.location, 9);
         TKAssertEquals(line.runs[2].range.length, 16);
+        TKAssertExactEquals(line.attachmentRuns.length, 1);
+        TKAssertExactEquals(line.attachmentRuns[0], line.runs[1]);
+        TKAssertExactEquals(line.attachmentRuns[0].attachment, attachment);
     },
 
     // TODO: more multi-run tests
