@@ -283,14 +283,27 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    setNeedsLayout: function(){
+        UIWindow.$super.setNeedsLayout.call(this);
+    },
+
     layoutSubviews: function(){
         UIWindow.$super.layoutSubviews.call(this);
         this._styler.layoutWindow(this);
-        this._styler.updateFocusRingInWindow(this, true);
+        this._updatingFocusRing = true;
+        this._styler.updateFocusRingInWindow(this, this._focusRingAnimated);
+        this._updatingFocusRing = false;
+        this._focusRingAnimated = true;
     },
 
+    _updatingFocusRing: false,
+    _focusRingAnimated: true,
+
     invalidateFocusRing: function(animated){
-        this._styler.updateFocusRingInWindow(this, animated);
+        if (!this._updatingFocusRing){
+            this._focusRingAnimated = animated;
+            this.setNeedsLayout();
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -1184,7 +1197,7 @@ JSClass("UIWindowStyler", JSObject, {
         }
         view = responder;
         var i;
-        for (i = views.length - 1; i >= 0; --i){
+        for (i = views.length - 2; i >= 0; --i){
             views[i].layoutIfNeeded();
         }
         var path = view.focusRingPath;
