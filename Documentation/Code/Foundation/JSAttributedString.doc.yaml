@@ -175,6 +175,11 @@ topics:
                 introduced: 2022.24.0
                 summary: Points to a `Number` that adds spacing between paragraphs
               -
+                name: beforeParagraphSpacing
+                introduced: 2022.24.0
+                summary: Points to a `Number` that increases spacing between
+                  paragraphs by adding space before the paragraph with this attribute
+              -
                 name: textAlignment
                 summary: Points to a `JSTextAlignment` that determines the paragraph's
                   text alignment

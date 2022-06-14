@@ -68,6 +68,7 @@ JSClass("JSAttributedString", JSObject, {
                     // TODO:
                     return JSAttributedString.AttributeDecoder.skip(value);
                 case JSAttributedString.Attribute.maskCharacter:
+                case JSAttributedString.Attribute.paragraphStyleName:
                     return JSAttributedString.AttributeDecoder.string(value);
                 case JSAttributedString.Attribute.bold:
                 case JSAttributedString.Attribute.italic:
@@ -77,6 +78,7 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.lineHeightMultiple:
                 case JSAttributedString.Attribute.lineSpacing:
                 case JSAttributedString.Attribute.paragraphSpacing:
+                case JSAttributedString.Attribute.beforeParagraphSpacing:
                 case JSAttributedString.Attribute.firstLineHeadIndent:
                 case JSAttributedString.Attribute.headIndent:
                 case JSAttributedString.Attribute.tailIndent:
@@ -145,12 +147,14 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.minimumLineHeight:
                 case JSAttributedString.Attribute.lineSpacing:
                 case JSAttributedString.Attribute.paragraphSpacing:
+                case JSAttributedString.Attribute.beforeParagraphSpacing:
                 case JSAttributedString.Attribute.firstLineHeadIndent:
                 case JSAttributedString.Attribute.headIndent:
                 case JSAttributedString.Attribute.tailIndent:
                 case JSAttributedString.Attribute.textAlignment:
                 case JSAttributedString.Attribute.lineBreakMode:
                 case JSAttributedString.Attribute.maskCharacter:
+                case JSAttributedString.Attribute.paragraphStyleName:
                 default:
                     return value;
             }
@@ -342,6 +346,8 @@ JSClass("JSAttributedString", JSObject, {
         }
         this._fixRunsAtIndex(runIndex);
         this._fixRunsAtIndex(runRange.location);
+        this._fixParagraphAttributesAtIndex(range.location);
+        this._fixParagraphAttributesAtIndex(range.location + attributedString.string.length);
     },
 
     // MARK: - Attribute mutations
@@ -531,6 +537,44 @@ JSClass("JSAttributedString", JSObject, {
         }
     },
 
+    _fixParagraphAttributesAtIndex: function(index){
+        if (index >= this._string.length){
+            return;
+        }
+        var paragraphRange = this._string.rangeForParagraphAtIndex(index);
+        var runIndex = this._runIndexForStringIndex(paragraphRange.location);
+        var run = this._runs[runIndex];
+        var paragraphAttributes = run.attributes;
+        var copy;
+        var i, l;
+        var attribute;
+        var value;
+        while (run.range.end < paragraphRange.end && runIndex < this._runs.length){
+            run = this._runs[runIndex];
+            if (!run.containsEqualParagraphAttributes(paragraphAttributes)){
+                if (run.range.end > paragraphRange.end){
+                    copy = JSAttributedStringRun(JSRange(paragraphRange.end, run.range.end - paragraphRange.end), run.attributes);
+                    this._runs.splice(runIndex + 1, 0, copy);
+                    run.range.length -= copy.range.length;
+                }
+                for (i = 0, l = JSAttributedString.paragraphAttributes.length; i < l; ++i){
+                    attribute = JSAttributedString.paragraphAttributes[i];
+                    if (attribute in paragraphAttributes){
+                        run.attributes[attribute] = paragraphAttributes[attribute];
+                    }else{
+                        delete run.attributes[attribute];
+                    }
+                }
+                if (this._runs[runIndex - 1].onlyContainsEqualAttributes(run.attributes)){
+                    this._runs[runIndex - 1].range.length += run.range.length;
+                    this._runs.splice(runIndex, 1);
+                    --runIndex;
+                }
+            }
+            ++runIndex;
+        }
+    },
+
     _rangeOfRunsPreparedForChangeInStringRange: function(range){
         var firstRunIndex = this._splitRunAtIndex(range.location);
         if (range.length > 0){
@@ -606,16 +650,32 @@ JSAttributedString.Attribute = {
     link: "link",
 
     // Paragraph
+    paragraphStyleName: "paragraphStyleName",
     textAlignment: "textAlignment",
     lineBreakMode: "lineBreakMode",
     minimumLineHeight: "minimumLineHeight",
     lineHeightMultiple: "lineHeightMultiple",
     lineSpacing: "lineSpacing",
     paragraphSpacing: "paragraphSpacing",
+    beforeParagraphSpacing: "beforeParagraphSpacing",
     firstLineHeadIndent: "firstLineHeadIndent",
     headIndent: "headIndent",
     tailIndent: "tailIndent",
 };
+
+JSAttributedString.paragraphAttributes = [
+    JSAttributedString.Attribute.paragraphStyleName,
+    JSAttributedString.Attribute.textAlignment,
+    JSAttributedString.Attribute.lineBreakMode,
+    JSAttributedString.Attribute.minimumLineHeight,
+    JSAttributedString.Attribute.lineHeightMultiple,
+    JSAttributedString.Attribute.lineSpacing,
+    JSAttributedString.Attribute.paragraphSpacing,
+    JSAttributedString.Attribute.beforeParagraphSpacing,
+    JSAttributedString.Attribute.firstLineHeadIndent,
+    JSAttributedString.Attribute.headIndent,
+    JSAttributedString.Attribute.tailIndent
+];
 
 JSAttributedString.AttributeEncoder = {
     skip: function(value){ return undefined; },
@@ -733,6 +793,35 @@ JSAttributedStringRun.prototype = {
         }
         return true;
     },
+
+    containsEqualParagraphAttributes: function(attributes){
+        var attribute;
+        var a, b;
+        for (var i = 0, l = JSAttributedString.paragraphAttributes.length; i < l; ++i){
+            attribute = JSAttributedString.paragraphAttributes[i];
+            a = attributes[attribute];
+            b = this.attributes[attribute];
+            if (a === undefined){
+                if (!!b){
+                    return false;
+                }
+            }else if (a === null){
+                if (b !== null && b !== undefined){
+                    return false;
+                }
+            }else if (a.isEqual){
+                if (b === null || b === undefined){
+                    return false;
+                }
+                if (!a.isEqual(b)){
+                    return false;
+                }
+            }else if (a != b){
+                return false;
+            }
+        }
+        return true;
+    }
 
 };
 

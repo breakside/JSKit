@@ -476,6 +476,18 @@ JSClass('UIScrollView', UIView, {
     },
 
     _didScroll: function(){
+        if (this.window !== null){
+            var responder = this.window.firstResponder;
+            if (responder && responder.isKindOfClass(UIView) && responder.focusRingPath !== null){
+                var superview = responder.superview;
+                while (superview !== null && superview !== this){
+                    superview = superview.superview;
+                }
+                if (superview === this){
+                    this.window.invalidateFocusRing(false);
+                }
+            }
+        }
         if (this.delegate && this.delegate.scrollViewDidScroll){
             this.delegate.scrollViewDidScroll(this);
         }

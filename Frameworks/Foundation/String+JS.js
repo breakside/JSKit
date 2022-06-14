@@ -246,7 +246,7 @@ Object.defineProperties(String.prototype, {
 
     rangeForParagraphAtIndex: {
         enumerable: false,
-        value: function String_rangeForLineAtIndex(index){
+        value: function String_rangeForParagraphAtIndex(index){
             var iterator1 = this.userPerceivedCharacterIterator(index);
             var startIndex = iterator1.range.location;
             var iterator2 = UserPerceivedCharacterIterator(iterator1);

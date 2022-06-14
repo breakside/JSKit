@@ -1054,6 +1054,97 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(string.string, "test");
         TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 4));
         TKAssertObjectEquals(string.rangeOfRunAtIndex(4), JSRange(0, 4));
+    },
+
+    testFixParagraphStyles: function(){
+        var string = JSAttributedString.initWithString("one\ntwo\nthree");
+        string.addAttributesInRange({textAlignment: JSTextAlignment.center, bold: true}, JSRange(0, 4));
+        string.deleteCharactersInRange(JSRange(2, 3));
+        TKAssertExactEquals(string.string, "onwo\nthree");
+        var range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 2);
+        var attributes = string.attributesAtIndex(0);
+        TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
+        TKAssertExactEquals(attributes.bold, true);
+        range = string.rangeOfRunAtIndex(2);
+        attributes = string.attributesAtIndex(2);
+        TKAssertExactEquals(range.location, 2);
+        TKAssertExactEquals(range.length, 3);
+        TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
+        TKAssertExactEquals(attributes.bold, undefined);
+        range = string.rangeOfRunAtIndex(5);
+        attributes = string.attributesAtIndex(5);
+        TKAssertExactEquals(range.location, 5);
+        TKAssertExactEquals(range.length, 5);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, undefined);
+
+        string = JSAttributedString.initWithString("one\ntwo\nthree");
+        string.addAttributesInRange({bold: true}, JSRange(0, 3));
+        string.addAttributesInRange({textAlignment: JSTextAlignment.center, bold: true}, JSRange(8, 5));
+        string.deleteCharactersInRange(JSRange(6, 3));
+        TKAssertExactEquals(string.string, "one\ntwhree");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 3);
+        attributes = string.attributesAtIndex(0);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, true);
+        range = string.rangeOfRunAtIndex(3);
+        attributes = string.attributesAtIndex(3);
+        TKAssertExactEquals(range.location, 3);
+        TKAssertExactEquals(range.length, 3);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, undefined);
+        range = string.rangeOfRunAtIndex(6);
+        attributes = string.attributesAtIndex(6);
+        TKAssertExactEquals(range.location, 6);
+        TKAssertExactEquals(range.length, 4);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, true);
+
+        string = JSAttributedString.initWithString("one\ntwo\nthree");
+        string.addAttributesInRange({bold: true}, JSRange(0, 3));
+        string.addAttributesInRange({textAlignment: JSTextAlignment.center}, JSRange(8, 5));
+        string.deleteCharactersInRange(JSRange(6, 3));
+        TKAssertExactEquals(string.string, "one\ntwhree");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 3);
+        attributes = string.attributesAtIndex(0);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, true);
+        range = string.rangeOfRunAtIndex(3);
+        attributes = string.attributesAtIndex(3);
+        TKAssertExactEquals(range.location, 3);
+        TKAssertExactEquals(range.length, 7);
+        TKAssertExactEquals(attributes.textAlignment, undefined);
+        TKAssertExactEquals(attributes.bold, undefined);
+
+        string = JSAttributedString.init();
+        string.appendAttributedString(JSAttributedString.initWithString("test\n", {textAlignment: JSTextAlignment.center}));
+        string.appendAttributedString(JSAttributedString.initWithString("two\n", {textAlignment: JSTextAlignment.right, paragraphStyleName: "test"}));
+        range = string.rangeOfRunAtIndex(0);
+        attributes = string.attributesAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 5);
+        TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
+        range = string.rangeOfRunAtIndex(5);
+        attributes = string.attributesAtIndex(5);
+        TKAssertExactEquals(range.location, 5);
+        TKAssertExactEquals(range.length, 4);
+        TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.right);
+        TKAssertExactEquals(attributes.paragraphStyleName, "test");
+
+        string = JSAttributedString.init();
+        string.appendAttributedString(JSAttributedString.initWithString("test", {textAlignment: JSTextAlignment.center}));
+        string.appendAttributedString(JSAttributedString.initWithString("two\n", {textAlignment: JSTextAlignment.right, paragraphStyleName: "test"}));
+        range = string.rangeOfRunAtIndex(0);
+        attributes = string.attributesAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 8);
+        TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
     }
     
 });
