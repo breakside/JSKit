@@ -277,9 +277,41 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     },
 
     focus: function(e){
+        if (UIDevice.shared && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            if (this.textInputClient instanceof UIView){
+                this._cancelNullFirstResponder(this.textInputClient);
+            }
+        }
     },
 
     blur: function(e){
+        if (UIDevice.shared && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+            if (this.textInputClient instanceof UIView){
+                if (this.textInputClient.window){
+                    if (this.textInputClient.window.firstResponder === this.textInputClient){
+                        this._scheduleNullFirstResponder(this.textInputClient);
+                    }
+                }
+            }
+        }
+    },
+
+    _nullFirstResponderTimer: null,
+
+    _scheduleNullFirstResponder: function(view){
+        this._nullFirstResponderTimer = JSTimer.scheduledTimerWithInterval(0.2, function(){
+            this._nullFirstResponderTimer = null;
+            if (view.window && view.window.firstResponder === view){
+                view.window.firstResponder = null;
+            }
+        }, this);
+    },
+
+    _cancelNullFirstResponder: function(responder){
+        if (this._nullFirstResponderTimer){
+            this._nullFirstResponderTimer.invalidate();
+            this._nullFirstResponderTimer = null;
+        }
     },
 
     select: function(e){
