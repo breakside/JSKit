@@ -946,25 +946,32 @@ JSClass("UITextField", UIControl, {
         UITextField.$super.mouseUp.call(this, event);
     },
 
+    _touchOrigin: null,
+
     touchesBegan: function(touches, event){
         if (this.enabled){
-            // Always try to set window.firstResponder to force the keyboard
-            // open if it didn't open when we became first responder.  Happens
-            // when mobile safari ignores focus() calls that aren't tied to
-            // user interaction
-            this.window.firstResponder = this;
             var location = touches[0].locationInView(this);
-            this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
-            return;
+            this._touchOrigin = this.convertPointToView(this.bounds.origin, this.window);
+            if (this.isFirstResponder()){
+                // Always try to set window.firstResponder to force the keyboard
+                // open if it didn't open when we became first responder.  Happens
+                // when mobile safari ignores focus() calls that aren't tied to
+                // user interaction
+                this.window.firstResponder = this;
+                this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+                return;
+            }
         }
         UITextField.$super.touchesBegan.call(this, touches, event);
     },
 
     touchesMoved: function(touches, event){
         if (this.enabled){
-            var location = touches[0].locationInView(this);
-            this._localEditor.handleTouchesMovedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
-            return;
+            if (this.isFirstResponder()){
+                var location = touches[0].locationInView(this);
+                this._localEditor.handleTouchesMovedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+                return;
+            }
         }
         UITextField.$super.touchesMoved.call(this, touches, event);
     },
@@ -972,8 +979,15 @@ JSClass("UITextField", UIControl, {
     touchesEnded: function(touches, event){
         if (this.enabled){
             var location = touches[0].locationInView(this);
-            this._localEditor.handleTouchesEnded(touches, event);
-            return;
+            if (this.isFirstResponder()){
+                this._localEditor.handleTouchesEnded(touches, event);
+                return;
+            }
+            var origin = this.convertPointToView(this.bounds.origin, this.window);
+            if (this.containsPoint(location) && this._touchOrigin.distanceToPoint(origin) < 2){
+                this.window.firstResponder = this;
+                this._localEditor.handleTouchesEndedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            }
         }
         UITextField.$super.touchesEnded.call(this, touches, event);
     },

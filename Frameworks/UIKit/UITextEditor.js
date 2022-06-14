@@ -206,6 +206,10 @@ JSClass("UITextEditor", JSObject, {
         this._setSingleSelectionAtLocation(location);
     },
 
+    handleTouchesEndedAtLocation: function(location, touches, event){
+        this._setSingleSelectionAtLocation(location);
+    },
+
     handleTouchesEnded: function(touches, event){
     },
 
