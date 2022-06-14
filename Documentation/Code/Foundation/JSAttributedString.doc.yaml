@@ -197,7 +197,7 @@ topics:
                 summary: Points to a `Number` that indents all lines of the paragraph
                   except the first
               -
-                name: tailInent
+                name: tailIndent
                 introduced: 2022.24.0
                 summary: Points to a `Number` that indents all lines of the paragraph
                   on the right side

@@ -130,6 +130,7 @@ topics:
       - JSTextRun
       # - JSTextStorage
       - JSTextTypesetter
+      - JSParagraphStyle
       -
         name: JSTextAlignment
         kind: enum

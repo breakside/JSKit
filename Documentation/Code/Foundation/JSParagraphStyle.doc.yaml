@@ -32,7 +32,7 @@ topics:
       - name: headIndent
         summary: A `Number` that indents all lines of the paragraph
           except the first
-      - name: tailInent
+      - name: tailIndent
         summary: A `Number` that indents all lines of the paragraph
           on the right side
   - name: Creating Similar Style
