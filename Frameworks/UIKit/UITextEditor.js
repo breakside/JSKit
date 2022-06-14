@@ -431,6 +431,24 @@ JSClass("UITextEditor", JSObject, {
         this.setParagraphAttribute(name, undefined, undoName);
     },
 
+    setParagraphAttributes: function(attributes, undoName){
+        this.undoManager.beginUndoGrouping();
+        var name, value;
+        var i, l;
+        var selection;
+        var selections = this._selectionsCopy();
+        for (name in attributes){
+            value = attributes[name];
+            for (i = 0, l = selections.length; i < l; ++i){
+                selection = selections[i];
+                this._setParagraphAttributeForSelection(name, value, selection);
+            }
+        }
+        this._setSelectionsAllowingUndo(selections);
+        this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName(undoName);
+    },
+
     setParagraphAttribute: function(name, value, undoName){
         this.undoManager.beginUndoGrouping();
         var i, l;

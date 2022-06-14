@@ -65,7 +65,7 @@ JSClass("JSTextFramesetter", JSObject, {
         var heightLimit = size.height || Number.MAX_VALUE;
         var lineLimit = maximumLines || Number.MAX_VALUE;
         var lineWidthLimit;
-        var attributes = this._typesetter.attributedString.attributesAtIndex(remianingRange.location);
+        var attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remianingRange.location));
         var paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
         var characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remianingRange.location);
         characterIterator.decrement();
@@ -95,8 +95,9 @@ JSClass("JSTextFramesetter", JSObject, {
                 characterIterator.decrement();
                 if (characterIterator.isParagraphBreak){
                     y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.paragraphSpacing));
-                    attributes = this._typesetter.attributedString.attributesAtIndex(remianingRange.location);
+                    attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remianingRange.location));
                     paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
+                    y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.beforeParagraphSpacing));
                 }
                 y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.lineSpacing));
                 lines.push(line);
@@ -136,7 +137,7 @@ JSClass("JSTextFramesetter", JSObject, {
         var paragraphStyle;
         for (i = 0, l = frame.lines.length; i < l; ++i){
             line = frame.lines[i];
-            attributes = this._typesetter.attributedString.attributesAtIndex(line.range.location);
+            attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(line.range.location));
             paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
             characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(line.range.location);
             characterIterator.decrement();
