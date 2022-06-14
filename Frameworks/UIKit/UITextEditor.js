@@ -705,7 +705,15 @@ JSClass("UITextEditor", JSObject, {
         if (selection.attributes){
             return selection.attributes;
         }
-        var index = selection.range.location > 0 ? selection.range.location - 1 : 0;
+        var index = selection.range.location;
+        var iterator;
+        if (index > 0){
+            iterator = this.textLayoutManager.textStorage.string.userPerceivedCharacterIterator(index);
+            iterator.decrement();
+            if (!iterator.isParagraphBreak){
+                index = iterator.range.location;
+            }
+        }
         var attributes = JSCopy(this.textLayoutManager.textStorage.attributesAtIndex(index));
         if (JSAttributedString.Attribute.attachment in attributes){
             delete attributes[JSAttributedString.Attribute.attachment];
