@@ -18,15 +18,18 @@
 // #import "JSTextTypesetter.js"
 // #import "JSTextFrame.js"
 // #import "JSAttributedString.js"
+// #import "JSParagraphStyle.js"
 'use strict';
 
 (function(){
+
+var logger = JSLog("foundation", "text");
 
 JSClass("JSTextFramesetter", JSObject, {
 
     typesetter: JSReadOnlyProperty('_typesetter', null),
     attributedString: JSDynamicProperty(),
-    attributes: null,
+    defaultParagraphStyle: JSDynamicProperty("_defaultParagraphStyle", null),
 
     init: function(){
         this.initWithTypesetter(JSTextTypesetter.init());
@@ -34,7 +37,7 @@ JSClass("JSTextFramesetter", JSObject, {
 
     initWithTypesetter: function(typesetter){
         this._typesetter = typesetter;
-        this.attributes = Object.create(JSTextParagraphAttributes);
+        this._defaultParagraphStyle = JSParagraphStyle.init();
     },
 
     getAttributedString: function(){
@@ -45,8 +48,8 @@ JSClass("JSTextFramesetter", JSObject, {
         this._typesetter.attributedString = attributedString;
     },
 
-    constructFrame: function(lines, size, attributes){
-        return JSTextFrame.initWithLines(lines, size, attributes);
+    constructFrame: function(lines, size){
+        return JSTextFrame.initWithLines(lines, size);
     },
 
     createFrame: function(size, range, maximumLines){
@@ -61,35 +64,95 @@ JSClass("JSTextFramesetter", JSObject, {
         var widthLimit = size.width || Number.MAX_VALUE;
         var heightLimit = size.height || Number.MAX_VALUE;
         var lineLimit = maximumLines || Number.MAX_VALUE;
-        var spacing = 0;
+        var lineWidthLimit;
+        var attributes = this._typesetter.attributedString.attributesAtIndex(remianingRange.location);
+        var paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
+        var characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remianingRange.location);
+        characterIterator.decrement();
         do{
-            lineRange = this._typesetter.suggestLineBreak(widthLimit, remianingRange, this.effectiveLineBreakMode(this.attributes.lineBreakMode, lines.length + 1, lineLimit));
+            lineWidthLimit = widthLimit;
+            if (lineWidthLimit < Number.MAX_VALUE){
+                if (characterIterator.isParagraphBreak){
+                    lineWidthLimit -= paragraphStyle.firstLineHeadIndent;
+                }else{
+                    lineWidthLimit -= paragraphStyle.headIndent;
+                }
+                lineWidthLimit -= paragraphStyle.tailIndent;
+            }
+            lineRange = this._typesetter.suggestLineBreak(lineWidthLimit, remianingRange, this.effectiveLineBreakMode(paragraphStyle.lineBreakMode, lines.length + 1, lineLimit));
             line = this._typesetter.createLine(lineRange);
             line.origin.y = y;
+            if (paragraphStyle.lineHeightMultiple > 0){
+                line.size.height *= paragraphStyle.lineHeightMultiple;
+            }
+            if (line.size.height < paragraphStyle.minimumLineHeight){
+                line.size.height = paragraphStyle.minimumLineHeight;
+            }
             y += line.size.height;
             if (y <= heightLimit){
-                spacing = Math.min(heightLimit - y, (this.attributes.lineSpacing - 1.0) * line.size.height);
-                line.size.height += Math.max(0, spacing);
-                y += spacing;
-                lines.push(line);
                 remianingRange.advance(line.range.length);
-            }else{
-                spacing = 0;
+                characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remianingRange.location);
+                characterIterator.decrement();
+                if (characterIterator.isParagraphBreak){
+                    y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.paragraphSpacing));
+                    attributes = this._typesetter.attributedString.attributesAtIndex(remianingRange.location);
+                    paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
+                }
+                y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.lineSpacing));
+                lines.push(line);
             }
         } while (lineRange.length > 0 && remianingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
 
-        if (this.attributes.lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
+        if (paragraphStyle.lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
             line = lines.pop();
             if (remianingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than word break
-                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), this.attributes.lineBreakMode);
+                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), paragraphStyle.lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
             }
             var truncated = line.truncatedLine(widthLimit);
             lines.push(truncated);
         }
-        return this.constructFrame(lines, size, this.attributes);
+        var frame = this.constructFrame(lines, size);
+        this._alignLinesInFrame(frame);
+        return frame;
+    },
+
+    _resizeFrame: function(frame, size){
+        if (size.width < frame._usedSize.width || size.height < frame._usedSize.height){
+            throw new Error("Cannot adjust text frame to smaller than its used size");
+        }
+        frame._size = JSSize(size);
+        this._alignLinesInFrame(frame);
+    },
+
+    _alignLinesInFrame: function(frame){
+        var i, l;
+        var line;
+        var attributes;
+        var headIndent = 0;
+        var characterIterator;
+        var paragraphStyle;
+        for (i = 0, l = frame.lines.length; i < l; ++i){
+            line = frame.lines[i];
+            attributes = this._typesetter.attributedString.attributesAtIndex(line.range.location);
+            paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
+            characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(line.range.location);
+            characterIterator.decrement();
+            if (characterIterator.isParagraphBreak){
+                headIndent = paragraphStyle.firstLineHeadIndent;
+            }else{
+                headIndent = paragraphStyle.headIndent;
+            }
+            if (paragraphStyle.textAlignment === JSTextAlignment.left){
+                line.origin.x = headIndent;
+            }else if (paragraphStyle.textAlignment === JSTextAlignment.center){
+                line.origin.x = headIndent + (frame._size.width - headIndent - paragraphStyle.tailIndent - line.size.width + line.trailingWhitespaceWidth) / 2.0;
+            }else if (paragraphStyle.textAlignment === JSTextAlignment.right){
+                line.origin.x = (frame._size.width - line.size.width + line.trailingWhitespaceWidth) - paragraphStyle.tailIndent;
+            }
+        }
     },
 
     effectiveLineBreakMode: function(frameLineBreakMode, lineNumber, lineLimit){
@@ -104,15 +167,54 @@ JSClass("JSTextFramesetter", JSObject, {
             case JSLineBreakMode.characterWrap:
                 return frameLineBreakMode;
         }
+    },
+
+    // Deprecated:
+
+    attributes: JSReadOnlyProperty("_attributes", null),
+
+    getAttributes: function(){
+        logger.warn("JSTextFramesetter.attributes is deprecated");
+        if (this._attributes === null){
+            var framesetter = this;
+            this._attributes = Object.create({}, {
+                lineBreakMode: {
+                    get: function(){
+                        return framesetter._defaultParagraphStyle.lineBreakMode;
+                    },
+                    set: function(lineBreakMode){
+                        framesetter._defaultParagraphStyle.lineBreakMode = lineBreakMode;
+                    }
+                },
+                textAlignment: {
+                    get: function(){
+                        return framesetter._defaultParagraphStyle.textAlignment;
+                    },
+                    set: function(textAlignment){
+                        framesetter._defaultParagraphStyle.textAlignment = textAlignment;
+                    }
+                },
+                lineSpacing: {
+                    get: function(){
+                        return framesetter._defaultParagraphStyle.lineHeightMultiple > 0 ? framesetter._defaultParagraphStyle.lineHeightMultiple : 1.0;
+                    },
+                    set: function(lineSpacing){
+                        framesetter._defaultParagraphStyle.lineHeightMultiple = lineSpacing;
+                    }
+                },
+                minimumLineHeight: {
+                    get: function(){
+                        return framesetter._defaultParagraphStyle.minimumLineHeight;
+                    },
+                    set: function(minimumLineHeight){
+                        framesetter._defaultParagraphStyle.minimumLineHeight = minimumLineHeight;
+                    }
+                }
+            });
+        }
+        return this._attributes;
     }
 
 });
-
-var JSTextParagraphAttributes = {
-    minimumLineHeight: 0,
-    lineSpacing: 1.0,
-    textAlignment: JSTextAlignment.left,
-    lineBreakMode: JSLineBreakMode.truncateTail
-};
 
 })();

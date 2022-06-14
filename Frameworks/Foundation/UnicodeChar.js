@@ -778,6 +778,14 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
             Object.defineProperty(this, 'isLineBreak', {value: this.code === UnicodeChar.LineBreaks.newLine || this.code === UnicodeChar.LineBreaks.formFeed || this.code === UnicodeChar.LineBreaks.carriageReturn || this.code === UnicodeChar.LineBreaks.nextLine || this.code === UnicodeChar.LineBreaks.lineSeparator || this.code === UnicodeChar.LineBreaks.paragraphSeparator});
             return this.isLineBreak;
         }
+    },
+
+    isParagraphBreak: {
+        configurable: true,
+        get: function UnicodeChar_lazy_isParagraphBreak(){
+            Object.defineProperty(this, 'isParagraphBreak', {value: this.code === UnicodeChar.LineBreaks.newLine || this.code === UnicodeChar.LineBreaks.formFeed || this.code === UnicodeChar.LineBreaks.carriageReturn || this.code === UnicodeChar.LineBreaks.nextLine || this.code === UnicodeChar.LineBreaks.paragraphSeparator});
+            return this.isParagraphBreak;
+        }
     }
 
 });

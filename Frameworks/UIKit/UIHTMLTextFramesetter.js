@@ -26,29 +26,50 @@
 JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     _domDocument: null,
+    _htmlDisplayServer: null,
     _htmlTypesetter: null,
     _frameElement: null,
-    _frame: null,
+    _attachments: null,
 
     initWithDocument: function(domDocument, htmlDisplayServer){
-        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument, htmlDisplayServer);
-        UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
         this._domDocument = domDocument;
+        this._htmlDisplayServer = htmlDisplayServer;
+        this._htmlTypesetter = UIHTMLTextTypesetter.initWithDocument(domDocument);
+        this._attachments = [];
+        UIHTMLTextFramesetter.$super.initWithTypesetter.call(this, this._htmlTypesetter);
     },
 
     createFrame: function(size, range, maximumLines){
-        this._creatingFrame = true;
         this._createFrameElementIfNeeded();
-        var lineBreakMode = this.effectiveLineBreakMode(this.attributes.lineBreakMode, 1, maximumLines);
         this._enqueueElements();
-        this._htmlTypesetter.layoutRange(range, size, lineBreakMode);
+        var attachmentsByObjectID = {};
+        var attachment;
+        var i, l;
+        for (i = 0, l = this._attachments.length; i < l; ++i){
+            attachment = this._attachments[i];
+            attachmentsByObjectID[attachment.objectID] = attachment;
+        }
         var frame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
+        this._attachments = [];
+        for (i = 0, l = frame.attachmentRuns.length; i < l; ++i){
+            attachment = frame.attachmentRuns[i].attachment;
+            this._attachments.push(attachment);
+            if (attachment.objectID in attachmentsByObjectID){
+                delete attachmentsByObjectID[attachment.objectID];
+            }else{
+                this._htmlDisplayServer.attachmentInserted(attachment);
+            }
+        }
+        for (i in attachmentsByObjectID){
+            attachment = attachmentsByObjectID[i];
+            this._htmlDisplayServer.attachmentRemoved(attachment);
+        }
         this._removeQueuedElements();
         return frame;
     },
 
-    constructFrame: function(lines, size, attributes){
-        return UIHTMLTextFrame.initWithElement(this._frameElement, lines, size, attributes);
+    constructFrame: function(lines, size){
+        return UIHTMLTextFrame.initWithElement(this._frameElement, lines, size);
     },
 
     _createFrameElementIfNeeded: function(){
@@ -114,7 +135,29 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
             }
             element = this._htmlTypesetter.dequeueRunElement();
         }
-    }
+    },
+
+    _alignLinesInFrame: function(frame){
+        UIHTMLTextFramesetter.$super._alignLinesInFrame.call(this, frame);
+        this._updateSizesAndPositionsOfLinesInFrame(frame);
+    },
+
+    _updateSizesAndPositionsOfLinesInFrame: function(frame){
+        var i, l;
+        var line;
+
+        // set our size
+        frame.element.style.width = '%dpx'.sprintf(frame.size.width);
+        frame.element.style.height = '%dpx'.sprintf(frame.size.height);
+
+        // position the lines
+        for (i = 0, l = frame.lines.length; i < l; ++i){
+            line = frame.lines[i];
+            line.element.style.height = '%dpx'.sprintf(line.size.height);
+            line.element.style.left = '%dpx'.sprintf(line.origin.x);
+            line.element.style.top = '%dpx'.sprintf(line.origin.y);
+        }
+    },
 
 });
 

@@ -545,7 +545,9 @@ JSClass('UIView', UIResponder, {
     },
 
     layerDidChangeSize: function(layer){
-        this.invalidateFocusRingPath();
+        if (layer === this.layer){
+            this.invalidateFocusRingPath();
+        }
     },
 
     // -------------------------------------------------------------------------

@@ -72,6 +72,7 @@ JSClass("JSTextLine", JSObject, {
         }
         var height = this._size.height;
         for (i = 0, l = this._runs.length; i < l; ++i){
+            run = this._runs[i];
             if (run.size.height - run.baseline + baseline > height){
                 height = run.size.height - run.baseline + baseline;
             }
@@ -178,7 +179,7 @@ JSClass("JSTextLine", JSObject, {
     },
 
     copy: function(){
-        var line = JSTextLine.init();
+        var line = this.$class.init();
         line._origin = JSPoint(this._origin);
         line._size = JSSize(this._size);
         line._trailingWhitespaceWidth = this._trailingWhitespaceWidth;

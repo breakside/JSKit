@@ -655,22 +655,6 @@ JSClass("UITextField", UIControl, {
     layoutSubviews: function(){
         UITextField.$super.layoutSubviews.call(this);
         var textInsets = JSInsets(this._textInsets);
-        if (this._placeholderLabel !== null){
-            if (!this._multiline){
-                this._placeholderLabel.layoutIfNeeded();
-            }
-            var clipSize = this._clipView.bounds.size;
-            var placeholderSize = this._placeholderLabel.bounds.size;
-            if (this._multiline){
-                this._placeholderLabel.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
-            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.center){
-                this._placeholderLabel.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
-            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.right){
-                this._placeholderLabel.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
-            }else{
-                this._placeholderLabel.frame = JSRect(JSPoint.Zero, placeholderSize);
-            }
-        }
         if (this._leftAccessoryView !== null){
             textInsets.left += this._leftAccessoryInsets.width + this._leftAccessorySize.width;
             this._leftAccessoryView.frame = JSRect(
@@ -688,8 +672,24 @@ JSClass("UITextField", UIControl, {
                 this._rightAccessorySize.width,
                 this._rightAccessorySize.height
             );
-        }
+        } 
         this._clipView.frame = this.bounds.rectWithInsets(textInsets);
+        if (this._placeholderLabel !== null){
+            if (!this._multiline){
+                this._placeholderLabel.layoutIfNeeded();
+            }
+            var clipSize = this._clipView.bounds.size;
+            var placeholderSize = this._placeholderLabel.bounds.size;
+            if (this._multiline){
+                this._placeholderLabel.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.center){
+                this._placeholderLabel.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
+            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.right){
+                this._placeholderLabel.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
+            }else{
+                this._placeholderLabel.frame = JSRect(JSPoint.Zero, placeholderSize);
+            }
+        }
     },
 
     layerDidChangeSize: function(layer){
@@ -704,17 +704,19 @@ JSClass("UITextField", UIControl, {
     },
 
     sizeToFitText: function(maxSize){
-        if (this._multiline){
-            this._textLayer.sizeToFitSize(maxSize);
-            if (this._isShowingPlaceholder){
+        var size;
+        if (this._isShowingPlaceholder){
+            if (this._multiline){
                 this._placeholderLabel.sizeToFitSize(maxSize);
             }
-        }
-        this._textLayer.layoutIfNeeded();
-        this._placeholderLabel.layoutIfNeeded();
-        var size = JSSize(this._textLayer.bounds.size);
-        if (this._isShowingPlaceholder){
+            this._placeholderLabel.layoutIfNeeded();
             size = JSSize(this._placeholderLabel.bounds.size);
+        }else{
+            if (this._multiline){
+                this._textLayer.sizeToFitSize(maxSize);
+            }
+            this._textLayer.layoutIfNeeded();
+            size = JSSize(this._textLayer.bounds.size);
         }
         if (size.width > maxSize.width){
             size.width = maxSize.width;

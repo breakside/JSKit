@@ -86,7 +86,7 @@ UITextInput.SelectionAffinity = {
 UITextInput.TextContentType = {
     none: 0,
     url: 1,
-    email: 0,
+    email: 2,
     phone: 3,
     username: 4,
     password: 5,

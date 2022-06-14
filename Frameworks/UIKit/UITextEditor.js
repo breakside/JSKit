@@ -427,6 +427,54 @@ JSClass("UITextEditor", JSObject, {
         this._toggleBooleanAttribute("underline", "Underline");
     },
 
+    removeParagraphAttribute: function(name, undoName){
+        this.setParagraphAttribute(name, undefined, undoName);
+    },
+
+    setParagraphAttribute: function(name, value, undoName){
+        this.undoManager.beginUndoGrouping();
+        var i, l;
+        var selection;
+        var selections = this._selectionsCopy();
+        for (i = 0, l = selections.length; i < l; ++i){
+            selection = selections[i];
+            this._setParagraphAttributeForSelection(name, value, selection);
+        }
+        this._setSelectionsAllowingUndo(selections);
+        this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName(undoName);
+    },
+
+    _setParagraphAttributeForSelection: function(name, value, selection){
+        var textStorage = this.textLayoutManager.textStorage;
+        var replacementString;
+        var replacementRange;
+        var paragraphRange;
+        paragraphRange = textStorage.string.rangeForParagraphAtIndex(selection.range.location);
+        replacementRange = JSRange(paragraphRange);
+        while (paragraphRange.length > 0 && paragraphRange.end < selection.range.end){
+            paragraphRange = textStorage.string.rangeForParagraphAtIndex(replacementRange.end);
+            replacementRange.length += paragraphRange.length;
+        }
+        if (replacementRange.length > 0){
+            replacementString = textStorage.attributedSubstringInRange(replacementRange);
+            if (value !== undefined){
+                replacementString.addAttributeInRange(name, value, JSRange(0, replacementString.string.length));
+            }else{
+                replacementString.removeAttributeInRange(name, JSRange(0, replacementString.string.length));
+            }
+            this._replaceTextStorageRangeAllowingUndo(textStorage, replacementRange, replacementString);
+        }else{
+            selection.attributes = this._insertAttributesForSelection(selection);
+            this.undoManager.registerUndo(this, this._setParagraphAttributeForSelection, name, selection.attributes[name], selection);
+            if (value !== undefined){
+                selection.attributes[name] = value;
+            }else{
+                delete selection.attributes[name];
+            }
+        }
+    },
+
     _toggleBooleanAttribute: function(name, undoName){
         var selection;
         var textStorage = this.textLayoutManager.textStorage;
@@ -722,7 +770,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     insertLineBreak: function(){
-        this.insertText("\n");
+        this.insertText("\u2028");
     },
 
     insertTab: function(){

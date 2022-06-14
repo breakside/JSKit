@@ -1096,6 +1096,130 @@ JSClass('StringTests', TKTestSuite, {
         template = "This is a template {{ with no {{ params";
         str = template.replacingTemplateParameters({one: "1"});
         TKAssertEquals(str, "This is a template {{ with no {{ params");
+    },
+
+    testRangeForParagraphAtIndex: function(){
+        var str = "This is a test";
+        var range = str.rangeForParagraphAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 14);
+        range = str.rangeForParagraphAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 14);
+        range = str.rangeForParagraphAtIndex(13);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 14);
+        range = str.rangeForParagraphAtIndex(14);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 14);
+
+        str = "This is a test\nof paragraphs";
+        range = str.rangeForParagraphAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(13);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(14);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(15);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(16);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(27);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(28);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+
+        str = "This is a test\u2029of paragraphs";
+        range = str.rangeForParagraphAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(13);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(14);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 15);
+        range = str.rangeForParagraphAtIndex(15);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(16);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(27);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+        range = str.rangeForParagraphAtIndex(28);
+        TKAssertEquals(range.location, 15);
+        TKAssertEquals(range.length, 13);
+
+        str = "This is a test\u2028of paragraphs";
+        range = str.rangeForParagraphAtIndex(0);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(1);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(13);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(14);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(15);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(16);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(27);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+        range = str.rangeForParagraphAtIndex(28);
+        TKAssertEquals(range.location, 0);
+        TKAssertEquals(range.length, 28);
+    },
+
+    testUserPerceivedIteratorParagraphBreak: function(){
+        var str = "This is a test";
+        var iterator = str.userPerceivedCharacterIterator(0);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
+        iterator.decrement();
+        TKAssertExactEquals(iterator.isParagraphBreak, true);
+        iterator = str.userPerceivedCharacterIterator(13);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
+        iterator.increment();
+        TKAssertExactEquals(iterator.isParagraphBreak, true);
+
+        str = "This is a test\nof paragraphs";
+        iterator = str.userPerceivedCharacterIterator(14);
+        TKAssertExactEquals(iterator.isParagraphBreak, true);
+        iterator = str.userPerceivedCharacterIterator(15);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
+
+        str = "This is a test\u2029of paragraphs";
+        iterator = str.userPerceivedCharacterIterator(14);
+        TKAssertExactEquals(iterator.isParagraphBreak, true);
+        iterator = str.userPerceivedCharacterIterator(15);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
+
+        str = "This is a test\u2028of paragraphs";
+        iterator = str.userPerceivedCharacterIterator(14);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
+        iterator = str.userPerceivedCharacterIterator(15);
+        TKAssertExactEquals(iterator.isParagraphBreak, false);
     }
 
 });

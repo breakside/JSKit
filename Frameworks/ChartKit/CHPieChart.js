@@ -168,7 +168,7 @@ JSClass("CHPieChart", CHChart, {
 
         // draw labels
         if (this.showNames || this.showValues){
-            this.framesetter.attributes.textAlignment = this.labelTextAlignment;
+            this.framesetter.defaultParagraphStyle.textAlignment = this.labelTextAlignment;
             context.save();
             context.translateBy(rect.center.x, rect.center.y);
             if (this.labelShadowColor !== null){

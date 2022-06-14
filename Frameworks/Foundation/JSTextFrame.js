@@ -25,9 +25,8 @@ JSClass("JSTextFrame", JSObject, {
     usedSize: JSReadOnlyProperty('_usedSize', null),
     range: JSReadOnlyProperty('_range', null),
     lines: JSReadOnlyProperty('_lines', null),
-    _alignment: JSTextAlignment.left,
 
-    initWithLines: function(lines, size, attributes){
+    initWithLines: function(lines, size){
         if (lines.length > 0){
             this._range = JSRange(lines[0].range.location, lines[lines.length - 1].range.end - lines[0].range.location);   
         }else{
@@ -51,35 +50,6 @@ JSClass("JSTextFrame", JSObject, {
         }
         if (this._size.height === 0 || this._size.height === Number.MAX_VALUE){
             this._size.height = y;
-        }
-        this._alignment = attributes.textAlignment;
-        this._alignLines();
-    },
-
-    adjustSize: function(newSize){
-        if (newSize.width < this._usedSize.width || newSize.height < this._usedSize.height){
-            throw new Error("Cannot adjust text frame to smaller than its used size");
-        }
-        this._size = JSSize(newSize);
-        this._alignLines();
-    },
-
-    _alignLines: function(){
-        var i, l;
-        var line;
-        switch (this._alignment){
-            case JSTextAlignment.center:
-                for (i = 0, l = this.lines.length; i < l; ++i){
-                    line = this.lines[i];
-                    line.origin.x = (this._size.width - line.size.width + line.trailingWhitespaceWidth) / 2.0;
-                }
-                break;
-            case JSTextAlignment.right:
-                for (i = 0, l = this.lines.length; i < l; ++i){
-                    line = this.lines[i];
-                    line.origin.x = (this._size.width - line.size.width + line.trailingWhitespaceWidth);
-                }
-                break;
         }
     },
 

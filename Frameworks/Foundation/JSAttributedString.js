@@ -74,13 +74,18 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.underline:
                 case JSAttributedString.Attribute.strike:
                     return JSAttributedString.AttributeDecoder.boolean(value);
-                case JSAttributedString.Attribute.lineHeight:
+                case JSAttributedString.Attribute.lineHeightMultiple:
                 case JSAttributedString.Attribute.lineSpacing:
+                case JSAttributedString.Attribute.paragraphSpacing:
+                case JSAttributedString.Attribute.firstLineHeadIndent:
+                case JSAttributedString.Attribute.headIndent:
+                case JSAttributedString.Attribute.tailIndent:
+                case JSAttributedString.Attribute.minimumLineHeight:
                     return JSAttributedString.AttributeDecoder.number(value);
                 case JSAttributedString.Attribute.textAlignment:
-                    // TODO: validate
+                    return JSAttributedString.AttributeDecoder.enumValue(JSTextAlignment)(value);
                 case JSAttributedString.Attribute.lineBreakMode:
-                    // TODO: validate
+                    return JSAttributedString.AttributeDecoder.enumName(JSLineBreakMode)(value);
                 default:
                     return value;
             }
@@ -136,8 +141,13 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.italic:
                 case JSAttributedString.Attribute.underline:
                 case JSAttributedString.Attribute.strike:
-                case JSAttributedString.Attribute.lineHeight:
+                case JSAttributedString.Attribute.lineHeightMultiple:
+                case JSAttributedString.Attribute.minimumLineHeight:
                 case JSAttributedString.Attribute.lineSpacing:
+                case JSAttributedString.Attribute.paragraphSpacing:
+                case JSAttributedString.Attribute.firstLineHeadIndent:
+                case JSAttributedString.Attribute.headIndent:
+                case JSAttributedString.Attribute.tailIndent:
                 case JSAttributedString.Attribute.textAlignment:
                 case JSAttributedString.Attribute.lineBreakMode:
                 case JSAttributedString.Attribute.maskCharacter:
@@ -591,13 +601,20 @@ JSAttributedString.Attribute = {
     underline: "underline",
     strike: "strike",
     attachment: "attachment",
-    lineHeight: "lineHeight",
-    lineSpacing: "lineSpacing",
-    textAlignment: "textAlignment",
-    lineBreakMode: "lineBreakMode",
     maskCharacter: "maskCharacter",
     cursor: "cursor",
-    link: "link"
+    link: "link",
+
+    // Paragraph
+    textAlignment: "textAlignment",
+    lineBreakMode: "lineBreakMode",
+    minimumLineHeight: "minimumLineHeight",
+    lineHeightMultiple: "lineHeightMultiple",
+    lineSpacing: "lineSpacing",
+    paragraphSpacing: "paragraphSpacing",
+    firstLineHeadIndent: "firstLineHeadIndent",
+    headIndent: "headIndent",
+    tailIndent: "tailIndent",
 };
 
 JSAttributedString.AttributeEncoder = {
@@ -609,6 +626,15 @@ JSAttributedString.AttributeEncoder = {
     url: function(value){ return value.encodedString; },
     font: function(value){ return value.dictionaryRepresentation(); },
     color: function(value){ return value.dictionaryRepresentation(); },
+    enumName: function(obj){
+        return function(value){
+            for (var name in obj){
+                if (obj[name] === value){
+                    return name;
+                }
+            }
+        };
+    }
 };
 
 JSAttributedString.AttributeDecoder = {
@@ -623,6 +649,20 @@ JSAttributedString.AttributeDecoder = {
     boolean: function(value){ return typeof(value) === "boolean" ? value : undefined; },
     number: function(value){ return typeof(value) === "number" ? value : undefined; },
     string: function(value){ return typeof(value) === "string" ? value : undefined; },
+    enumName: function(obj){
+        return function(value){
+            return obj[value];
+        };
+    },
+    enumValue: function(obj){
+        return function(value){
+            for (var name in obj){
+                if (obj[name] === value){
+                    return value;
+                }
+            }
+        };
+    }
 };
 
 JSAttributedString.SpecialCharacter = {

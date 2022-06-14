@@ -39,6 +39,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         // Only the UIHTMLTextFrame does the final measuring.
         if (!this.attachment){
             this._size.height = font.displayLineHeight;
+            this.baseline = -font.displayDescender;
         }
         if (element.childNodes.length > 0 && element.firstChild.nodeType === element.TEXT_NODE){
             this.textNode = element.firstChild;
@@ -59,7 +60,6 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         if (mask){
             this._maskFactor = mask.length;
         }
-        this.baseline = -font.displayDescender;
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
         this.element.dataset.jstext = "run";
@@ -172,7 +172,7 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             if (index === this.range.location){
                 return JSRect(0, 0, this.size.width, this.size.height);
             }
-            if (index === this.range.location){
+            if (index === this.range.end){
                 return JSRect(this.size.width, 0, 0, this.size.height);
             }
             return JSRect.Zero;
@@ -257,6 +257,17 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         this.element.dataset.rangeLength = this._range.length;
         return diff;
     },
+
+    copy: function(){
+        var run = UIHTMLTextRun.$super.copy.call(this);
+        run.element = this.element.cloneNode();
+        if (this.textNode !== null){
+            run.textNode = this.textNode.cloneNode();
+            run.element.appendChild(run.textNode);
+        }
+        run._maskFactor = this._maskFactor;
+        return run;
+    }
 
 });
 

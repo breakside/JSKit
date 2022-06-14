@@ -3,6 +3,7 @@ name: JSTextParagraphAttributes
 kind: class
 anonymous: true
 introduced: 2020.1.0
+deprecated: 2022.24.0
 summary: Attributes for text frames
 topics:
   - name: Properties

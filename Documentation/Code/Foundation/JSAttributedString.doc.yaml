@@ -129,7 +129,7 @@ topics:
         kind: enum
         topics:
           -
-            name: Options
+            name: Text Styling
             members:
               -
                 name: font
@@ -159,31 +159,62 @@ topics:
                 name: strike
                 summary: Points to a `boolean` that indicates the text in the run
                   should be struck through with a single line
+          -
+            name: Paragraph Styling
+            members:
+              -
+                name: lineHeightMultiple
+                introduced: 2022.24.0
+                summary: Points to a `Number` that adjusts the line height by mutliplying
+                  the natural line height
+              -
+                name: lineSpacing
+                summary: Points to a `Number` that adds spacing between lines
+              -
+                name: paragraphSpacing
+                introduced: 2022.24.0
+                summary: Points to a `Number` that adds spacing between paragraphs
+              -
+                name: textAlignment
+                summary: Points to a `JSTextAlignment` that determines the paragraph's
+                  text alignment
+              -
+                name: lineBreakMode
+                summary: Points to a `JSLineBreakMode` that determines the paragraph's
+                   line break mode
+              -
+                name: firstLineHeadIndent
+                introduced: 2022.24.0
+                summary: Points to a `Number` that indents the first line of the paragraph
+              -
+                name: headIndent
+                introduced: 2022.24.0
+                summary: Points to a `Number` that indents all lines of the paragraph
+                  except the first
+              -
+                name: tailInent
+                introduced: 2022.24.0
+                summary: Points to a `Number` that indents all lines of the paragraph
+                  on the right side
+              -
+                name: minimiumLineHeight
+                introduced: 2022.24.0
+                summary: Points to a `Number` that sets a limit on how vertically small a line can be
+          -
+            name: String Masking
+            members:
+              -
+                name: maskCharacter
+                summary: Points to a `String` that visually replaces all
+                  characters in the run
+          -
+            name: Text Attachments
+            members:
               -
                 name: attachment
                 summary: Points to a `JSTextAttachment` that should replace the
                   text in the run.  This attribute should only be used for single
                   character runs containing a `0xFFFC` character.
-              -
-                name: lineHeight
-                summary: Points to a `Number` that should adjust the line height for
-                  the text in the run
-              -
-                name: lineSpacing
-                summary: Points to a `Number` that should adjust the line spacing
-                  for the text in the run
-              -
-                name: textAlignment
-                summary: Points to a `JSTextAlignment` that should adjust the text
-                  alginment for the run
-              -
-                name: lineBreakMode
-                summary: Points to a `JSLineBreakMode` that should adjust the line
-                  break mode for the run
-              -
-                name: maskCharacter
-                summary: Points to a `String` that should be used to replace all
-                  characters in the run
       -
         name: attributesAtIndex
         kind: method
