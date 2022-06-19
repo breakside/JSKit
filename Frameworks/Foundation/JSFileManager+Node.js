@@ -157,8 +157,8 @@ JSClass("JSNodeFileManager", JSFileManager, {
             if (!error){
                 attrs = {
                     itemType: JSFileManager.ItemType.fromStat(stats),
-                    created: Math.floor(stats.ctimeMs),
-                    modified: Math.floor(stats.mtimeMs),
+                    created: Math.floor(stats.ctimeMs / 1000.0),
+                    updated: Math.floor(stats.mtimeMs / 1000.0),
                     size: stats.size
                 };
             }
