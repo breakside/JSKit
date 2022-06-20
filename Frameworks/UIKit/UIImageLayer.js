@@ -19,13 +19,12 @@
 JSClass("UIImageLayer", UILayer, {
 
     image: JSDynamicProperty('_image', null),
-    imageFrame: JSDynamicProperty('_imageFrame', null),
+    imageFrame: UILayerAnimatedProperty(),
     templateColor: UILayerAnimatedProperty(),
     automaticRenderMode: JSDynamicProperty('_automaticRenderMode', JSImage.RenderMode.original),
 
     init: function(){
         UIImageLayer.$super.init.call(this);
-        this._imageFrame = JSRect.Zero;
         this.model.templateColor = JSColor.black;
     },
 
@@ -42,17 +41,20 @@ JSClass("UIImageLayer", UILayer, {
     },
 
     setImageFrame: function(imageFrame){
-        this._imageFrame = imageFrame;
-        this.setNeedsDisplay();
+        if (!imageFrame.isEqual(this.model.imageFrame)){
+            this._addImplicitAnimationForKey('imageFrame');
+            this.model.imageFrame = JSRect(imageFrame);
+            this.didChangeProperty('imageFrame');
+        }
     },
 
     drawInContext: function(context){
-        if (this._image !== null && this._imageFrame.size.width > 0 && this._imageFrame.size.height > 0){
+        if (this._image !== null && this.presentation.imageFrame.size.width > 0 && this.presentation.imageFrame.size.height > 0){
             if (this._image.renderMode === JSImage.RenderMode.template || (this._image.renderMode === JSImage.RenderMode.automatic && this._automaticRenderMode === JSImage.RenderMode.template)){
                 context.setFillColor(this.presentation.templateColor);
-                context.fillMaskedRect(this._imageFrame, this._image);
+                context.fillMaskedRect(this.presentation.imageFrame, this._image);
             }else{
-                context.drawImage(this._image, this._imageFrame);
+                context.drawImage(this._image, this.presentation.imageFrame);
             }
         }
     },
@@ -74,6 +76,11 @@ JSClass("UIImageLayer", UILayer, {
 });
 
 UIImageLayer.Properties = Object.create(UILayer.Properties, {
+
+    imageFrame: {
+        writable: true,
+        value: JSRect.Zero
+    },
 
     templateColor: {
         writable: true,
