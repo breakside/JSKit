@@ -29,6 +29,7 @@ JSClass("UIHTMLApplication", UIApplication, {
     initWithBundle: function(bundle, windowServer){
         UIHTMLApplication.$super.initWithBundle.call(this, bundle, windowServer);
         this.domWindow = this.windowServer.domWindow;
+        this.rememberStateInFragment = this.bundle.info.UIHTMLUseURLFragmentForState === true;
     },
 
     setup: function(completion, target){
@@ -93,31 +94,36 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.stop(reload);
     },
 
-    baseURL: JSReadOnlyProperty('_baseURL'),
+    baseURL: JSReadOnlyProperty('_baseURL', null),
+    rememberStateInFragment: false,
 
     setState: function(state){
         if (!state.isEqual(this.state)){
             UIHTMLApplication.$super.setState.call(this, state);
-            var url = JSURL.initWithURL(this.baseURL);
-            if (state.path !== "/"){
-                url.fragment = state.path;
-            }
-            if (!this._isHandlingHashChange){
+            if (!this._isHandlingBrowserStateChange){
+                var url = this.urlForState(state);
                 var href = url.encodedString;
-                if (href != this.domWindow.location.href){
-                    this.domWindow.history.pushState(null, null, url.encodedString);
-                }
+                this.domWindow.history.pushState(null, null, url.encodedString);
             }
         }
     },
 
     setStateReplacingHTMLState: function(state){
         UIHTMLApplication.$super.setState.call(this, state);
-        var url = JSURL.initWithURL(this.baseURL);
-        if (state.path !== "/"){
-            url.fragment = state.path;
-        }
+        var url = this.urlForState(state);
         this.domWindow.history.replaceState(null, null, url.encodedString);
+    },
+
+    urlForState: function(state){
+        var url = JSURL.initWithURL(this.baseURL);
+        if (state.pathComponents.length > 1){
+            if (this.rememberStateInFragment){
+                url.fragment = state.path;
+            }else{
+                url.appendPathComponents(state.pathComponents.slice(1));
+            }
+        }
+        return url;
     },
 
     addEventListeners: function(){
@@ -125,6 +131,7 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.domWindow.addEventListener("unhandledrejection", this);
         this.domWindow.addEventListener("beforeunload", this);
         this.domWindow.addEventListener("hashchange", this);
+        this.domWindow.addEventListener("popstate", this);
     },
 
     handleEvent: function(e){
@@ -162,7 +169,10 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _event_hashchange: function(e){
-        this._isHandlingHashChange = true;
+        if (!this.rememberStateInFragment){
+            return;
+        }
+        this._isHandlingBrowserStateChange = true;
         try{
             var requestedURL = JSURL.initWithString(this.domWindow.location.href);
             var requestedFragment = requestedURL.fragment;
@@ -187,7 +197,33 @@ JSClass("UIHTMLApplication", UIApplication, {
             }
             this.setStateReplacingHTMLState(state);
         }finally{
-            this._isHandlingHashChange = false;
+            this._isHandlingBrowserStateChange = false;
+        }
+    },
+
+    _event_popstate: function(e){
+        if (this.rememberStateInFragment){
+            return;
+        }
+        this._isHandlingBrowserStateChange = true;
+        try{
+            var requestedURL = JSURL.initWithString(this.domWindow.location.href);
+            var relativeURL = JSURL.initWithString(requestedURL.encodedStringRelativeTo(this._baseURL));
+            var requestedState = UIState.initWithPath(relativeURL.path);
+            var state = null;
+            if (this.delegate && this.delegate.applicationDidRequestState){
+                state = this.delegate.applicationDidRequestState(this, requestedState);
+            }
+            if (state === null || state === undefined){
+                state = this.state;
+            }
+            if (state.isEqual(requestedState)){
+                UIHTMLApplication.$super.setState.call(this, state);
+            }else{
+                this.setStateReplacingHTMLState(state);
+            }
+        }finally{
+            this._isHandlingBrowserStateChange = false;
         }
     },
 
