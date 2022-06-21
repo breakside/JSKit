@@ -29,7 +29,7 @@ JSClass("UIHTMLApplication", UIApplication, {
     initWithBundle: function(bundle, windowServer){
         UIHTMLApplication.$super.initWithBundle.call(this, bundle, windowServer);
         this.domWindow = this.windowServer.domWindow;
-        this.rememberStateInFragment = this.bundle.info.UIHTMLUseURLFragmentForState === true;
+        this.rememberStateInPath = this.bundle.info.UIHTMLUseURLPathForState === true;
     },
 
     setup: function(completion, target){
@@ -95,7 +95,7 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     baseURL: JSReadOnlyProperty('_baseURL', null),
-    rememberStateInFragment: false,
+    rememberStateInPath: false,
 
     setState: function(state){
         if (!state.isEqual(this.state)){
@@ -117,10 +117,10 @@ JSClass("UIHTMLApplication", UIApplication, {
     urlForState: function(state){
         var url = JSURL.initWithURL(this.baseURL);
         if (state.pathComponents.length > 1){
-            if (this.rememberStateInFragment){
-                url.fragment = state.path;
-            }else{
+            if (this.rememberStateInPath){
                 url.appendPathComponents(state.pathComponents.slice(1));
+            }else{
+                url.fragment = state.path;
             }
         }
         return url;
@@ -169,7 +169,7 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _event_hashchange: function(e){
-        if (!this.rememberStateInFragment){
+        if (this.rememberStateInPath){
             return;
         }
         this._isHandlingBrowserStateChange = true;
@@ -202,7 +202,7 @@ JSClass("UIHTMLApplication", UIApplication, {
     },
 
     _event_popstate: function(e){
-        if (this.rememberStateInFragment){
+        if (!this.rememberStateInPath){
             return;
         }
         this._isHandlingBrowserStateChange = true;
