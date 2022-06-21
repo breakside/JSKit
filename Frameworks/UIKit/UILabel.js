@@ -40,10 +40,12 @@ JSClass('UILabel', UIView, {
         this.maximumNumberOfLines = 1;
         this.textColor = JSColor.text;
         this._selectionColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
+        this.layer.textContainer.framesetter.typesetter.delegate = this;
     },
 
     initWithSpec: function(spec){
         UILabel.$super.initWithSpec.call(this, spec);
+        this.layer.textContainer.framesetter.typesetter.delegate = this;
         if (spec.containsKey("font")){
             this.font = spec.valueForKey("font", JSFont);
         }
