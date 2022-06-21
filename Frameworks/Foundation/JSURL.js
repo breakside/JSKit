@@ -523,6 +523,9 @@ JSClass("JSURL", JSObject, {
     },
 
     isEqual: function(url){
+        if (url === null || url === undefined){
+            return false;
+        }
         if (this._scheme !== url._scheme){
             return false;
         }

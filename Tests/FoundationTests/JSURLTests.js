@@ -1080,6 +1080,27 @@ JSClass('JSURLTests', TKTestSuite, {
         TKAssertExactEquals(url.encodedString, "https://test.breakside.io?a=1&c=three");
     },
 
+    testIsEqual: function(){
+        var url1 = JSURL.initWithString("https://test.breakside.io");
+        var url2 = JSURL.initWithString("https://test.breakside.io");
+        var equal = url1.isEqual(url2);
+        TKAssertExactEquals(equal, true);
+        equal = url1.isEqual(url1);
+        TKAssertExactEquals(equal, true);
+        url2 = JSURL.initWithString("https://test.breakside.io/");
+        equal = url1.isEqual(url2);
+        TKAssertExactEquals(equal, false);
+        url2 = JSURL.initWithString("http://test.breakside.io");
+        equal = url1.isEqual(url2);
+        TKAssertExactEquals(equal, false);
+        url2 = JSURL.initWithString("https://test.breakside.io/");
+        equal = url1.isEqual(null);
+        TKAssertExactEquals(equal, false);
+        url2 = JSURL.initWithString("https://test.breakside.io/");
+        equal = url1.isEqual(undefined);
+        TKAssertExactEquals(equal, false);
+    }
+
     // TODO: test modifying parts other than path
 
 });
