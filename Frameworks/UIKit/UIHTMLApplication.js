@@ -96,15 +96,17 @@ JSClass("UIHTMLApplication", UIApplication, {
     baseURL: JSReadOnlyProperty('_baseURL'),
 
     setState: function(state){
-        UIHTMLApplication.$super.setState.call(this, state);
-        var url = JSURL.initWithURL(this.baseURL);
-        if (state.path !== "/"){
-            url.fragment = state.path;
-        }
-        if (!this._isHandlingHashChange){
-            var href = url.encodedString;
-            if (href != this.domWindow.location.href){
-                this.domWindow.history.pushState(null, null, url.encodedString);
+        if (!state.isEqual(this.state)){
+            UIHTMLApplication.$super.setState.call(this, state);
+            var url = JSURL.initWithURL(this.baseURL);
+            if (state.path !== "/"){
+                url.fragment = state.path;
+            }
+            if (!this._isHandlingHashChange){
+                var href = url.encodedString;
+                if (href != this.domWindow.location.href){
+                    this.domWindow.history.pushState(null, null, url.encodedString);
+                }
             }
         }
     },

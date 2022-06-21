@@ -161,7 +161,14 @@ JSClass("UIState", JSObject, {
         var state = UIState.initWithPath(this._path);
         state._removeFileExtension();
         return state;
-    }
+    },
+
+    isEqual: function(other){
+        if (other === null || other === undefined){
+            return false;
+        }
+        return this._path === other._path;
+    },
 
 });
 
