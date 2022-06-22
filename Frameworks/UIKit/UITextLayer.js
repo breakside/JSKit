@@ -59,8 +59,8 @@ JSClass("UITextLayer", UILayer, {
     },
 
     didChangeSize: function(){
-        UITextLayer.$super.didChangeSize.call(this);
         this._textContainer.size = this._availableTextSize();
+        UITextLayer.$super.didChangeSize.call(this);
     },
 
     // MARK: - Styling
