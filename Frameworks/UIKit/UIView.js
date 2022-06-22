@@ -22,6 +22,7 @@
 // #import "UITraitCollection.js"
 // #import "UICursor.js"
 // #import "UIAccessibility.js"
+// #import "UIMouseTrackingArea.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -183,7 +184,7 @@ JSClass('UIView', UIResponder, {
     shadowColor: UIViewLayerProperty(),
     shadowOffset: UIViewLayerProperty(),
     shadowRadius: UIViewLayerProperty(),
-    cursor: JSDynamicProperty('_cursor', null),
+    cursor: JSDynamicProperty(),
     tooltip: null,
 
     // -------------------------------------------------------------------------
@@ -329,11 +330,21 @@ JSClass('UIView', UIResponder, {
 
     setWindow: function(window){
         if (window != this._window){
-            if (this._window && this._window.firstResponder === this){
-                this._window.firstResponder = null;
+            if (this._window){
+                if (this._window.firstResponder === this){
+                    this._window.firstResponder = null;
+                }
+                if (this._mouseTrackingAreas !== null && this._mouseTrackingAreas.length > 0){
+                    this._window.removeMouseTrackingView(this);
+                }
             }
             this._setWindowServer(window ? window.windowServer : null);
             this._window = window;
+            if (this._window){
+                if (this._mouseTrackingAreas !== null && this._mouseTrackingAreas.length > 0){
+                    this._window.addMouseTrackingView(this);
+                }
+            }
             for (var i = 0, l = this.subviews.length; i < l; ++i){
                 this.subviews[i].window = window;
             }
@@ -348,22 +359,6 @@ JSClass('UIView', UIResponder, {
 
     _setWindowServer: function(windowServer, includeSubviews){
         if (this._windowServer !== windowServer){
-            if (this.cursor !== null){
-                if (this._windowServer !== null){
-                    this._windowServer.viewDidChangeCursor(this, null);
-                }
-                if (windowServer !== null){
-                    windowServer.viewDidChangeCursor(this, this.cursor);
-                }
-            }
-            if (this.mouseTrackingType !== UIView.MouseTracking.none){
-                if (this._windowServer !== null){
-                    this._windowServer.viewDidChangeMouseTracking(this, UIView.MouseTracking.none);
-                }
-                if (windowServer !== null){
-                    windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
-                }
-            }
             if (this.isAccessibilityElement){
                 if (this._windowServer !== null){
                     this._windowServer.postNotificationsForAccessibilityElementDestroyed(this);
@@ -378,13 +373,6 @@ JSClass('UIView', UIResponder, {
                     this.subviews[i]._setWindowServer(windowServer, true);
                 }
             }
-        }
-    },
-
-    setCursor: function(cursor){
-        this._cursor = cursor;
-        if (this._windowServer !== null){
-            this._windowServer.viewDidChangeCursor(this, this.cursor);
         }
     },
 
@@ -547,6 +535,7 @@ JSClass('UIView', UIResponder, {
     layerDidChangeSize: function(layer){
         if (layer === this.layer){
             this.invalidateFocusRingPath();
+            this.updateMouseTrackingAreas();
         }
     },
 
@@ -680,9 +669,8 @@ JSClass('UIView', UIResponder, {
     },
 
     // -------------------------------------------------------------------------
-    // MARK: - Responder & Mouse Tracking
-
-    mouseTrackingType: 0,
+    // MARK: - Responder
+    
     isMultipleTouchEnabled: false,
 
     isFirstResponder: function(){
@@ -696,24 +684,110 @@ JSClass('UIView', UIResponder, {
         return this.superview;
     },
 
-    startMouseTracking: function(trackingType){
-        this.mouseTrackingType = trackingType;
-        if (this._windowServer !== null){
-            this._windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
-        }
-    },
-
-    stopMouseTracking: function(){
-        this.mouseTrackingType = UIView.MouseTracking.none;
-        if (this._windowServer !== null){
-            this._windowServer.viewDidChangeMouseTracking(this, this.mouseTrackingType);
-        }
-    },
-
     keyActive: JSReadOnlyProperty(undefined, undefined, 'isKeyActive'),
 
     isKeyActive: function(){
         return this.window !== null && this.window.isKeyWindow && this.window.firstResponder === this;
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Mouse Tracking
+
+    _mouseTrackingAreas: null,
+
+    addMouseTrackingArea: function(trackingArea){
+        if (this._mouseTrackingAreas === null){
+            this._mouseTrackingAreas = [];
+        }
+        var index = this._mouseTrackingAreas.indexOf(trackingArea);
+        if (index < 0){
+            trackingArea.view = this;
+            this._mouseTrackingAreas.push(trackingArea);
+            if (this._mouseTrackingAreas.length === 1 && this._window !== null){
+                this._window.addMouseTrackingView(this);
+            }
+        }
+    },
+
+    removeMouseTrackingArea: function(trackingArea){
+        if (this._mouseTrackingAreas !== null){
+            var index = this._mouseTrackingAreas.indexOf(trackingArea);
+            if (index >= 0){
+                if (trackingArea._entered && trackingArea.cursor !== null){
+                    trackingArea.cursor.unset();
+                }
+                trackingArea._entered = false;
+                trackingArea.view = null;
+                this._mouseTrackingAreas.splice(index, 1);
+                if (this._window !== null && this._mouseTrackingAreas.length === 0){
+                    this._window.removeMouseTrackingView(this);
+                }
+            }
+        }
+    },
+
+    updateMouseTrackingAreas: function(){
+        if (this._startStopMouseTrackingArea !== null){
+            this._startStopMouseTrackingArea.rect = this.bounds;
+        }
+        if (this._cursorMouseTrackingArea !== null){
+            this._cursorMouseTrackingArea.rect = this.bounds;
+        }
+    },
+
+    _cursorMouseTrackingArea: null,
+
+    setCursor: function(cursor){
+        if (this._cursorMouseTrackingArea === null){
+            if (cursor !== null){
+                this._cursorMouseTrackingArea = UIMouseTrackingArea.initWithResponder(this, this.bounds, UIMouseTrackingArea.TrackingType.enterAndExit);
+                this._cursorMouseTrackingArea.cursor = cursor;
+                this.addMouseTrackingArea(this._cursorMouseTrackingArea);
+            }
+        }else{
+            if (cursor !== null){
+                this._cursorMouseTrackingArea.cursor = cursor;
+            }else{
+                this.removeMouseTrackingArea(this._cursorMouseTrackingArea);
+                this._cursorMouseTrackingArea = null;
+            }
+        }
+    },
+
+    getCursor: function(){
+        if (this._cursorMouseTrackingArea !== null){
+            return this._cursorMouseTrackingArea.cursor;
+        }
+        return null;
+    },
+
+    // legacy/deprecated
+    
+    mouseTrackingType: JSReadOnlyProperty(),
+
+    getMouseTrackingType: function(){
+        if (this._startStopMouseTrackingArea !== null){
+            return this._startStopMouseTrackingArea.trackingType;
+        }
+        return UIView.MouseTracking.none;
+    },
+
+    _startStopMouseTrackingArea: null,
+
+    startMouseTracking: function(trackingType){
+        if (this._startStopMouseTrackingArea === null){
+            this._startStopMouseTrackingArea = UIMouseTrackingArea.initWithResponder(this, this.bounds, trackingType);
+            this.addMouseTrackingArea(this._startStopMouseTrackingArea);
+        }else{
+            this._startStopMouseTrackingArea.trackingType = trackingType;
+        }
+    },
+
+    stopMouseTracking: function(){
+        if (this._startStopMouseTrackingArea !== null){
+            this.removeMouseTrackingArea(this._startStopMouseTrackingArea);
+            this._startStopMouseTrackingArea = null;
+        }
     },
 
     // -------------------------------------------------------------------------
@@ -1047,12 +1121,7 @@ JSClass('UIView', UIResponder, {
 
 });
 
-UIView.MouseTracking = {
-    none: 0,
-    move: 1,
-    enterAndExit: 2,
-    all: 3
-};
+UIView.MouseTracking = UIMouseTrackingArea.TrackingType;
 
 UIView.layerClass = UILayer;
 

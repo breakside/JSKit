@@ -43,7 +43,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        this._cursorViewsById = {};
         this.setupRenderingEnvironment();
         this.setupEventListeners();
         this.startObservingAccessibilityNotifications();
@@ -112,24 +111,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     // --------------------------------------------------------------------
     // MARK: - Cursor Management
-    
-    _cursorViewsById: null,
-    _isOverridingCursor: false,
-
-    viewDidChangeCursor: function(view, cursor){
-        if (cursor === null){
-            delete this._cursorViewsById[view.objecID];
-        }else{
-            this._cursorViewsById[view.objectID] = view;
-        }
-        if (!this._isOverridingCursor){
-            var context = this.displayServer.contextForLayer(view.layer);
-            context.setCursor(cursor, view.layer);
-        }
-    },
 
     hideCursor: function(){
-        this._setCursor(UICursor.none, true);
+        this._setCursor(UICursor.none);
     },
 
     unhideCursor: function(){
@@ -137,60 +121,11 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     setCursor: function(cursor){
-        this._setCursor(cursor, UICursor._stack.length > 1);
+        this._setCursor(cursor);
     },
 
-    _setCursor: function(cursor, isOverride){
-        this.displayServer.screenContext.setCursor(cursor, null);
-        var id;
-        var view;
-        var context;
-        if (isOverride){
-            if (!this._isOverridingCursor){
-                this._isOverridingCursor = true;
-                for (id in this._cursorViewsById){
-                    context = this.displayServer.contextForLayer(this._cursorViewsById[id].layer);
-                    context.setCursor(null, this._cursorViewsById[id].layer);
-                }
-            }
-        }else{
-            if (this._isOverridingCursor){
-                this._isOverridingCursor = false;
-                for (id in this._cursorViewsById){
-                    view = this._cursorViewsById[id];
-                    context = this.displayServer.contextForLayer(view.layer);
-                    context.setCursor(view.cursor, view.layer);
-                }
-            }
-        }
-    },
-
-    viewDidChangeMouseTracking: function(view, trackingType){
-        var context = this.displayServer.contextForLayer(view.layer);
-        var windowServer = this;
-        if (trackingType === UIView.MouseTracking.none){
-            context.stopMouseTracking();
-        }else{
-            var listener = {
-                handleEvent: function(e){
-                    e.stopPropagation();
-                    this[e.type](e);
-                },
-
-                mouseenter: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseEntered, view);
-                },
-
-                mouseleave: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseExited, view);
-                },
-
-                mousemove: function(e){
-                    windowServer._createMouseTrackingEventFromDOMEvent(e, UIEvent.Type.mouseMoved, view);
-                }
-            };
-            context.startMouseTracking(trackingType, listener, view.layer);
-        }
+    _setCursor: function(cursor){
+        this.displayServer.screenContext.setCursor(cursor);
     },
 
     // --------------------------------------------------------------------
@@ -395,6 +330,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         if (this._draggingSession === null || this._draggingSession.source === null){
             this.resetMouseState(e.timeStamp / 1000.0);
         }
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.mouseDidMove(e.timeStamp / 1000.0, modifiers);
     },
 
     wheel: function(e){
@@ -407,16 +344,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var timestamp = e.timeStamp / 1000.0;
         var modifiers = this._modifiersFromDOMEvent(e);
         this.createMouseEvent(type, timestamp, this.mouseLocation, modifiers);
-    },
-
-    _createMouseTrackingEventFromDOMEvent: function(e, type, view){
-        this._updateMouseLocation(e);
-        var timestamp = e.timeStamp / 1000.0;
-        var modifiers = this._modifiersFromDOMEvent(e);
-        if (type === UIEvent.Type.mouseMoved){
-            this.mouseDidMove(timestamp, modifiers);
-        }
-        this.createMouseTrackingEvent(type, timestamp, this.mouseLocation, modifiers, view);
     },
 
     _createScrollEventFromDOMEvent: function(e, type){

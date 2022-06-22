@@ -753,6 +753,95 @@ JSClass('UIWindow', UIView, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Mouse Tracking
+
+    mouseTrackingViews: null,
+
+    addMouseTrackingView: function(view){
+        if (this.mouseTrackingViews === null){
+            this.mouseTrackingViews = [];
+        }
+        var index = this.mouseTrackingViews.indexOf(view);
+        if (index < 0){
+            this.mouseTrackingViews.push(view);
+        }
+    },
+
+    removeMouseTrackingView: function(view){
+        if (this.mouseTrackingViews === null){
+            return;
+        }
+        var index = this.mouseTrackingViews.indexOf(view);
+        if (index >= 0){
+            this.mouseTrackingViews.splice(index, 1);
+        }
+    },
+
+    sendMouseTrackingEvents: function(locationInWindow, timestamp, modifiers, isExiting){
+        if (this.mouseTrackingViews === null || this.mouseTrackingViews.length === 0){
+            return;
+        }
+        var view;
+        var area;
+        var viewIndex, viewCount;
+        var areaIndex, areaCount;
+        var location;
+        var enters = [];
+        var exits = [];
+        var moves = [];
+        for (viewIndex = 0, viewCount = this.mouseTrackingViews.length; viewIndex < viewCount; ++viewIndex){
+            view = this.mouseTrackingViews[viewIndex];
+            location = this.convertPointToView(locationInWindow, view);
+            for (areaIndex = 0, areaCount = view._mouseTrackingAreas.length; areaIndex < areaCount; ++areaIndex){
+                area = view._mouseTrackingAreas[areaIndex];
+                if (!isExiting && !view.hidden && view.userInteractionEnabled && area.containsPoint(location)){
+                    if (!area._entered){
+                        area._entered = true;
+                        if ((area.trackingType & UIMouseTrackingArea.TrackingType.enterAndExit) !== 0){
+                            enters.push(area);
+                        }
+                    }
+                    if ((area.trackingType & UIMouseTrackingArea.TrackingType.move) !== 0){
+                        moves.push(area);
+                    }
+                }else{
+                    if (area._entered){
+                        area._entered = false;
+                        if ((area.trackingType & UIMouseTrackingArea.TrackingType.enterAndExit) !== 0){
+                            exits.push(area);
+                        }
+                    }
+                }
+            }
+        }
+        // FIXME: the order could be important here for views that overlap and
+        // set cursors.  We'd want the topmost one to be called last for enters
+        // and first for exits
+        var event;
+        if (exits.length > 0){
+            event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseExited, timestamp, this, locationInWindow, modifiers, 0);
+            for (areaIndex = 0, areaCount = exits.length; areaIndex < areaCount; ++areaIndex){
+                area = exits[areaIndex];
+                area.mouseExited(event);
+            }
+        }
+        if (enters.length > 0){
+            event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseEntered, timestamp, this, locationInWindow, modifiers, 0);
+            for (areaIndex = 0, areaCount = enters.length; areaIndex < areaCount; ++areaIndex){
+                area = enters[areaIndex];
+                area.mouseEntered(event);
+            }
+        }
+        if (moves.length > 0){
+            event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseMoved, timestamp, this, locationInWindow, modifiers, 0);
+            for (areaIndex = 0, areaCount = moves.length; areaIndex < areaCount; ++areaIndex){
+                area = moves[areaIndex];
+                area.mouseMoved(event);
+            }
+        }
+    },
+
+    // -------------------------------------------------------------------------
     // MARK: - Event Dispatch
 
     sendEvent: function(event){
