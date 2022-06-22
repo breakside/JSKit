@@ -747,6 +747,9 @@ JSClass('UIView', UIResponder, {
         }else{
             if (cursor !== null){
                 this._cursorMouseTrackingArea.cursor = cursor;
+                if (this._cursorMouseTrackingArea._entered){
+                    cursor.set();
+                }
             }else{
                 this.removeMouseTrackingArea(this._cursorMouseTrackingArea);
                 this._cursorMouseTrackingArea = null;
