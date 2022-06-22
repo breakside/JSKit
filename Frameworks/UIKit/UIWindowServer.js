@@ -678,11 +678,11 @@ JSClass("UIWindowServer", JSObject, {
         this._mouseIdleTimer.invalidate();
         this._leftClickCount = 0;
         this._rightClickCount = 0;
-        this.sendMouseTrackingEvents(timestamp, modifiers);
         if (this._draggingSession !== null){
             this.draggingSessionDidChangeLocation();
         }else{
             if (this.mouseDownCount === 0){
+                this.sendMouseTrackingEvents(timestamp, modifiers);
                 if (this._tooltipWindow === null){
                     this._mouseIdleTimer.schedule();
                 }else{
