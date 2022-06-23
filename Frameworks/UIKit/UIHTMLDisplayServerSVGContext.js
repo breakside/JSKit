@@ -25,7 +25,6 @@
 // Context element
 // g
 //   shadow?
-//   tracking?
 //   backgroundColor?
 //   backgroundGradient?
 //   customDrawing?
@@ -35,7 +34,6 @@
 
 JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
 
-    _trackingIndex: 0,
     _backgroundIndex: 0,
     _backgroundGradientIndex: 0,
     _sublayersIndex: 0,
@@ -56,15 +54,7 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         this.element.style.left = '0';
         this._definitions = _UIHTMLDisplayServerSVGContextDefs.initWithSVGElement(this.element);
         this.element.appendChild(this._definitions.element);
-        this._trackingPath = doc.createElementNS(SVGNamespace, "rect");
-        this._trackingPath.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
-        this._trackingPath.x.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 0);
-        this._trackingPath.width.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 100);
-        this._trackingPath.height.baseVal.newValueSpecifiedUnits(SVGLength.SVG_LENGTHTYPE_NUMBER, 100);
-        this._trackingPath.style.pointerEvents = 'all';
-        this._trackingPath.style.visibility = 'hidden';
-        this.element.appendChild(this._trackingPath);
-        this._sublayersIndex = 2;
+        this._sublayersIndex = 1;
     },
 
     initForScreenContext: function(screenContext){
@@ -134,10 +124,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         // only called for the root context, which has an svg element
         this.element.width.baseVal.value = size.width;
         this.element.height.baseVal.value = size.height;
-        if (this._trackingPath){
-            this._trackingPath.width.baseVal.value = size.width;
-            this._trackingPath.height.baseVal.value = size.height;
-        }
     },
 
     originTransform: null,
@@ -194,9 +180,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             }
             if (this._shadowPath !== null){
                 this._updateShadowPath(layer);
-            }
-            if (this._trackingPath !== null){
-                this._updateTrackingPath(layer);
             }
             if (this._boundsClipPath !== null){
                 this._updateBoundsClipPath(layer);
@@ -262,7 +245,6 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
             this._shadowPath.style.fill = 'black';
             this.element.insertBefore(this._shadowPath, this.element.childNodes[0]);
             this._updateShadowPath(layer);
-            ++this._trackingIndex;
             ++this._backgroundIndex;
             ++this._backgroundGradientIndex;
             ++this._sublayersIndex;
@@ -539,68 +521,15 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
     },
 
     // ----------------------------------------------------------------------
-    // MARK: - Tracking
-
-    _trackingPath: null,
-    trackingListener: null,
-
-    startMouseTracking: function(trackingType, listener, layer){
-        this._createTrackingPathIfNeeded(layer);
-        if (this.trackingListener !== null){
-            this._trackingPath.removeEventListener('mouseenter', this.trackingListener);
-            this._trackingPath.removeEventListener('mouseleave', this.trackingListener);
-            this._trackingPath.removeEventListener('mousemove', this.trackingListener);
-        }
-        this.trackingListener = listener;
-        if (trackingType & UIView.MouseTracking.enterAndExit){
-            this._trackingPath.addEventListener('mouseenter', this.trackingListener);
-            this._trackingPath.addEventListener('mouseleave', this.trackingListener);
-        }
-        if (trackingType & UIView.MouseTracking.move){
-            this._trackingPath.addEventListener('mousemove', this.trackingListener);
-        }
-    },
-
-    stopMouseTracking: function(){
-        if (this.trackingElement === null || this.trackingListener === null){
-            return;
-        }
-        this._trackingPath.removeEventListener('mouseenter', this.trackingListener);
-        this._trackingPath.removeEventListener('mouseleave', this.trackingListener);
-        this._trackingPath.removeEventListener('mousemove', this.trackingListener);
-        this.trackingListener = null;
-    },
-
-    _createTrackingPathIfNeeded: function(layer){
-        if (this._trackingPath !== null){
-            return null;
-        }
-        this._trackingPath = this.element.ownerDocument.createElementNS(SVGNamespace, "path");
-        this._trackingPath.style.pointerEvents = 'visible';
-        this._trackingPath.style.fill = 'none';
-        this._trackingPath.style.stroke = 'none';
-        this._updateTrackingPath(layer);
-        this.element.insertBefore(this._trackingPath, this.element.childNodes[this._trackingIndex]);
-        ++this._backgroundIndex;
-        ++this._backgroundGradientIndex;
-        ++this._sublayersIndex;
-    },
-
-    _updateTrackingPath: function(layer){
-        this._trackingPath.pathSegList.clear();
-        this._currentPath = this._trackingPath;
-        this.addBorderPathForLayerProperties(layer.presentation, UILayer.Path.shadow);
-        this._currentPath = null;
-    },
+    // MARK: - Cursor
 
     setCursor: function(cursor, layer){
         if (cursor === null){
-            if (this._trackingPath){
-                this._trackingPath.style.cursor = '';
+            if (this.element){
+                this.element.style.cursor = '';
             }
             return;
         }
-        this._createTrackingPathIfNeeded(layer);
         var cssCursorStrings = cursor.cssStrings();
         // UICursor.cssStrings() returns a set of css strings, one of which
         // should work in our browser, but some of which may fail because they
@@ -608,8 +537,8 @@ JSClass("UIHTMLDisplayServerSVGContext", UIHTMLDisplayServerContext, {
         // style.cursor is an empty string, so we'll keep going until it's
         // not an empty string, or we're out of options
         for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
-            this._trackingPath.style.cursor = cssCursorStrings[i];
-            if (this._trackingPath.style.cursor !== ''){
+            this.element.style.cursor = cssCursorStrings[i];
+            if (this.element.style.cursor !== ''){
                 break;
             }
         }

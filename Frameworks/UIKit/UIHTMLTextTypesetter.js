@@ -197,22 +197,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var backgroundColor = attributes[JSAttributedString.Attribute.backgroundColor];
         span.style.color = textColor ? textColor.cssString() : 'black';
         span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
-
-        // Cursor
-        var cursor = attributes[JSAttributedString.Attribute.cursor];
-        if (cursor){
-            var cssCursorStrings = cursor.cssStrings();
-            for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
-                span.style.cursor = cssCursorStrings[i];
-                if (span.style.cursor !== ''){
-                    break;
-                }
-            }  
-            span.style.pointerEvents = 'all';              
-        }else{
-            span.style.cursor = '';
-            span.style.pointerEvents = 'none';
-        }
+        span.style.pointerEvents = 'none';
     },
 
     _styleAttachmentElementWithAttributes: function(span, attributes, attachment){
@@ -226,18 +211,6 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         span.style.color = '';
         span.style.backgroundColor = '';
         span.style.pointerEvents = 'all';
-        var cursor = attributes[JSAttributedString.Attribute.cursor];
-        if (cursor){
-            var cssCursorStrings = cursor.cssStrings();
-            for (var i = 0, l = cssCursorStrings.length; i < l; ++i){
-                span.style.cursor = cssCursorStrings[i];
-                if (span.style.cursor !== ''){
-                    break;
-                }
-            }
-        }else{
-            span.style.cursor = '';
-        }
     },
 
     // MARK: - Private Helpers for Line Break Suggestion

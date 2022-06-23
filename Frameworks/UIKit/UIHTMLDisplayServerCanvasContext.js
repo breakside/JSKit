@@ -79,7 +79,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Destroying a Context
 
     destroy: function(){
-        this.trackingElement = null;
         this.style = null;
         UIHTMLDisplayServerCanvasContext.$super.destroy.call(this);
     },
@@ -140,11 +139,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             // instead of a separate element.  Needs investigation.  Browser support?  Behavior?
             this.borderElement = this.element.ownerDocument.createElement('div');
             this.borderElement.setAttribute("role", "none presentation");
-            if (this.trackingElement !== null){
-                this.element.insertBefore(this.borderElement, this.trackingElement);
-            }else{
-                this.element.appendChild(this.borderElement);
-            }
+            this.element.appendChild(this.borderElement);
             this.borderElement.style.position = 'absolute';
             this.borderElement.style.top = '0';
             this.borderElement.style.left = '0';
@@ -465,48 +460,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     // ----------------------------------------------------------------------
-    // MARK: - Tracking
-
-    trackingElement: null,
-    trackingListener: null,
-
-    startMouseTracking: function(trackingType, listener, layer){
-        if (this.trackingElement === null){
-            this.trackingElement = this.element.ownerDocument.createElement('div');
-            this.trackingElement.setAttribute("role", "none presentation");
-            this.trackingElement.style.position = 'absolute';
-            this.trackingElement.style.top = '0';
-            this.trackingElement.style.left = '0';
-            this.trackingElement.style.bottom = '0';
-            this.trackingElement.style.right = '0';
-            this.trackingElement.dataset.tag = "tracking";
-            this.element.appendChild(this.trackingElement);
-        }else if (this.trackingListener !== null){
-            this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
-            this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
-            this.trackingElement.removeEventListener('mousemove', this.trackingListener);
-        }
-        this.trackingListener = listener;
-        if (trackingType & UIView.MouseTracking.enterAndExit){
-            this.trackingElement.addEventListener('mouseenter', this.trackingListener);
-            this.trackingElement.addEventListener('mouseleave', this.trackingListener);
-        }
-        if (trackingType & UIView.MouseTracking.move){
-            this.trackingElement.addEventListener('mousemove', this.trackingListener);
-        }
-    },
-
-    stopMouseTracking: function(){
-        if (this.trackingElement === null || this.trackingListener === null){
-            return;
-        }
-        this.trackingElement.removeEventListener('mouseenter', this.trackingListener);
-        this.trackingElement.removeEventListener('mouseleave', this.trackingListener);
-        this.trackingElement.removeEventListener('mousemove', this.trackingListener);
-        this.trackingElement.parentNode.removeChild(this.trackingElement);
-        this.trackingElement = null;
-        this.trackingListener = null;
-    },
+    // MARK: - Cursor
 
     setCursor: function(cursor){
         this.element.style.cursor = '';

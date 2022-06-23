@@ -43,12 +43,6 @@ JSClass("UIHTMLDisplayServerContext", JSContext, {
     layerDidChangeProperty: function(layer, property){
     },
 
-    startMouseTracking: function(trackingType, listener){
-    },
-
-    stopMouseTracking: function(){
-    },
-
     addExternalElementInRect: function(element, rect){
     },
 

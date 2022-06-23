@@ -85,7 +85,16 @@ JSClass("UICursor", JSObject, {
 
     pop: function(){
         UICursor.pop();
+    },
+
+    set: function(){
+        UICursor.set(this);
+    },
+
+    unset: function(){
+        UICursor.set(UICursor.systemDefault);
     }
+
 });
 
 UICursor.hide = function(){
@@ -107,17 +116,22 @@ UICursor.unhide = function(){
 
 UICursor.push = function(cursor){
     UICursor._stack.push(cursor);
-    UICursor.show();
+    UICursor.update();
 };
 
 UICursor.pop = function(){
     if (UICursor._stack.length > 1){
         UICursor._stack.pop();
-        UICursor.show();
+        UICursor.update();
     }
 };
 
-UICursor.show = function(){
+UICursor.set = function(cursor){
+    UICursor._stack[0] = cursor;
+    UICursor.update();
+};
+
+UICursor.update = function(){
     if (this._hideCount === 0){
         UIApplication.shared.windowServer.setCursor(UICursor.currentCursor);
     }
@@ -160,4 +174,5 @@ UICursor.dragCopy = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.
 UICursor.crosshair = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.crosshair);
 
 UICursor._hideCount = 0;
-UICursor._stack = [UICursor.arrow];
+UICursor.systemDefault = UICursor.arrow;
+UICursor._stack = [UICursor.systemDefault];

@@ -209,6 +209,9 @@ JSClass("UIWindowServer", JSObject, {
                 this.windowStack.splice(i, 1);
                 this.displayServer.windowRemoved(window);
                 window._screen = null;
+                if (window === this._mouseTrackingWindow){
+                    this._mouseTrackingWindow = null;
+                }
                 break;
             }
             this.windowStack[i].subviewIndex = this.windowStack[i].layer.sublayerIndex = i - 1;
@@ -252,23 +255,10 @@ JSClass("UIWindowServer", JSObject, {
         this._endWindowOrderChange();
     },
 
-    _previousEventWindow: null,
-
     _beginWindowOrderChange: function(){
-        if (this._previousEventWindow !== null){
-            return;
-        }
-        this._previousEventWindow = this.windowForEventAtLocation(this.mouseLocation);
     },
 
     _endWindowOrderChange: function(){
-        if (this._previousEventWindow === null){
-            return;
-        }
-        var previousEventWindow = this._previousEventWindow;
-        var currentEventWindow = this.windowForEventAtLocation(this.mouseLocation);
-        this._previousEventWindow = null;
-        this._createTrackingEventsForWindowLevelChangeAtLocation(this.mouseLocation, previousEventWindow, currentEventWindow);
     },
 
     // -----------------------------------------------------------------------
@@ -324,10 +314,6 @@ JSClass("UIWindowServer", JSObject, {
 
     // -----------------------------------------------------------------------
     // MARK: - Cursor Managment
-
-    viewDidChangeCursor: function(view, cursor){
-        // subclasses should override
-    },
 
     hideCursor: function(){
         // subclasses should override
@@ -696,6 +682,7 @@ JSClass("UIWindowServer", JSObject, {
             this.draggingSessionDidChangeLocation();
         }else{
             if (this.mouseDownCount === 0){
+                this.sendMouseTrackingEvents(timestamp, modifiers);
                 if (this._tooltipWindow === null){
                     this._mouseIdleTimer.schedule();
                 }else{
@@ -728,74 +715,28 @@ JSClass("UIWindowServer", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Mouse Tracking
 
-    viewDidChangeMouseTracking: function(view, trackingType){
-        // subclasses should override
-    },
+    _mouseTrackingWindow: null,
 
-    createMouseTrackingEvent: function(type, timestamp, location, modifiers, view, force){
-        if (!force && !this._shouldCreateTrackingEventForView(view)){
-            return;
-        }
-        var event = UIEvent.initMouseEventWithType(type, timestamp, view.window, view.window.convertPointFromScreen(location), modifiers, 0);
-        event.trackingView = view;
-        this._sendEventToApplication(event, view.window.application);
-    },
-
-    _shouldCreateTrackingEventForView: function(view){
-        if (this.mouseEventWindow !== null){
-            // no tracking events if the mouse is down
-            return false;
-        }
-        var window = view.window;
-        if (window === null){
-            return false;
-        }
-        if (window.shouldReceiveTrackingInBack){
-            return true;
-        }
-        if (window.receivesAllEvents){
-            return true;
-        }
-        if (window === this.mainWindow){
-            return true;
-        }
-        if (window === this.keyWindow){
-            return true;
-        }
-        return true;
-    },
-
-    _createTrackingEventsForWindowLevelChangeAtLocation: function(location, previousWindow, currentWindow){
-        if (currentWindow === previousWindow){
-            return;
-        }
-        var view;
-        if (previousWindow !== null && (previousWindow.objectID in this._windowsById)){
-            view = this._trackingViewInWindowAtLocation(previousWindow, location);
-            if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.mouseExited, -1, location, UIEvent.Modifier.none, view, true);
+    sendMouseTrackingEvents: function(timestamp, modifiers){
+        var window = null;
+        var windowIndex;
+        var location;
+        var event;
+        for (windowIndex = this.windowStack.length - 1; windowIndex >= 0 && window === null; --windowIndex){
+            location = this.windowStack[windowIndex].convertPointFromScreen(this.mouseLocation);
+            if (this.windowStack[windowIndex].userInteractionEnabled && this.windowStack[windowIndex].containsPoint(location)){
+                window = this.windowStack[windowIndex];
             }
         }
-        if (currentWindow !== null && (currentWindow.objectID in this._windowsById)){
-            view = this._trackingViewInWindowAtLocation(currentWindow, location);
-            if (view !== null){
-                this.createMouseTrackingEvent(UIEvent.Type.mouseEntered, -1, location, UIEvent.Modifier.none, view, true);
+        if (this._mouseTrackingWindow !== null){
+            if (window !== this._mouseTrackingWindow){
+                this._mouseTrackingWindow.sendMouseTrackingEvents(this._mouseTrackingWindow.convertPointFromScreen(this.mouseLocation), timestamp, modifiers, true);
             }
         }
-    },
-
-    _trackingViewInWindowAtLocation: function(window, location){
-        var view = window.hitTest(window.convertPointFromScreen(location));
-        if (view === null){
-            return null;
+        this._mouseTrackingWindow = window;
+        if (this._mouseTrackingWindow !== null){
+            this._mouseTrackingWindow.sendMouseTrackingEvents(this._mouseTrackingWindow.convertPointFromScreen(this.mouseLocation), timestamp, modifiers, false);
         }
-        while (view.superview !== null && ((view.mouseTrackingType & UIView.MouseTracking.enterAndExit) === 0)){
-            view = view.superview;
-        }
-        if ((view.mouseTrackingType & UIView.MouseTracking.enterAndExit) !== 0){
-            return view;
-        }
-        return null;
     },
 
     // -----------------------------------------------------------------------

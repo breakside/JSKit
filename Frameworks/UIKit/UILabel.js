@@ -32,7 +32,6 @@ JSClass('UILabel', UIView, {
     textInsets: UIViewLayerProperty(),
     allowsSelection: JSDynamicProperty('_allowsSelection', false),
     selectionColor: JSDynamicProperty("_selectionColor", null),
-    userInteractionEnabled: false,
     _accessibilityHidden: true,
 
     initWithFrame: function(frame){
@@ -373,6 +372,78 @@ JSClass('UILabel', UIView, {
     resignFirstResponder: function(){
         this._selectionRange = null;
         this._updateSelectionHighlightLayers();
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - Layout
+
+    sizeToFitSize: function(maxSize){
+        UILabel.$super.sizeToFitSize.call(this, maxSize);
+        this.updateMouseTrackingAreas();
+    },
+
+    layoutSubviews: function(){
+        UILabel.$super.layoutSubviews.call(this);
+        this.updateMouseTrackingAreas();
+    },
+
+    linkMouseTrackingAreas: null,
+
+    updateMouseTrackingAreas: function(){
+        UILabel.$super.updateMouseTrackingAreas.call(this);
+        if (this.linkMouseTrackingAreas === null && !this._userInteractionEnabled){
+            return;
+        }
+        if (this.linkMouseTrackingAreas === null){
+            this.linkMouseTrackingAreas = [];
+        }
+        var rects;
+        var rectIndex, rectCount;
+        var linkIndex = 0;
+        var range;
+        var attributes;
+        var attributedString = this.attributedText;
+        var end = attributedString.string.length;
+        var rect;
+        var area;
+        if (this._userInteractionEnabled){
+            range = attributedString.longestRangeOfAttributeAtIndex("link", 0);
+            attributes = attributedString.attributesAtIndex(range.location);
+            while (range.length > 0 && range.location < end){
+                if (attributes.link){
+                    rects = this.layer.textLayoutManager.rectsForCharacterRange(range);
+                    for (rectIndex = 0, rectCount = rects.length; rectIndex < rectCount; ++rectIndex, ++linkIndex){
+                        rect = rects[rectIndex];
+                        if (linkIndex < this.linkMouseTrackingAreas.length){
+                            area = this.linkMouseTrackingAreas[linkIndex];
+                            area.rect = rect;
+                        }else{
+                            area = UIMouseTrackingArea.initWithResponder(this, rect, UIMouseTrackingArea.TrackingType.enterAndExit);
+                            area.cursor = UICursor.pointingHand;
+                            this.linkMouseTrackingAreas.push(area);
+                            this.addMouseTrackingArea(area);
+                        }
+                    }
+                }
+                if (range.end == end){
+                    range = JSRange(end, 0);
+                }else{
+                    range = attributedString.longestRangeOfAttributeAtIndex("link", range.end);
+                    attributes = attributedString.attributesAtIndex(range.location);
+                }
+            }
+        }
+        for (var j = this.linkMouseTrackingAreas.length - 1; j >= linkIndex; --j){
+            area = this.linkMouseTrackingAreas.pop();
+            this.removeMouseTrackingArea(area);
+        }
+    },
+
+    userInteractionEnabled: JSDynamicProperty("_userInteractionEnabled", false),
+
+    setUserInteractionEnabled: function(userInteractionEnabled){
+        this._userInteractionEnabled = userInteractionEnabled;
+        this.updateMouseTrackingAreas();
     },
 
     // -------------------------------------------------------------------------
