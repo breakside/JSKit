@@ -267,6 +267,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this.inputElement.style.margin = "0";
         this.inputElement.style.webkitAppearance = "none";
         this.inputElement.style.backgroundColor = "transparent";
+        this.inputElement.style.webkitTapHighlightColor = "transparent";
         // this.inputElement.style.cursor = "text";
         this.inputElement.style.outline = "none";
         this.inputElement.setAttribute("role", "textbox");
@@ -425,10 +426,15 @@ JSClass("UIHTMLTextField", UIControl, {
 
     drawLayerInContext: function(layer, context){
         UIHTMLTextField.$super.drawLayerInContext.call(this, layer, context);
+        this.inputElement.style.boxSizing = "border-box";
+        this.inputElement.style.paddingLeft = this._textInsets.left + "px";
+        this.inputElement.style.paddingRight = this._textInsets.right + "px";
+        this.inputElement.style.paddingTop = this._textInsets.top + "px";
+        this.inputElement.style.paddingBottom = this._textInsets.bottom + "px";
         this.inputElement.style.width = layer.element.style.width;
         this.inputElement.style.height = layer.element.style.height;
-        this.inputElement.value = this._text;
-        this.inputElement.placeholder = this._placeholder;
+        this.inputElement.value = this._text || "";
+        this.inputElement.placeholder = this._placeholder || "";
         var autocomplete = htmlAutocompleteByTextContentType[this._textContentType];
         if (autocomplete === ""){
             if (this._secureEntry){
@@ -486,7 +492,7 @@ JSClass("UIHTMLTextField", UIControl, {
     },
 
     updateElementInsets: function(){
-        var insets = JSInsets(this._textInsets);
+        var insets = JSInsets.Zero;
         if (this._leftAccessoryView !== null){
             insets.left += this._leftAccessoryInsets.width + this._leftAccessorySize.width;
         }
