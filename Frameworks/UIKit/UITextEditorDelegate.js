@@ -19,6 +19,8 @@
 JSProtocol("UITextEditorDelegate", JSProtocol, {
 
     textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedText){},
-    textEditorDidPositionCursors: function(textEditor){}
+    textEditorDidPositionCursors: function(textEditor){},
+    textEditorPrepareInsertAttributes: function(textEditor, attributes){},
+    atomicRangeForTextEditorIndex: function(textEditor, index){}
 
 });
