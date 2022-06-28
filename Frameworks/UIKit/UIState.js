@@ -170,6 +170,22 @@ JSClass("UIState", JSObject, {
         return this._path === other._path;
     },
 
+    beginsWithState: function(state){
+        if (state === null || state === undefined){
+            return false;
+        }
+        if (this._pathComponents.length < state._pathComponents.length){
+            return false;
+        }
+        var i, l;
+        for (i = 0, l = state._pathComponents.length; i < l; ++i){
+            if (this._pathComponents[i] != state._pathComponents[i]){
+                return false;
+            }
+        }
+        return true;
+    }
+
 });
 
 function componentsFromPath(path){
