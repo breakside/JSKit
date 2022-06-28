@@ -245,7 +245,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             }
             newline = iterator.isMandatoryLineBreak;
             printable = !newline && !iterator.isWhiteSpace;
-            attachment = runIterator.attachment;
+            attachment = attributes[JSAttributedString.Attribute.attachment] || null;
             if (attachment !== null){
                 attachment.layout(preferredFont, width);
                 usedWidth += attachment.size.width;
