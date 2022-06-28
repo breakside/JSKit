@@ -307,9 +307,15 @@ JSClass("UIViewController", UIResponder, {
             }
         }else{
             if (previousChildViewController !== null){
+                if (previousChildViewController._lifecycleState === UIViewController.LifecycleState.appearing){
+                    previousChildViewController.scheduleDisappearance();
+                }
                 previousChildViewController.removeFromParentViewController();
             }
             if (childViewController !== null){
+                if (this._lifecycleState === UIViewController.LifecycleState.appearing){
+                    childViewController.beginAppearance(this._appearanceTransitionAnimated);
+                }
                 this.addChildViewController(childViewController);
             }
         }
