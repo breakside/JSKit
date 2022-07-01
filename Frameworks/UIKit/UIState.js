@@ -170,16 +170,18 @@ JSClass("UIState", JSObject, {
         return this._path === other._path;
     },
 
-    beginsWithState: function(state){
+    startsWithState: function(state){
         if (state === null || state === undefined){
             return false;
         }
-        if (this._pathComponents.length < state._pathComponents.length){
+        var a = this.pathComponents;
+        var b = state.pathComponents;
+        if (a.length < b.length){
             return false;
         }
         var i, l;
-        for (i = 0, l = state._pathComponents.length; i < l; ++i){
-            if (this._pathComponents[i] != state._pathComponents[i]){
+        for (i = 0, l = b.length; i < l; ++i){
+            if (a[i] != b[i]){
                 return false;
             }
         }
