@@ -4,5 +4,7 @@ microsoft:
   endpoint: https://login.microsoftonline.com/common/v2.0/
 apple:
   endpoint: https://appleid.apple.com/
+facebook:
+  endpoint: https://facebook.com/
 authPrivacy:
   endpoint: https://authprivacy.com/

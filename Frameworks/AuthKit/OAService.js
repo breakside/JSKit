@@ -135,6 +135,14 @@ Object.defineProperties(OAService, {
             return service;
         }
     },
+    facebook: {
+        configurable: true,
+        get: function(){
+            var service = OAService.initWithIdentifier('facebook');
+            Object.defineProperty(this, 'facebook', {value: service});
+            return service;
+        }
+    },
     authPrivacy: {
         configurable: true,
         get: function(){
