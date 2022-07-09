@@ -120,7 +120,9 @@ JSClass("JSUserDefaults", JSObject, {
         if (this._values === null){
             throw new Error("JSUserDefaults is closed, cannot set value.  Be sure to call open() first.");
         }
+        this.willChangeValueForKey(key);
         this._values[key] = value;
+        this.didChangeValueForKey(key);
         this._persistAfterDelay();
         this._definePropertyForKey(key);
     },
@@ -149,9 +151,7 @@ JSClass("JSUserDefaults", JSObject, {
                     return this.valueForKey(key);
                 },
                 set: function JSUserDefaults_setValue(value){
-                    this.willChangeValueForKey(key);
                     this.setValueForKey(value, key);
-                    this.didChangeValueForKey(key);
                 }
             });
         }
