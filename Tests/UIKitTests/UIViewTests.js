@@ -28,6 +28,55 @@ JSClass("UIViewTests", TKTestSuite, {
 
     teardown: function(){
         this.windowServer = null;
-    }
+    },
+
+    testIsDescendantOfView: function(){
+        var view1 = UIView.init();
+        var view2 = UIView.init();
+        var view3 = UIView.init();
+        var view4 = UIView.init();
+        var view5 = UIView.init();
+        var view6 = UIView.init();
+
+        view1.addSubview(view2);
+        view2.addSubview(view3);
+        view4.addSubview(view5);
+
+        TKAssertExactEquals(view1.isDescendantOfView(view2), false);
+        TKAssertExactEquals(view1.isDescendantOfView(view3), false);
+        TKAssertExactEquals(view1.isDescendantOfView(view4), false);
+        TKAssertExactEquals(view1.isDescendantOfView(view5), false);
+        TKAssertExactEquals(view1.isDescendantOfView(view6), false);
+
+        TKAssertExactEquals(view2.isDescendantOfView(view1), true);
+        TKAssertExactEquals(view2.isDescendantOfView(view3), false);
+        TKAssertExactEquals(view2.isDescendantOfView(view4), false);
+        TKAssertExactEquals(view2.isDescendantOfView(view5), false);
+        TKAssertExactEquals(view2.isDescendantOfView(view6), false);
+
+        TKAssertExactEquals(view3.isDescendantOfView(view1), true);
+        TKAssertExactEquals(view3.isDescendantOfView(view2), true);
+        TKAssertExactEquals(view3.isDescendantOfView(view4), false);
+        TKAssertExactEquals(view3.isDescendantOfView(view5), false);
+        TKAssertExactEquals(view3.isDescendantOfView(view6), false);
+
+        TKAssertExactEquals(view4.isDescendantOfView(view1), false);
+        TKAssertExactEquals(view4.isDescendantOfView(view2), false);
+        TKAssertExactEquals(view4.isDescendantOfView(view3), false);
+        TKAssertExactEquals(view4.isDescendantOfView(view5), false);
+        TKAssertExactEquals(view4.isDescendantOfView(view6), false);
+
+        TKAssertExactEquals(view5.isDescendantOfView(view1), false);
+        TKAssertExactEquals(view5.isDescendantOfView(view2), false);
+        TKAssertExactEquals(view5.isDescendantOfView(view3), false);
+        TKAssertExactEquals(view5.isDescendantOfView(view4), true);
+        TKAssertExactEquals(view5.isDescendantOfView(view6), false);
+
+        TKAssertExactEquals(view6.isDescendantOfView(view1), false);
+        TKAssertExactEquals(view6.isDescendantOfView(view2), false);
+        TKAssertExactEquals(view6.isDescendantOfView(view3), false);
+        TKAssertExactEquals(view6.isDescendantOfView(view4), false);
+        TKAssertExactEquals(view6.isDescendantOfView(view5), false);
+    },
 
 });

@@ -323,6 +323,17 @@ JSClass('UIView', UIResponder, {
         return null;
     },
 
+    isDescendantOfView: function(view){
+        if (view === null || view === undefined){
+            return false;
+        }
+        var superview = this.superview;
+        while (superview !== null && superview !== view){
+            superview = superview.superview;
+        }
+        return superview !== null && superview === view;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Window
 
