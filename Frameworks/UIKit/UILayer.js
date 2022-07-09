@@ -608,6 +608,9 @@ JSClass("UILayer", JSObject, {
     },
 
     removeAnimationForKey: function(key){
+        if (!(key in this.animationsByKey)){
+            return;
+        }
         --this.animationCount;
         if (this.animationCount === 0){
             // If we're all done with animations, reset our presentation to be identical to our model

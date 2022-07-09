@@ -39,6 +39,7 @@ JSClass("UIDisplayServer", JSObject, {
         this.layerAnimationQueue = {};
         this._scheduleQueue = [];
         this._scheduled = [];
+        this._completedAnimations = [];
     },
 
     // -------------------------------------------------------------------------
@@ -100,7 +101,7 @@ JSClass("UIDisplayServer", JSObject, {
         this._scheduled = this._scheduleQueue;
         this._scheduleQueue = [];
         this._isUpdating = true;
-        var completedAnimations = this._updateAnimations(t);
+        this._updateAnimations(t);
         this._flushLayerLayoutQueue();
         this._flushLayerDisplayQueue();
         this._flushLayerRepositionQueue();
@@ -110,9 +111,7 @@ JSClass("UIDisplayServer", JSObject, {
         this._isUpdating = false;
 
         // Call any animation callbacks
-        for (var i = 0, l = completedAnimations.length; i < l; ++i){
-            completedAnimations[i].completionFunction(completedAnimations[i]);
-        }
+        this._flushCompletedAnimations();
 
         // Call any window insert/remove callbacks
         var window;
@@ -228,8 +227,22 @@ JSClass("UIDisplayServer", JSObject, {
         if (this.layerDisplayQueue.remove(layer)){
             layer._needsDisplay = true;
         }
+        var key;
+        var animation;
+        var completedAnimationKeys;
+        var i, l;
         this.layerRepositionQueue.remove(layer);
         if (layer.objectID in this.layerAnimationQueue){
+            completedAnimationKeys = [];
+            for (key in layer.animationsByKey){
+                animation = layer.animationsByKey[key];
+                this.completeAnimation(animation);
+                completedAnimationKeys.push(key);
+            }
+            for (i = 0, l = completedAnimationKeys.length; i < l; ++i){
+                key = completedAnimationKeys[i];
+                layer.removeAnimationForKey(key);
+            }
             delete this.layerAnimationQueue[layer.objectID];
             --this._animationCount;
         }
@@ -246,24 +259,53 @@ JSClass("UIDisplayServer", JSObject, {
         this.setUpdateNeeded();
     },
 
+    _completedAnimations: null,
+
+    completeAnimation: function(animation){
+        this._completedAnimations.push(animation);
+    },
+
+    _flushCompletedAnimations: function(){
+        var i, l;
+        var animation;
+        for (i = 0, l = this._completedAnimations.length; i < l; ++i){
+            animation = this._completedAnimations[i];
+            if (animation.completionFunction){
+                animation.completionFunction(animation);
+            }
+        }
+        this._completedAnimations = [];
+    },
+
     _updateAnimations: function(t){
         t /= this._animationScale;
         var animation;
-        var completedAnimations = [];
         var id, key;
         var layer;
+        var completedAnimationKeys;
+        var i, l;
+        var parts;
         for (id in this.layerAnimationQueue){
             layer = this.layerAnimationQueue[id];
+            completedAnimationKeys = [];
             for (key in layer.animationsByKey){
                 animation = layer.animationsByKey[key];
                 animation.updateForTime(t);
                 if (this.reducedMotionEnabled || animation.isComplete){
-                    layer.removeAnimationForKey(key);
-                    if (animation.completionFunction){
-                        completedAnimations.push(animation);
+                    completedAnimationKeys.push(key);
+                }else{
+                    parts = key.split('.');
+                    if (parts[0] in layer.presentation){
+                        this.layerDidChangeProperty(layer, key);
                     }
                 }
-                var parts = key.split('.');
+            }
+            for (i = 0, l = completedAnimationKeys.length; i < l; ++i){
+                key = completedAnimationKeys[i];
+                animation = layer.animationsByKey[key];
+                layer.removeAnimationForKey(key);
+                this.completeAnimation(animation);
+                parts = key.split('.');
                 if (parts[0] in layer.presentation){
                     this.layerDidChangeProperty(layer, key);
                 }
@@ -273,7 +315,6 @@ JSClass("UIDisplayServer", JSObject, {
                 --this._animationCount;
             }
         }
-        return completedAnimations;
     },
 
     // -------------------------------------------------------------------------
