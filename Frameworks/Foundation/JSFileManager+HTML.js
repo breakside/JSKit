@@ -551,16 +551,22 @@ JSClass("JSHTMLFileManager", JSFileManager, {
 
     _copyDirectoryInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
         this._copyMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var childRequest = index.openCursor({parent: url.path});
-        var children = [];
-        childRequest.onsuccess = function JSFileManager_copyDirectory_onsucess(e){
-            var cursor = e.target.result;
-            if (cursor){
-                var child = cursor.value;
-                var childURL = url.appendingPathComponent(child.name);
-                var childToURL = toURL.appendingPathComponent(child.name);
-                this._copyItemInTransactionAtURL(transaction, childURL, childToURL, toURL, child);
+        var index = transaction.metadata.index(JSFileManager.Indexes.metadataParent);
+        var lookup = url.path;
+        var request = index.getAll(lookup);
+        var manager = this;
+        request.onsuccess = function JSFileManager_removeDirectory_onsuccess(e){
+            var results = e.target.result;
+            if (results){
+                var child;
+                var childURL;
+                var childToURL;
+                for (var i = 0, l = results.length; i < l; ++i){
+                    child = results[i];
+                    childURL = url.appendingPathComponent(child.name, child.itemType == JSFileManager.ItemType.directory);
+                    childToURL = toURL.appendingPathComponent(child.name, child.itemType == JSFileManager.ItemType.directory);
+                    manager._copyItemInTransactionAtURL(transaction, childURL, childToURL, toURL, child);
+                }
             }
         };
     },
@@ -639,16 +645,20 @@ JSClass("JSHTMLFileManager", JSFileManager, {
 
     _removeDirectoryInTransactionAtURL: function(transaction, url, parent, metadata){
         this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
-        var childRequest = index.openCursor([url.path]);
-        var children = [];
+        var index = transaction.metadata.index(JSFileManager.Indexes.metadataParent);
+        var lookup = url.path;
+        var request = index.getAll(lookup);
         var manager = this;
-        childRequest.onsuccess = function JSFileManager_removeDirectory_onsucess(e){
-            var cursor = e.target.result;
-            if (cursor){
-                var child = cursor.value;
-                var childURL = url.appendingPathComponent(child.name);
-                manager._removeItemInTransactionAtURL(transaction, childURL, url, child);
+        request.onsuccess = function JSFileManager_removeDirectory_onsuccess(e){
+            var results = e.target.result;
+            if (results){
+                var child;
+                var childURL;
+                for (var i = 0, l = results.length; i < l; ++i){
+                    child = results[i];
+                    childURL = url.appendingPathComponent(child.name, child.itemType == JSFileManager.ItemType.directory);
+                    manager._removeItemInTransactionAtURL(transaction, childURL, url, child);
+                }
             }
         };
     },

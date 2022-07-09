@@ -267,6 +267,9 @@ JSClass("JSFileManagerTests", TKTestSuite, {
                     TKAssertNotNull(success);
                     expectation.call(manager.itemExistsAtURL, manager, parent, function(exists){
                         TKAssert(!exists);
+                        expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
+                            TKAssert(!exists);
+                        });
                     });
                 });
             });
