@@ -470,6 +470,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         var removingRightBarItemViews = props.rightBarItemViews;
         var removingTitleLabel = props.titleLabel;
         var removingCustomView = props.customView;
+        var removingCustomViewTransform = removingCustomView ? removingCustomView.transform : JSAffineTransform.Identity;
+        var customViewTransform = JSAffineTransform.Identity;
         var backToTitleScale = this.titleFont.displayLineHeight / this.itemFont.displayLineHeight;
         props.titleLabel = this.createTitleLabel();
         navigationBar.addSubview(props.titleLabel);
@@ -490,15 +492,16 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         props.titleLabel.alpha = 0;
         props.titleLabel.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width, 0);
         if (props.customView){
+            customViewTransform = props.customView.transform;
             props.customView.alpha = 0;
-            props.customView.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width, 0);
+            props.customView.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width + customViewTransform.tx, customViewTransform.ty);
         }
         props.backBarItemView.alpha = 0;
         var backTitleFrame = props.backBarItemView.titleLabel.convertRectToView(props.backBarItemView.titleLabel.bounds, props.backBarItemView.superview);
         if (removingCustomView){
-            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingCustomView.frame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
+            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingCustomView.untransformedFrame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
         }else{
-            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingTitleLabel.frame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
+            props.backBarItemView.titleLabel.transform = JSAffineTransform.Translated(Math.max(0, removingTitleLabel.untransformedFrame.origin.x - backTitleFrame.origin.x), 0).scaledBy(backToTitleScale);
         }
         animator.addAnimations(function(){
             var i, l;
@@ -516,16 +519,16 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             }
             removingBackBarItemView.alpha = 0;
             removingTitleLabel.alpha = 0;
-            removingTitleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingTitleLabel.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
+            removingTitleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingTitleLabel.untransformedFrame.origin.x), 0).scaledBy(1 / backToTitleScale);
             if (removingCustomView){
                 removingCustomView.alpha = 0;
-                removingCustomView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingCustomView.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
+                removingCustomView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - removingCustomView.untransformedFrame.origin.x) + removingCustomViewTransform.tx, removingCustomViewTransform.ty).scaledBy(1 / backToTitleScale);
             }
             props.titleLabel.alpha = 1;
             props.titleLabel.transform = JSAffineTransform.Identity;
             if (props.customView){
                 props.customView.alpha = 1;
-                props.customView.transform = JSAffineTransform.Identity;
+                props.customView.transform = customViewTransform;
             }
             props.backBarItemView.alpha = 1;
             props.backBarItemView.titleLabel.transform = JSAffineTransform.Identity;
@@ -542,7 +545,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             removingBackBarItemView.removeFromSuperview();
             if (removingCustomView !== null){
                 removingCustomView.removeFromSuperview();
-                removingCustomView.transform = JSAffineTransform.Identity;
+                removingCustomView.transform = removingCustomViewTransform;
             }
             props.isAnimating = false;
             if (props.needsUpdate){
@@ -560,6 +563,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         var removingRightBarItemViews = props.rightBarItemViews;
         var removingTitleLabel = props.titleLabel;
         var removingCustomView = props.customView;
+        var removingCustomViewTransform = removingCustomView ? removingCustomView.transform : JSAffineTransform.Identity;
+        var customViewTransform = JSAffineTransform.Identity;
         var backToTitleScale = this.titleFont.displayLineHeight / this.itemFont.displayLineHeight;
         props.titleLabel = this.createTitleLabel();
         navigationBar.addSubview(props.titleLabel);
@@ -581,10 +586,11 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         props.backBarItemView.alpha = 0;
         var backTitleFrame = removingBackBarItemView.titleLabel.convertRectToView(removingBackBarItemView.titleLabel.bounds, props.backBarItemView.superview);
         if (props.customView){
-            props.customView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.customView.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
+            customViewTransform = props.customView.transform;
+            props.customView.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.customView.untransformedFrame.origin.x) + customViewTransform.tx, customViewTransform.ty).scaledBy(1 / backToTitleScale);
             props.customView.alpha = 0;
         }else{
-            props.titleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.titleLabel.frame.origin.x), 0).scaledBy(1 / backToTitleScale);
+            props.titleLabel.transform = JSAffineTransform.Translated(Math.min(0, backTitleFrame.origin.x - props.titleLabel.untransformedFrame.origin.x), 0).scaledBy(1 / backToTitleScale);
         }
         animator.addAnimations(function(){
             var i, l;
@@ -605,7 +611,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             removingTitleLabel.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width, 0);
             if (removingCustomView){
                 removingCustomView.alpha = 0;
-                removingCustomView.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width, 0);
+                removingCustomView.transform = JSAffineTransform.Translated(navigationBar.bounds.size.width + removingCustomViewTransform.tx, removingCustomViewTransform.ty);
             }
             props.titleLabel.alpha = 1;
             props.titleLabel.transform = JSAffineTransform.Identity;
@@ -613,7 +619,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             props.backBarItemView.titleLabel.transform = JSAffineTransform.Identity;
             if (props.customView){
                 props.customView.alpha = 1;
-                props.customView.transform = JSAffineTransform.Identity;
+                props.customView.transform = customViewTransform;
             }
         }, this);
         animator.addCompletion(function(){
@@ -628,7 +634,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             removingBackBarItemView.removeFromSuperview();
             if (removingCustomView !== null){
                 removingCustomView.removeFromSuperview();
-                removingCustomView.transform = JSAffineTransform.Identity;
+                removingCustomView.transform = removingCustomViewTransform;
             }
             props.isAnimating = false;
             if (props.needsUpdate){
@@ -725,7 +731,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         var barItemView = props.backBarItemView;
         var titleTextAlignment = item ? item.titleTextAlignment || this.titleTextAlignment : this.titleTextAlignment;
         barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
-        barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
+        barItemView.untransformedFrame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
         if (!barItemView.hidden){
             xLeft += barItemView.bounds.size.width;
         }else if (props.leftBarItemViews.length === 0 && titleTextAlignment === JSTextAlignment.left && this.titleInsets !== null){
@@ -734,14 +740,14 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         for (i = 0, l = props.leftBarItemViews.length; i < l; ++i){
             barItemView = props.leftBarItemViews[i];
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
-            barItemView.frame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
+            barItemView.untransformedFrame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
             xLeft += barItemView.bounds.size.width;
         }
         for (i = props.rightBarItemViews.length - 1; i >= 0; --i){
             barItemView = props.rightBarItemViews[i];
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
             xRight -= barItemView.bounds.size.width;
-            barItemView.frame = JSRect(JSPoint(xRight, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
+            barItemView.untransformedFrame = JSRect(JSPoint(xRight, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
             barItemView.hidden = xRight < xLeft;
         }
 
@@ -763,11 +769,11 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             var centeredX = (size.width - viewSize.width) / 2;
             var centeredY = (size.height - viewSize.height) / 2;
             if (titleTextAlignment === JSTextAlignment.center){
-                titleView.frame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
+                titleView.untransformedFrame = JSRect(JSPoint(Math.min(Math.max(minX, centeredX), maxX), centeredY), viewSize);
             }else if (titleTextAlignment === JSTextAlignment.right){
-                titleView.frame = JSRect(JSPoint(maxX - viewSize.width, centeredY), viewSize);
+                titleView.untransformedFrame = JSRect(JSPoint(maxX - viewSize.width, centeredY), viewSize);
             }else{
-                titleView.frame = JSRect(JSPoint(minX, centeredY), viewSize);
+                titleView.untransformedFrame = JSRect(JSPoint(minX, centeredY), viewSize);
             }
         }else{
             props.titleLabel.hidden = true;
