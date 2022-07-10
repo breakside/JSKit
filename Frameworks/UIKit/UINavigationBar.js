@@ -428,6 +428,8 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
         navigationBar.maskedBorders = UIView.Sides.maxY;
 
         var props = navigationBar.stylerProperties;
+        props.isAnimating = false;
+        props.needsUpdate = false;
         props.titleLabel = this.createTitleLabel();
         props.customView = null;
         navigationBar.addSubview(props.titleLabel);
@@ -527,7 +529,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             }
             props.backBarItemView.alpha = 1;
             props.backBarItemView.titleLabel.transform = JSAffineTransform.Identity;
-        });
+        }, this);
         animator.addCompletion(function(){
             var i, l;
             for (i = 0, l = removingLeftBarItemViews.length; i < l; ++i){
@@ -542,7 +544,12 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
                 removingCustomView.removeFromSuperview();
                 removingCustomView.transform = JSAffineTransform.Identity;
             }
-        });
+            props.isAnimating = false;
+            if (props.needsUpdate){
+                this.updateBar(navigationBar);
+            }
+        }, this);
+        props.isAnimating = true;
     },
 
     popToItem: function(navigationBar, item, animator){
@@ -608,7 +615,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
                 props.customView.alpha = 1;
                 props.customView.transform = JSAffineTransform.Identity;
             }
-        });
+        }, this);
         animator.addCompletion(function(){
             var i, l;
             for (i = 0, l = removingLeftBarItemViews.length; i < l; ++i){
@@ -623,12 +630,22 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
                 removingCustomView.removeFromSuperview();
                 removingCustomView.transform = JSAffineTransform.Identity;
             }
-        });
+            props.isAnimating = false;
+            if (props.needsUpdate){
+                this.updateBar(navigationBar);
+            }
+        }, this);
+        props.isAnimating = true;
     },
 
     updateBar: function(navigationBar){
         var item = navigationBar.topItem;
         var props = navigationBar.stylerProperties;
+        if (props.isAnimating){
+            props.needsUpdate = true;
+            return;
+        }
+        props.needsUpdate = false;
 
         var i, l;
         for (i = 0, l = props.leftBarItemViews.length; i < l; ++i){
