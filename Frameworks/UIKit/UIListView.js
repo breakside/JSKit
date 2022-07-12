@@ -2347,7 +2347,7 @@ JSClass("UIListView", UIScrollView, {
             return;
         }
         this._touch = {
-            location0: touches[0].locationInView(this),
+            location0: touches[0].locationInWindow,
             cell: null,
             timer: JSTimer.scheduledTimerWithInterval(0.05, function(){
                 this._touch.timer = null;
@@ -2359,7 +2359,7 @@ JSClass("UIListView", UIScrollView, {
     touchesMoved: function(touches, event){
         UIListView.$super.touchesMoved.call(this, touches, event);
         if (this._touch !== null){
-            var location = touches[0].locationInView(this);
+            var location = touches[0].locationInWindow;
             var diff = location.subtracting(this._touch.location0);
             if ((diff.x * diff.x + diff.y * diff.y) > 2){
                 this._cancelTouchSelection();
