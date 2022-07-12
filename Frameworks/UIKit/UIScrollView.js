@@ -281,16 +281,12 @@ JSClass('UIScrollView', UIView, {
         offset = JSPoint(offset);
         offset.x = Math.round(offset.x);
         offset.y = Math.round(offset.y);
-        if (!this.scrollsHorizontally){
-            offset.x = this._contentOffset.x;
-        }else if (offset.x < this._minContentOffset.x){
+        if (offset.x < this._minContentOffset.x){
             offset.x = this._minContentOffset.x;
         }else if (offset.x > this._maxContentOffset.x){
             offset.x = this._maxContentOffset.x;
         }
-        if (!this.scrollsVertically){
-            offset.y = this._contentOffset.y;
-        }else if (offset.y < this._minContentOffset.y){
+        if (offset.y < this._minContentOffset.y){
             offset.y = this._minContentOffset.y;
         }else if (offset.y > this._maxContentOffset.y){
             offset.y = this._maxContentOffset.y;
@@ -515,6 +511,12 @@ JSClass('UIScrollView', UIView, {
         }else{
             var d = JSPoint(event.scrollingDelta);
             var abs = JSPoint(Math.abs(d.x), Math.abs(d.y));
+            if (!this._scrollsVertically){
+                d.y = 0;
+            }
+            if (!this._scrollsHorizontally){
+                d.x = 0;
+            }
             if (abs.x > 2 * abs.y){
                 d.y = 0;
             }else if (abs.y > 2 * abs.x){
@@ -581,10 +583,16 @@ JSClass('UIScrollView', UIView, {
     },
 
     touchesBegan: function(touches, event){
+        if (!this._scrollsVertically && !this._scrollsHorizontally){
+            return UIScrollView.$super.touchesBegan.call(this, touches, event);
+        }
         this._beginTrackingTouches(touches, event);
     },
 
     touchesMoved: function(touches, event){
+        if (!this._scrollsVertically && !this._scrollsHorizontally){
+            return UIScrollView.$super.touchesMoved.call(this, touches, event);
+        }
         if (this._touchTracking === null){
             this._beginTrackingTouches(touches, event);
         }
@@ -594,6 +602,12 @@ JSClass('UIScrollView', UIView, {
         }
         var location = touch.locationInView(this);
         var delta = location.subtracting(this._touchTracking.startingLocation);
+        if (!this._scrollsVertically){
+            delta.y = 0;
+        }
+        if (!this._scrollsHorizontally){
+            delta.x = 0;
+        }
         var offset = this._touchTracking.contentOffset.subtracting(delta);
         delta = location.subtracting(this._touchTracking.location);
         var dt = event.timestamp - this._touchTracking.timestamp;
@@ -606,6 +620,9 @@ JSClass('UIScrollView', UIView, {
     },
 
     touchesEnded: function(touches, event){
+        if (!this._scrollsVertically && !this._scrollsHorizontally){
+            return UIScrollView.$super.touchesEnded.call(this, touches, event);
+        }
         var dt = event.timestamp - this._touchTracking.timestamp;
         if (dt < 0.05){
             this._beginCoasting(this._touchTracking.velocity);
@@ -614,6 +631,9 @@ JSClass('UIScrollView', UIView, {
     },
 
     touchesCanceled: function(touches, event){
+        if (!this._scrollsVertically && !this._scrollsHorizontally){
+            return UIScrollView.$super.touchesCanceled.call(this, touches, event);
+        }
         this._endTrackingTouches();
     },
 
