@@ -489,7 +489,7 @@ JSClass("UIListView", UIScrollView, {
     _approximateHeightForSection: function(section, stopRow){
         var height = this._approximateYForSectionFooter(section);
         if (this.delegate && this.delegate.heightForListViewFooterInSection && !this.delegate.estimatedHeightForListViewFooters){
-            height = this.delegate.heightForListViewFooterInSection(section);
+            height = this.delegate.heightForListViewFooterInSection(this, section);
         }else{
             height += this._approximateFooterHeight;
         }
@@ -1635,7 +1635,7 @@ JSClass("UIListView", UIScrollView, {
     _heightForFooterInSection: function(section){
         var height = this._approximateFooterHeight;
         if (this.delegate.heightForListViewFooterInSection){
-            height = this.delegate.heightForListViewFooterInSection(section);
+            height = this.delegate.heightForListViewFooterInSection(this, section);
         }
         return height;
     },
