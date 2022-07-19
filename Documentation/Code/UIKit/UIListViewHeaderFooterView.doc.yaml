@@ -92,10 +92,10 @@ topics:
           Is often something like an icon that indicates more details are
           available after selection
       -
-        name: accessoryInsets
+        name: accessorySize
         introduced: 2021.44.0
-        type: JSInsets
-        summary: Insets for the cell's `accessoryView`
+        type: JSSize
+        summary: Size for the view's `accessoryView`
   -
     name: Styling
     members:
