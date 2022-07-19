@@ -323,17 +323,24 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
 
     sizeControlToFitSize: function(checkbox, maxSize){
         var height = checkbox._titleLabel.font.displayLineHeight;
-        var maxTitleSize = JSSize(maxSize);
-        var boxWidth = height + this.titleSpacing;
-        maxTitleSize.width -= boxWidth;
-        checkbox._titleLabel.sizeToFitSize(maxTitleSize);
-        checkbox.bounds = JSRect(0, 0, boxWidth + checkbox._titleLabel.frame.size.width, height);
+        if (checkbox._titleLabel.text !== ""){
+            var maxTitleSize = JSSize(maxSize);
+            var boxWidth = height + this.titleSpacing;
+            maxTitleSize.width -= boxWidth;
+            checkbox._titleLabel.sizeToFitSize(maxTitleSize);
+            checkbox.bounds = JSRect(0, 0, boxWidth + checkbox._titleLabel.frame.size.width, height);
+        }
+        checkbox.bounds = JSRect(0, 0, height, height);
     },
 
     intrinsicSizeOfControl: function(checkbox){
-        var size = JSSize(checkbox._titleLabel.intrinsicSize);
-        size.width += size.height + this.titleSpacing;
-        return size;
+        if (checkbox._titleLabel.text !== ""){
+            var size = JSSize(checkbox._titleLabel.intrinsicSize);
+            size.width += size.height + this.titleSpacing;
+            return size;
+        }
+        var height = checkbox._titleLabel.font.displayLineHeight;
+        return JSSize(height, height);
     },
 
     focusRingPathForControl: function(checkbox){
