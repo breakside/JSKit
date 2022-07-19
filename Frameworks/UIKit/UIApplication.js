@@ -400,31 +400,49 @@ JSClass('UIApplication', UIResponder, {
 
     // MARK: - Touch Event Conversion
 
+    convertsTouchesToMouseEvents: false,
+
     touchesBegan: function(touches, event){
-        // The application should be the final responder, so if a touch gets
-        // all the way here, it means nothing handled it, and we should try
-        // to re-send it as a mouse event to see if something handles that
-        var touch = touches[0];
-        var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDown, event.timestamp, location);
+        if (this.convertsTouchesToMouseEvents){
+            // The application should be the final responder, so if a touch gets
+            // all the way here, it means nothing handled it, and we should try
+            // to re-send it as a mouse event to see if something handles that
+            var touch = touches[0];
+            var location = touch.window.convertPointToScreen(touch.locationInWindow);
+            this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDown, event.timestamp, location);
+        }else{
+            UIApplication.$super.touchesBegan.call(this, touches, event);
+        }
     },
 
     touchesMoved: function(touches, event){
-        var touch = touches[0];
-        var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDragged, event.timestamp, location);
+        if (this.convertsTouchesToMouseEvents){
+            var touch = touches[0];
+            var location = touch.window.convertPointToScreen(touch.locationInWindow);
+            this.windowServer.createMouseEvent(UIEvent.Type.leftMouseDragged, event.timestamp, location);
+        }else{
+            UIApplication.$super.touchesMoved.call(this, touches, event);
+        }
     },
 
     touchesEnded: function(touches, event){
-        var touch = touches[0];
-        var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
+        if (this.convertsTouchesToMouseEvents){
+            var touch = touches[0];
+            var location = touch.window.convertPointToScreen(touch.locationInWindow);
+            this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
+        }else{
+            UIApplication.$super.touchesEnded.call(this, touches, event);
+        }
     },
 
     touchesCanceled: function(touches, event){
-        var touch = touches[0];
-        var location = touch.window.convertPointToScreen(touch.locationInWindow);
-        this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
+        if (this.convertsTouchesToMouseEvents){
+            var touch = touches[0];
+            var location = touch.window.convertPointToScreen(touch.locationInWindow);
+            this.windowServer.createMouseEvent(UIEvent.Type.leftMouseUp, event.timestamp, location);
+        }else{
+            UIApplication.$super.touchesCanceled.call(this, touches, event);
+        }
     },
 
     // MARK: - Fonts

@@ -309,20 +309,6 @@ JSClass("UIMenuWindow", UIWindow, {
         this._adjustHighlightForLocation(this._lastMoveLocation);
     },
 
-    mouseDragged: function(event){
-        if (this._isClosing){
-            return;
-        }
-        var location = event.locationInView(this);
-        this._lastMoveLocation = event.locationInView(this);
-        this._adjustHighlightForLocation(this._lastMoveLocation);
-        if (!this.containsPoint(location)){
-            if (this._menu.supermenu !== null && this._menu.supermenu.stylerProperties.window){
-                this._menu.supermenu.stylerProperties.window.mouseDragged(event);
-            }
-        }
-    },
-
     mouseExited: function(event){
         if (this._isClosing){
             return;
@@ -350,6 +336,37 @@ JSClass("UIMenuWindow", UIWindow, {
 
     _itemDownTimestamp: UIEvent.minimumTimestamp,
 
+    mouseDown: function(event){
+        if (this._isClosing){
+            return;
+        }
+        var location = event.locationInView(this);
+        if (!this.containsPoint(location)){
+            if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.mouseDown(event);
+            }else{
+                this.closeAll(true);
+            }
+        }else{
+            this._lastMoveLocation = event.locationInView(this);
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }
+    },
+
+    mouseDragged: function(event){
+        if (this._isClosing){
+            return;
+        }
+        var location = event.locationInView(this);
+        this._lastMoveLocation = event.locationInView(this);
+        this._adjustHighlightForLocation(this._lastMoveLocation);
+        if (!this.containsPoint(location)){
+            if (this._menu.supermenu !== null && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.mouseDragged(event);
+            }
+        }
+    },
+
     mouseUp: function(event){
         if (event.timestamp - this._itemDownTimestamp < 0.2){
             return;
@@ -369,21 +386,63 @@ JSClass("UIMenuWindow", UIWindow, {
         }
     },
 
-    mouseDown: function(event){
+    // -----------------------------------------------------------------------
+    // MARK: - Touch Events
+
+    touchesBegan: function(touches, event){
         if (this._isClosing){
             return;
         }
-        var location = event.locationInView(this);
+        if (touches.length > 1){
+            return;
+        }
+        var location = touches[0].locationInView(this);
         if (!this.containsPoint(location)){
             if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
-                this._menu.supermenu.stylerProperties.window.mouseDown(event);
+                this._menu.supermenu.stylerProperties.window.touchesBegan(touches, event);
             }else{
                 this.closeAll(true);
             }
         }else{
-            this._lastMoveLocation = event.locationInView(this);
+            this._lastMoveLocation = location;
             this._adjustHighlightForLocation(this._lastMoveLocation);
         }
+    },
+
+    touchesMoved: function(touches, event){
+        if (this._isClosing){
+            return;
+        }
+        var location = touches[0].locationInView(this);
+        this._lastMoveLocation = location;
+        this._adjustHighlightForLocation(this._lastMoveLocation);
+        if (!this.containsPoint(location)){
+            if (this._menu.supermenu !== null && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.touchesMoved(touches, event);
+            }
+        }
+    },
+
+    touchesEnded: function(touches, event){
+        if (event.timestamp - this._itemDownTimestamp < 0.2){
+            return;
+        }
+        if (this._isClosing){
+            return;
+        }
+        var location = touches[0].locationInView(this);
+        if (this.containsPoint(location)){
+            this._performActionForHighlightedItem();
+        }else{
+            if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
+                this._menu.supermenu.stylerProperties.window.touchesEnded(touches, event);
+            }else{
+                this.closeAll(true);
+            }
+        }
+    },
+
+    touchesCanceled: function(touches, event){
     },
 
     // -----------------------------------------------------------------------

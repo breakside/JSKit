@@ -959,8 +959,8 @@ JSClass("UITextField", UIControl, {
                 // user interaction
                 this.window.firstResponder = this;
                 this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+                return;
             }
-            return;
         }
         UITextField.$super.touchesBegan.call(this, touches, event);
     },
