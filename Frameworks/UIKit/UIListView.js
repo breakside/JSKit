@@ -355,6 +355,7 @@ JSClass("UIListView", UIScrollView, {
         var y;
         var diff;
         var height;
+        var newHeight;
         var item;
         var y0 = firstVisibleItem.view.position.y - firstVisibleItem.view.anchorPoint.y * firstVisibleItem.view.bounds.size.height;
 
@@ -372,9 +373,10 @@ JSClass("UIListView", UIScrollView, {
                         cell = item.view;
                         height = cell.bounds.size.height;
                         y = cell.position.y - cell.anchorPoint.y * height;
+                        newHeight = this._heightForCellAtIndexPath(indexPath);
                         this._enqueueReusableCell(cell);
-                        cell = this._createCellAtIndexPath(indexPath, JSRect(0, y, cell.bounds.size.width, height));
-                        diff = cell.bounds.size.height - height;
+                        cell = this._createCellAtIndexPath(indexPath, JSRect(0, y, cell.bounds.size.width, newHeight));
+                        diff = newHeight - height;
                         if (cell !== item.view){
                             this._cellsContainerView.insertSubviewBelowSibling(cell, item.view);
                             item.view.removeFromSuperview();
@@ -382,6 +384,7 @@ JSClass("UIListView", UIScrollView, {
                         }
                         if (diff !== 0){
                             visibleSizeChanged = true;
+                            contentSize.height += diff;
                         }
                     }
                 }
@@ -397,6 +400,7 @@ JSClass("UIListView", UIScrollView, {
         }else{
             this.contentSize = contentSize;
             this.contentOffset = contentOffset;
+            this._layoutVisibleItems(this._visibleItems, y0);
         }
 
     },
