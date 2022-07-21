@@ -713,7 +713,14 @@ JSClass("UITextField", UIControl, {
             size = JSSize(this._placeholderLabel.bounds.size);
         }else{
             if (this._multiline){
-                this._textLayer.sizeToFitSize(maxSize);
+                var maxTextSize = JSSize(maxSize);
+                if (maxTextSize.width < Number.MAX_VALUE){
+                    maxTextSize.width -= this._textInsets.width;
+                }
+                if (maxTextSize.height < Number.MAX_VALUE){
+                    maxTextSize.height -= this._textInsets.height;
+                }
+                this._textLayer.sizeToFitSize(maxTextSize);
             }
             this._textLayer.layoutIfNeeded();
             size = JSSize(this._textLayer.bounds.size);
