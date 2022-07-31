@@ -584,7 +584,7 @@ JSClass("UISliderColorStyler", UISliderLayerBasedStyler, {
     },
 
     initWithSpec: function(spec){
-        UISliderColorStyler.$super.initWithSpec.call(this);
+        UISliderColorStyler.$super.initWithSpec.call(this, spec);
         this._commonColorStylerInit();
         if (spec.containsKey("gradient")){
             this.gradient = spec.valueForKey("gradient", JSGradient);
