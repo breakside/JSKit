@@ -295,7 +295,7 @@ JSClass("HTMLBuilder", Builder, {
                     if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
                         tzif = builder._modifiedTzif(tzif);
                         if (tzif.length >= 44 && tzif[0] == 0x54 && tzif[1] == 0x5A && tzif[2] == 0x69 && tzif[3] == 0x66){
-                            let zone = JSTimeZone.initWithData(tzif);
+                            let zone = JSTimeZone.initWithData(tzif, name);
                             if (zone !== null){
                                 chunks.push(tzif);
                                 contents.map[name] = [offset, tzif.length];

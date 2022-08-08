@@ -25,15 +25,19 @@
 JSClass("JSTimeZone", JSObject, {
 
     initWithIdentifier: function(identifier){
+        if (identifier === null || identifier === undefined){
+            return null;
+        }
         var lookup = zoneinfo.map[identifier];
         if (lookup === undefined){
             return null;
         }
         if (zoneinfo.tzif !== undefined){
             var tzif = zoneinfo.tzif.subdataInRange(JSRange(lookup[0], lookup[1]));
-            return this.initWithData(tzif);
+            return this.initWithData(tzif, identifier);
         }
         var zone = zoneinfo.zones[lookup.index];
+        this._identifier = identifier;
         this._transitionTimes = zone.transitions;
         this._transitionTimesToLocalTimeTypes = zone.map;
         this._localTimeTypes = zone.types;
@@ -49,11 +53,13 @@ JSClass("JSTimeZone", JSObject, {
         this._fixedAbbreviation = abbreviation;
     },
 
-    initWithData: function(data){
+    initWithData: function(data, identifier){
         // https://www.man7.org/linux/man-pages/man5/tzfile.5.html
         if (!(data instanceof JSData)){
             return null;
         }
+
+        this._identifier = identifier;
 
         var dataLength = data.length;
 
@@ -205,6 +211,7 @@ JSClass("JSTimeZone", JSObject, {
         this._defaultTimeTypeIndex = this._getDefaultTimeTypeIndex();
     },
 
+    identifier: JSReadOnlyProperty("_identifier", null),
     _fixedOffset: null,
     _fixedAbbreviation: null,
     _transitionTimes: null,
@@ -526,8 +533,8 @@ JSClass("JSTimeZone", JSObject, {
 
 });
 
-JSTimeZone.changeLocalTimeZone = function(identifer){
-    localIdentifier = identifer;
+JSTimeZone.changeLocalTimeZone = function(identifier){
+    localIdentifier = identifier;
     Object.defineProperty(JSTimeZone, 'local', defaultLocalProperty);
 };
 
