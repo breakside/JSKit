@@ -1220,6 +1220,188 @@ JSClass('StringTests', TKTestSuite, {
         TKAssertExactEquals(iterator.isParagraphBreak, false);
         iterator = str.userPerceivedCharacterIterator(15);
         TKAssertExactEquals(iterator.isParagraphBreak, false);
+    },
+
+    testUnicodeIteratorLineBreakOpportunity: function(){
+        var string = "testing 1, 2, 3...\ndoes this work?";
+        var iterator = string.unicodeIterator(0);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(6);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(11);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(12);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(13);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(14);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(15);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(16);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(17);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(18);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(19);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(20);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(23);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(24);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(28);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(29);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(32);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(33);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(34);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "testing     1.2";
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(11);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(12);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(13);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(14);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(15);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "testing\u00A01.2";
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(11);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "testing\u200B1.2";
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(11);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "[testing 1.2";
+        iterator = string.unicodeIterator(0);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+
+        string = "[ testing 1.2";
+        iterator = string.unicodeIterator(0);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(2);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+
+        string = "[  testing 1.2";
+        iterator = string.unicodeIterator(0);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(2);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(3);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+
+        string = "testing] 1.2";
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "testing ] 1.2";
+        iterator = string.unicodeIterator(7);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "'testing' 1.2";
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "\"testing\" 1.2";
+        iterator = string.unicodeIterator(1);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(9);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "test-this";
+        iterator = string.unicodeIterator(4);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(5);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+
+        string = "test123";
+        iterator = string.unicodeIterator(4);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(5);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(6);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+
+        string = "test😀🖐🏾";
+        iterator = string.unicodeIterator(4);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(6);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
+        iterator = string.unicodeIterator(8);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, false);
+        iterator = string.unicodeIterator(10);
+        TKAssertExactEquals(iterator.isLineBreakOpportunity, true);
     }
 
 });

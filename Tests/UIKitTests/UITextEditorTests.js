@@ -2713,7 +2713,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         this.textLayer.text =
-            "This is a test of a multiline{" +
+            "This is a test of a multiline}" +
             "text_field_that_should_wrap_to" +
             "_three lines.\n" + 
             "Then break to a fourth.";
@@ -3049,7 +3049,7 @@ JSClass("UITextEditorTests", TKTestSuite, {
         TKAssertEquals(editor.selections[0].affinity, UITextInput.SelectionAffinity.beforeCurrentCharacter);
 
         this.textLayer.text =
-            "This is a test of a multiline{" +
+            "This is a test of a multiline}" +
             "text_field_that_should_wrap_to" +
             "_three lines.\n" + 
             "Then break to a fourth.";

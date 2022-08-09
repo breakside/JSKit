@@ -247,11 +247,10 @@ JSClass("JSTextTypesetter", JSObject, {
 
             if (lineBreakMode == JSLineBreakMode.wordWrap){
                 // word wrapping
-
                 iterator.decrement();
                 var characterBreakLocation = iterator.range.location;
-                // back up to a word boundary
-                while (iterator.index > range.location && !iterator.isWordBoundary){
+                // back up to a line break opportunity
+                while (iterator.index > range.location && !iterator.isLineBreakOpportunity){
                     iterator.decrement();
                 }
                 if (iterator.range.location <= range.location){

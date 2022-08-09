@@ -49,11 +49,58 @@ UnicodeChar.GeneralCategoryPropertyMap = {
 
 UnicodeChar.LineBreaks = {
     newLine:            0x000A,
+    verticalTab:        0x000B,
     formFeed:           0x000C,
     carriageReturn:     0x000D,
     nextLine:           0x0085,
     lineSeparator:      0x2028,
     paragraphSeparator: 0x2029
+};
+
+UnicodeChar.LineBreakingClass = {
+    ambiguous: 0,                   // AI
+    alphabetic: 1,                  // AL
+    breakAfter: 2,                  // BA
+    breakBefore: 3,                 // BB
+    breakOpportunity: 4,            // B2
+    mandatoryBreak: 5,              // BK
+    contingentBreak: 6,             // CB
+    conditionalJapaneseStarter: 7,  // CJ
+    closePunctuation: 8,            // CL
+    combiningMark: 9,               // CM
+    closingParenthesis: 10,         // CP
+    carriageReturn: 11,             // CR
+    emojiBase: 12,                  // EB
+    emojiModifier: 13,              // EM
+    exclamation: 14,                // EX
+    glue: 15,                       // GL
+    hangulLV: 16,                   // H2
+    hangulLVT: 17,                  // H3
+    hyphen: 18,                     // HY
+    ideographic: 19,                // ID
+    hebrewLetter: 20,               // HL
+    inseperable: 21,                // IN
+    infixNumeric: 22,               // IS
+    hangulLJambo: 23,               // JL
+    hangulTJambo: 24,               // JT
+    hangulVJambo: 25,               // JV
+    lineFeed: 26,                   // LF
+    nextLine: 27,                   // NL
+    nonstarters: 28,                // NS
+    numeric: 29,                    // NU
+    openPunctuation: 30,            // OP
+    postfixNumeric: 31,             // PO
+    prefixNumeric: 32,              // PR
+    quotation: 33,                  // QU
+    regionalIndicator: 34,          // RI
+    complexContentDependent: 35,    // SA
+    surrogate: 36,                  // SG
+    space: 37,                      // SP
+    symbolsBreakAfter: 38,          // SY
+    wordJoiner: 39,                 // WJ
+    unknown: 40,                    // XX
+    zeroWidthSpace: 41,             // ZW 
+    zeroWidthJoiner: 42,            // ZWJ
 };
 
 UnicodeChar.prototype = Object.create(Object.prototype, {
@@ -175,6 +222,241 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
                 Object.defineProperty(this, 'scriptIsHiragana', {value: false});
             }
             return this.scriptIsKatakana;
+        }
+    },
+
+    lineBreakingClass: {
+        configurable: true,
+        get: function UnicodeChar_lazy_lineBreakAmbiguous(){
+            // Start with basic ascii (0x00-0x7F)
+            if (this.code === 0x0009){
+                return UnicodeChar.LineBreakingClass.breakAfter;
+            }
+            if (this.code === 0x000A){
+                return UnicodeChar.LineBreakingClass.lineFeed;
+            }
+            if (this.code === 0x000B || this.code === 0x000C || this.code === 0x2028 || this.code === 0x2029){
+                return UnicodeChar.LineBreakingClass.mandatoryBreak;
+            }
+            if (this.code === 0x000D){
+                return UnicodeChar.LineBreakingClass.carriageReturn;
+            }
+            if (this.code < 0x0020){
+                return UnicodeChar.LineBreakingClass.combiningMark;
+            }
+            if (this.code === 0x0020){
+                return UnicodeChar.LineBreakingClass.space;
+            }
+            if (this.code === 0x0021){
+                return UnicodeChar.LineBreakingClass.exclamation;
+            }
+            if (this.code === 0x0022 || this.code === 0x0027){
+                return UnicodeChar.LineBreakingClass.quotation;
+            }
+            if (this.code === 0x0023){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x0024){
+                return UnicodeChar.LineBreakingClass.prefixNumeric;
+            }
+            if (this.code === 0x0025){
+                return UnicodeChar.LineBreakingClass.postfixNumeric;
+            }
+            if (this.code === 0x0026){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x0028){
+                return UnicodeChar.LineBreakingClass.openPunctuation;
+            }
+            if (this.code === 0x0029 || this.code === 0x005D){
+                return UnicodeChar.LineBreakingClass.closingParenthesis;
+            }
+            if (this.code === 0x002A){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x002B){
+                return UnicodeChar.LineBreakingClass.prefixNumeric;
+            }
+            if ((this.code === 0x002C) || (this.code === 0x002E)){
+                return UnicodeChar.LineBreakingClass.infixNumeric;
+            }
+            if (this.code === 0x002D){
+                return UnicodeChar.LineBreakingClass.hyphen;
+            }
+            if (this.code === 0x002F){
+                return UnicodeChar.LineBreakingClass.symbolsBreakAfter;
+            }
+            if (this.code <= 0x0039){
+                return UnicodeChar.LineBreakingClass.numeric;
+            }
+            if (this.code <= 0x003B){
+                return UnicodeChar.LineBreakingClass.infixNumeric;
+            }
+            if (this.code <= 0x003E){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x003F){
+                return UnicodeChar.LineBreakingClass.exclamation;
+            }
+            if (this.code <= 0x005A){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x005B){
+                return UnicodeChar.LineBreakingClass.openPunctuation;
+            }
+            if (this.code === 0x005C){
+                return UnicodeChar.LineBreakingClass.prefixNumeric;
+            }
+            if (this.code === 0x005D){
+                return UnicodeChar.LineBreakingClass.closingParenthesis;
+            }
+            if (this.code <= 0x007A){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x007B){
+                return UnicodeChar.LineBreakingClass.openPunctuation;
+            }
+            if (this.code === 0x007C){
+                return UnicodeChar.LineBreakingClass.breakAfter;
+            }
+            if (this.code === 0x007D){
+                return UnicodeChar.LineBreakingClass.closePunctuation;
+            }
+            if (this.code === 0x007E){
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if (this.code === 0x007F){
+                return UnicodeChar.LineBreakingClass.combiningMark;
+            }
+
+            // Next do simple classes with only one or a few characters
+            if (this.code === 0x0085){
+                return UnicodeChar.LineBreakingClass.nextLine;
+            }
+            if (this.code === 0x200B){
+                return UnicodeChar.LineBreakingClass.zeroWidthSpace;
+            }
+            if (this.code === 0x200D){
+                return UnicodeChar.LineBreakingClass.zeroWidthJoiner;
+            }
+            if (this.code === 0x2060 || this.code === 0xFEFF){
+                return UnicodeChar.LineBreakingClass.wordJoiner;
+            }
+            if (this.code === 0x2014 || (this.code >= 0x2E3A && this.code <= 0x2E3B)){
+                return UnicodeChar.LineBreakingClass.breakOpportunity;
+            }
+            if (this.code === 0xFFFC){
+                return UnicodeChar.LineBreakingClass.contingentBreak;
+            }
+            if (this.code >= 0x1F3FB && this.code <= 0x1F3FF){
+                return UnicodeChar.LineBreakingClass.emojiModifier;
+            }
+            if (this.code >= 0x2024 && this.code <= 0x2026){
+                return UnicodeChar.LineBreakingClass.inseperable;
+            }
+            if ((this.code === 0x22EF) || (this.code === 0xFE19) || (this.code === 0x10AF6)){
+                return UnicodeChar.LineBreakingClass.inseperable;
+            }
+            if ((this.code === 0x037E) || (this.code === 0x0589) || (this.code === 0x060C) || (this.code === 0x060D)){
+                return UnicodeChar.LineBreakingClass.infixNumeric;
+            }
+            if ((this.code === 0x07F8) || (this.code === 0x2044) || (this.code === 0xFE10) || (this.code === 0xFE13) || (this.code === 0xFE14)){
+                return UnicodeChar.LineBreakingClass.infixNumeric;
+            }
+            if (this.code >= 0x1F1E6 && this.code <= 0x1F1FF){
+                return UnicodeChar.LineBreakingClass.regionalIndicator;
+            }
+            if (this.code >= 0xD800 && this.code <= 0xDFFF){
+                // Surrogate, resolve to alphabetic
+                // return UnicodeChar.LineBreakingClass.surrogate;
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+            if ((this.code >= 0xE000 && this.code <= 0xF8FF) || (this.code >= 0xF0000 && this.code <= 0xFFFFD) || this.code > 0x100000){
+                // Surrogate, resolve to alphabetic
+                // return UnicodeChar.LineBreakingClass.unknown;
+                return UnicodeChar.LineBreakingClass.alphabetic;
+            }
+
+            // Next, use properties that search larger ranges of characters
+            if (this.lineBreakIsNumeric){
+                return UnicodeChar.LineBreakingClass.numeric;
+            }
+            if (this.lineBreakIsInfixNumeric){
+                return UnicodeChar.LineBreakingClass.infixNumeric;
+            }
+            if (this.lineBreakIsQuotation){
+                return UnicodeChar.LineBreakingClass.quotation;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Emoji_Base')){
+                return UnicodeChar.LineBreakingClass.emojiBase;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Exclamation')){
+                return UnicodeChar.LineBreakingClass.exclamation;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Break_Before')){
+                return UnicodeChar.LineBreakingClass.breakBefore;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Break_After')){
+                return UnicodeChar.LineBreakingClass.breakAfter;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Conditional_Japanese')){
+                // maps to nonstarters
+                // return UnicodeChar.LineBreakingClass.conditionalJapaneseStarter;
+                return UnicodeChar.LineBreakingClass.nonstarters;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Close_Punctuation')){
+                return UnicodeChar.LineBreakingClass.closePunctuation;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Combining_Mark')){
+                return UnicodeChar.LineBreakingClass.combiningMark;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Glue')){
+                return UnicodeChar.LineBreakingClass.glue;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Nonstarters')){
+                return UnicodeChar.LineBreakingClass.nonstarters;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Open_Punctuation')){
+                return UnicodeChar.LineBreakingClass.openPunctuation;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Postfix_Numeric')){
+                return UnicodeChar.LineBreakingClass.postfixNumeric;
+            }
+            if (UnicodeProperties.isLineBreak(this.code, 'Prefix_Numeric')){
+                return UnicodeChar.LineBreakingClass.prefixNumeric;
+            }
+            if (this.lineBreakIsComplexContext){
+                // complex content resolves to combiningMark or alphabetic
+                // return UnicodeChar.LineBreakingClass.complexContentDependent;
+                if (this.generalCategoryIsSpacingMark){ // FIXME: also include non-spacing-marks
+                    return UnicodeChar.LineBreakingClass.combiningMark;
+                }else{
+                    return UnicodeChar.LineBreakingClass.alphabetic;
+                }
+            }
+            if (this.hangulSyllableTypeIsL){
+                return UnicodeChar.LineBreakingClass.hangulLJambo;
+            }
+            if (this.hangulSyllableTypeIsT){
+                return UnicodeChar.LineBreakingClass.hangulTJambo;
+            }
+            if (this.hangulSyllableTypeIsV){
+                return UnicodeChar.LineBreakingClass.hangulVJambo;
+            }
+            if (this.hangulSyllableTypeIsLV){
+                return UnicodeChar.LineBreakingClass.hangulLV;
+            }
+            if (this.hangulSyllableTypeIsLVT){
+                return UnicodeChar.LineBreakingClass.hangulLVT;
+            }
+            if (this.ideographic){
+                return UnicodeChar.LineBreakingClass.ideographic;
+            }
+            if (this.wordBreakIsHebrewLetter){
+                return UnicodeChar.LineBreakingClass.hebrewLetter;
+            }
+            // Finally, anything else is considered alphabetic
+            return UnicodeChar.LineBreakingClass.alphabetic;
         }
     },
 
@@ -786,6 +1068,6 @@ UnicodeChar.prototype = Object.create(Object.prototype, {
             Object.defineProperty(this, 'isParagraphBreak', {value: this.code === UnicodeChar.LineBreaks.newLine || this.code === UnicodeChar.LineBreaks.formFeed || this.code === UnicodeChar.LineBreaks.carriageReturn || this.code === UnicodeChar.LineBreaks.nextLine || this.code === UnicodeChar.LineBreaks.paragraphSeparator});
             return this.isParagraphBreak;
         }
-    }
+    },
 
 });

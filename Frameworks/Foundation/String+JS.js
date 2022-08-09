@@ -1022,6 +1022,366 @@ Object.defineProperties(UnicodeIterator.prototype, {
             return this.character !== null && (this.character.code == 0x20 || this.character.code == 0x09 || this.character.code == 0x0A || this.character.code == 0x0B || this.character.code == 0x0C || this.character.code == 0x0D);
             // TODO: consider other whitespace
         }
+    },
+
+    isLineBreakOpportunity: {
+        enumerable: false,
+        get: function UnicodeIterator_isLineBreakOpportunity(){
+            // https://www.unicode.org/reports/tr14/
+            var before = UnicodeIterator(this);
+            before.decrement();
+            var lbc = UnicodeChar.LineBreakingClass;
+
+            // LB2 Never break at the start of text.
+            if (before._character === null){
+                return false;
+            }
+
+            // LB3 Always break at the end of text.
+            if (this._character === null){
+                return true;
+            }
+
+            var c1 = this._character.lineBreakingClass;
+            var c0 = before._character.lineBreakingClass;
+
+            // LB4 Always break after hard line breaks.
+            if (c0 === lbc.mandatoryBreak) {
+                return true;
+            }
+
+            // LB5 Treat CR followed by LF, as well as CR, LF, and NL as hard line breaks.
+            if (c0 === lbc.carriageReturn) {
+                if (c1 === lbc.lineFeed) {
+                    return false;
+                }
+                return true;
+            }
+            if (c0 === lbc.lineFeed || c0 === lbc.nextLine) {
+                return true;
+            }
+
+            // LB6 Do not break before hard line breaks.
+            if (c1 === lbc.mandatoryBreak || c1 === lbc.carriageReturn || c1 === lbc.lineFeed || c1 === lbc.nextLine) {
+                return false;
+            }
+
+            // LB7 Do not break before spaces or zero width space.
+            if (c1 === lbc.space){
+                return false;
+            }
+            if (c1 === lbc.zeroWidthSpace){
+                return false;
+            }
+
+            // LB8 Break before any character following a zero-width space, even if one or more spaces intervene.
+            if (c0 === lbc.zeroWidthSpace){
+                if (c1 === lbc.space){
+                    return false;
+                }
+                return true;
+            }
+
+            // LB8a Do not break after a zero width joiner.
+            if (c0 === lbc.zeroWidthJoiner){
+                return false;
+            }
+
+            // LB9 Do not break a combining character sequence; treat it as if it has the line breaking class of the base character in all of the following rules. Treat ZWJ as if it were CM.
+            while (c0 !== null && (c0 === lbc.combiningMark || c0 === lbc.zeroWidthJoiner)) {
+                before.decrement();
+                if (before._character !== null){
+                    c0 = before._character.lineBreakingClass;
+                }else{
+                    c0 = null;
+                }
+            }
+            if (c0 === null){
+                return false;
+            }
+
+            // LB10 Treat any remaining combining mark or ZWJ as AL.
+            if (c1 === lbc.combiningMark || c1 === lbc.zeroWidthJoiner){
+                c1 = lbc.alphabetic;
+            }
+
+            // LB11 Do not break before or after Word joiner and related characters.
+            if (c1 === lbc.wordJoiner){
+                return false;
+            }
+            if (c0 === lbc.wordJoiner){
+                return false;
+            }
+
+            // LB12 Do not break after NBSP and related characters.
+            if (c0 === lbc.glue){
+                return false;
+            }
+
+            // LB12a Do not break before NBSP and related characters, except after spaces and hyphens.
+            if (c1 === lbc.glue){
+                if (c0 === lbc.space || c0 === lbc.breakAfter || c0 === lbc.hyphen){
+                    return true;
+                }
+                return false;
+            }
+
+            // LB13 Do not break before ‘]’ or ‘!’ or ‘;’ or ‘/’, even after spaces.
+            if (c1 === lbc.closePunctuation){
+                return false;
+            }
+            if (c1 === lbc.closingParenthesis){
+                return false;
+            }
+            if (c1 === lbc.exclamation){
+                return false;
+            }
+            if (c1 === lbc.infixNumeric){
+                return false;
+            }
+            if (c1 === lbc.symbolsBreakAfter){
+                return false;
+            }
+
+            // LB14 Do not break after ‘[’, even after spaces.
+            if (c0 === lbc.openPunctuation){
+                return false;
+            }
+
+            // LB15 Do not break within ‘”[’, even with intervening spaces.
+            if (c0 === lbc.quotation && c1 === lbc.openPunctuation){
+                return false;
+            }
+
+            // LB16 Do not break between closing punctuation and a nonstarter (lb=NS), even with intervening spaces.
+            if ((c0 === lbc.closePunctuation || c0 === lbc.closingParenthesis) && c1 === lbc.nonstarters){
+                return false;
+            }
+
+            // LB17 Do not break within ‘——’, even with intervening spaces.
+            if (c0 === lbc.breakOpportunity && c1 === lbc.breakOpportunity){
+                return false;
+            }
+
+            // LB18 Break after spaces.
+            if (c0 === lbc.space){
+                // But first check for for intervening spaces in LB14-LB17
+                while (c0 !== null && c0 === lbc.space){
+                    before.decrement();
+                    if (before._character !== null){
+                        c0 = before._character.lineBreakingClass;
+                    }else{
+                        c0 = null;
+                    }
+                }
+                // LB14
+                if (c0 === lbc.openPunctuation){
+                    return false;
+                }
+                // LB15
+                if (c0 === lbc.quotation && c1 === lbc.openPunctuation){
+                    return false;
+                }
+                // LB16
+                if ((c0 === lbc.closePunctuation || c0 === lbc.closingParenthesis) && c1 === lbc.nonstarters){
+                    return false;
+                }
+                // LB17
+                if (c0 === lbc.breakOpportunity && c1 === lbc.breakOpportunity){
+                    return false;
+                }
+                return true;
+            }
+
+            // LB19 Do not break before or after quotation marks, such as ‘ ” ’.
+            if (c0 === lbc.quotation || c1 === lbc.quotation){
+                return false;
+            }
+
+            // LB20 Break before and after unresolved CB.
+            if (c0 === lbc.contingentBreak || c1 === lbc.contingentBreak){
+                return false;
+            }
+
+            // LB21 Do not break before hyphen-minus, other hyphens, fixed-width spaces, small kana, and other non-starters, or after acute accents.
+            if (c1 === lbc.breakAfter){
+                return false;
+            }
+            if (c1 === lbc.hyphen){
+                return false;
+            }
+            if (c1 === lbc.nonstarters){
+                return false;
+            }
+            if (c0 === lbc.breakBefore){
+                return false;
+            }
+
+            // LB21a Don't break after Hebrew + Hyphen.
+            if (c0 === lbc.hyphen || c0 === lbc.breakAfter){
+                before.decrement();
+                if (before._character !== null && before._character.lineBreakingClass === lbc.hebrewLetter){
+                    return false;
+                }
+                before.increment();
+            }
+
+            // LB22 Do not break before ellipses.
+            if (c1 === lbc.inseperable){
+                return false;
+            }
+
+            // LB23 Do not break between digits and letters.
+            if ((c0 === lbc.alphabetic || c0 === lbc.hebrewLetter) && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.numeric && (c1 === lbc.alphabetic || c1 === lbc.hebrewLetter)){
+                return false;
+            }
+
+            // LB23a Do not break between numeric prefixes and ideographs, or between ideographs and numeric postfixes.
+            if (c0 === lbc.prefixNumeric && (c1 === lbc.ideographic || c1 === lbc.emojiBase || c1 === lbc.emojiModifier)){
+                return false;
+            }
+            if ((c0 === lbc.ideographic || c0 === lbc.emojiBase || c0 === lbc.emojiModifier) && c1 === lbc.prefixNumeric){
+                return false;
+            }
+
+            // LB24 Do not break between numeric prefix/postfix and letters, or between letters and prefix/postfix.
+            if ((c0 === lbc.prefixNumeric || c0 === lbc.postfixNumeric) && (c1 === lbc.alphabetic || c1 === lbc.hebrewLetter)){
+                return false;
+            }
+            if ((c0 === lbc.alphabetic || c0 === lbc.hebrewLetter) && (c1 === lbc.prefixNumeric || c1 === lbc.postfixNumeric)){
+                return false;
+            }
+
+            // LB25 Do not break between the following pairs of classes relevant to numbers:
+            if (c0 === lbc.closePunctuation && c1 === lbc.postfixNumeric){
+                return false;
+            }
+            if (c0 === lbc.closingParenthesis && c1 === lbc.postfixNumeric){
+                return false;
+            }
+            if (c0 === lbc.closePunctuation && c1 === lbc.prefixNumeric){
+                return false;
+            }
+            if (c0 === lbc.closingParenthesis && c1 === lbc.prefixNumeric){
+                return false;
+            }
+            if (c0 === lbc.numeric && c1 === lbc.postfixNumeric){
+                return false;
+            }
+            if (c0 === lbc.numeric && c1 === lbc.prefixNumeric){
+                return false;
+            }
+            if (c0 === lbc.postfixNumeric && c1 === lbc.openPunctuation){
+                return false;
+            }
+            if (c0 === lbc.postfixNumeric && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.prefixNumeric && c1 === lbc.openPunctuation){
+                return false;
+            }
+            if (c0 === lbc.prefixNumeric && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.hyphen && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.infixNumeric && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.numeric && c1 === lbc.numeric){
+                return false;
+            }
+            if (c0 === lbc.symbolsBreakAfter && c1 === lbc.numeric){
+                return false;
+            }
+
+            // LB26 Do not break a Korean syllable.
+            if (c0 === lbc.hangulLJambo){
+                if (c1 === lbc.hangulLJambo){
+                    return false;
+                }
+                if (c1 === lbc.hangulVJambo){
+                    return false;
+                }
+                if (c1 === lbc.hangulVJambo){
+                    return false;
+                }
+            }
+            if ((c0 === lbc.hangulVJambo || c0 === lbc.hangulLV) && (c1 === lbc.hangulVJambo || c1 === lbc.hangulTJambo)){
+                return false;
+            }
+            if ((c0 === lbc.hangulTJambo || c0 === lbc.hangulLVT) && c1 === lbc.hangulTJambo){
+                return false;
+            }
+
+            // LB27 Treat a Korean Syllable Block the same as ID.
+            if (c1 === lbc.postfixNumeric){
+                if (c0 === lbc.hangulLJambo){
+                    return false;
+                }
+                if (c0 === lbc.hangulVJambo){
+                    return false;
+                }
+                if (c0 === lbc.hangulTJambo){
+                    return false;
+                }
+                if (c0 === lbc.hangulLV){
+                    return false;
+                }
+                if (c0 === lbc.hangulLVT){
+                    return false;
+                }
+            }
+            if (c0 === lbc.prefixNumeric){
+                if (c1 === lbc.hangulLJambo){
+                    return false;
+                }
+                if (c1 === lbc.hangulVJambo){
+                    return false;
+                }
+                if (c1 === lbc.hangulTJambo){
+                    return false;
+                }
+                if (c1 === lbc.hangulLV){
+                    return false;
+                }
+                if (c1 === lbc.hangulLVT){
+                    return false;
+                }
+            }
+
+            // LB28 Do not break between alphabetics (“at”).
+            if ((c0 === lbc.alphabetic || c0 === lbc.hebrewLetter) && (c1 === lbc.alphabetic || c1 === lbc.hebrewLetter)){
+                return false;
+            }
+
+            // LB29 Do not break between numeric punctuation and alphabetics (“e.g.”).
+            if (c0 === lbc.infixNumeric && (c1 === lbc.alphabetic || c1 === lbc.hebrewLetter)){
+                return false;
+            }
+
+            // LB30 Do not break between letters, numbers, or ordinary symbols and opening or closing parentheses.
+            if ((c0 === lbc.alphabetic || c0 === lbc.hebrewLetter || c0 === lbc.numeric) && c1 === lbc.openPunctuation){
+                return false;
+            }
+            if (c0 === lbc.openPunctuation && (c1 === lbc.alphabetic || c1 === lbc.hebrewLetter || c1 === lbc.numeric)){
+                return false;
+            }
+
+            // LB30a Break between two regional indicator symbols if and only if there are an even number of regional indicators preceding the position of the break.
+
+            // LB30b Do not break between an emoji base (or potential emoji) and an emoji modifier.
+            if (c0 === lbc.emojiBase && c1 === lbc.emojiModifier){
+                return false;
+            }
+
+            // LB31 Break everywhere else.
+            return true;
+        }
     }
 
 });
@@ -1193,6 +1553,13 @@ Object.defineProperties(UserPerceivedCharacterIterator.prototype, {
             // the CR is checked, but since no other user perceived character
             // can start with CR, we know the second character must be LF.
             return this._unicodeIterator.character.isParagraphBreak;
+        }
+    },
+
+    isLineBreakOpportunity: {
+        enumerable: false,
+        get: function UserPerceivedCharacterIterator_isLineBreakOpportunity(){
+            return this._unicodeIterator.isLineBreakOpportunity;
         }
     }
 
