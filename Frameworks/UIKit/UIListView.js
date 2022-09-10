@@ -1755,6 +1755,9 @@ JSClass("UIListView", UIScrollView, {
     _setSelectedIndexPaths: function(selectedIndexPaths, options){
         var indexPaths = JSCopy(selectedIndexPaths);
         indexPaths.sort(JSIndexPath.compare);
+        if (this._edit !== null){
+            this._edit.selectionChanged = true;
+        }
         if (indexPaths.length === this._selectedIndexPaths.length){
             for (var i = 0, l = this._selectedIndexPaths.length; i < l; ++i){
                 if (!indexPaths[i].isEqual(this._selectedIndexPaths[i])){
@@ -1769,9 +1772,6 @@ JSClass("UIListView", UIScrollView, {
             return;
         }
         this._selectedIndexPaths = indexPaths;
-        if (this._edit !== null){
-            this._edit.selectionChanged = true;
-        }
         this._updateSelectedIndexPaths(options);
     },
 
