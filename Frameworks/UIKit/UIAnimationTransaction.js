@@ -92,6 +92,12 @@ JSClass('UIAnimationTransaction', JSObject, {
     },
 
     _flush: function(){
+        if (this.animations.length === 0){
+            if (this.completionFunction){
+                this.completionFunction();
+            }
+            return;
+        }
         var animation;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
