@@ -284,7 +284,9 @@ JSClass("UIPopupWindow", UIWindow, {
 
     indicateModalStatus: function(){
         if (this.modalIndicationClosesWindow){
-            this.close();
+            if (this.openAnimator.percentComplete > 0.9){
+                this.close();
+            }
             return;
         }
         if (this._modalAnimator !== null){
