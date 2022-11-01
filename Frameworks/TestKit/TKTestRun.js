@@ -151,7 +151,7 @@ JSClass('TKTestRun', JSObject, {
                     args = [];
                 }else{
                     fn = suiteInstance[parts[0]].test;
-                    args = suiteInstance[parts[0]].inputs[parts[1]];
+                    args = suiteInstance[parts[0]].inputs[parts.slice(1).join(".")];
                 }
                 var promise = fn.apply(suiteInstance, args);
                 if (promise){
