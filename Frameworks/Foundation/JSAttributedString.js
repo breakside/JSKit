@@ -487,7 +487,7 @@ JSClass("JSAttributedString", JSObject, {
                 adjustment += replacement.length - range.length;
                 if (argIndex >= 0){
                     var attrs = attributes[argIndex];
-                    if (attrs){
+                    if (attrs && replacement.length > 0){
                         attributedString.addAttributesInRange(attrs, JSRange(range.location, replacement.length));
                     }
                 }
