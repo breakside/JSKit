@@ -550,6 +550,13 @@ JSClass('UIView', UIResponder, {
         }
     },
 
+    layerDidChangeOrigin: function(layer){
+        if (layer === this.layer){
+            this.invalidateFocusRingPath();
+            this.updateMouseTrackingAreas();
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Constraints
 

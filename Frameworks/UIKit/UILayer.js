@@ -188,6 +188,10 @@ JSClass("UILayer", JSObject, {
                 this.model.bounds = JSRect(bounds);
             }
             this.didChangeProperty('bounds.origin');
+            this.didChangeOrigin();
+        }
+        if (this.needsDisplayOnBoundsChange){
+            this.setNeedsDisplay();
         }
     },
 
@@ -240,11 +244,14 @@ JSClass("UILayer", JSObject, {
     },
 
     didChangeSize: function(){
-        if (this.needsDisplayOnBoundsChange){
-            this.setNeedsDisplay();
-        }
         if (this.delegate && this.delegate.layerDidChangeSize){
             this.delegate.layerDidChangeSize(this);
+        }
+    },
+
+    didChangeOrigin: function(){
+        if (this.delegate && this.delegate.layerDidChangeOrigin){
+            this.delegate.layerDidChangeOrigin(this);
         }
     },
 
