@@ -335,6 +335,9 @@ JSClass("UIListView", UIScrollView, {
         if (this._visibleItems.length === 0){
             return;
         }
+        if (this._edit !== null){
+            return;
+        }
         var firstVisibleItem = this._visibleItems[0];
         var lastVisibleItem = this._visibleItems[this._visibleItems.length - 1];
         var searcher = JSBinarySearcher(this._visibleItems, VisibleItem.cellIndexPathCompare);
@@ -1217,6 +1220,15 @@ JSClass("UIListView", UIScrollView, {
         this._updateVisibleCellStates();
         this._updateRowCount();
 
+        // remove deleted items from this._visibleItems
+        this._visibleItems = JSCopy(items);
+        for (i = this._visibleItems.length - 1; i >= 0; --i){
+            item = this._visibleItems[i];
+            if (item.state === VisibleItem.State.deleted){
+                this._visibleItems.splice(i, 1);
+            }
+        }
+
         // Animate changes
         var listView = this;
         var animations = function(){
@@ -1230,13 +1242,12 @@ JSClass("UIListView", UIScrollView, {
         var completion = function(){
             var i, l;
             var item;
-            // enqueue deleted views and remove from visible items list
+            // enqueue deleted views
             for (i = items.length - 1; i >= 0; --i){
                 item = items[i];
                 if (item.state === VisibleItem.State.deleted){
                     item.view.alpha = 1;
                     listView._enqueueVisibleItem(item);
-                    items.splice(i, 1);
                 }
             }
 
