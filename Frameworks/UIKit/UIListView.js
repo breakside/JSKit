@@ -603,31 +603,11 @@ JSClass("UIListView", UIScrollView, {
             animation = UIListView.RowAnimation.left;
         }
         this._beginEditIfNeeded(animation);
-        var items = this._visibleItems;
-        var itemIndex = 0;
-        var itemCount = items.length;
-        indexPaths = JSCopy(indexPaths);
-        indexPaths.sort(JSIndexPath.compare);
         var indexPath;
-        var parent;
-        var i, l;
-        var j;
-        for (i = 0, l = indexPaths.length; i < l; ++i){
+        for (var i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
             this._edit.deletedIndexPaths.push({indexPath: JSIndexPath(indexPath), animation: animation});
             this._edit.didDeleteSelectedItem = this._edit.didDeleteSelectedItem || this._selectionContainsIndexPath(indexPath);
-            parent = indexPath.removingLastIndex();
-            while (itemIndex < itemCount && VisibleItem.cellIndexPathCompare(indexPath, items[itemIndex]) > 0){
-                ++itemIndex;
-            }
-            if (itemIndex < itemCount && VisibleItem.cellIndexPathCompare(indexPath, items[itemIndex]) === 0){
-                items[itemIndex].state = VisibleItem.State.deleting;
-                items[itemIndex].animation = animation;
-                ++itemIndex;
-            }
-            for (j = itemIndex; j < itemCount && items[j].indexPath.length > parent.length && items[j].indexPath.startsWith(parent); ++j){
-                items[j].indexPath[parent.length] -= 1;
-            }
         }
     },
 
@@ -643,7 +623,6 @@ JSClass("UIListView", UIScrollView, {
         for (var i = 0, l = sections.length; i < l; ++i){
             this._edit.insertedSections.push({section: sections[i], animation: animation});
         }
-        this.__numberOfSections += sections.length;
     },
 
     deleteSection: function(section, animation){
@@ -655,30 +634,10 @@ JSClass("UIListView", UIScrollView, {
             animation = UIListView.RowAnimation.left;
         }
         this._beginEditIfNeeded(animation);
-        sections = JSCopy(sections);
-        sections.sort();
         var i, l;
-        var j;
-        var section;
-        var items = this._visibleItems;
-        var itemIndex;
-        var itemCount = items.length;
         for (i = 0, l = sections.length; i < l; ++i){
-            section = sections[i];
-            this._edit.deletedSections.push({section: section, animation: animation});
-            while (itemIndex < itemCount && VisibleItem.sectionCompare(section, items[itemIndex]) > 0){
-                ++itemIndex;
-            }
-            while (itemIndex < itemCount && VisibleItem.sectionCompare(section, items[itemIndex]) === 0){
-                items[itemIndex].state = VisibleItem.State.deleting;
-                items[itemIndex].animation = animation;
-                ++itemIndex;
-            }
-            for (j = itemIndex; j < itemIndex && items[j].indexPath.section > section; ++j){
-                items[j].indexPath.section -= 1;
-            }
+            this._edit.deletedSections.push({section: sections[i], animation: animation});
         }
-        this.__numberOfSections -= sections.length;
     },
 
     // --------------------------------------------------------------------
@@ -1153,6 +1112,7 @@ JSClass("UIListView", UIScrollView, {
             return a.indexPath.compare(b.indexPath);
         });
 
+        this.__numberOfSections = this.__numberOfSections + edit.insertedSections.length - edit.deletedSections.length;
         this._updateVisibleIndexPathsForEdit(edit);
         this._updateSelectedIndexPathsForEdit(edit);
         if (edit.didDeleteSelectedItem){
@@ -1310,36 +1270,83 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _updateVisibleIndexPathsForEdit: function(edit){
-        // account for inserted sections
         var items = this._visibleItems;
-        var itemIndex = 0;
         var itemCount = items.length;
+        var itemIndex = 0;
         var i, l;
         var j;
-        var section;
+        var indexPath;
+        var parent;
+        var info;
+        var item;
+
+        // account for deleted index paths
+        itemIndex = items.length - 1;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            info = edit.deletedIndexPaths[i];
+            parent = info.indexPath.removingLastIndex();
+            while (itemIndex >= 0 && (items[itemIndex].kind !== VisibleItem.Kind.cell || (items[itemIndex].indexPath.isGreaterThan(info.indexPath) && !items[itemIndex].indexPath.startsWith(info.indexPath)))){
+                --itemIndex;
+            }
+            while (itemIndex >= 0 && items[itemIndex].indexPath.startsWith(info.indexPath)){
+                items[itemIndex].state = VisibleItem.State.deleting;
+                items[itemIndex].animation = info.animation;
+                items[itemIndex].indexPath = null;
+                --itemIndex;
+            }
+            for (j = itemIndex + 1; j < itemCount && (items[j].indexPath === null || (items[j].indexPath.length > parent.length && items[j].indexPath.startsWith(parent))); ++j){
+                if (items[j].kind === VisibleItem.Kind.cell && items[j].indexPath !== null){
+                    items[j].indexPath[parent.length] -= 1;
+                }
+            }
+        }
+
+        // account for deleted sections
+        itemIndex = items.length - 1;
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            info = edit.deletedSections[i];
+            while (itemIndex >= 0 && (items[itemIndex].indexPath === null || items[itemIndex].indexPath.section > info.section)){
+                --itemIndex;
+            }
+            while (itemIndex >= 0 && (items[itemIndex].indexPath === null || items[itemIndex].indexPath.section === info.section)){
+                items[itemIndex].state = VisibleItem.State.deleting;
+                items[itemIndex].animation = info.animation;
+                items[itemIndex].indexPath = null;
+                --itemIndex;
+            }
+            for (j = itemIndex + 1; j < itemCount; ++j){
+                if (items[j].indexPath !== null){
+                    items[j].indexPath.section -= 1;
+                }
+            }
+        }
+
+        // account for inserted sections
+        itemIndex = 0;
         for (i = 0, l = edit.insertedSections.length; i < l; ++i){
-            section = edit.insertedSections[i];
-            while (itemIndex < itemCount && (items[itemIndex].state === VisibleItem.State.deleting || items[itemIndex].indexPath.section <= section)){
+            info = edit.insertedSections[i];
+            while (itemIndex < itemCount && (items[itemIndex].indexPath === null || items[itemIndex].indexPath.section < info.section)){
                 ++itemIndex;
             }
             for (j = itemIndex; j < itemCount; ++j){
-                items[j].indexPath.section += 1;
+                if (items[j].indexPath !== null){
+                    items[j].indexPath.section += 1;
+                }
             }
         }
 
         // account for inserted index paths
         itemIndex = 0;
-        var indexPath;
-        var parent;
-        var info;
         for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
             info = edit.insertedIndexPaths[i];
             parent = info.indexPath.removingLastIndex();
-            while (itemIndex < itemCount && (items[itemIndex].state === VisibleItem.State.deleting || items[itemIndex].indexPath.isLessThan(info.indexPath))){
+            while (itemIndex < itemCount && (items[itemIndex].indexPath === null || items[itemIndex].indexPath.isLessThan(info.indexPath))){
                 ++itemIndex;
             }
-            for (j = itemIndex; j < itemCount && items[j].indexPath.length > parent.length && items[j].indexPath.startsWith(parent); ++j){
-                items[j].indexPath[parent.length] += 1;
+            for (j = itemIndex; j < itemCount && (items[j].indexPath === null || (items[j].indexPath.length > parent.length && items[j].indexPath.startsWith(parent))); ++j){
+                if (items[j].kind === VisibleItem.Kind.cell && items[j].indexPath !== null){
+                    items[j].indexPath[parent.length] += 1;
+                }
             }
         }
 
@@ -1583,7 +1590,7 @@ JSClass("UIListView", UIScrollView, {
 
     _adoptCell: function(cell, indexPath){
         cell.listView = this;
-        cell.indexPath = indexPath;
+        cell.indexPath = JSIndexPath(indexPath);
         cell.accessibilityRowIndex = this._rowForIndexPath(indexPath);
         cell.postAccessibilityElementChangedNotification();
     },
