@@ -53,7 +53,9 @@ JSClass("SKFileJobQueueTests", TKTestSuite, {
         TKAssertEquals(job.id.length, 44);
     },
 
-    testConsume: async function(){
+    // Test disabled because linux no longer supports recursive fs.watch
+    // file queue is only itended for local dev work anyway
+    _testConsume: async function(){
         var queue = this.queue;
         var job = SKFileJobQueueTestsJob.initWithFields("one", 2);
         job.priority = SKJob.Priority.low;
