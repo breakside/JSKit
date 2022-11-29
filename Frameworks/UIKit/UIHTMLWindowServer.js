@@ -349,7 +349,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _createScrollEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
         var modifiers = this._modifiersFromDOMEvent(e);
-        this.createScrollEvent(type, timestamp, this.mouseLocation, e.deltaX, e.deltaY, modifiers);
+        var deltaX = e.deltaX;
+        var deltaY = e.deltaY;
+        if (UIPlatform.shared.identifier !== UIPlatform.Identifier.mac){
+            var scale = e.view.devicePixelRatio;
+            deltaX = Math.round(deltaX / scale);
+            deltaY = Math.round(deltaY / scale);
+        }
+        this.createScrollEvent(type, timestamp, this.mouseLocation, deltaX, deltaY, modifiers);
     },
 
     // --------------------------------------------------------------------
