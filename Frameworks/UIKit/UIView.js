@@ -413,7 +413,13 @@ JSClass('UIView', UIResponder, {
 
     getNextValidKeyView: function(){
         if (this._nextKeyView !== null){
-            if (this._nextKeyView.hidden || !this._nextKeyView.canBecomeFirstResponder()){
+            var hidden = this._nextKeyView.hidden || this._nextKeyView.window === null;
+            var superview = this._nextKeyView.superview;
+            while (!hidden && superview !== null){
+                hidden = superview.hidden;
+                superview = superview.superview;
+            }
+            if (hidden || !this._nextKeyView.canBecomeFirstResponder()){
                 return this._nextKeyView.nextValidKeyView;
             }
             return this._nextKeyView;
@@ -423,7 +429,13 @@ JSClass('UIView', UIResponder, {
 
     getPreviousValidKeyView: function(){
         if (this._previousKeyView !== null){
-            if (this._previousKeyView.hidden || !this._previousKeyView.canBecomeFirstResponder()){
+            var hidden = this._previousKeyView.hidden || this._previousKeyView.window === null;
+            var superview = this._previousKeyView.superview;
+            while (!hidden && superview !== null){
+                hidden = superview.hidden;
+                superview = superview.superview;
+            }
+            if (hidden || !this._previousKeyView.canBecomeFirstResponder()){
                 return this._previousKeyView.previousValidKeyView;
             }
             return this._previousKeyView;
