@@ -921,19 +921,6 @@ JSClass("HTMLBuilder", Builder, {
         lines.push("  exit 1");
         lines.push("fi");
         lines.push("");
-        // TODO: non-resource non-cache-busting www paths
-        // for (let path of this.uncachedWWWPaths){
-        //     sources.push({
-        //         url: JSURL.initWithString(path, this.wwwURL),
-        //         headers: JSCopy(defaultCache)
-        //     });
-        // }
-        // for (let path of this.wwwPaths){
-        //     sources.push({
-        //         url: JSURL.initWithString(path, this.wwwURL),
-        //         headers: JSCopy(noCache)
-        //     });
-        // }
         let resourcesPath = this.resourcesURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
         let cacheBustingPath = this.cacheBustingURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
         let indexPath = this.indexURL.encodedStringRelativeTo(this.wwwURL);
