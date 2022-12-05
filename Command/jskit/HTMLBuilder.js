@@ -935,12 +935,16 @@ JSClass("HTMLBuilder", Builder, {
         //     });
         // }
         let resourcesPath = this.resourcesURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
+        let cacheBustingPath = this.cacheBustingURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
         let indexPath = this.indexURL.encodedStringRelativeTo(this.wwwURL);
+        let preflightPath = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
         let manifestPath = null;
         let serviceWorkerPath = null;
         let bootstrapperPath = "HTMLAppBootstrapper.js";
         let excludes = [
+            cacheBustingPath + "*",
             resourcesPath + "*",
+            preflightPath,
             indexPath,
             bootstrapperPath
         ];
@@ -952,8 +956,10 @@ JSClass("HTMLBuilder", Builder, {
             serviceWorkerPath = this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL);
             excludes.push(serviceWorkerPath);
         }
-        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
+        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(cacheBustingPath));
         lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --size-only --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(resourcesPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(preflightPath));
         lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(bootstrapperPath));
         lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(indexPath));
         if (manifestPath !== null){
