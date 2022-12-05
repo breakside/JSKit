@@ -56,6 +56,7 @@ JSClass("HTMLBuilder", Builder, {
     bundleURL: null,
     wwwURL: null,
     confURL: null,
+    s3URL: null,
     logsURL: null,
     cacheBustingURL: null,
     sourcesURL: null,
@@ -86,6 +87,7 @@ JSClass("HTMLBuilder", Builder, {
         this.bundleURL = this.buildURL.appendingPathComponent(this.project.name, true);
         this.wwwURL = this.bundleURL.appendingPathComponent('www', true);
         this.confURL = this.bundleURL.appendingPathComponent('conf', true);
+        this.s3URL = this.bundleURL.appendingPathComponent('s3', true);
         this.logsURL = this.bundleURL.appendingPathComponent('logs', true);
         this.tzURL = this.bundleURL.appendingPathComponent('tz', true);
         this.cacheBustingURL = this.wwwURL.appendingPathComponent(this.debug ? 'debug' : this.buildId);
@@ -128,6 +130,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.bundleWWW();
         await this.buildServiceWorker();
         await this.bundleConf();
+        await this.bundleS3DeployScript();
         await this.copyLicense();
         await this.bundleInfo();
         await this.buildDocker();
@@ -582,6 +585,8 @@ JSClass("HTMLBuilder", Builder, {
         }
     },
 
+    indexURL: null,
+
     buildIndex: async function(sourceURL, toURL){
         let contents = await this.fileManager.contentsAtURL(sourceURL);
         let html = contents.stringByDecodingUTF8();
@@ -654,6 +659,7 @@ JSClass("HTMLBuilder", Builder, {
         let serializer = new XMLSerializer();
         html = serializer.serializeToString(document);
         await this.fileManager.createFileAtURL(toURL, html.utf8());
+        this.indexURL = toURL;
     },
 
     buildCSS: async function(){
@@ -891,6 +897,68 @@ JSClass("HTMLBuilder", Builder, {
         }
         let bundlePath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.bundleURL);
         this.commands.push("nginx -p %s".sprintf(bundlePath));
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - S3 Deploy
+
+    bundleS3DeployScript: async function(){
+        this.printer.setStatus("Creating s3 deploy script...");
+        var emptyURL = this.s3URL.appendingPathComponent("empty");
+        await this.fileManager.createFileAtURL(emptyURL, JSData.initWithLength(0));
+        var scriptURL = this.s3URL.appendingPathComponent("deploy.sh");
+        var localRootPath = this.fileManager.pathForURL(this.wwwURL.settingHasDirectoryPath(false));
+        var lines = [];
+        lines.push("#!/bin/sh");
+        lines.push("");
+        lines.push("S3_BUCKET=$1");
+        lines.push("S3_PREFIX=$2");
+        lines.push("S3_ROOT=s3://${S3_BUCKET}${S3_PREFIX}");
+        lines.push("LOCAL_ROOT=%s".sprintf(localRootPath));
+        lines.push("");
+        lines.push("if [ -z \"$S3_ROOT\" ]; then");
+        lines.push("  echo \"Usage: deploy.sh s3-bucket [s3-prefix]\"");
+        lines.push("  exit 1");
+        lines.push("fi");
+        lines.push("");
+        let resourcesPath = this.resourcesURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
+        let cacheBustingPath = this.cacheBustingURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
+        let indexPath = this.indexURL.encodedStringRelativeTo(this.wwwURL);
+        let preflightPath = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
+        let manifestPath = null;
+        let serviceWorkerPath = null;
+        let bootstrapperPath = "HTMLAppBootstrapper.js";
+        let excludes = [
+            cacheBustingPath + "*",
+            resourcesPath + "*",
+            preflightPath,
+            indexPath,
+            bootstrapperPath
+        ];
+        if (this.manifestURL !== null){
+            manifestPath = this.manifestURL.encodedStringRelativeTo(this.wwwURL);
+            excludes.push(manifestPath);
+        }
+        if (this.serviceWorkerURL !== null){
+            serviceWorkerPath = this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL);
+            excludes.push(serviceWorkerPath);
+        }
+        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(cacheBustingPath));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --size-only --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(resourcesPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(preflightPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(bootstrapperPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(indexPath));
+        if (manifestPath !== null){
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' --content-type='text/cache-manifest'".sprintf(manifestPath));
+        }
+        if (serviceWorkerPath !== null){
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(serviceWorkerPath));
+        }
+        lines.push("");
+        var contents = lines.join("\n").utf8();
+        await this.fileManager.createFileAtURL(scriptURL, contents);
+        await this.fileManager.makeExecutableAtURL(scriptURL);
     },
 
     // -----------------------------------------------------------------------
