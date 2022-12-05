@@ -329,8 +329,9 @@ JSClass("UICheckboxDefaultStyler", UICheckboxStyler, {
             maxTitleSize.width -= boxWidth;
             checkbox._titleLabel.sizeToFitSize(maxTitleSize);
             checkbox.bounds = JSRect(0, 0, boxWidth + checkbox._titleLabel.frame.size.width, height);
+        }else{
+            checkbox.bounds = JSRect(0, 0, height, height);
         }
-        checkbox.bounds = JSRect(0, 0, height, height);
     },
 
     intrinsicSizeOfControl: function(checkbox){
