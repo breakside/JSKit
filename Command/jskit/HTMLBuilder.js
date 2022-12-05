@@ -56,6 +56,7 @@ JSClass("HTMLBuilder", Builder, {
     bundleURL: null,
     wwwURL: null,
     confURL: null,
+    s3URL: null,
     logsURL: null,
     cacheBustingURL: null,
     sourcesURL: null,
@@ -86,6 +87,7 @@ JSClass("HTMLBuilder", Builder, {
         this.bundleURL = this.buildURL.appendingPathComponent(this.project.name, true);
         this.wwwURL = this.bundleURL.appendingPathComponent('www', true);
         this.confURL = this.bundleURL.appendingPathComponent('conf', true);
+        this.s3URL = this.bundleURL.appendingPathComponent('s3', true);
         this.logsURL = this.bundleURL.appendingPathComponent('logs', true);
         this.tzURL = this.bundleURL.appendingPathComponent('tz', true);
         this.cacheBustingURL = this.wwwURL.appendingPathComponent(this.debug ? 'debug' : this.buildId);
@@ -128,6 +130,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.bundleWWW();
         await this.buildServiceWorker();
         await this.bundleConf();
+        await this.bundleS3DeployScript();
         await this.copyLicense();
         await this.bundleInfo();
         await this.buildDocker();
@@ -582,6 +585,8 @@ JSClass("HTMLBuilder", Builder, {
         }
     },
 
+    indexURL: null,
+
     buildIndex: async function(sourceURL, toURL){
         let contents = await this.fileManager.contentsAtURL(sourceURL);
         let html = contents.stringByDecodingUTF8();
@@ -654,6 +659,7 @@ JSClass("HTMLBuilder", Builder, {
         let serializer = new XMLSerializer();
         html = serializer.serializeToString(document);
         await this.fileManager.createFileAtURL(toURL, html.utf8());
+        this.indexURL = toURL;
     },
 
     buildCSS: async function(){
@@ -891,6 +897,159 @@ JSClass("HTMLBuilder", Builder, {
         }
         let bundlePath = this.fileManager.relativePathFromURL(this.workingDirectoryURL, this.bundleURL);
         this.commands.push("nginx -p %s".sprintf(bundlePath));
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - S3 Deploy
+
+    findS3Sources: async function(url){
+        let noCache = {
+            "Cache-Control": "no-cache",
+            "Expires": "Thu, 01 Jan 1970 00:00:01 GMT"
+        };
+        let cacheForever = {
+            "Cache-Control": "max-age=315360000",
+            "Expires": "Thu, 31 Dec 2037 23:55:55 GMT"
+        };
+        let defaultCache = {
+        };
+        let sources = [];
+        for (let path of this.wwwJavascriptPaths){
+            sources.push({
+                url: JSURL.initWithString(path, this.wwwURL),
+                headers: JSCopy(cacheForever)
+            });
+        }
+        if (this.preflightURL !== null){
+            sources.push({
+                url: this.preflightURL,
+                headers: JSCopy(cacheForever)
+            });
+        }
+        if (this.workerURL !== null && this.hasLinkedDispatchFramework){
+            sources.push({
+                url: this.workerURL,
+                headers: JSCopy(cacheForever)
+            });
+        }
+        for (let path of this.wwwCSSPaths){
+            sources.push({
+                url: JSURL.initWithString(path, this.wwwURL),
+                headers: JSCopy(cacheForever)
+            });
+        }
+        for (let path of this.wwwResourcePaths){
+            sources.push({
+                url: JSURL.initWithString(path, this.wwwURL),
+                headers: JSCopy(cacheForever)
+            });
+        }
+        for (let path of this.uncachedWWWPaths){
+            sources.push({
+                url: JSURL.initWithString(path, this.wwwURL),
+                headers: JSCopy(defaultCache)
+            });
+        }
+        for (let path of this.wwwPaths){
+            sources.push({
+                url: JSURL.initWithString(path, this.wwwURL),
+                headers: JSCopy(noCache)
+            });
+        }
+        if (this.indexURL !== null){
+            sources.push({
+                url: this.indexURL,
+                headers: JSCopy(noCache)
+            });
+        }
+        if (this.manifestURL !== null){
+            sources.push({
+                url: this.manifestURL,
+                headers: JSCopy(noCache)
+            });
+        }
+        if (this.serviceWorkerURL !== null){
+            sources.push({
+                url: this.serviceWorkerURL,
+                headers: JSCopy(noCache)
+            });
+        }
+        for (let source of sources){
+            source.headers["Content-Type"] = this.contentTypeForURL(source.url);
+        }
+        return sources;
+    },
+
+    contentTypeForURL: function(url){
+        switch (url.fileExtension){
+            case ".html": return "text/html";
+            case ".css": return "text/css";
+            case ".js": return "application/javascript";
+            case ".json": return "application/json";
+            case ".xml": return "text/xml";
+            case ".txt": return "text/plain";
+            case ".gif": return "image/gif";
+            case ".jpeg": return "image/jpeg";
+            case ".jpg": return "image/jpeg";
+            case ".png": return "image/png";
+            case ".svg": return "image/svg+xml";
+            case ".svgz": return "image/svg+xml";
+            case ".pdf": return "application/pdf";
+            case ".woff": return "application/font-woff";
+            case ".ttf": return "application/x-font-ttf";
+            case ".webmanifest": return "application/manifest+json";
+            case ".appcache": return "text/cache-manifest";
+            default: return "application/octet-stream";
+        }
+    },
+
+    bundleS3DeployScript: async function(){
+        this.printer.setStatus("Creating s3 deploy script...");
+        var s3Sources = await this.findS3Sources(this.wwwURL);
+        var emptyURL = this.s3URL.appendingPathComponent("empty");
+        await this.fileManager.createFileAtURL(emptyURL, JSData.initWithLength(0));
+        var scriptURL = this.s3URL.appendingPathComponent("deploy.sh");
+        var lines = [];
+        lines.push("#!/bin/sh");
+        lines.push("");
+        lines.push("S3_ROOT=$1");
+        lines.push("");
+        lines.push("if [ -z \"$S3_ROOT\" ]; then");
+        lines.push("  echo \"Usage: deploy.sh s3-root-destination-uri\"");
+        lines.push("  exit 1");
+        lines.push("fi");
+        lines.push("");
+        for (let s3Source of s3Sources){
+            let source = this.fileManager.pathForURL(s3Source.url);
+            let destination = s3Source.url.encodedStringRelativeTo(this.wwwURL);
+            let cmd = [
+                "aws",
+                "s3",
+                "cp",
+                source,
+                "${S3_ROOT}/%s".sprintf(destination)
+            ];
+            let contentType = s3Source.headers["Content-Type"];
+            if (contentType){
+                cmd.push("--content-type");
+                cmd.push('"%s"'.sprintf(contentType.replace('"', '\\"')));
+            }
+            let cacheControl = s3Source.headers["Cache-Control"];
+            if (cacheControl){
+                cmd.push("--cache-control");
+                cmd.push('"%s"'.sprintf(cacheControl.replace('"', '\\"')));
+            }
+            let expires = s3Source.headers.Expires;
+            if (expires){
+                cmd.push("--expires");
+                cmd.push('"%s"'.sprintf(expires.replace('"', '\\"')));
+            }
+            lines.push(cmd.join(" ") + " || exit 1");
+        }
+        lines.push("");
+        var contents = lines.join("\n").utf8();
+        await this.fileManager.createFileAtURL(scriptURL, contents);
+        await this.fileManager.makeExecutableAtURL(scriptURL);
     },
 
     // -----------------------------------------------------------------------
