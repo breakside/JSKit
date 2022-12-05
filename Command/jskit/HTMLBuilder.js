@@ -902,149 +902,65 @@ JSClass("HTMLBuilder", Builder, {
     // -----------------------------------------------------------------------
     // MARK: - S3 Deploy
 
-    findS3Sources: async function(url){
-        let noCache = {
-            "Cache-Control": "no-cache",
-            "Expires": "Thu, 01 Jan 1970 00:00:01 GMT"
-        };
-        let cacheForever = {
-            "Cache-Control": "max-age=315360000",
-            "Expires": "Thu, 31 Dec 2037 23:55:55 GMT"
-        };
-        let defaultCache = {
-        };
-        let sources = [];
-        for (let path of this.wwwJavascriptPaths){
-            sources.push({
-                url: JSURL.initWithString(path, this.wwwURL),
-                headers: JSCopy(cacheForever)
-            });
-        }
-        if (this.preflightURL !== null){
-            sources.push({
-                url: this.preflightURL,
-                headers: JSCopy(cacheForever)
-            });
-        }
-        if (this.workerURL !== null && this.hasLinkedDispatchFramework){
-            sources.push({
-                url: this.workerURL,
-                headers: JSCopy(cacheForever)
-            });
-        }
-        for (let path of this.wwwCSSPaths){
-            sources.push({
-                url: JSURL.initWithString(path, this.wwwURL),
-                headers: JSCopy(cacheForever)
-            });
-        }
-        for (let path of this.wwwResourcePaths){
-            sources.push({
-                url: JSURL.initWithString(path, this.wwwURL),
-                headers: JSCopy(cacheForever)
-            });
-        }
-        for (let path of this.uncachedWWWPaths){
-            sources.push({
-                url: JSURL.initWithString(path, this.wwwURL),
-                headers: JSCopy(defaultCache)
-            });
-        }
-        for (let path of this.wwwPaths){
-            sources.push({
-                url: JSURL.initWithString(path, this.wwwURL),
-                headers: JSCopy(noCache)
-            });
-        }
-        if (this.indexURL !== null){
-            sources.push({
-                url: this.indexURL,
-                headers: JSCopy(noCache)
-            });
-        }
-        if (this.manifestURL !== null){
-            sources.push({
-                url: this.manifestURL,
-                headers: JSCopy(noCache)
-            });
-        }
-        if (this.serviceWorkerURL !== null){
-            sources.push({
-                url: this.serviceWorkerURL,
-                headers: JSCopy(noCache)
-            });
-        }
-        for (let source of sources){
-            source.headers["Content-Type"] = this.contentTypeForURL(source.url);
-        }
-        return sources;
-    },
-
-    contentTypeForURL: function(url){
-        switch (url.fileExtension){
-            case ".html": return "text/html";
-            case ".css": return "text/css";
-            case ".js": return "application/javascript";
-            case ".json": return "application/json";
-            case ".xml": return "text/xml";
-            case ".txt": return "text/plain";
-            case ".gif": return "image/gif";
-            case ".jpeg": return "image/jpeg";
-            case ".jpg": return "image/jpeg";
-            case ".png": return "image/png";
-            case ".svg": return "image/svg+xml";
-            case ".svgz": return "image/svg+xml";
-            case ".pdf": return "application/pdf";
-            case ".woff": return "application/font-woff";
-            case ".ttf": return "application/x-font-ttf";
-            case ".webmanifest": return "application/manifest+json";
-            case ".appcache": return "text/cache-manifest";
-            default: return "application/octet-stream";
-        }
-    },
-
     bundleS3DeployScript: async function(){
         this.printer.setStatus("Creating s3 deploy script...");
-        var s3Sources = await this.findS3Sources(this.wwwURL);
         var emptyURL = this.s3URL.appendingPathComponent("empty");
         await this.fileManager.createFileAtURL(emptyURL, JSData.initWithLength(0));
         var scriptURL = this.s3URL.appendingPathComponent("deploy.sh");
+        var localRootPath = this.fileManager.pathForURL(this.wwwURL.settingHasDirectoryPath(false));
         var lines = [];
         lines.push("#!/bin/sh");
         lines.push("");
-        lines.push("S3_ROOT=$1");
+        lines.push("S3_BUCKET=$1");
+        lines.push("S3_PREFIX=$2");
+        lines.push("S3_ROOT=s3://${S3_BUCKET}${S3_PREFIX}");
+        lines.push("LOCAL_ROOT=%s".sprintf(localRootPath));
         lines.push("");
         lines.push("if [ -z \"$S3_ROOT\" ]; then");
-        lines.push("  echo \"Usage: deploy.sh s3-root-destination-uri\"");
+        lines.push("  echo \"Usage: deploy.sh s3-bucket [s3-prefix]\"");
         lines.push("  exit 1");
         lines.push("fi");
         lines.push("");
-        for (let s3Source of s3Sources){
-            let source = this.fileManager.pathForURL(s3Source.url);
-            let destination = s3Source.url.encodedStringRelativeTo(this.wwwURL);
-            let cmd = [
-                "aws",
-                "s3",
-                "cp",
-                source,
-                "${S3_ROOT}/%s".sprintf(destination)
-            ];
-            let contentType = s3Source.headers["Content-Type"];
-            if (contentType){
-                cmd.push("--content-type");
-                cmd.push('"%s"'.sprintf(contentType.replace('"', '\\"')));
-            }
-            let cacheControl = s3Source.headers["Cache-Control"];
-            if (cacheControl){
-                cmd.push("--cache-control");
-                cmd.push('"%s"'.sprintf(cacheControl.replace('"', '\\"')));
-            }
-            let expires = s3Source.headers.Expires;
-            if (expires){
-                cmd.push("--expires");
-                cmd.push('"%s"'.sprintf(expires.replace('"', '\\"')));
-            }
-            lines.push(cmd.join(" ") + " || exit 1");
+        // TODO: non-resource non-cache-busting www paths
+        // for (let path of this.uncachedWWWPaths){
+        //     sources.push({
+        //         url: JSURL.initWithString(path, this.wwwURL),
+        //         headers: JSCopy(defaultCache)
+        //     });
+        // }
+        // for (let path of this.wwwPaths){
+        //     sources.push({
+        //         url: JSURL.initWithString(path, this.wwwURL),
+        //         headers: JSCopy(noCache)
+        //     });
+        // }
+        let resourcesPath = this.resourcesURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
+        let indexPath = this.indexURL.encodedStringRelativeTo(this.wwwURL);
+        let manifestPath = null;
+        let serviceWorkerPath = null;
+        let bootstrapperPath = "HTMLAppBootstrapper.js";
+        let excludes = [
+            resourcesPath + "*",
+            indexPath,
+            bootstrapperPath
+        ];
+        if (this.manifestURL !== null){
+            manifestPath = this.manifestURL.encodedStringRelativeTo(this.wwwURL);
+            excludes.push(manifestPath);
+        }
+        if (this.serviceWorkerURL !== null){
+            serviceWorkerPath = this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL);
+            excludes.push(serviceWorkerPath);
+        }
+        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --size-only --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(resourcesPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(bootstrapperPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(indexPath));
+        if (manifestPath !== null){
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' --content-type='text/cache-manifest'".sprintf(manifestPath));
+        }
+        if (serviceWorkerPath !== null){
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(serviceWorkerPath));
         }
         lines.push("");
         var contents = lines.join("\n").utf8();
