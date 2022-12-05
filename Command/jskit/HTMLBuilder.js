@@ -943,17 +943,17 @@ JSClass("HTMLBuilder", Builder, {
             serviceWorkerPath = this.serviceWorkerURL.encodedStringRelativeTo(this.wwwURL);
             excludes.push(serviceWorkerPath);
         }
-        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
-        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(cacheBustingPath));
-        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --size-only --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(resourcesPath));
-        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT'".sprintf(preflightPath));
-        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(bootstrapperPath));
-        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(indexPath));
+        lines.push("aws s3 sync ${LOCAL_ROOT} ${S3_ROOT} %s || exit 1".sprintf(excludes.map(e => "--exclude '" + e + "'").join(" ")));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT' || exit 1".sprintf(cacheBustingPath));
+        lines.push("aws s3 sync ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --size-only --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT' || exit 1".sprintf(resourcesPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT' || exit 1".sprintf(preflightPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(bootstrapperPath));
+        lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(indexPath));
         if (manifestPath !== null){
-            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' --content-type='text/cache-manifest'".sprintf(manifestPath));
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' --content-type='text/cache-manifest' || exit 1".sprintf(manifestPath));
         }
         if (serviceWorkerPath !== null){
-            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT'".sprintf(serviceWorkerPath));
+            lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(serviceWorkerPath));
         }
         lines.push("");
         var contents = lines.join("\n").utf8();
