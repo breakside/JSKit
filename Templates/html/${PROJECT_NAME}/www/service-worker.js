@@ -12,7 +12,7 @@ function install(){
   for (var path in app.sources){
     source = app.sources[path];
     if (source.required){
-      required.push(path);
+      required.push({path: path, cache: source.cache});
     }
   }
   var loaded = 0;
@@ -20,8 +20,8 @@ function install(){
   return clients.matchAll({includeUncontrolled: true}).then(function(clients){
     var client = clients[0];
     return caches.open(cacheKey).then(function(cache){
-      return Promise.all(required.map(function(path){
-        return cache.add(new Request(path, {cache: 'no-store'})).then(function(){
+      return Promise.all(required.map(function(resource){
+        return cache.add(new Request(resource.path, {cache: resource.cache || "default"})).then(function(){
           ++loaded;
           client.postMessage({type: 'progress', loaded: loaded, total: total});
         });

@@ -722,35 +722,36 @@ JSClass("HTMLBuilder", Builder, {
             return;
         }
         this.printer.setStatus("Creating service worker...");
-        var sources = {'./': {required: true}};
+        var sources = {'./': {required: true, cache: "no-cache"}};
         for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
-            sources[this.wwwPaths[i]] = {required: true};
+            sources[this.wwwPaths[i]] = {required: true, cache: "no-cache"};
         }
         for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
-            sources[this.wwwJavascriptPaths[i]] = {required: true};
+            sources[this.wwwJavascriptPaths[i]] = {required: true, cache: "no-cache"};
         }
         if (this.preflightURL !== null){
             let path = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
-            sources[path] = {required: true};
+            sources[path] = {required: true, cache: "default"};
         }
         if (this.workerURL !== null && this.hasLinkedDispatchFramework){
             let path = this.workerURL.encodedStringRelativeTo(this.wwwURL);
-            sources[path] = {required: true};
+            sources[path] = {required: true, cache: "no-cache"};
         }
         for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
-            sources[this.wwwResourcePaths[i]] = {required: true};
+            sources[this.wwwResourcePaths[i]] = {required: true, cache: "default"};
         }
         for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
-            sources[this.wwwCSSPaths[i]] = {required: true};
+            sources[this.wwwCSSPaths[i]] = {required: true, cache: "no-cache"};
         }
         for (let i = 0, l = this.uncachedWWWPaths.length; i < l; ++i){
-            sources[this.uncachedWWWPaths[i]] = {required: false};
+            sources[this.uncachedWWWPaths[i]] = {required: false, cache: "default"};
         }
         var params = {
             JSKIT_APP: JSON.stringify({
                 buildId: this.buildId,
                 environment: this.project.info.HTMLApplicationEnvironment,
                 sources: sources,
+                debug: this.debug
             }, null, 2)
         };
         var workerConents = await this.fileManager.contentsAtURL(this.serviceWorkerSourceURL);
