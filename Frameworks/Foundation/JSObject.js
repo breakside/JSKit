@@ -15,6 +15,7 @@
 
 // #import "JSClass.js"
 // #import "JSValueTransformer.js"
+// #import "Number+JS.js"
 /* global JSSpec */
 'use strict';
 
@@ -156,21 +157,21 @@ JSObject.definePropertiesFromExtensions({
                 this._updateValueForBinding(context.binding);
             }else if (change.type == JSObject.KeyValueChange.Insertion){
                 key = bindingInfo.binding;
-                change.indexes.sort();
+                change.indexes.sort(Number.jskitCompare);
                 for (i = 0, l = change.indexes.length; i < l; ++i){
                     index = change.indexes[i];
                     this.silentlyInsertObjectInKeyAtIndex(change.sourceObject.objectInKeyAtIndex(change.sourceKey, index), key, index);
                 }
             }else if (change.type == JSObject.KeyValueChange.Removal){
                 key = bindingInfo.binding;
-                change.indexes.sort();
+                change.indexes.sort(Number.jskitCompare);
                 for (i = change.indexes.length - 1; i >= 0; --i){
                     index = change.indexes[i];
                     this.silentlyRemoveObjectFromKeyAtIndex(key, index);
                 }
             }else if (change.type == JSObject.KeyValueChange.Replacement){
                 key = bindingInfo.binding;
-                change.indexes.sort();
+                change.indexes.sort(Number.jskitCompare);
                 for (i = 0, l = change.indexes.length; i < l; ++i){
                     index = change.indexes[i];
                     this.silentlyReplaceObjectInKeyAtIndexWithObject(key, index, change.sourceObject.objectInKeyAtIndex(change.sourceKey, index));
@@ -613,7 +614,7 @@ JSObject.definePropertiesFromExtensions({
                     targetObject = targetObject.valueForKeyPath(keyParts.join('.'));
                 }
                 if (targetObject){
-                    indexes.sort();
+                    indexes.sort(Number.jskitCompare);
                     if (change == JSObject.KeyValueChange.Insertion){
                         for (i = 0, l = indexes.length; i < l; ++i){
                             index = indexes[i];

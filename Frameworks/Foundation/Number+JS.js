@@ -18,3 +18,5 @@
 Number.prototype.parseNumberArray = function(){
     return [this];
 };
+
+Number.jskitCompare = function(a, b){ return a - b; };
