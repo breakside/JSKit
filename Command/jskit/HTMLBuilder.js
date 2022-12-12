@@ -722,12 +722,12 @@ JSClass("HTMLBuilder", Builder, {
             return;
         }
         this.printer.setStatus("Creating service worker...");
-        var sources = {'./': {required: true, cache: "no-cache"}};
+        var sources = {'./': {required: true, cache: "no-store"}};
         for (let i = 0, l = this.wwwPaths.length; i < l; ++i){
-            sources[this.wwwPaths[i]] = {required: true, cache: "no-cache"};
+            sources[this.wwwPaths[i]] = {required: true, cache: "no-store"};
         }
         for (let i = 0, l = this.wwwJavascriptPaths.length; i < l; ++i){
-            sources[this.wwwJavascriptPaths[i]] = {required: true, cache: "no-cache"};
+            sources[this.wwwJavascriptPaths[i]] = {required: true, cache: "no-store"};
         }
         if (this.preflightURL !== null){
             let path = this.preflightURL.encodedStringRelativeTo(this.wwwURL);
@@ -735,13 +735,13 @@ JSClass("HTMLBuilder", Builder, {
         }
         if (this.workerURL !== null && this.hasLinkedDispatchFramework){
             let path = this.workerURL.encodedStringRelativeTo(this.wwwURL);
-            sources[path] = {required: true, cache: "no-cache"};
+            sources[path] = {required: true, cache: "no-store"};
         }
         for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
             sources[this.wwwResourcePaths[i]] = {required: true, cache: "default"};
         }
         for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
-            sources[this.wwwCSSPaths[i]] = {required: true, cache: "no-cache"};
+            sources[this.wwwCSSPaths[i]] = {required: true, cache: "no-store"};
         }
         for (let i = 0, l = this.uncachedWWWPaths.length; i < l; ++i){
             sources[this.uncachedWWWPaths[i]] = {required: false, cache: "default"};
