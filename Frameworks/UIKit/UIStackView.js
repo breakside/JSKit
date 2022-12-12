@@ -220,6 +220,10 @@ JSClass("UIStackView", UIView, {
     getFirstBaselineOffsetFromTop: function(){
         var top = this._contentInsets.top;
         if (this._arrangedSubviews.length > 0){
+            if (this.axis === UIStackView.Axis.horizontal){
+                this.layoutIfNeeded();
+                top = this._arrangedSubviews[0].untransformedFrame.origin.y;
+            }
             top += this._arrangedSubviews[0].firstBaselineOffsetFromTop;
         }
         return top;
