@@ -18,12 +18,13 @@ function install(){
   var loaded = 0;
   var total = required.length;
   return clients.matchAll({includeUncontrolled: true}).then(function(clients){
-    var client = clients[0];
     return caches.open(cacheKey).then(function(cache){
       return Promise.all(required.map(function(resource){
         return cache.add(new Request(resource.path, {cache: resource.cache || "default"})).then(function(){
           ++loaded;
-          client.postMessage({type: 'progress', loaded: loaded, total: total});
+          for (let client of clients){
+            client.postMessage({type: 'progress', loaded: loaded, total: total});
+          }
         });
       }));
     });
