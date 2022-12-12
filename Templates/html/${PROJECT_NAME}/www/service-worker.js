@@ -21,7 +21,7 @@ function install(){
     var client = clients[0];
     return caches.open(cacheKey).then(function(cache){
       return Promise.all(required.map(function(path){
-        return cache.add(path).then(function(){
+        return cache.add(new Request(path, {cache: 'no-store'})).then(function(){
           ++loaded;
           client.postMessage({type: 'progress', loaded: loaded, total: total});
         });
