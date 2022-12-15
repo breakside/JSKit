@@ -21,7 +21,7 @@
 JSClass("KeyCommand", Command, {
 
     name: "key",
-    help: "Create an encryption key",
+    help: "Create a symmetric encryption key",
 
     options: {
         format: {default: "raw", help: "The format for the key", allowed: ["jwk", "raw"]},

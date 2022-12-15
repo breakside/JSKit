@@ -21,6 +21,7 @@
 // #import "DocCommand.js"
 // #import "GlobalsCommand.js"
 // #import "KeyCommand.js"
+// #import "KeypairCommand.js"
 'use strict';
 
 var options = {
