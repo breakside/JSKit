@@ -110,6 +110,7 @@ JSClass("UIMenuWindow", UIWindow, {
         if (event !== null && event.type == UIEvent.Type.leftMouseDown){
             this._openEvent = null;
             var location = event.locationInView(this);
+            this._lastMoveLocation = JSPoint(location);
             this._adjustHighlightForLocation(location);
             this._itemDownTimestamp = event.timestamp;
         }
