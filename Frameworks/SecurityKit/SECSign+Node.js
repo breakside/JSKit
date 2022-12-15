@@ -376,7 +376,7 @@ nodeNamedCurves[SECSign.EllipticCurve.p521] = "secp521r1";
 var derNamedCurves = {};
 derNamedCurves[SECSign.EllipticCurve.p256] = "1.2.840.10045.3.1.7";
 derNamedCurves[SECSign.EllipticCurve.p384] = "1.3.132.0.34";
-derNamedCurves[SECSign.EllipticCurve.p512] = "1.3.132.0.35";
+derNamedCurves[SECSign.EllipticCurve.p521] = "1.3.132.0.35";
 
 var nodeAlgorithms = {};
 nodeAlgorithms[SECSign.Algorithm.rsaSHA256] = {name: 'rsa', hash: 'sha256'};
