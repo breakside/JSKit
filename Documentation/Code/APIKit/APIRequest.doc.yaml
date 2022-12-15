@@ -543,6 +543,33 @@ topics:
           Unless you need to extract fields at different times, we recommend
           using `getValidQuery()` instead because it validates all the input
           upfront and allows for a more structured pattern to validate input.
+  - name: Authentication
+    members:
+      - name: bearerToken
+        introduced: 2022.3.1
+        type: String
+        nullable: true
+        summary: The value of the token provided in the `"Authorization"` header
+        description: |
+          Typically a JSON Web Token (JWT), the token is provided in the following format:
+          ````
+          Authorization: Bearer token-goes-here
+          ````
+      - name: username
+        introduced: 2022.3.1
+        type: String
+        nullable: true
+        summary: The value of the basic auth username
+        description: |
+          Will return the base64 decoded basic auth value up to the fist `":"`,
+          or the entire string if there's no `":"`
+      - name: password
+        introduced: 2022.3.1
+        type: String
+        nullable: true
+        summary: The value of the basic auth password
+        description: |
+          Will return the base64 decoded basic auth after the fist `":"`
   - name: Caching
     members:
       - name: needsEntity
@@ -559,3 +586,9 @@ topics:
           Given the resource's current identification, this method
           checks if the client has indicated through request headers that
           they already have the current version.
+  - name: Response
+    members:
+      - name: accecptContentTypes
+        introduced: 2022.3.1
+        type: JSMediaType[]
+        summary: A list of acceptable response content types, sorted by preference
