@@ -34,6 +34,12 @@ topics:
           Apple's OpenID discovery endpoints do not allow Cross-Origin requests
           from within a browser, effectively limiting the usefulness of this
           service to node-based servers.
+      -
+        name: facebook
+        introducted: 2022.26.1
+        static: true
+        type: OAService
+        summary: Facebook's OAuth service
   -
     name: Creating a Service
     members:
@@ -127,7 +133,7 @@ topics:
             summary: The object to use as `this` when calling the completion
               function
       -
-        name: load
+        name: keys
         suffix: promise
         type: Promise
         promise:

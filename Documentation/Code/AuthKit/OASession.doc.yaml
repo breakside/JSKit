@@ -8,28 +8,22 @@ description: |
   In order to use an OAuth service, you'll need to have at least a `clientId`,
   typically optained from the service's developer portal.
 topics:
-  -
-    name: Creating a Session
+  - name: Creating a Session
     members:
-      -
-        name: initWithService
+      - name: initWithService
         kind: init
         summary: Create an OAuth session based on a service and client ID
         arguments:
-          -
-            name: service
+          - name: service
             type: OAService
             summary: The service that will handle the authentication
-          -
-            name: clientId
+          - name: clientId
             type: String
             summary: The id for your application, obtained from the service's
               developer portal
-  -
-    name: Session Configuration
+  - name: Session Configuration
     members:
-      -
-        name: scopes
+      - name: scopes
         type: String[]
         summary: The service-specfic scopes to request access to
         description: |
@@ -37,16 +31,14 @@ topics:
           - `"openid"`
           - `"profile"`
           - `"email"`
-      -
-        name: loginHint
+      - name: loginHint
         type: String
         nullable: true
         summary: A username or email to use as a hint to the OAuth service
         description: |
           Typically used if your app remembers a login name.  It helps the
           service's login page prefill that name.
-      -
-        name: state
+      - name: state
         type: String
         summary: A unique request identifier that can be used to verify the
           redirect back to your app
@@ -58,8 +50,7 @@ topics:
 
           When your app receives the redirect after authentication, you
           can compare the resulting state value to the one you saved.
-      -
-        name: redirectURL
+      - name: redirectURL
         type: JSURL
         nullable: true
         summary: The URL that the user should be sent after authentication
@@ -67,8 +58,7 @@ topics:
           Required to generate a valid `authenticationURL`.
 
           For web apps, you can often specify `UIApplication.baseURL`.
-      -
-        name: responseTypes
+      - name: responseTypes
         type: String[]
         summary: The kind of response(s) you want from the OAuth service
         description: |
@@ -76,11 +66,31 @@ topics:
 
           For web based `UIKit` based apps, we reccommend using a value of
           `["id_token"]` to receive a JSON Web Token response.
-  -
-    name: Authentication URL
+      - name: responseMode
+        introduced: 2021.20.1
+        type: ResponseMode
+        summary: How to receive the auth response
+        description: |
+          Defaults to `ResponseMode.fragment`, which means the response will
+          appear in the redirect URL as a fragment.
+
+          The other option is `ResponseMode.query`, which means the response will
+          appear in the the redirect URL query string.
+      - name: ResponseMode
+        introduced: 2021.20.1
+        suffix: enum
+        kind: enum
+        summary: The possible response modes
+        topics:
+          - name: Options
+            members:
+              - name: query
+                summary: Provide auth response parameters in the redirect URL's query string
+              - name: fragment
+                summary: Provide auth response parameters in the redirect URL's fragment
+  - name: Authentication URL
     members:
-      -
-        name: authenticationURL
+      - name: authenticationURL
         type: JSURL
         summary: The URL to send the user to for authentication
         description: |
