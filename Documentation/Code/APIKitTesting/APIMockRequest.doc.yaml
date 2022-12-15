@@ -61,3 +61,30 @@ topics:
           - name: data
             type: JSData
             summary: Data for the request body
+  - name: Request Body
+    members:
+      - name: setData
+        kind: method
+        summary: Set the mock request body data
+        arguments:
+          - name: data
+            type: JSData
+            summary: The mock body data
+      - name: setObject
+        kind: method
+        summary:  Set the mock request body data to the JSON-encoded object
+        arguments:
+          - name: object
+            type: any
+            summary: The object to JSON-encode as the mock request body
+        description: |
+          Also sets the `Content-Type` header to `"application/json; charset=utf-8"`
+      - name: setForm
+        kind: method
+        summary:  Set the mock request body data to the www-form-encoded form
+        arguments:
+          - name: form
+            type: JSFormFieldMap
+            summary: The form to encode as the mock request body
+        description: |
+          Also sets the `Content-Type` header to `"application/x-www-form-urlencoded"`
