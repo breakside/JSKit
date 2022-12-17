@@ -20,28 +20,39 @@
 
 (function(){
 
-try{
-    var device = UIDevice.init();
+Object.defineProperties(UIDevice, {
 
-    device.supportsTouchInput = ('ontouchstart' in document.body) && navigator.maxTouchPoints > 0;
-    var primaryPointerHovers = window.matchMedia('(hover)').matches;
-    var primaryFinePointer = window.matchMedia('(pointer: fine)').matches;
+    shared: {
+        configurable: true,
+        get: function(){
+            var device = UIDevice.init();
+            try{
+                device.supportsTouchInput = ('ontouchstart' in document.body) && navigator.maxTouchPoints > 0;
+                var primaryPointerHovers = window.matchMedia('(hover)').matches;
+                var primaryFinePointer = window.matchMedia('(pointer: fine)').matches;
 
-    if (primaryFinePointer){
-        device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.fine;
-        if (primaryPointerHovers){
-            device.primaryPointerType = UIUserInterface.PointerType.cursor;
-        }else{
-            device.primaryPointerType = UIUserInterface.PointerType.touch;
+                if (primaryFinePointer){
+                    device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.fine;
+                    if (primaryPointerHovers){
+                        device.primaryPointerType = UIUserInterface.PointerType.cursor;
+                    }else{
+                        device.primaryPointerType = UIUserInterface.PointerType.touch;
+                    }
+                }else if (device.supportsTouchInput){
+                    device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.coarse;
+                    device.primaryPointerType = UIUserInterface.PointerType.touch;
+                }
+            }catch (e){
+                // assumed to be in a worker env, where UIDevice isn't really applicable
+            }
+            Object.defineProperty(this, "shared", {writable: true, configurable: true, value: device});
+            return device;
+        },
+        set: function(device){
+            Object.defineProperty(this, "shared", {writable: true, configurable: true, value: device});
         }
-    }else if (device.supportsTouchInput){
-        device.primaryPointerAccuracy = UIUserInterface.PointerAccuracy.coarse;
-        device.primaryPointerType = UIUserInterface.PointerType.touch;
     }
 
-    UIDevice.shared = device;
-}catch (e){
-    // assumed to be in a worker env, where UIDevice isn't really applicable
-}
+});
 
 })();

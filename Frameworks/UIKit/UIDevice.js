@@ -25,4 +25,18 @@ JSClass("UIDevice", JSObject, {
 
 });
 
-UIDevice.shared = null;
+Object.defineProperties(UIDevice, {
+
+    shared: {
+        configurable: true,
+        get: function(){
+            var device = UIDevice.init();
+            Object.defineProperty(this, "shared", {writable: true, configurable: true, value: device});
+            return device;
+        },
+        set: function(device){
+            Object.defineProperty(this, "shared", {writable: true, configurable: true, value: device});
+        }
+    }
+
+});
