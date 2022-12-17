@@ -19,6 +19,7 @@
 // #import "UIImageView.js"
 // #import "UIViewPropertyAnimator.js"
 // #import "JSColor+UIKit.js"
+// #import "UIPressGestureRecognizer.js"
 /* global UIListViewCell, UIListViewHeaderFooterView */
 'use strict';
 
@@ -2211,6 +2212,10 @@ JSClass("UIListView", UIScrollView, {
         if (cell === null){
             return;
         }
+        this._contextSelectCell(cell, location);
+    },
+
+    _contextSelectCell: function(cell, location){
         if (this.delegate && this.delegate.menuForListViewCellAtIndexPath){
             var menu = this.delegate.menuForListViewCellAtIndexPath(this, cell.indexPath);
             if (menu !== null){
@@ -2349,7 +2354,7 @@ JSClass("UIListView", UIScrollView, {
         this._touch = null;
     },
 
-    _makeTouchActiveCell: function(touch){
+    _makeTouchActiveCell: function(touch, waitForLongPress){
         var location = touch.locationInView(this);
         var cell = this._cellHitTest(location);
         if (cell === null){
@@ -2361,6 +2366,19 @@ JSClass("UIListView", UIScrollView, {
         }
         cell.active = true;
         this._touch.cell = cell;
+        if (waitForLongPress){
+            this._touch.timer = JSTimer.scheduledTimerWithInterval(UIPressGestureRecognizer.PressInterval.long, function(){
+                this._touch.timer = null;
+                this._longPressCell(location);
+            }, this);
+        }
+    },
+
+    _longPressCell: function(location){
+        var cell = this._touch.cell;
+        var indexPath = cell.indexPath;
+        this._cancelTouchSelection();
+        this._contextSelectCell(cell, location);
     },
 
     touchesBegan: function(touches, event){
@@ -2373,7 +2391,7 @@ JSClass("UIListView", UIScrollView, {
             cell: null,
             timer: JSTimer.scheduledTimerWithInterval(0.05, function(){
                 this._touch.timer = null;
-                this._makeTouchActiveCell(touches[0]);
+                this._makeTouchActiveCell(touches[0], true);
             }, this)
         };
     },
