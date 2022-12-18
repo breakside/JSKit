@@ -1,0 +1,65 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Represents a data series that can be shown on a chart
+description: |
+  Charts are required to have at least one data series, and often have more
+  than one.
+
+  Each series has a `name`, a set of `values`, and a `style`.
+
+  While you can create a series directly, it's often easier to use the
+  convenience methods such as `CHCategoryChart.addValues()` and
+  `CHPieChart.setDataPoints()`, which automatically create series objects for
+  you.
+topics:
+  - name: Creating a Series
+    members:
+      - name: initWithName
+        kind: init
+        summary: Create a series with the given name
+        arguments:
+          - name: name
+            type: String
+            summary: The name for the series
+        description: |
+          While you can create a series directly, it's often easier to use the
+          convenience methods such as `CHCategoryChart.addValues()` and
+          `CHPieChart.setDataPoints()`, which automatically create series
+          objects for you.
+  - name: Name
+    members:
+      - name: name
+        type: String
+        summary: The name of the series, which may be shown in the chart's
+          legend
+  - name: Data
+    members:
+      - name: values
+        type: Number[]
+        summary: The array of data values
+        description: |
+          Any value that is not a finite number will be treated as an empty
+          value that is not charted.
+      - name: addValue
+        kind: method
+        summary: Push a value onto the value set for this series
+        arguments:
+          - name: value
+            type: Number
+            summary: The value to add to this series
+  - name: Style
+    members:
+      - name: style
+        type: CHSeriesStyle
+        summary: The style for this series
+        description: |
+          `CHSeriesStyle` is an abstract class.  For any given chart type,
+          the `style` for a series will be a instance of a `CHSeriesStyle`
+          subclass appropriate for the chart.  For example, a `CHBarChart`
+          series should have a `CHSeriesBarStyle` for its `series`.
+
+          When using convenience methods such as `CHCategoryChart.addValues()`
+          and `CHPieChart.setDataPoints()`, the series style is automatically
+          created by the chart based on its theme.

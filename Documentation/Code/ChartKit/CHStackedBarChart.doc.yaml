@@ -1,0 +1,35 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHBarChart
+summary: A class for drawing stacked bar charts
+description: |
+  `CHStackedBarChart` draws a bar chart for one or more series of data.
+
+  For muli-series charts, the bars are drawn stacked on top of each other.
+
+  A stacked bar chart uses its theme's `barStyle`(CHTheme.barStyle) by default
+  when creating series with `addValues()` and contains no extra options beyond
+  those for its `CHBarChart` superclass.
+
+  Basic Example
+  ----
+
+  ````
+  #import ChartKit
+  #import ImageKit
+
+  let size = JSSize(400, 300);
+  let context = IKBitmapContext.initWithSize(size);
+
+  let chart = CHStackedBarChart.init();
+  chart.addValues([1, 3, 2, 5], "Test 1");
+  chart.addValues([7, 2, 4, 1], "Test 2");
+  chart.valueAxis.maximumValue = 10;
+  chart.valueAxis.numberOfMajorSteps = 5;
+  chart.categoryAxis.categories = ["Jan", "Feb", "Mar", "Apr"];
+
+  context.drawChartInRect(chart, JSRect(JSPoint.Zero, size));
+  ````
+
+  ![Stacked Bar Chart](CHStackedBarChart@2x.png)

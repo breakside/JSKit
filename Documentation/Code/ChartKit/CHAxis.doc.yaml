@@ -1,0 +1,108 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: An abstract base class for an axis on a chart
+description: |
+  A chart's axis typically is drawn as a line along one edge of the chart
+  and shows labels to help identify the data.
+
+  This abstract base class provides common properties and functionality shared
+  across all kinds of axes.
+
+  Standard subclasses include:
+  - `CHCategoryAxis`
+  - `CHValueAxis`
+
+  A `CHCategoryChart`, for example, contains one `CHCategoryAxis` and one
+  `CHValueAxis`.
+
+  Subclassing
+  ----
+  To make a custom axis type, you'll need to implement the following methods:
+
+  - `getMajorPositions()`
+  - `getMinorPositions()`
+  - `getMajorLabels()`
+topics:
+  - name: Creating an Axis
+    members:
+      - name: initWithStyle
+        kind: init
+        summary: Create an axis with the given style
+        arguments:
+          - name: style
+            type: CHAxisStyle
+            summary: The style for the axis
+        description: |
+          While you can create an axis directly, charts typically create each
+          axis they need on their own.  For example, `CHCategoryChart` creates
+          its `valueAxis`(CHCategoryChart.valueAxis) and
+          `categoryAxis`(CHCategoryChart.categoryAxis) in its init procedure.
+
+          In such a case, you can simply modify the axis as necessary.
+  - name: Orientation & Location
+    members:
+      - name: direction
+        type: Direction
+        summary: The direction in which the axis should be oriented
+      - name: edge
+        type: Edge
+        summary: The location where the axis should be drawn
+      - name: Direction
+        suffix: enum
+        kind: enum
+        summary: The possible directions for an axis
+        topics:
+          - name: Options
+            members:
+              - name: horizontal
+                summary: The axis should be drawn horizontally
+              - name: vertical
+                summary: The axis shoudl be drawn vertically
+      - name: Edge
+        suffix: enum
+        kind: enum
+        summary: The possible locations for an axis
+        topics:
+          - name: Options
+            members:
+              - name: leading
+                summary: The axis should be drawn at the leading edge of
+                  the direction prependicular to its axis
+              - name: trailing
+                summary: The axis should be drawn at the trailing edge of
+                  the direction prependicular to its axis
+  - name: Style
+    members:
+      - name: style
+        type: CHAxisStyle
+        summary: An object that controls the styling of this axis
+  - name: Tick Marks & Labels
+    members:
+      - name: getMajorPositions
+        kind: method
+        type: Number[]
+        summary: Get the positions for major tick marks
+        arguments:
+          - name: p0
+            type: Number
+            summary: The fist possible position for a mark
+          - name: p1
+            type: Number
+            summary: The last possible position for a mark
+      - name: getMinorPositions
+        kind: method
+        type: Number[]
+        summary: Get the positions for minor tick marks
+        arguments:
+          - name: p0
+            type: Number
+            summary: The fist possible position for a mark
+          - name: p1
+            type: Number
+            summary: The last possible position for a mark
+      - name: getMajorLabels
+        kind: method
+        type: String[]
+        summary: Get the labels for major tick marks

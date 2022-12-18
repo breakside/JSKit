@@ -1,0 +1,112 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHChart
+summary: A class for drawing pie charts
+description: |
+  `CHPieChart` draws a pie chart of several named data points.
+
+  While it's possible to call `addSeries()`, it's typically more convenient to
+  use `setDataPoints()`, which automatically configures the series for the pie
+  chart.
+
+  A pie chart uses its theme's `wedgeStyle`(CHTheme.wedgeStyle) by default when
+  creating series with `setDataPoints()`.
+
+  Basic Example
+  ----
+
+  ````
+  #import ChartKit
+  #import ImageKit
+
+  let size = JSSize(400, 300);
+  let context = IKBitmapContext.initWithSize(size);
+
+  let chart = CHPieChart.init();
+  chart.setDataPoints([1, 3, 2, 5], ["Apples", "Oranges", "Bananas", "Strawberries"]);
+
+  context.drawChartInRect(chart, JSRect(JSPoint.Zero, size));
+  ````
+
+  ![Pie Chart](CHPieChart@2x.png)
+topics:
+  - name: Wedges
+    members:
+      - name: showNames
+        type: Boolean
+        summary: Whether to show names on the wedge labels
+        description: |
+          Defaults to `false`
+      - name: showValues
+        type: Boolean
+        summary: Whether to show values on the wedge labels
+        description: |
+          Defaults to `true`
+      - name: showValuesAsPercentages
+        type: Boolean
+        summary: Whether to format the values as percentages or raw numbers
+        description: |
+          Percentages are calculated based on the sum of all values.
+      - name: labelPosition
+        type: Number
+        summary: The position of wedge labels, as a percentage
+        description: |
+          The number represents a percentage from 0 at the pie's center to
+          1 at the pie's outer edge.  The default is 2/3.
+      - name: labelFont
+        type: JSFont
+        summary: The font to use for wedge labels
+      - name: labelTextColor
+        type: JSColor
+        summary: The text color to use for wedge labels
+      - name: labelTextAlignment
+        type: JSTextAlignment
+        summary: The text alignment to use for wedge labels
+      - name: labelShadowColor
+        type: JSColor
+        nullable: true
+        summary: The shadow color to use on wedge labels
+      - name: labelShadowOffset
+        type: JSPoint
+        summary: The shadow offset to use on wedge labels
+      - name: labelShadowRadius
+        type: Number
+        summary: The shadow radius to use on wedge labels
+      - name: valueFormatter
+        type: JSNumberFormatter
+        summary: The number formatter to use for percentage values in wedge labels
+        description: |
+          Defaults to a percentage formatter (`"#,##0%"`) when `showValuesAsPercentages` is
+          `true`, and a basic number format (`"#,##0"`) when `false`.
+  - name: Legend & Layout
+    members:
+      - name: legend
+        type: CHLegend
+        summary: The legend for this chart
+        description: |
+          Use the legend's `placement`(CHLegend.placement) to control the
+          legend's visibility and location.
+  - name: Data
+    members:
+      - name: setDataPoints
+        kind: method
+        summary: Add a data series for each data point given
+        arguments:
+          - name: values
+            type: Number[]
+            summary: The data points to add
+          - name: names
+            type: String[]
+            summary: The series names
+        description: |
+          Creates new series using
+          - The given values
+          - The given names
+          - The style from `defaultSeriesStyle`
+          - The color from `colorForSeriesAtIndex()`
+      - name: defaultSeriesStyle
+        type: CHSeriesStyle
+        summary: The style to use for each new series created by `setDataPoints()`
+        description: |
+          Defaults to the theme's `wedgeStyle`(CHTheme).
