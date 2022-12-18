@@ -175,7 +175,7 @@ JSClass("JSTextFramesetter", JSObject, {
     attributes: JSReadOnlyProperty("_attributes", null),
 
     getAttributes: function(){
-        logger.warn("JSTextFramesetter.attributes is deprecated");
+        logger.warn("JSTextFramesetter.attributes is deprecated, use JSTextFramesetter.defaultParagraphStyle");
         if (this._attributes === null){
             var framesetter = this;
             this._attributes = Object.create({}, {
