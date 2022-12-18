@@ -30,7 +30,7 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
     },
 
     setContentOffset: function(contentOffset){
-        this._contentOffset = contentOffset;
+        this._contentOffset = JSPoint(contentOffset);
     },
 
     _touchTracking: null,
@@ -136,9 +136,10 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
         var dt = event.timestamp - this._touchTracking.timestamp;
         if (dt < 0.05){
             this._beginCoasting(this._touchTracking.velocity);
+        }else{
+            this._setState(UIGestureRecognizer.State.ended);
         }
         this._endTrackingTouches();
-        this._setState(UIGestureRecognizer.State.ended);
     },
 
     touchesCanceled: function(touches, event){
@@ -156,6 +157,10 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
         if (this._coasting.timestamp < 0){
             this._coasting.timestamp = t;
             this._coasting.displayServer.schedule(this._displayUpdate, this);
+            return;
+        }
+        if (this.view.window === null){
+            this._endCoasting();
             return;
         }
         if ((this._scrollsHorizontally && Math.abs(this._coasting.velocity.x) >= 10) || (this._scrollsVertically && (Math.abs(this._coasting.velocity.y) >= 10))){
