@@ -1,0 +1,40 @@
+copyright: Copyright © 2021 Breakside Inc.
+kind: framework
+introduced: 2021.27.0
+summary: Chart & Graph Drawing
+codeURL: Frameworks/ChartKit/
+description: |
+  `ChartKit` makes it easy to graphically represent your data
+  in bar graphs, line graphs, pie charts, etc.
+
+  Chart options are configurable and styles are fully customizable.
+topics:
+  - name: Chart Types
+    members:
+      - CHBarChart
+      - CHLineChart
+      - CHStackedBarChart
+      - CHAreaChart
+      - CHStackedAreaChart
+      - CHPieChart
+      - CHCategoryChart
+      - CHChart
+  - name: Chart Data
+    members:
+      - CHSeries
+  - name: Chart Configuration
+    members:
+      - CHAxis
+      - CHCategoryAxis
+      - CHValueAxis
+      - CHLegend
+  - name: Styling
+    members:
+      - CHTheme
+      - CHSeriesStyle
+      - CHSeriesBarStyle
+      - CHSeriesLineStyle
+      - CHSeriesAreaStyle
+      - CHSeriesWedgeStyle
+      - CHAxisStyle
+      - CHLegendStyle

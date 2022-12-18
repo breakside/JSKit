@@ -1,0 +1,117 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHChart
+summary: An abscract class for charts that have a category axis and a value axis
+description: |
+  `CHCategoryChart` defines the key features of the common chart family that
+  contain a category axis and a value axis.
+
+  Standard subclass include:
+
+  - `CHBarChart`
+  - `CHStackedBarChart`
+  - `CHLineChart`
+  - `CHAreaChart`
+  - `CHStackedAreaChart`
+
+  Subclassing
+  ----
+
+  To create a custom `CHCategoryChart` subclass, you must implement the following
+  methods and set the following properties:
+
+  - `drawValuesInContext()`
+  - `defaultSeriesStyle`
+topics:
+  - name: Axes
+    members:
+      - name: categoryAxis
+        type: CHCategoryAxis
+        summary: The axis for the category names
+        description: |
+          By default, this is the X-axis.  You can change the orientation
+          of the chart by setting `valueDirection`.
+        see:
+          - valueAxis
+          - valueDirection
+          - addValues
+      - name: valueAxis
+        type: CHValueAxis
+        summary: The axis for the data values
+        description: |
+          By default, this is the Y-axis.  You can change the orientation
+          of the chart by setting `valueDirection`.
+        see:
+          - valueAxis
+          - valueDirection
+          - addValues
+      - name: valueDirection
+        type: CHAxis.Direction
+        summary: Controls which direction the value axis is displayed
+        description: |
+          Defaults to `vertical`(CHAxis.Direction), which orients the value
+          axis vertically on the chart's leading edge with the category axis
+          horizontal on the chart's trailing edge.
+
+          When set to `horizontal`(CHAxis.Direction), it orients the value
+          axis horizontal on the chart's trailing edge with the category axis
+          vertical on the chart's leading edge.
+  - name: Legend & Layout
+    members:
+      - name: legend
+        type: CHLegend
+        summary: The legend for this chart
+        description: |
+          Use the legend's `placement`(CHLegend.placement) to control the
+          legend's visibility and location.
+      - name: chartInsets
+        type: JSInsets
+        summary: The amount to inset the chart from the edges of the requested
+          drawing area
+  - name: Data
+    members:
+      - name: addValues
+        kind: method
+        summary: Add a data series to the chart with the given values
+        arguments:
+          - name: values
+            type: Number[]
+            summary: The data values to add
+          - name: name
+            type: String
+            summary: The series name
+        description: |
+          Creates a new series using
+          - The given values
+          - The given name
+          - The style from `defaultSeriesStyle`
+          - The color from `colorForSeriesAtIndex()`
+      - name: defaultSeriesStyle
+        type: CHSeriesStyle
+        summary: The style to use for each new series created by `addValues()`
+        description: |
+          Subclasses must set this property, typically during `initWithTheme()`.
+
+          For example, `CHBarChart` sets `defaultSeriesStyle` to the theme's
+          `barStyle`(CHTheme).
+  - name: Drawing
+    members:
+      - name: drawValuesInContext
+        kind: method
+        summary: Draw the values for the chart in the given area
+        arguments:
+          - name: context
+            type: JSContext
+            summary: The context in which to draw
+          - name: rect
+            type: JSRect
+            summary: The area in which to draw values
+        description: |
+          Must be implemented by subclasses.
+
+          Only for drawing the values area of the chart, such as the bars of a
+          `CHBarChart` or the lines of a `CHLineChart`.  Everying else (legend,
+          axes, etc.) are drawn by `CHCategoryChart`'s implementation of
+          `drawInContext()`.
+          

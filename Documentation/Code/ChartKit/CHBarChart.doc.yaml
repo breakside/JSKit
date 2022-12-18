@@ -1,0 +1,29 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHCategoryChart
+summary: An abscract class for charts that have a category axis and a value axis
+description: |
+  `CHBarChart` draws a bar chart for one or more series of data.
+
+  As a `CHCategoryChart`, the data values correspond to categories defined
+  on the `categoryAxis`.
+
+  For muli-series charts, the bars are drawn side-by-side in each category. To
+  draw a stacked bar chart, see the `CHStackedBarChart` class.
+topics:
+  - name: Bars
+    members:
+      - name: barWidth
+        type: Number
+        summary: The percentage of a category's width that can be used to
+          draw bars
+      - name: maskedCorners
+        type: CHSeriesBarStyle.Corners
+        summary: The bar corners to round, if any
+      - name: cornerRadius
+        type: Number
+        summary: The amount to round corners of the bars, as a percentage
+        description: |
+          Specified as a percentage where `0` equals no rounding and `1` equals
+          half of the bar's width.
