@@ -21,7 +21,7 @@ JSClass("CHBarChart", CHCategoryChart, {
     
     initWithTheme: function(theme){
         CHBarChart.$super.initWithTheme.call(this, theme);
-        this.categoryAxis.labelPosition = CHAxisStyle.LabelPosition.betweenTickMarks;
+        this.categoryAxis.style.labelPosition = CHAxisStyle.LabelPosition.betweenTickMarks;
         this.defaultSeriesStyle = theme.barStyle.styleWithColor(null);
     },
 

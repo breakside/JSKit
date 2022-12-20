@@ -753,3 +753,21 @@ topics:
           }
 
           ````
+  -
+    name: ChartKit Extensions
+    summary: Methods added when you import `ChartKit`
+    members:
+      -
+        introduced: 2021.27.0
+        name: drawChartInRect
+        kind: method
+        summary: Draw the given chart
+        arguments:
+          -
+            name: chart
+            type: CHChart
+            summary: The chart to draw
+          -
+            name: rect
+            type: JSRect
+            summary: The rectangle in which to draw the chart

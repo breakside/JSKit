@@ -23,8 +23,6 @@ JSClass("CHStackedBarChart", CHBarChart, {
         CHStackedBarChart.$super.initWithTheme.call(this, theme);
     },
 
-    cornerRadius: 1,
-
     drawValuesInContext: function(context, rect){
         context.save();
         context.addRect(rect);

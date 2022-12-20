@@ -1,0 +1,59 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Draws a legend on a chart
+description: |
+  A chart's legend is typically used to show names of each series next to a
+  colored shape that can be used to match the name to an element in the chart.
+
+  Most times, you'll only need to adjust the `placement` of a legend, but other
+  options are available.
+
+  ![Legend](CHLegend@2x.png)
+topics:
+  - name: Creating a Lengend
+    members:
+      - name: initWithStyle
+        kind: init
+        summary: Create a legend with the given style
+        arguments:
+          - name: style
+            type: CHLegendStyle
+            summary: The style for the legend
+        description: |
+          While you can create a legend directly, charts typically create their
+          legend on their own.  For example, `CHCategoryChart` creates
+          its `lege d`(CHCategoryChart.legend) in its init procedure.
+
+          In such a case, you can simply modify the legend as necessary.
+  - name: Placement & Layout
+    members:
+      - name: placement
+        type: Placement
+        summary: the placement of the legend in the chart's drawing
+      - name: chartSpacing
+        type: Number
+        summary: The amount of spacing between the legend and the chart, in points
+      - name: Placement
+        suffix: enum
+        kind: enum
+        summary: The possible placements of a legend
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: Do not show a legend
+              - name: above
+                summary: Show the legend above the chart
+              - name: below
+                summary: Show the legend below the chart
+              - name: left
+                summary: Show the legend to the left of the chart
+              - name: right
+                summary: Show the legend to the right of the chart
+  - name: Style
+    members:
+      - name: style
+        type: CHLegendStyle
+        summary: The style properties for this legend

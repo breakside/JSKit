@@ -1,0 +1,24 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHAxis
+summary: An axis that displays category labels
+description: |
+  A category axis is used by `CHCategoryChart` to draw an axis for the chart's
+  categories, typically displayed as the x-axis.
+
+  A category axis has user-supplied labels and never has minor tick marks.
+
+  Depending on the context, a category axis may draw its labels at tick marks
+  (like for a line chart) or between tick marks (like for a bar chart).
+
+  ![Category Axis](CHCategoryAxis@2x.png)
+topics:
+  - name: Categories
+    members:
+      - name: categories
+        type: String[]
+        summary: The list of category labels for this axis
+        description: |
+          The nubmer of categories should be equal to the number of values
+          in each series.

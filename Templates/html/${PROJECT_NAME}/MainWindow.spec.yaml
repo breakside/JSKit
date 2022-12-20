@@ -19,8 +19,7 @@ MainViewController:
 
 MainView:
   class: UIView
-  backgroundColor:
-    rgba: 255,255,255
+  backgroundColor: background
   subviews:
     - /Label
     - /TestButton
@@ -30,8 +29,7 @@ Label:
   text: .helloWorld
   font:
     size: heading
-  textColor:
-    rgba: 51,51,51
+  textColor: text
   textAlignment: center
 
 TestButton:

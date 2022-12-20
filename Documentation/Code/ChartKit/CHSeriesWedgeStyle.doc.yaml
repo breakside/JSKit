@@ -1,0 +1,7 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHSeriesStyle
+summary: Style information for a data series in a pie-like chart
+description: |
+  Contains no extra properties beyond the base `CHSeriesStyle` class.

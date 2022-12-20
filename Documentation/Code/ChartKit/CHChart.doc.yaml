@@ -1,0 +1,161 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: An abscract base class for all charts
+description: |
+  `CHChart` defines the key features of all charts, but leaves it to
+  concrete subclass implemetations to fill in the details.
+
+  Standard subclass include:
+
+  - `CHCategoryChart`
+    - `CHBarChart`
+    - `CHStackedBarChart`
+    - `CHLineChart`
+    - `CHAreaChart`
+    - `CHStackedAreaChart`
+  - `CHPieChart`
+
+  Subclassing
+  ----
+
+  To create a custom `CHChart` subclass, you must implement the following
+  methods:
+
+  - `drawInContext()`
+  - `drawSymbolForNameInLegendAtIndex()`
+
+  And you can optionally override the default implemetations of:
+
+  - `colorForSeriesAtIndex()`
+  - `numberOfNamesInLegend()`
+  - `nameInLegendAtIndex()`
+
+  Note that you can also subclass `CHCategoryChart`, which contains all the
+  code common for a chart that has category and value axes.
+topics:
+  - name: Creating a Chart
+    members:
+      - name: initWithTheme
+        kind: init
+        summary: Create a new chart using the given theme
+        arguments:
+          - name: theme
+            type: CHTheme
+            summary: The theme to use for this chart
+        description: |
+          Creating a chart with a theme is especially useful when creating
+          several charts that will be shown together.  The same theme can be
+          used for each, resulting in a consistent view.
+        note: |
+          The standard `CHChart.init()` method will use the default theme,
+          as specified by `CHTheme.default`.
+  - name: Data
+    members:
+      - name: series
+        type: CHSeries[]
+        summary: The set of data series for the chart
+        description: |
+          Every chart requires at leat one series.  This list of series is
+          read-only.  To modify the lsit of series, use `addSeries()`
+        see:
+          - addSeries()
+      - name: addSeries
+        kind: method
+        summary: Add a data series to the chart
+        arguments:
+          - name: series
+            type: CHSeries
+            summary: The data series to add
+        description: |
+          Every chart requires at leat one series.
+
+          Chart subclasses often contain convenience methods for adding
+          series data.  For example, `CHCategoryChart.addValues()` will
+          create a `CHSeries` object using the style from the chart's
+          theme and then call `addSeries()`.
+        see:
+          - series
+          - CHCategoryChart.addValues()
+          - CHPieChart.setDataPoints()
+  - name: Drawing
+    members:
+      - name: drawInContext
+        kind: method
+        summary: Draw the chart in the given drawing context
+        arguments:
+          - name: context
+            type: JSContext
+            summary: The context in which to draw the chart
+          - name: size
+            type: JSSize
+            summary: The size of chart in the context
+        description: |
+          Must be implemented by subclasses.
+
+          Implemetations should draw their chart in the rectangle with origin
+          of `0,0` and then size given as an argument to this method.
+
+          For callers, the preferred method to draw a chart is with
+          `JSContext.drawChartInRect()`, which calls this `drawInContext()`
+          method.
+        see:
+          - JSContext.drawChartInRect()
+      - name: colorForSeriesAtIndex
+        kind: method
+        type: JSColor
+        summary: Return a color to use for the series at the given index
+        arguments:
+          - name: index
+            type: Number
+            summary: The series index
+        description: |
+          The default implemetation looks to the `colors`(CHTheme.colors) from
+          the chart's theme, taking `theme.colors[index % theme.colors.length]`
+  - name: Legend Delegate
+    members:
+      - name: numberOfNamesInLegend
+        kind: method
+        type: Number
+        summary: Return the number of names that should appear in the chart's legend
+        description: |
+          The default implemetation return the length of `series`.
+      - name: nameInLegendAtIndex
+        kind: method
+        type: String
+        summary: Return then name for the given legend index
+        arguments:
+          - name: index
+            type: Number
+            summary: The index of the name in the legend
+        description: |
+          The default implemetation return the `name`(CHSeries.name) of the series
+          at the given index.
+      - name: drawSymbolForNameInLegendAtIndex
+        kind: method
+        summary: Draw a symbol in the legend
+        arguments:
+          - name: legend
+            type: CHLegend
+            summary: The legend
+          - name: index
+            type: Number
+            summary: The index of the legend item to draw
+          - name: context
+            type: JSContext
+            summary: The context in which to draw
+          - name: rect
+            type: JSRect
+            summary: The area in which to draw
+        description: |
+          Must be implemented by subclasses.
+
+          Assuming the default implemetations of `numberOfNamesInLegend()` and
+          `nameInLegendAtIndex()`, the `index` given here will be an index
+          into the `series` set.
+
+          An implementation should draw a symbol or shape that corresponds
+          to the chart.  For example, `CHBarChart` draws a dot with the same
+          color and style as the bar for the series.  `CHLineChart` draws a
+          short line segment that looks like the line drawn for the series.

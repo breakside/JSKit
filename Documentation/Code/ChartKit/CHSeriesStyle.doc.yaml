@@ -1,0 +1,41 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Style information for a data series
+description: |
+  `CHSeriesStyle` is an abstract base class for series data.
+
+  Supported sublcasses include:
+  - `CHSeriesBarStyle`
+  - `CHSeriesLineStyle`
+  - `CHSeriesAreaStyle`
+  - `CHSeriesWedgeStyle`
+
+  Subclassing
+  ----
+  Subclasses should implement
+
+  - `styleWithColor()`
+topics:
+  - name: Creating a series style
+    members:
+      - name: initWithColor
+        kind: init
+        summary: Create a new style with the given color
+        arguments:
+          - name: color
+            type: JSColor
+            summary: The color to use
+      - name: styleWithColor
+        kind: method
+        summary: Create a copy of this style, but with the given color
+        arguments:
+          - name: color
+            type: JSColor
+            summary: The new color to use
+  - name: Color
+    members:
+      - name: color
+        type: JSColor
+        summary: The color for the series

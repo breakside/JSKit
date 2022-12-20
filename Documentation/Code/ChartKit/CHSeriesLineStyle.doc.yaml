@@ -1,0 +1,41 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHSeriesStyle
+summary: Style information for a data series in a line-like chart
+description: |
+  Provides properties for styling lines in a `CHLineChart`
+topics:
+  - name: Line
+    members:
+      - name: lineWidth
+        type: Number
+        summary: The width of the line
+      - name: lineDashLengths
+        type: Number[]
+        nullable: true
+        summary: The dash pattern for the line
+        description: |
+          Specified as an array of numbers where the first number is a dash
+          length and the next number is a space length, and so on.  Compatible
+          with the `lengths`() argument of `JSContext.setLineDash()`.
+      - name: lineCap
+        type: JSContext.LineCap
+        summary: The style of cap for line ends
+  - name: Symbol
+    members:
+      - name: symbolPath
+        type: JSPath
+        nullable: true
+        summary: The symbol to draw at each data point
+      - name: symbolFillColor
+        type: JSColor
+        nullable: true
+        summary: The optional color to fill the symbol with
+      - name: symbolStrokeColor
+        type: JSColor
+        nullable: true
+        summary: The optional color to stroke the symbol with
+      - name: symbolLineWidth
+        type: Number
+        summary: The line width for the symbol stroke

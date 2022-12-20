@@ -1,0 +1,41 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHAxis
+summary: An axis that displays value labels
+description: |
+  A value axis is used by `CHCategoryChart` to draw an axis for the chart's
+  values, typically displayed as the y-axis.
+
+  A value axis shows a scale of values determined by options such as
+  `minimumValue`, `maximumValue`, and `numberOfMajorSteps`.
+
+  ![Value Axis](CHValueAxis@2x.png)
+topics:
+  - name: Scale
+    members:
+      - name: minimumValue
+        type: Number
+        summary: The minimum value to show on the axis
+      - name: maximumValue
+        type: Number
+        summary: The maximum value to show on the axis
+      - name: numberOfMajorSteps
+        type: Number
+        summary: The number of steps to take between `minimumValue` and `maximumValue`
+        description: |
+           This determines the number of major tick marks and their values.
+
+           Often you'll want to choose values for `minimumValue`,
+           `maximumValue`, and `numberOfMajorSteps` that work well together
+           to show useful values.  For example, if your scale is 0 to 100,
+           you might want 10 major steps so the labels are 0, 10, 20, 30, etc.
+           Or you might use 4 major steps to get 0, 25, 50, 75, 100.
+      - name: numberOfMinorSteps
+        type: Number
+        summary: The number of ticks to draw in between major ticks
+  - name: Labels
+    members:
+      - name: valueFormatter
+        type: JSNumberFormatter
+        summary: The formatter to use when creating value labels for the axis

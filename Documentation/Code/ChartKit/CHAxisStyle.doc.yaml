@@ -1,0 +1,136 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Style information for a chart's legend
+description: |
+  As part of a `CHTheme`, a `CHAxisStyle` provides common styling properties
+  for an axis.
+topics:
+  - name: Line
+    members:
+      - name: lineWidth
+        type: Number
+        summary: The width of the axis line
+      - name: lineColor
+        type: JSColor
+        summary: The color of the axis line
+  - name: Labels
+    members:
+      - name: showsLabels
+        type: Boolean
+        summary: Whether to show data labels
+      - name: labelFont
+        type: JSFont
+        summary: The font to use for labels
+      - name: labelTextColor
+        type: JSColor
+        summary: The color to use for labels
+      - name: labelAngle
+        type: Number
+        summary: The angle at which to draw labels
+        description: |
+          Specified in radians where `0`() is horizontal.
+      - name: labelInsets
+        type: JSInsets
+        summary: The amount to inset labels from surrounding areas
+      - name: labelPosition
+        type: LabelPosition
+        summary: The placement of labels relative to tick marks
+      - name: LabelPosition 
+        suffix: enum
+        kind: enum
+        summary: The possible label positions
+        topics:
+          - name: Options
+            members:
+              - name: onTickMarks
+                summary: Place labels at tick mark locations
+                description: |
+                  This is the default for line and area charts
+              - name: betweenTickMarks
+                summary: Place labels betwene tick marks
+                description: |
+                  This is the default for bar charts
+  - name: Tick Marks
+    members:
+      - name: majorTickMarkStyle
+        type: TickMarkStyle
+        summary: The kind of major tick marks to draw
+      - name: majorTickMarkLength
+        type: Number
+        summary: The length of major tick marks
+        description: |
+          A tick mark's length is how far it extends in the direction
+          perpendicular to the axis
+      - name: majorTickMarkWidth
+        type: Number
+        summary: The width of major tick marks
+        description: |
+          A tick mark's width is how thick of a line is drawn
+      - name: majorTickMarkColor
+        type: JSColor
+        summary: The color of major tick marks
+      - name: minorTickMarkStyle
+        type: TickMarkStyle
+        summary: The kind of minor tick marks to draw
+      - name: minorTickMarkLength
+        type: Number
+        summary: The length of minor tick marks
+        description: |
+          A tick mark's length is how far it extends in the direction
+          perpendicular to the axis
+      - name: minorTickMarkWidth
+        type: Number
+        summary: The width of minor tick marks
+        description: |
+          A tick mark's width is how thick of a line is drawn
+      - name: minorTickMarkColor
+        type: JSColor
+        summary: The color of minor tick marks
+      - name: TickMarkStyle
+        suffix: enum
+        kind: enum
+        summary: The possible types of tick marks
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: Do not show tick marks
+              - name: inside
+                summary: Draw tick marks entirely on the chart side of the axis
+              - name: outside
+                summary: Draw tick marks entirely on the margin side of the axis
+              - name: centered
+                summary: Draw tick marks centered on the axis, entering both the
+                  chart side and the margin side of the axis
+  - name: Grid Lines
+    members:
+      - name: majorGridlineColor
+        type: JSColor
+        summary: The color of major grid lines
+      - name: majorGridlineWidth
+        type: Number
+        summary: The width of major grid lines
+      - name: majorGridlineDashLengths
+        type: Number[]
+        nullable: true
+        summary: The dash pattern for major grid lines
+        description: |
+          Specified as an array of numbers where the first number is a dash
+          length and the next number is a space length, and so on.  Compatible
+          with the `lengths`() argument of `JSContext.setLineDash()`.
+      - name: minorGridlineColor
+        type: JSColor
+        summary: The color of minor grid lines
+      - name: minorGridlineWidth
+        type: Number
+        summary: The width of minor grid lines
+      - name: minorGridlineDashLengths
+        type: Number[]
+        nullable: true
+        summary: The dash pattern for minor grid lines
+        description: |
+          Specified as an array of numbers where the first number is a dash
+          length and the next number is a space length, and so on.  Compatible
+          with the `lengths`() argument of `JSContext.setLineDash()`.

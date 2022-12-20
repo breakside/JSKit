@@ -105,6 +105,7 @@ topics:
       - ImageKit/ImageKit
       - PDFKit/PDFKit
       - FontKit/FontKit
+      - ChartKit/ChartKit
       - QRKit/QRKit
   - name: Database & Storage
     summary: Frameworks for interacting with databases
