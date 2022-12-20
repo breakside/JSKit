@@ -1,0 +1,90 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHSeriesStyle
+summary: Style information for a data series in a bar-like chart
+description: |
+  Provides properties for styling bars in a `CHBarChart` or a `CHStackedBarChart`
+topics:
+  - name: Border
+    members:
+      - name: borderWidth
+        type: Number
+        summary: The width of the border line
+      - name: borderColor
+        type: JSColor
+        summary: The color of the border line
+      - name: maskedBorders
+        type: Sides
+        summary: The sides of the bar on which to draw a border
+  - name: Bar Shape
+    members:
+      - name: Sides
+        suffix: enum
+        kind: enum
+        summary: The possible sides of a bar
+        description: |
+          The values may be combined with a bitwise OR operator
+
+          ````
+          # import ChartKit
+
+          let barStyle = CHSeriesBarStyle.initWithColor(JSColor.black);
+          barStyle.maskedBorders = CHSeriesBarStyle.Sides.leading | CHSeriesBarStyle.Sides.trailing;
+          ````
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: No sides
+              - name: all
+                summary: All sides
+              - name: leading
+                summary: The leading side of the bar
+                description: |
+                  For a vertically drawn bar in a left-to-right display,
+                  this would be the left side.
+
+                  For a horizontally drawn bar in a top-to-bottom display,
+                  this would be the top side.
+              - name: trailing
+                summary: The trailing side of the bar
+                description: |
+                  For a vertically drawn bar in a left-to-right display,
+                  this would be the right side.
+
+                  For a horizontally drawn bar in a top-to-bottom display,
+                  this would be the bottom side.
+              - name: base
+                summary: The axis side of the bar
+              - name: end
+                summary: The side of the bar furthest from the axis
+      - name: Corners
+        suffix: enum
+        kind: enum
+        summary: The possible corners of a bar
+        description: |
+          The values may be combined with a bitwise OR operator
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: No corners
+              - name: all
+                summary: All corners
+              - name: baseLeading
+                summary: The corner where the base side meets the leading side
+              - name: baseTrailing
+                summary: The corner where the base side meets the trailing side
+              - name: endLeading
+                summary: The corner where the end side meets the leading side
+              - name: endTrailing
+                summary: The corner where the end side meets the trailing side
+              - name: base
+                summary: The combination of `baseLeading` and `baseTrailing`
+              - name: end
+                summary: The combination of `endLeading` and `endTrailing`
+              - name: leading
+                summary: The combination of `baseLeading` and `endLeading`
+              - name: trailing
+                summary: The combination of `baseTrailing` and `endTrailing`

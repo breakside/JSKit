@@ -9,6 +9,8 @@ description: |
 
   Most times, you'll only need to adjust the `placement` of a legend, but other
   options are available.
+
+  ![Legend](CHLegend@2x.png)
 topics:
   - name: Creating a Lengend
     members:

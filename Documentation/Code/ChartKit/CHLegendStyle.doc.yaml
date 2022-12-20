@@ -1,0 +1,17 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Style information for a chart's legend
+description: |
+  As part of a `CHTheme`, a `CHLegendStyle` provides common styling properties
+  such as `font` and `textColor`.
+topics:
+  - name: Text
+    members:
+      - name: font
+        type: JSFont
+        summary: The font to use for legend text
+      - name: textColor
+        type: JSColor
+        summary: The color to use for legend text

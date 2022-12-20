@@ -1,0 +1,58 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: JSObject
+summary: Contains styling objects that together define a consistent theme for charts
+description: |
+  Every `CHChart` has a theme that provides styling instructions.
+
+  A `CHTheme` makes it easy to reuse the same style across multiple charts by
+  defining a common set of `colors` along with style objects for each kind of
+  chart.
+topics:
+  - name: Creating a Theme
+    members:
+      - name: initWithColors
+        kind: init
+        summary: Create a theme with the given colors
+        arguments:
+          - name: colors
+            type: JSColor[]
+            summary: The colors for the theme
+        description: |
+          Charts will use the colors in order for each data series, wrapping
+          around to the start of the colors list if there are more series than
+          colors.
+  - name: Axis Styles
+    members:
+      - name: valueAxisStyle
+        type: CHAxisStyle
+        summary: The style to use for value axes
+        description: |
+          `CHCategoryChart` uses the `valueAxisStyle` to style 
+          `valueAxis`(CHCategoryChart.valueAxis)
+      - name: categoryAxisStyle
+        type: CHAxisStyle
+        summary: The style to use for category axes
+        description: |
+          `CHCategoryChart` uses the `categoryAxisStyle` to style 
+          `categoryAxis`(CHCategoryChart.categoryAxis)
+  - name: Legend Style
+    members:
+      - name: legendStyle
+        type: CHLegendStyle
+        summary: The style to use for the chart's legend
+  - name: Data Series Styles
+    members:
+      - name: barStyle
+        type: CHSeriesBarStyle
+        summary: The style to use for bars in a `CHBarChart` or `CHStackedBarChart`
+      - name: lineStyle
+        type: CHSeriesLineStyle
+        summary: The style to use for lines in a `CHLineChart`
+      - name: areaStyle
+        type: CHSeriesAreaStyle
+        summary: The style to use for areas in a `CHAreaChart` or `CHStackedAreaChart`
+      - name: wedgeStyle
+        type: CHSeriesWedgeStyle
+        summary: The style to use for wedges in a `CHPieChart`

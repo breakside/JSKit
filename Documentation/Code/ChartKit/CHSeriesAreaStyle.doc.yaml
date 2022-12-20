@@ -1,0 +1,18 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.27.0
+kind: class
+inherits: CHSeriesLineStyle
+summary: Style information for a data series in a area-like chart
+description: |
+  Provides properties for styling areas in a `CHAreaChart` or `CHStackedAreaChart`
+topics:
+  - name: Line
+    members:
+      - name: lineColor
+        type: JSColor
+        nullable: true
+        summary: The optional color of a line to draw along the data points
+          of the area.
+        description: |
+          If set, the area chart will fill the area with the value from `color`
+          and additionally draw a line of `lineColor` 
