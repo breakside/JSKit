@@ -1,0 +1,38 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.23.0
+kind: class
+inherits: JSObject
+summary: Represents a notification that will be shown to a user
+description: |
+  A notification includes a `title` and `body` that will be shown to the user
+  in a plaform-specific notification interface.
+
+  Notifications are shown by passing them to a `NKUserNotificationCenter`
+  via `addNotification()`(NKUserNotificationCenter.addNotification).
+topics:
+  - name: Creating a Notification
+    members:
+      - name: initWithTitle
+        kind: init
+        summary: Create a new notification with the given title and body
+        arguments:
+          - name: title
+            type: String
+            summary: The title of the notification
+          - name: body
+            type: String
+            nullable: true
+            default: "null"
+            summary: The body text of the notification
+  - name: Notification Content
+    members:
+      - name: title
+        summary: The title of the notification
+        type: String
+        description: |
+          While the exact presentation depends on the platform, the
+          notification's title is typically shown prominently
+      - name: body
+        summary: The body text of the notification
+        type: String
+        nullable: true

@@ -1,0 +1,165 @@
+copyright: Copyright © 2021 Breakside Inc.
+introduced: 2021.23.0
+kind: class
+inherits: JSObject
+summary: Displays user-visible notifications in a system-specific manner
+description: |
+  A user notification center is for showing the end user notifications in their
+  system's notification area.  For example, a `UIKit` application running in a
+  desktop web browser will show notifications in the platforms standard
+  notification area.
+
+  Everything runs through the singleton `shared` notification center.
+
+  Before displaying a notification, you must request permission from the user.
+  Best practice is to request permission when first needed as opposed to when
+  the app first runs.
+note: |
+  For internal notifications between code modules, see `JSNotificationCenter`.
+topics:
+  - name: Shared Notification Center
+    members:
+      - name: shared
+        static: true
+        type: NKUserNotificationCenter
+        summary: The singleton user notification center
+        description: |
+          The shared user notification center is created automatically, and is
+          the only possible user notification center to access.
+  - name: Requesting Permission
+    members:
+      - name: requestAuthorization
+        kind: method
+        summary: Request permission to show notifications, using a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: authorized
+                  type: AuthorizationStatus
+                  summary: The user's response to permission request
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      - name: requestAuthorization
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: AuthorizationStatus
+            summary: The user's response to permission request
+        summary: Request permission to show notifications, using a promise
+      - name: getAuthorizationStatus
+        kind: method
+        summary: Query if the user has granted permission to show notifications,
+          using a callback
+        description: |
+          It's often helpful to query the authorization status before attempting
+          to request permission.
+
+          ````
+          #import UIKit
+          #import NotificationKit
+
+          JSClass("MessagesViewController", {
+
+            requestUserNotificationAuthorization: async function(){
+              let status = await NKUserNotificationCenter.shared.getAuthorizationStatus();
+              if (status === NKUserNotificationCenter.AuthorizationStatus.unknown){
+                status = await NKUserNotificationCenter.shared.requestAuthorization();
+              }
+              return status === NKUserNotificationCenter.AuthorizationStatus.authorized;
+            }
+
+          });
+          ````
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: status
+                  type: AuthorizationStatus
+                  summary: The current authorization status
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      - name: getAuthorizationStatus
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: AuthorizationStatus
+            summary: The current authorization status
+        summary: Query if the user has granted permission to show notifications,
+          using a promise
+        description: |
+          It's often helpful to query the authorization status before attempting
+          to request permission.
+
+          ````
+          #import UIKit
+          #import NotificationKit
+
+          JSClass("MessagesViewController", {
+
+            requestUserNotificationAuthorization: async function(){
+              let status = await NKUserNotificationCenter.shared.getAuthorizationStatus();
+              if (status === NKUserNotificationCenter.AuthorizationStatus.unknown){
+                status = await NKUserNotificationCenter.shared.requestAuthorization();
+              }
+              return status === NKUserNotificationCenter.AuthorizationStatus.authorized;
+            }
+
+          });
+          ````
+      - name: AuthorizationStatus
+        suffix: enum
+        kind: enum
+        summary: The possible values for notification authorization status
+        topics:
+          - name: Options
+            members:
+              - name: unknown
+                summary: The user has neither authorized or denied permission
+              - name: authorized
+                summary: The user has authorized permission
+              - name: denied
+                summary: The user has denied permission
+  - name: Displaying Notifications
+    members:
+      - name: addNotification
+        kind: method
+        summary: Display a notification
+        arguments:
+          - name: notification
+            type: NKUserNotification
+            summary: The notification to display
+          - name: date
+            type: JSDate
+            nullable: true
+            default: "null"
+            summary: An optional date at which time the notification should be
+              shown
+        description: |
+          If no `date`() is provided, the notification will display immediately.
+
+          If the `date`() is in the past, the notification will not be displayed.
+      - name: removeNotification
+        kind: method
+        summary: Remove a notification from display
+        arguments:
+          - name: notification
+            type: NKUserNotification
+            summary: The notification to cancel
+        description: |
+          If the notification is currently showing, it will be dismissed
+          immediately.
+
+          If the notification was scheduled for a future date, it will be
+          removed from the schedule.

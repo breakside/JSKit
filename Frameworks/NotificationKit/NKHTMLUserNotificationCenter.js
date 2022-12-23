@@ -160,7 +160,7 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
             var handler = function(permission){
                 if (!handled){
                     handled = true;
-                    completion.call(target, permission === "granted");
+                    completion.call(target, statusByPermission[permission]);
                 }
             };
             var promise = Notification.requestPermission(handler);
@@ -170,7 +170,7 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
                 });
             }
         }else{
-            JSRunLoop.main.schedule(completion, target, false);
+            JSRunLoop.main.schedule(completion, target, NKUserNotificationCenter.AuthorizationStatus.denied);
         }
         return completion.promise;
     },

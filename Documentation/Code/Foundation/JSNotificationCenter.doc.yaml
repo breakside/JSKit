@@ -9,7 +9,8 @@ description: |
   Most times, the `shared` notification center is place to post and listen
   for noficiations, but it's possible to create a private notification center
   if you need.
-
+note: |
+  For user-facing notifications, see `NotificationKit`
 important: Notifications are sent immediately and synchronously.
 topics:
   -

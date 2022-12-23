@@ -7,20 +7,16 @@ page:
   titleSuffix: JSKit Documentation
   preview: https://jskit.dev/preview.png
   icons:
-    -
-      url: icon-16.png
+    - url: icon-16.png
       type: image/png
       sizes: 16x16
-    -
-      url: icon-32.png
+    - url: icon-32.png
       type: image/png
       sizes: 32x32
-    -
-      url: icon-64.png
+    - url: icon-64.png
       type: image/png
       sizes: 64x64
-    -
-      url: icon.svg
+    - url: icon.svg
       type: image/svg+xml
       sizes: any
 description: |
@@ -98,6 +94,10 @@ topics:
     members:
       - SecurityKit/SecurityKit
       - AuthKit/AuthKit
+  - name: Notifications
+    summary: User-visible notifications
+    members:
+      - NotificationKit/NotificationKit
   - name: Images, PDFs, QR Codes
     summary: Advanced graphics frameworks for applications that need to read
       or create PNG, JPEG, or PDF data.

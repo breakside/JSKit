@@ -1,0 +1,21 @@
+copyright: Copyright © 2021 Breakside Inc.
+kind: framework
+introduced: 2021.23.0
+summary: Create and show user-visible notifications
+codeURL: Frameworks/NotificationKit/
+environment: html
+description: |
+  `NotificationKit` provides functionality for applications to create and 
+  display user-visible notifications in a platform-specific manner.
+
+  For example, in a web-based `UIKit` application, user notifications will
+  appear as desktop notifications.
+
+  Posting such notifications typically requires an explicit grant of permission
+  from the user.  Requests for such permission should be made when first
+  relevant as opposed to when the app first runs.
+topics:
+  - name: Local Notifications
+    members:
+      - NKUserNotificationCenter
+      - NKUserNotification
