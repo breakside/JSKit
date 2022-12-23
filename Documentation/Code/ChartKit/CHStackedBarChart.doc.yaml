@@ -33,3 +33,5 @@ description: |
   ````
 
   ![Stacked Bar Chart](CHStackedBarChart@2x.png)
+see:
+  - CHTheme.barStyle

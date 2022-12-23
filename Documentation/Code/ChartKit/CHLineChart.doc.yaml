@@ -34,3 +34,5 @@ description: |
   ````
 
   ![Line Chart](CHLineChart@2x.png)
+see:
+  - CHTheme.lineStyle

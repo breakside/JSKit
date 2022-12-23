@@ -110,3 +110,5 @@ topics:
         summary: The style to use for each new series created by `setDataPoints()`
         description: |
           Defaults to the theme's `wedgeStyle`(CHTheme).
+see:
+  - CHTheme.wedgeStyle

@@ -52,3 +52,5 @@ topics:
         description: |
           Specified as a percentage where `0` equals no rounding and `1` equals
           half of the bar's width.
+see:
+  - CHTheme.barStyle

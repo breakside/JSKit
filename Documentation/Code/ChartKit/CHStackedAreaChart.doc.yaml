@@ -33,3 +33,5 @@ description: |
   ````
 
   ![Stacked Area Chart](CHStackedAreaChart@2x.png)
+see:
+  - CHTheme.areaStyle
