@@ -75,16 +75,21 @@ var patterns = [chromeLikePattern, chromeMethodlessPattern, firefoxLikePattern, 
 var frameFromLine = function(line){
     var matches;
     var pattern;
+    var frame;
     for (var i = 0, l = patterns.length; i < l; ++i){
         pattern = patterns[i];
         matches = line.match(pattern.regex);
         if (matches){
-            return {
+            frame = {
                 method: pattern.groups.method > 0 ? matches[pattern.groups.method] : '',
                 filename: matches[pattern.groups.filename],
                 lineno: parseInt(matches[pattern.groups.lineno]),
                 colno: parseInt(matches[pattern.groups.colno])
             };
+            if (frame.filename && frame.filename[0] == "@"){
+                frame.filename = frame.filename.substr(1);
+            }
+            return frame;
         }
     }
 };
