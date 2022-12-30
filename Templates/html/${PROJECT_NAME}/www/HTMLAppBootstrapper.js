@@ -7,13 +7,18 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
     if (this === undefined){
         return new HTMLAppBootstrapper(rootElement, jskitapp);
     }
-    this.app = jskitapp;
     this.rootElement = rootElement;
-    this.preflightID = jskitapp.preflightId;
-    this.preflightSrc = jskitapp.preflightSrc;
-    this.serviceWorkerSrc = jskitapp.serviceWorkerSrc;
-    this.appSrc = jskitapp.appSrc;
-    this.appCss = jskitapp.appCss;
+    if (jskitapp.TEMPLATE === "JSKIT_APP"){
+        window.bootstrapper = this;
+        this.app = null;
+    }else{
+        this.app = jskitapp;
+        this.preflightID = jskitapp.preflightId;
+        this.preflightSrc = jskitapp.preflightSrc;
+        this.serviceWorkerSrc = jskitapp.serviceWorkerSrc;
+        this.appSrc = jskitapp.appSrc;
+        this.appCss = jskitapp.appCss;
+    }
     this.status = HTMLAppBootstrapper.STATUS.notstarted;
     this.statusDispatchTimeoutID = null;
     this.preflightChecks = [];
@@ -45,7 +50,8 @@ HTMLAppBootstrapper.STATUS = {
     appRunning: 'appRunning',
     appLaunched: 'appLaunched',
     appLaunchFailure: 'appLaunchFailure',
-    appRequiresNoOtherInstances: 'appRequiresNoOtherInstances'
+    appRequiresNoOtherInstances: 'appRequiresNoOtherInstances',
+    appCrashed: 'appCrashed'
 };
 
 HTMLAppBootstrapper.prototype = {
@@ -62,6 +68,9 @@ HTMLAppBootstrapper.prototype = {
     },
 
     run: function(){
+        if (this.app === null){
+            return;
+        }
         this.log_info("boot", "Booting " + this.app.bundleId + ", build " + this.app.buildId);
         if (this.serviceWorkerSrc && window.navigator.serviceWorker){
             this._installUsingServiceWorker(window.navigator.serviceWorker);
@@ -209,6 +218,10 @@ HTMLAppBootstrapper.prototype = {
         this.setStatus(HTMLAppBootstrapper.STATUS.appLaunched);
     },
 
+    applicationDidCrash: function(application){
+        this.setStatus(HTMLAppBootstrapper.STATUS.appCrashed);
+    },
+
     include: function(src, async, callback, errorCallback){
         try{
             this.loadingScripts[src] = {
@@ -238,10 +251,12 @@ HTMLAppBootstrapper.prototype = {
     },
 
     setStatus: function(status){
-        this.log_info("status", this.status + " -> " + status);
+        if (status !== HTMLAppBootstrapper.STATUS.appCrashed){
+            this.log_info("status", this.status + " -> " + status);
+        }
         this.status = status;
         var bootstrapper = this;
-        if (status === HTMLAppBootstrapper.STATUS.appRunning || status === HTMLAppBootstrapper.STATUS.appLaunched){
+        if (status === HTMLAppBootstrapper.STATUS.appRunning || status === HTMLAppBootstrapper.STATUS.appLaunched || status === HTMLAppBootstrapper.STATUS.appCrashed){
             if (this.statusDispatchTimeoutID !== null){
                 clearTimeout(this.statusDispatchTimeoutID);
                 this.statusDispatchTimeoutID = null;

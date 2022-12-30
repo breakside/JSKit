@@ -7,13 +7,7 @@
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="rgb(38,38,38)">
   <title></title>
   <base href="/">
-  <style id="bootstrap-style" type="text/css">
-  @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,600&display=swap');
-  * {
-    cursor: default;
-    user-select: none;
-    -webkit-user-select: none;
-  }
+  <style type="text/css">
   #splash {
     position: fixed;
     top: 0;
@@ -21,8 +15,9 @@
     right: 0;
     bottom: 0;
     background-color: rgb(255,255,255);
+    z-index: 100;
   }
-  #status {
+  #splash-status {
     position: absolute;
     opacity: 0;
     top: 50%;
@@ -31,14 +26,17 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 300 16px/24px "Source Sans Pro", "Helvetica", sans-serif;
+    font: 300 16px/24px "Helvetica", sans-serif;
     height: 24px;
     text-align: center;
     transition-property: opacity, color, margin-top;
     transition-duration: .25s;
     color: rgb(164,164,164);
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
   }
-  #details {
+  #splash-details {
     position: absolute;
     opacity: 0;
     top: 50%;
@@ -47,13 +45,16 @@
     left: 40px;
     overflow: hidden;
     text-overflow: ellipsis;
-    font: 300 16px/20px "Source Sans Pro", "Helvetica", sans-serif;
+    font: 300 16px/20px "Helvetica", sans-serif;
     text-align: center;
     transition: opacity linear .5s .5s;
     opacity: 0;
     color: rgb(192,192,192);
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
   }
-  #progress {
+  #splash-progress {
     opacity: 0;
     position: absolute;
     box-sizing: border-box;
@@ -69,33 +70,36 @@
     transition-duration: .25s;
     background-color: rgba(245,245,245);
     box-shadow: inset 0 0 2px rgba(0,0,0,0.15);
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
   }
-  #progress-bar {
+  #splash-progress-bar {
     height: 100%;
     width: 0%;
     background-color: rgb(224,224,224);
   }
-  #splash.error #status {
+  #splash.error #splash-status {
     font-weight: 600;
   }
-  #splash.error #details {
+  #splash.error #splash-details {
     opacity: 1;
   }
   @media (prefers-color-scheme: dark) {
     #splash {
       background-color: rgb(38,38,38);
     }
-    #status {
+    #splash-status {
       color: rgb(128,128,128);
     }
-    #details {
+    #splash-details {
       color: rgb(102,102,102);
     }
-    #progress {
+    #splash-progress {
       background-color: rgba(26,26,26);
       box-shadow: inset 0 0 2px rgba(0,0,0,0.15);
     }
-    #progress-bar {
+    #splash-progress-bar {
       background-color: rgb(80,80,80);
     }
   }
@@ -103,9 +107,9 @@
 </head>
 <body>
   <div id="splash" role="none presentation">
-    <div id="status"></div>
-    <div id="progress" role="progressbar" aria-label="Application loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true"><div id="progress-bar"></div></div>
-    <div id="details"></div>
+    <div id="splash-status"></div>
+    <div id="splash-progress" role="progressbar" aria-label="Application loading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-hidden="true"><div id="splash-progress-bar"></div></div>
+    <div id="splash-details"></div>
   </div>
   <script type="text/javascript" src="HTMLAppBootstrapper.js"></script>
   <script type="text/javascript" jskit>
@@ -115,11 +119,10 @@
   (function(){
     var app = {TEMPLATE: "JSKIT_APP"};
     var splash = document.getElementById('splash');
-    var statusLabel = document.getElementById('status');
-    var detailsLabel = document.getElementById('details');
-    var bootstrapStyle = document.getElementById('bootstrap-style');
-    var progress = document.getElementById('progress');
-    var progressBar = document.getElementById('progress-bar');
+    var statusLabel = document.getElementById('splash-status');
+    var detailsLabel = document.getElementById('splash-details');
+    var progress = document.getElementById('splash-progress');
+    var progressBar = document.getElementById('splash-progress-bar');
     var bootstrapper = HTMLAppBootstrapper(document.body, app);
     var downListener = null;
     bootstrapper.onstatus = function index_boostrapper_status(){
@@ -165,9 +168,9 @@
           progress.style.opacity = 0;
           progress.setAttribute("aria-hidden", "true");
           splash.className = 'error';
-          statusLabel.innerHTML = "Apologies, but we couldn't start the application";
+          statusLabel.innerHTML = "Unable to Start Application";
           detailsLabel.style.opacity = 1;
-          detailsLabel.innerHTML = "Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
+          detailsLabel.innerHTML = "Apologies, but we couldn't start the application.  Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
           reportError(bootstrapper.error, bootstrapper.getLogs());
           break;
         case S.appRequiresNoOtherInstances:
@@ -183,8 +186,20 @@
           break;
         case S.appLaunched:
           window.requestAnimationFrame(function(){
+            progress.style.opacity = 0;
+            progress.setAttribute("aria-hidden", "true");
+            statusLabel.style.opacity = 0;
             splash.parentNode.removeChild(splash);
-            bootstrapStyle.parentNode.removeChild(bootstrapStyle);
+          });
+          break;
+        case S.appCrashed:
+          document.body.appendChild(splash);
+          statusLabel.innerHTML = "Application Error";
+          detailsLabel.innerHTML = "Apologies, but the application needs to restart.  We've notified our engineers of the problem.<br><br><button onclick='location.reload()'>Restart</button>";
+          window.requestAnimationFrame(function(){
+            splash.className = 'error';
+            statusLabel.style.opacity = 1;
+            detailsLabel.style.opacity = 1;
           });
           break;
       }
