@@ -439,6 +439,9 @@ JSClass('UIWindow', UIView, {
         }
         this.windowServer.orderWindowFront(this);
         if (!this._isOpen){
+            if (this.closeAnimator !== null){
+                this.closeAnimator.stop();
+            }
             this._isOpen = true;
             if (this.openAnimator !== null){
                 this.openAnimator.start();
