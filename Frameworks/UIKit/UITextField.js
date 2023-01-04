@@ -725,14 +725,22 @@ JSClass("UITextField", UIControl, {
             this._textLayer.layoutIfNeeded();
             size = JSSize(this._textLayer.bounds.size);
         }
+        size.width = Math.ceil(size.width);
+        size.height = Math.ceil(size.height);
+        size.width += this._textInsets.width;
+        size.height += this._textInsets.height;
+        if (this._leftAccessoryView !== null){
+            size.width += this._leftAccessorySize.width + this._leftAccessoryInsets.width;
+        }
+        if (this._rightAccessoryView !== null){
+            size.width += this._rightAccessorySize.width + this._rightAccessoryInsets.width;
+        }
         if (size.width > maxSize.width){
             size.width = maxSize.width;
         }
         if (size.height > maxSize.height){
             size.height = maxSize.height;
         }
-        size.width += this._textInsets.width;
-        size.height += this._textInsets.height;
         this.bounds = JSRect(JSPoint.Zero, size);
         this.layoutIfNeeded();
         this._adjustClipViewOrigin(this._clipView.bounds.origin);
