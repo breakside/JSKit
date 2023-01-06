@@ -308,7 +308,7 @@ JSClass("UITextEditor", JSObject, {
             useRightEdge = true;
         }
         var container = this.textLayoutManager.textContainerForCharacterAtIndex(index);
-        if (container === null){
+        if (container === null || container.textFrame === null){
             return JSRect.Zero;
         }
         var rect = container.rectForCharacterAtIndex(index);
