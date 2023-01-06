@@ -234,8 +234,19 @@ JSClass("UITextLayer", UILayer, {
             if (this._heightTracksText){
                 height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
             }
+            this.ignoreSetNeedsLayout = true;
             this.bounds = JSRect(0, 0, width, height);
+            this.ignoreSetNeedsLayout = false;
         }
+    },
+
+    ignoreSetNeedsLayout: false,
+
+    setNeedsLayout: function(){
+        if (this.ignoreSetNeedsLayout){
+            return;
+        }
+        UITextLayer.$super.setNeedsLayout.call(this);
     },
 
     firstBaselineOffsetFromTop: JSReadOnlyProperty(),
