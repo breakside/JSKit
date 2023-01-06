@@ -239,14 +239,12 @@ JSClass("UITextField", UIControl, {
         this._placeholderLabel = UILabel.init();
         this._placeholderLabel.textAlignment = this._textLayer.textAlignment;
         this._placeholderLabel.lineBreakMode = JSLineBreakMode.truncateTail;
-        this._placeholderLabel.maximumNumberOfLines = 1;
+        this._placeholderLabel.maximumNumberOfLines = this._textLayer.maximumNumberOfLines;
         this._placeholderLabel.font = this._textLayer.font;
         this._placeholderLabel.hidden = true;
-        this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
-        this._placeholderLabel.layer.heightTracksText = true;
         this._placeholderLabel.textColor = this._placeholderColor;
-        this._clipView.insertSubviewAtIndex(this._placeholderLabel, 0);
-        this._clipView.layer.insertSublayerBelowSibling(this._placeholderLabel.layer, this._textLayer);
+        this._placeholderLabel.layer.textContainer.framesetter.typesetter.delegate = this;
+        this.insertSubviewAboveSibling(this._placeholderLabel, this._clipView);
     },
 
     _placeholderLabel: null,
@@ -349,10 +347,10 @@ JSClass("UITextField", UIControl, {
         this._multiline = multiline;
         this._textLayer.textLayoutManager.includeEmptyFinalLine = multiline;
         this._textLayer.widthTracksText = !multiline;
-        if (this._placeholderLabel !== null){
-            this._placeholderLabel.layer.widthTracksText = this._textLayer.widthTracksText;
-        }
         this._textLayer.maximumNumberOfLines = multiline ? 0 : 1;
+        if (this._placeholderLabel !== null){
+            this._placeholderLabel.maximumNumberOfLines = this._textLayer.maximumNumberOfLines;
+        }
     },
 
     setTextInsets: function(textInsets){
@@ -672,29 +670,22 @@ JSClass("UITextField", UIControl, {
         } 
         this._clipView.frame = this.bounds.rectWithInsets(textInsets);
         if (this._placeholderLabel !== null){
-            if (!this._multiline){
-                this._placeholderLabel.layoutIfNeeded();
-            }
-            var clipSize = this._clipView.bounds.size;
-            var placeholderSize = this._placeholderLabel.bounds.size;
-            if (this._multiline){
-                this._placeholderLabel.frame = JSRect(0, 0, clipSize.width, placeholderSize.height);
-            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.center){
-                this._placeholderLabel.frame = JSRect((clipSize.width - placeholderSize.width) / 2, 0, placeholderSize.width, placeholderSize.height);
-            }else if (this._placeholderLabel.textAlignment == JSTextAlignment.right){
-                this._placeholderLabel.frame = JSRect(clipSize.width - placeholderSize.width, 0, placeholderSize.width, placeholderSize.height);
-            }else{
-                this._placeholderLabel.frame = JSRect(JSPoint.Zero, placeholderSize);
-            }
+            this._placeholderLabel.frame = this._clipView.frame;
         }
     },
 
     layerDidChangeSize: function(layer){
         UITextField.$super.layerDidChangeSize.call(this, layer);
         if (layer === this._textLayer && this._multiline){
+            var height = this._textInsets.height;
+            if (this._isShowingPlaceholder){
+                height += this._placeholderLabel.bounds.size.height;
+            }else{
+                height += this._textLayer.bounds.size.height;
+            }
             this.layer.bounds = JSRect(this.layer.bounds.origin, JSSize(
                 this.layer.bounds.size.width,
-                Math.max(this._minimumHeight, this._textLayer.bounds.size.height + this._textInsets.top + this._textInsets.bottom)
+                Math.max(this._minimumHeight, height)
             ));
             this.setNeedsLayout();
         }
@@ -702,21 +693,25 @@ JSClass("UITextField", UIControl, {
 
     sizeToFitText: function(maxSize){
         var size;
-        if (this._isShowingPlaceholder){
-            if (this._multiline){
-                this._placeholderLabel.sizeToFitSize(maxSize);
+        var maxTextSize = JSSize(maxSize);
+        if (maxTextSize.width < Number.MAX_VALUE){
+            maxTextSize.width -= this._textInsets.width;
+            if (this._leftAccessoryView !== null){
+                maxTextSize.width -= this._leftAccessorySize.width + this._leftAccessoryInsets.width;
             }
+            if (this._rightAccessoryView !== null){
+                maxTextSize.width -= this._rightAccessorySize.width + this._rightAccessoryInsets.width;
+            }
+        }
+        if (maxTextSize.height < Number.MAX_VALUE){
+            maxTextSize.height -= this._textInsets.height;
+        }
+        if (this._isShowingPlaceholder){
+            this._placeholderLabel.sizeToFitSize(maxTextSize);
             this._placeholderLabel.layoutIfNeeded();
             size = JSSize(this._placeholderLabel.bounds.size);
         }else{
             if (this._multiline){
-                var maxTextSize = JSSize(maxSize);
-                if (maxTextSize.width < Number.MAX_VALUE){
-                    maxTextSize.width -= this._textInsets.width;
-                }
-                if (maxTextSize.height < Number.MAX_VALUE){
-                    maxTextSize.height -= this._textInsets.height;
-                }
                 this._textLayer.sizeToFitSize(maxTextSize);
             }
             this._textLayer.layoutIfNeeded();
