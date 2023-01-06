@@ -133,6 +133,7 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.domWindow.addEventListener("beforeunload", this);
         this.domWindow.addEventListener("hashchange", this);
         this.domWindow.addEventListener("popstate", this);
+        this.domWindow.addEventListener("pageshow", this);
     },
 
     removeEventListeners: function(){
@@ -141,6 +142,7 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.domWindow.removeEventListener("beforeunload", this);
         this.domWindow.removeEventListener("hashchange", this);
         this.domWindow.removeEventListener("popstate", this);
+        this.domWindow.removeEventListener("pageshow", this);
     },
 
     handleEvent: function(e){
@@ -233,6 +235,12 @@ JSClass("UIHTMLApplication", UIApplication, {
             }
         }finally{
             this._isHandlingBrowserStateChange = false;
+        }
+    },
+
+    _event_pageshow: function(e){
+        if (e.persisted){
+            this.domWindow.location.reload();
         }
     },
 
