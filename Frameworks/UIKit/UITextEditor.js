@@ -316,8 +316,8 @@ JSClass("UITextEditor", JSObject, {
         if (useRightEdge){
             x += rect.size.width;
         }
-        if (x > container.size.width - this.cursorWidth){
-            x = container.size.width - this.cursorWidth;
+        if (x > container.textFrame.size.width - this.cursorWidth){
+            x = container.textFrame.size.width - this.cursorWidth;
         }
         if (x < 0){
             if (useRightEdge){
