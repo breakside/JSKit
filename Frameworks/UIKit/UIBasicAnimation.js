@@ -97,6 +97,11 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
         if (this._toValue === null){
             this._toValue = JSResolveDottedName(this.layer.model, this.keyPath);
         }
+        if (this._fromValue === null && this._toValue !== null){
+            this._fromValue = UIAnimation.defaultInterpolationValueToPairWithValue(this._toValue);
+        }else if (this._fromValue !== null && this._toValue === null){
+            this._toValue = UIAnimation.defaultInterpolationValueToPairWithValue(this._fromValue);
+        }
         if ((this._fromValue instanceof JSColor) && (this._toValue instanceof JSColor)){
             if (this._fromValue.space !== this._toValue.space || !this._fromValue.space.canMixComponents){
                 this._fromValue = this._fromValue.rgbaColor();

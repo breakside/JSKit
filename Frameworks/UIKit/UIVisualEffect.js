@@ -37,6 +37,10 @@ JSClass("UIBlurEffect", UIVisualEffect, {
 
     animationInterpolation: function(from, to, progress){
         return UIBlurEffect.initWithRadius(from.radius + (to.radius - from.radius) * progress);
+    },
+
+    defaultAnimationValue: function(){
+        return UIBlurEffect.initWithRadius(0);
     }
 
 });
@@ -58,6 +62,10 @@ JSClass("UIGrayscaleEffect", UIVisualEffect, {
 
     animationInterpolation: function(from, to, progress){
         return UIGrayscaleEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
+    },
+
+    defaultAnimationValue: function(){
+        return UIGrayscaleEffect.initWithPercentage(0);
     }
 
 });
@@ -79,6 +87,10 @@ JSClass("UISepiaEffect", UIVisualEffect, {
 
     animationInterpolation: function(from, to, progress){
         return UISepiaEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
+    },
+
+    defaultAnimationValue: function(){
+        return UISepiaEffect.initWithPercentage(0);
     }
 
 });
@@ -100,6 +112,10 @@ JSClass("UIDesaturateEffect", UIVisualEffect, {
 
     animationInterpolation: function(from, to, progress){
         return UIDesaturateEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
+    },
+
+    defaultAnimationValue: function(){
+        return UIDesaturateEffect.initWithPercentage(0);
     }
 
 });

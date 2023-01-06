@@ -104,6 +104,34 @@ UIAnimation.interpolationForValues = function(from, to){
     return UIAnimation.interpolateNull;
 };
 
+UIAnimation.defaultInterpolationValueToPairWithValue = function(value){
+    if (value === null || value === undefined){
+        return null;
+    }
+    if (typeof(value) === 'number'){
+        return 0;
+    }
+    if (value instanceof JSPoint){
+        return JSPoint.Zero;
+    }
+    if (value instanceof JSSize){
+        return JSSize.Zero;
+    }
+    if (value instanceof JSRect){
+        return JSRect.Zero;
+    }
+    if (value instanceof JSAffineTransform){
+        return JSAffineTransform.Zero;
+    }
+    if (value.isKindOfClass && value.isKindOfClass(JSColor)){
+        return value.colorWithAlpha(0);
+    }
+    if (value.defaultAnimationValue){
+        return value.defaultAnimationValue();
+    }
+    return null;
+};
+
 UIAnimation.interpolateNull = function(from, to, progress){
     return from;
 };
