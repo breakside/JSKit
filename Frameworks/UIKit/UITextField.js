@@ -633,19 +633,16 @@ JSClass("UITextField", UIControl, {
         if (layer === this.layer){
             this.layoutSubviews();
             if (!this._multiline){
-                this._textLayer.layoutIfNeeded();
+                if (this._textLayer.needsLayout()){
+                    this._textLayer.layoutSublayers();
+                }
             }
             var clipSize = this._clipView.bounds.size;
             var textSize = this._textLayer.bounds.size;
             if (this._multiline){
                 this._textLayer.frame = JSRect(0, 0, clipSize.width, textSize.height);
-            }else if (this._textLayer.textAlignment == JSTextAlignment.center){
-                this._textLayer.frame = JSRect(Math.max(0, (clipSize.width - textSize.width) / 2), 0, textSize.width, textSize.height);
-            }else if (this._textLayer.textAlignment == JSTextAlignment.right){
-                this._textLayer.frame = JSRect(Math.max(0, clipSize.width - textSize.width), 0, textSize.width, textSize.height);
-            }else{
-                this._textLayer.frame = JSRect(JSPoint.Zero, textSize);
             }
+            this._adjustClipViewOrigin(this._clipView.bounds.origin);
         }else if (layer === this._textLayer){
             this._textLayer.layoutSublayers();
             this._localEditor.layout();
@@ -825,6 +822,8 @@ JSClass("UITextField", UIControl, {
         var cursorRect = this._clipView.layer.convertRectFromLayer(cursorRectInTextLayer, this._textLayer);
         if ((cursorRect.origin.x < clipBounds.origin.x) || (cursorRect.origin.x + cursorRect.size.width > clipBounds.origin.x + clipBounds.size.width)){
             this._adjustClipViewOrigin(JSPoint(cursorRect.origin.x - clipBounds.size.width / 2.0, clipBounds.origin.y));
+        }else{
+            this._adjustClipViewOrigin(this._clipView.bounds.origin);
         }
     },
 
@@ -840,13 +839,28 @@ JSClass("UITextField", UIControl, {
     },
 
     _adjustClipViewOrigin: function(origin){
-        var maxX = this._textLayer.frame.origin.x + this._textLayer.frame.size.width;
-        if (origin.x > maxX - this._clipView.bounds.size.width){
-            origin.x = maxX - this._clipView.bounds.size.width;
+        var clipSize = this._clipView.bounds.size;
+        var textSize = this._textLayer.bounds.size;
+        var textAlignment = this._textLayer.textAlignment;
+        var over = textSize.width - clipSize.width;
+        var minX = 0;
+        if (textAlignment === JSTextAlignment.center){
+            if (over < 0){
+                minX = over / 2;
+                if (textSize.width === 0){
+                    minX += Math.floor(this._localEditor.cursorWidth / 2);
+                }
+            }
+        }else if (textAlignment === JSTextAlignment.right){
+            if (over < 0){
+                minX = over;
+                if (textSize.width === 0){
+                    minX += this._localEditor.cursorWidth;
+                }
+            }
         }
-        if (origin.x < 0){
-            origin.x = 0;
-        }
+        var maxX = over > 0 && !this._multiline ? over : minX;
+        origin.x = Math.max(minX, Math.min(maxX, origin.x));
         var newBounds = JSRect(origin, this._clipView.bounds.size);
         if (!this._clipView.bounds.isEqual(newBounds)){
             this._clipView.bounds = newBounds;
