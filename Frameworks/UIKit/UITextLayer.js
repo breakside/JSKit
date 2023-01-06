@@ -201,6 +201,8 @@ JSClass("UITextLayer", UILayer, {
         this._displayQueued = false;
     },
 
+    integerSizeRequired: false,
+
     sizeToFitSize: function(maxSize){
         var size = JSSize(maxSize);
         if (size.width < Number.MAX_VALUE){
@@ -215,6 +217,10 @@ JSClass("UITextLayer", UILayer, {
             size = JSSize(this._textContainer.textFrame.usedSize);
             size.width += this._textInsets.width;
             size.height += this._textInsets.height;
+            if (this.integerSizeRequired){
+                size.width = Math.ceil(size.width);
+                size.height = Math.ceil(size.height);
+            }
             this.bounds = JSRect(JSPoint.Zero, size);
             this._textContainer.size = this._availableTextSize();
         }
@@ -233,6 +239,10 @@ JSClass("UITextLayer", UILayer, {
             }
             if (this._heightTracksText){
                 height = this._textContainer.textFrame.size.height + this._textInsets.top + this._textInsets.bottom;
+            }
+            if (this.integerSizeRequired){
+                width = Math.ceil(width);
+                height = Math.ceil(height);
             }
             this.ignoreSetNeedsLayout = true;
             this.bounds = JSRect(0, 0, width, height);
