@@ -53,6 +53,7 @@
 // #import "UITapGestureRecognizer.js"
 // #import "UIPressGestureRecognizer.js"
 // #import "UIScrollGestureRecognizer.js"
+// #import "UIVisualEffect.js"
 
 // #import "UIUserInterface.js"
 // #import "UITraitCollection.js"

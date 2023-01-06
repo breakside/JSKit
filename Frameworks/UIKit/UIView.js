@@ -176,6 +176,7 @@ JSClass('UIView', UIResponder, {
     alpha: UIViewLayerProperty(),
     backgroundColor: UIViewLayerProperty(),
     backgroundGradient: UIViewLayerProperty(),
+    backgroundVisualEffect: UIViewLayerProperty(),
     borderWidth: UIViewLayerProperty(),
     borderColor: UIViewLayerProperty(),
     maskedBorders: UIViewLayerProperty(),
@@ -184,6 +185,7 @@ JSClass('UIView', UIResponder, {
     shadowColor: UIViewLayerProperty(),
     shadowOffset: UIViewLayerProperty(),
     shadowRadius: UIViewLayerProperty(),
+    contentVisualEffect: UIViewLayerProperty(),
     cursor: JSDynamicProperty(),
     tooltip: null,
 

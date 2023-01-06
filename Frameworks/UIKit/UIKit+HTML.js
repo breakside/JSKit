@@ -17,6 +17,7 @@
 // #import "UIPlatform+HTML.js"
 // #import "UIDevice+HTML.js"
 // #import "UIWebView+HTML.js"
+// #import "UIVisualEffect+HTML.js"
 
 // Specialized Subclasses
 // #import "UIHTMLApplication.js"

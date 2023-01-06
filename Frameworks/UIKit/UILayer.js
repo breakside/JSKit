@@ -313,6 +313,12 @@ JSClass("UILayer", JSObject, {
     },
 
     // -------------------------------------------------------------------------
+    // MARK: - Visual Effects
+
+    contentVisualEffect: UILayerAnimatedProperty(),
+    backgroundVisualEffect: UILayerAnimatedProperty(),
+
+    // -------------------------------------------------------------------------
     // MARK: - Adding and Removing Sublayers
 
     addSublayer: function(sublayer){
@@ -818,6 +824,7 @@ UILayer.Properties = {
     alpha                   : 1.0,
     backgroundColor         : null,
     backgroundGradient      : null,
+    backgroundVisualEffect  : null,
     borderWidth             : null,
     borderColor             : null,
     maskedBorders           : UILayer.Sides.all,
@@ -825,7 +832,8 @@ UILayer.Properties = {
     maskedCorners           : UILayer.Corners.all,
     shadowColor             : null,
     shadowOffset            : JSPoint.Zero,
-    shadowRadius            : 0.0
+    shadowRadius            : 0.0,
+    contentVisualEffect     : null
 };
 
 UILayer.Path = {

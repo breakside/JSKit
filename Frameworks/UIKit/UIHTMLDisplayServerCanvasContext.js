@@ -308,6 +308,12 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.style.backgroundImage = layer.presentation.backgroundGradient ? layer.presentation.backgroundGradient.cssString(this.bounds.size) : '';
     },
 
+    updateHTMLProperty_backgroundVisualEffect: function(layer){
+        var value = layer.presentation.backgroundVisualEffect ? layer.presentation.backgroundVisualEffect.cssFilterString() : '';
+        this.style.backdropFilter = value;
+        this.style.webkitBackdropFilter = value;
+    },
+
     updateHTMLProperty_borderWidth: function(layer){
         if (layer.presentation.borderWidth){
             var css = '';
@@ -363,6 +369,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.style.boxShadow = '';
         }
+    },
+
+    updateHTMLProperty_contentVisualEffect: function(layer){
+        this.style.filter = layer.presentation.contentVisualEffect ? layer.presentation.contentVisualEffect.cssFilterString() : '';
     },
 
     // --------------------------------------------------------------------
