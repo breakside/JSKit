@@ -54,7 +54,9 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             borderWidth: true,
             borderColor: true,
             cornerRadius: true,
-            shadow: true
+            shadow: true,
+            contentVisualEffect: true,
+            backgroundVisualEffect: true
         };
         this._imageElements = [];
         this._canvasElements = [];

@@ -23,6 +23,7 @@
 // #import "UICursor.js"
 // #import "UIAccessibility.js"
 // #import "UIMouseTrackingArea.js"
+// #import "UIVisualEffect.js"
 'use strict';
 
 JSGlobalObject.UIViewLayerProperty = function(){
@@ -74,6 +75,9 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("backgroundGradient")){
             this.backgroundGradient = spec.valueForKey("backgroundGradient", JSGradient);
         }
+        if (spec.containsKey("backgroundVisualEffect")){
+            this.backgroundVisualEffect = spec.valueForKey("backgroundVisualEffect", UIVisualEffect);
+        }
         if (spec.containsKey("borderColor")){
             this.borderColor = spec.valueForKey("borderColor", JSColor);
         }
@@ -88,6 +92,9 @@ JSClass('UIView', UIResponder, {
         }
         if (spec.containsKey("shadowOffset")){
             this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
+        }
+        if (spec.containsKey("contentVisualEffect")){
+            this.contentVisualEffect = spec.valueForKey("contentVisualEffect", UIVisualEffect);
         }
         if (spec.containsKey("maskedBorders")){
             this.maskedBorders = spec.valueForKey("maskedBorders", UIView.Sides);

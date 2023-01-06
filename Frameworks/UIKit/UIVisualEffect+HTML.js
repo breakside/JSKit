@@ -35,7 +35,7 @@ UIBlurEffect.definePropertiesFromExtensions({
 UIGrayscaleEffect.definePropertiesFromExtensions({
 
     cssFilterString: function(){
-        return "grayscale(%f)".sprintf(this.value);
+        return "grayscale(%f)".sprintf(this.percentage);
     }
 
 });
@@ -43,7 +43,7 @@ UIGrayscaleEffect.definePropertiesFromExtensions({
 UISepiaEffect.definePropertiesFromExtensions({
 
     cssFilterString: function(){
-        return "sepia(%f)".sprintf(this.value);
+        return "sepia(%f)".sprintf(this.percentage);
     }
 
 });
@@ -51,7 +51,7 @@ UISepiaEffect.definePropertiesFromExtensions({
 UIDesaturateEffect.definePropertiesFromExtensions({
 
     cssFilterString: function(){
-        return "saturate(%f)".sprintf(1 - this.value);
+        return "saturate(%f)".sprintf(1 - this.percentage);
     }
 
 });

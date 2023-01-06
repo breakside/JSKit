@@ -28,6 +28,13 @@ JSClass("UIBlurEffect", UIVisualEffect, {
         this.radius = radius;
     },
 
+    initWithSpec: function(spec){
+        UIBlurEffect.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("radius")){
+            this.radius = spec.valueForKey("radius", Number);
+        }
+    },
+
     animationInterpolation: function(from, to, progress){
         return UIBlurEffect.initWithRadius(from.radius + (to.radius - from.radius) * progress);
     }
@@ -36,42 +43,63 @@ JSClass("UIBlurEffect", UIVisualEffect, {
 
 JSClass("UIGrayscaleEffect", UIVisualEffect, {
 
-    value: 1,
+    percentage: 1,
 
-    initWithValue: function(value){
-        this.value = value;
+    initWithPercentage: function(percentage){
+        this.percentage = percentage;
+    },
+
+    initWithSpec: function(spec){
+        UIGrayscaleEffect.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("percentage")){
+            this.percentage = spec.valueForKey("percentage", Number);
+        }
     },
 
     animationInterpolation: function(from, to, progress){
-        return UIGrayscaleEffect.initWithValue(from.value + (to.value - from.value) * progress);
+        return UIGrayscaleEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
     }
 
 });
 
 JSClass("UISepiaEffect", UIVisualEffect, {
 
-    value: 1,
+    percentage: 1,
 
-    initWithValue: function(value){
-        this.value = value;
+    initWithPercentage: function(percentage){
+        this.percentage = percentage;
+    },
+
+    initWithSpec: function(spec){
+        UISepiaEffect.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("percentage")){
+            this.percentage = spec.valueForKey("percentage", Number);
+        }
     },
 
     animationInterpolation: function(from, to, progress){
-        return UISepiaEffect.initWithValue(from.value + (to.value - from.value) * progress);
+        return UISepiaEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
     }
 
 });
 
 JSClass("UIDesaturateEffect", UIVisualEffect, {
 
-    value: 1,
+    percentage: 1,
 
-    initWithValue: function(value){
-        this.value = value;
+    initWithPercentage: function(percentage){
+        this.percentage = percentage;
+    },
+
+    initWithSpec: function(spec){
+        UIDesaturateEffect.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("percentage")){
+            this.percentage = spec.valueForKey("percentage", Number);
+        }
     },
 
     animationInterpolation: function(from, to, progress){
-        return UIDesaturateEffect.initWithValue(from.value + (to.value - from.value) * progress);
+        return UIDesaturateEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
     }
 
 });
