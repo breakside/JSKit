@@ -31,6 +31,14 @@ var options = {
 };
 
 module.exports.main = async function(){
+    let [y, w, r] = JSBundle.mainBundle.info.JSBundleVersion.split(".").map(s => parseInt(s));
+    if (w >= 53){
+        process.stderr.write("**** jskit update available ****\n");
+        process.stderr.write("but npm update won't get you there, instead use:\n");
+        process.stderr.write("$ npm uninstall -D @breakside/jskit\n");
+        process.stderr.write("$ npm install -D @breakside/jskit\n");
+        process.stderr.write("\n");
+    }
     var args = JSArguments.initWithOptions(options);
     var argv = process.argv.slice(1);
     try{
