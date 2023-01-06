@@ -1320,16 +1320,17 @@ JSClass("UITextFieldStyler", UIControlStyler, {
     },
 
     sizeControlToFitSize: function(textField, maxSize){
-        if (!textField.multiline){
-            var size = JSSize(textField.bounds.size);
-            if (maxSize.width < Number.MAX_VALUE){
-                size.width = maxSize.width;
-            }
-            size.height = textField.intrinsicSize.height;
-            textField.bounds = JSRect(JSPoint.Zero, size);
-        }else{
-            UITextFieldStyler.$super.sizeControlToFitSize(textField, maxSize);
+        var size = JSSize(textField.bounds.size);
+        if (maxSize.width < Number.MAX_VALUE){
+            size.width = maxSize.width;
         }
+        if (!textField.multiline){
+            size.height = textField.intrinsicSize.height;
+        }else{
+            textField.sizeToFitText(JSSize(size.width, maxSize.height));
+            size.height = textField.bounds.size.height;
+        }
+        textField.bounds = JSRect(JSPoint.Zero, size);
     }
 
 });
