@@ -578,6 +578,21 @@ JSClass('UIView', UIResponder, {
         }
     },
 
+    userVisible: JSReadOnlyProperty(),
+
+    getUserVisible: function(){
+        if (this.hidden){
+            return false;
+        }
+        if (this.alpha === 0){
+            return false;
+        }
+        if (this.superview !== null){
+            return this.superview.userVisible;
+        }
+        return true;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Constraints
 

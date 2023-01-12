@@ -794,6 +794,9 @@ JSClass('UIWindow', UIView, {
         var moves = [];
         for (viewIndex = 0, viewCount = this.mouseTrackingViews.length; viewIndex < viewCount; ++viewIndex){
             view = this.mouseTrackingViews[viewIndex];
+            if (!view.userVisible){
+                continue;
+            }
             location = this.convertPointToView(locationInWindow, view);
             for (areaIndex = 0, areaCount = view._mouseTrackingAreas.length; areaIndex < areaCount; ++areaIndex){
                 area = view._mouseTrackingAreas[areaIndex];
