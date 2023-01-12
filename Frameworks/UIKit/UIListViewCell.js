@@ -147,6 +147,7 @@ JSClass("UIListViewCell", UIView, {
     active: JSDynamicProperty(null, null, 'isActive'),
     selected: JSDynamicProperty(null, null, 'isSelected'),
     contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
+    over: JSDynamicProperty(null, null, 'isOver'),
 
     _updateState: function(newState){
         if (newState != this._state){
@@ -205,6 +206,36 @@ JSClass("UIListViewCell", UIView, {
         this._toggleState(UIListViewCell.State.contextSelected, isContextSelected);
     },
 
+    isOver: function(){
+        return (this._state & UIListViewCell.State.over) === UIListViewCell.State.over;
+    },
+
+    setOver: function(isOver){
+        this._toggleState(UIListViewCell.State.over, isOver);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Over State
+
+    hasOverState: JSDynamicProperty("_hasOverState", false),
+
+    setHasOverState: function(hasOverState){
+        this._hasOverState = hasOverState;
+        if (hasOverState){
+            this.contentView.startMouseTracking(UIView.MouseTracking.enterAndExit);
+        }else{
+            this.contentView.stopMouseTracking();
+        }
+    },
+
+    mouseEntered: function(event){
+        this.over = true;
+    },
+
+    mouseExited: function(event){
+        this.over = false;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Accessibility
 
@@ -239,5 +270,6 @@ UIListViewCell.State = {
     active:   1 << 1,
     selected: 1 << 2,
     contextSelected: 1 << 3,
-    firstUserState: 1 << 4
+    over: 1 << 4,
+    firstUserState: 1 << 5
 };

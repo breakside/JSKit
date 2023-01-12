@@ -1594,6 +1594,7 @@ JSClass("UIListView", UIScrollView, {
         cell.bounds = JSRect(JSPoint.Zero, rect.size);
         cell.position = JSPoint(rect.origin.x + cell.bounds.size.width * cell.anchorPoint.x, rect.origin.y + cell.bounds.size.height * cell.anchorPoint.y);
         cell.active = false;
+        cell.over = false;
         this._updateCellState(cell);
         cell.update();
         cell.setNeedsLayout();
@@ -2984,6 +2985,10 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
     activeCellDetailTextColor: null,
     activeCellBackgroundColor: null,
     activeCellSeparatorColor: null,
+    overCellTextColor: null,
+    overCellDetailTextColor: null,
+    overCellBackgroundColor: null,
+    overCellSeparatorColor: null,
     showsMutedState: true,
     mutedSelectedCellTextColor: null,
     mutedSelectedCellDetailTextColor: null,
@@ -3049,6 +3054,18 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         }
         if (spec.containsKey('activeCellSeparatorColor')){
             this.activeCellSeparatorColor = spec.valueForKey("activeCellSeparatorColor", JSColor);
+        }
+        if (spec.containsKey('overCellTextColor')){
+            this.overCellTextColor = spec.valueForKey("overCellTextColor", JSColor);
+        }
+        if (spec.containsKey('overCellDetailTextColor')){
+            this.overCellDetailTextColor = spec.valueForKey("overCellDetailTextColor", JSColor);
+        }
+        if (spec.containsKey('overCellBackgroundColor')){
+            this.overCellBackgroundColor = spec.valueForKey("overCellBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('overCellSeparatorColor')){
+            this.overCellSeparatorColor = spec.valueForKey("overCellSeparatorColor", JSColor);
         }
         if (spec.containsKey('mutedSelectedCellTextColor')){
             this.mutedSelectedCellTextColor = spec.valueForKey("mutedSelectedCellTextColor", JSColor);
@@ -3165,6 +3182,18 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (this.activeCellSeparatorColor === null){
             this.activeCellSeparatorColor = this.cellSeparatorColor;
         }
+        if (this.overCellBackgroundColor === null){
+            this.overCellBackgroundColor = this.cellBackgroundColor;
+        }
+        if (this.overCellTextColor === null){
+            this.overCellTextColor = this.cellTextColor;
+        }
+        if (this.overCellDetailTextColor === null){
+            this.overCellDetailTextColor = this.cellDetailTextColor;
+        }
+        if (this.overCellSeparatorColor === null){
+            this.overCellSeparatorColor = this.cellSeparatorColor;
+        }
         if (this.mutedSelectedCellTextColor === null){
             this.mutedSelectedCellTextColor = this.cellTextColor;
         }
@@ -3260,6 +3289,23 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             }
             if (cell.stylerProperties.separatorLayer){
                 cell.stylerProperties.separatorLayer.backgroundColor = this.activeCellSeparatorColor;
+            }
+        }else if (cell.over){
+            cell.contentView.backgroundColor = this.overCellBackgroundColor;
+            if (cell._titleLabel !== null){
+                cell._titleLabel.textColor = this.overCellTextColor;
+            }
+            if (cell._detailLabel !== null){
+                cell._detailLabel.textColor = this.overCellDetailTextColor;
+            }
+            if (cell._imageView !== null){
+                cell._imageView.templateColor = this.overCellTextColor;
+            }
+            if (cell._accessoryView !== null && cell._accessoryView.isKindOfClass(UIImageView)){
+                cell._accessoryView.templateColor = this.overCellTextColor;
+            }
+            if (cell.stylerProperties.separatorLayer){
+                cell.stylerProperties.separatorLayer.backgroundColor = this.overCellSeparatorColor;
             }
         }else{
             cell.contentView.backgroundColor = this.cellBackgroundColor;
