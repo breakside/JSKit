@@ -35,6 +35,7 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
     state: JSReadOnlyProperty('_state', null),
     active: JSDynamicProperty(null, null, 'isActive'),
     selected: JSDynamicProperty(null, null, 'isSelected'),
+    over: JSDynamicProperty(null, null, 'isOver'),
     contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
     dropTarget: JSDynamicProperty(null, null, 'isDropTarget'),
 
@@ -95,12 +96,42 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
         this._toggleState(UICollectionViewCell.State.contextSelected, isContextSelected);
     },
 
+    isOver: function(){
+        return (this._state & UICollectionViewCell.State.over) === UICollectionViewCell.State.over;
+    },
+
+    setOver: function(isOver){
+        this._toggleState(UICollectionViewCell.State.over, isOver);
+    },
+
     isDropTarget: function(){
         return (this._state & UICollectionViewCell.State.dropTarget) === UICollectionViewCell.State.dropTarget;
     },
 
     setDropTarget: function(isDropTarget){
         this._toggleState(UICollectionViewCell.State.dropTarget, isDropTarget);
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Over State
+
+    hasOverState: JSDynamicProperty("_hasOverState", false),
+
+    setHasOverState: function(hasOverState){
+        this._hasOverState = hasOverState;
+        if (hasOverState){
+            this.contentView.startMouseTracking(UIView.MouseTracking.enterAndExit);
+        }else{
+            this.contentView.stopMouseTracking();
+        }
+    },
+
+    mouseEntered: function(event){
+        this.over = true;
+    },
+
+    mouseExited: function(event){
+        this.over = false;
     },
 
     // --------------------------------------------------------------------
@@ -126,6 +157,7 @@ UICollectionViewCell.State = {
     active:   1 << 1,
     selected: 1 << 2,
     contextSelected: 1 << 3,
-    dropTarget: 1 << 4,
-    firstUserState: 1 << 5
+    over: 1 << 4,
+    dropTarget: 1 << 5,
+    firstUserState: 1 << 6
 };

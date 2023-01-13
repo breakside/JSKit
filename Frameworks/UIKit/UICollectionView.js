@@ -497,6 +497,7 @@ JSClass("UICollectionView", UIScrollView, {
         this._adoptCell(cell, attributes);
         cell.applyAttributes(attributes);
         cell.active = false;
+        cell.over = false;
         this._updateCellState(cell);
         cell.update();
         cell.setNeedsLayout();
