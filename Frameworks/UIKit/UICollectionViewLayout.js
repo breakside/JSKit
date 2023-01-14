@@ -32,6 +32,16 @@ JSClass("UICollectionViewLayout", JSObject, {
     layoutAttributesForElementsInRect: function(rect){
     },
 
+    layoutAttributesForElement: function(element){
+        if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell){
+            return this.layoutAttributesForCellAtIndexPath(element.attributes.indexPath);
+        }
+        if (element.attributes.elementCategory === UICollectionView.ElementCategory.supplimentary){
+            return this.layoutAttributesForSupplimentaryViewAtIndexPath(element.attributes.indexPath, element.attributes.kind);
+        }
+        return element.attributes;
+    },
+
     layoutAttributesForCellAtIndexPath: function(indexPath){
     },
 
@@ -57,7 +67,6 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.elementCategory = UICollectionView.ElementCategory.cell;
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
-        this.elementIdentifier = indexPath.toString();
         this.transform = JSAffineTransform.Identity;
     },
 
@@ -66,7 +75,6 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.kind = kind;
         this.indexPath = JSIndexPath(indexPath);
         this.frame = JSRect(frame);
-        this.elementIdentifier = "%s/%s".sprintf(indexPath.toString(), kind);
         this.transform = JSAffineTransform.Identity;
     },
 
@@ -76,7 +84,18 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     frame: null,
     rowIndex: 0,
     columnIndex: 0,
-    elementIdentifier: null,
     transform: null,
+
+    elementIdentifier: JSReadOnlyProperty(),
+
+    getElementIdentifier: function(){
+        if (this.elementCategory === UICollectionView.ElementCategory.cell){
+            return this.indexPath.toString();
+        }
+        if (this.elementCategory === UICollectionView.ElementCategory.supplimentary){
+            return "%s/%s".sprintf(this.kind, this.indexPath.toString());
+        }
+        return "%s/%s/%s".sprintf(this.elementCategory, this.kind, this.indexPath.toString());
+    },
 
 });

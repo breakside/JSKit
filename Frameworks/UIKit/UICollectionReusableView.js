@@ -49,12 +49,25 @@ JSClass("UICollectionReusableView", UIView, {
         this.addSubview(this._contentView);
     },
 
+    prepareForReuse: function(){
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Applying Attributes
 
     applyAttributes: function(attributes){
         this.untransformedFrame = attributes.frame;
         this.transform = attributes.transform;
+        if (!attributes.indexPath.isEqual(this.indexPath)){
+            this.indexPath = JSIndexPath(attributes.indexPath);
+        }
+        if (this.accessibilityRowIndex !== attributes.rowIndex || this.accessibilityColumnIndex !== attributes.columnIndex){
+            this.accessibilityRowIndex = attributes.rowIndex;
+            this.accessibilityColumnIndex = attributes.columnIndex;
+            if (this.isAccessibilityElement){
+                this.postAccessibilityElementChangedNotification();
+            }
+        }
     },
 
     // --------------------------------------------------------------------

@@ -29,6 +29,11 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
         styler.layoutCell(this);
     },
 
+    prepareForReuse: function(){
+        this.active = false;
+        this.over = false;
+    },
+
     // --------------------------------------------------------------------
     // MARK: - State
 

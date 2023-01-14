@@ -317,7 +317,7 @@ JSClass("UICollectionView", UIScrollView, {
 
         for (i = 0, l = indexPaths.length; i < l; ++i){
             indexPath = indexPaths[i];
-            while (elementIndex < elementCount && !this._visibleElements[elementIndex].indexPath.isEqual(indexPath)){
+            while (elementIndex < elementCount && !this._visibleElements[elementIndex].attributes.indexPath.isEqual(indexPath)){
                 ++elementIndex;
             }
             if (elementIndex < elementCount){
@@ -337,13 +337,26 @@ JSClass("UICollectionView", UIScrollView, {
     // --------------------------------------------------------------------
     // MARK: - Inserting and Deleting Rows
 
+    editAnimationDuration: 1.0/6,
+
     insertCellAtIndexPath: function(indexPath, animation){
         this.insertCellsAtIndexPaths([indexPath], animation);
     },
 
     insertCellsAtIndexPaths: function(indexPaths, animation){
-        // TODO:
-        this.reloadData();
+        if (animation === undefined || animation == UICollectionView.CellAnimation.default){
+            animation = UICollectionView.CellAnimation.scale;
+        }
+        this._beginEditIfNeeded(animation);
+        var i, l;
+        var indexPath;
+        for (i = 0, l = indexPaths.length; i < l; ++i){
+            indexPath = indexPaths[i];
+            this._edit.insertedIndexPaths.push({
+                indexPath: indexPath,
+                animation: animation
+            });
+        }
     },
 
     deleteCellAtIndexPath: function(indexPath, animation){
@@ -351,10 +364,19 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     deleteCellsAtIndexPaths: function(indexPaths, animation){
-        // TODO:
-        this.reloadData();
-        if (this.selectedIndexPaths.length > 0){
-            this._setSelectedIndexPaths([], {notifyDelegate: true});
+        if (animation === undefined || animation == UICollectionView.CellAnimation.default){
+            animation = UICollectionView.CellAnimation.scale;
+        }
+        this._beginEditIfNeeded(animation);
+        var i, l;
+        var indexPath;
+        for (i = 0, l = indexPaths.length; i < l; ++i){
+            indexPath = indexPaths[i];
+            this._edit.deletedIndexPaths.push({
+                indexPath: indexPath,
+                animation: animation
+            });
+            this._edit.didDeleteSelectedItem = this._edit.didDeleteSelectedItem || this._selectionContainsIndexPath(indexPath);
         }
     },
 
@@ -363,8 +385,19 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     insertSections: function(sections, animation){
-        // TODO:
-        this.reloadData();
+        if (animation === undefined || animation == UICollectionView.CellAnimation.default){
+            animation = UICollectionView.CellAnimation.scale;
+        }
+        this._beginEditIfNeeded(animation);
+        var i, l;
+        var section;
+        for (i = 0, l = sections.length; i < l; ++i){
+            section = sections[i];
+            this._edit.insertedSections.push({
+                section: section,
+                animation: animation
+            });
+        }
     },
 
     deleteSection: function(section, animation){
@@ -372,11 +405,43 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     deleteSections: function(sections, animation){
-        // TODO:
-        this.reloadData();
-        if (this.selectedIndexPaths.length > 0){
-            this._setSelectedIndexPaths([], {notifyDelegate: true});
+        if (animation === undefined || animation == UICollectionView.CellAnimation.default){
+            animation = UICollectionView.CellAnimation.scale;
         }
+        this._beginEditIfNeeded(animation);
+        var i, l;
+        var j, k;
+        var section;
+        for (i = 0, l = sections.length; i < l; ++i){
+            section = sections[i];
+            this._edit.deletedSections.push({
+                section: section,
+                animation: animation
+            });
+            for (j = 0, k = this._selectedIndexPaths.length; j < k && !this._edit.didDeleteSelectedItem; ++j){
+                if (this._selectedIndexPaths[j].section === section){
+                    this._edit.didDeleteSelectedItem = true;
+                }
+            }
+        }
+    },
+
+    _edit: null,
+
+    _beginEditIfNeeded: function(animation){
+        if (this._edit === null){
+            this._edit = {
+                insertedSections: [],
+                deletedSections: [],
+                insertedIndexPaths: [],
+                deletedIndexPaths: [],
+                animator: null,
+                didDeleteSelectedItem: false,
+                animated: false
+            };
+            this.setNeedsLayout();
+        }
+        this._edit.animated = this._edit.animated || UICollectionView.CellAnimation.none && this._editAnimator === null;
     },
 
     // -------------------------------------------------------------------------
@@ -399,22 +464,46 @@ JSClass("UICollectionView", UIScrollView, {
 
     layoutSubviews: function(){
         UICollectionView.$super.layoutSubviews.call(this);
-        var needsPrepare = this._needsReload || this._hasPreparedLayout;
         var i, l;
+        if (this._editAnimator !== null){
+            this._editAnimator.stopAndCallCompletions();
+        }
         if (this._needsReload){
+            // A full reload is requested
+            // - enqueue all visible elements for reuse
+            // - prepare the layout
+            // - clear any edit that may have be simultaneously requested
+            // - update container size
+            // - update visible elements
             for (i = 0, l = this._visibleElements.length; i < l; ++i){
                 this._enqueueVisibleElement(this._visibleElements[i]);
             }
             this._visibleElements = [];
             this._needsReload = false;
-        }
-        if (needsPrepare){
+            this._edit = null;
             this.collectionViewLayout.prepare();
-            this.contentSize = this.collectionViewLayout.collectionViewContentSize;
             this._hasPreparedLayout = true;
+            this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+            this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
+            this._updateVisibleElements();
+        }else if (this._edit !== null){
+            // An edit is requested
+            // - prepare the layout
+            this.collectionViewLayout.prepare();
+            this._hasPreparedLayout = true;
+            this._updateVisibleElementsForEdit(this._edit);
+            this._edit = null;
+        }else if (this._hasPreparedLayout){
+            // If we've already prepared the layout once, we need to re-prepare
+            // - prepare the layout
+            // - update container size
+            // - update visible elements
+            this.collectionViewLayout.prepare();
+            this._hasPreparedLayout = true;
+            this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+            this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
+            this._updateVisibleElements();
         }
-        this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
-        this._updateVisibleElements();
     },
 
     _didScroll: function(){
@@ -478,6 +567,358 @@ JSClass("UICollectionView", UIScrollView, {
         this._removeQueuedViews();
     },
 
+    _editAnimator: null,
+
+    _updateVisibleElementsForEdit: function(edit){
+        // Prepare the edit
+        edit.deletedSections.sort(function(a, b){
+            return a.section - b.section;
+        });
+        edit.deletedIndexPaths.sort(function(a, b){
+            return a.indexPath.compare(b.indexPath);
+        });
+        edit.insertedSections.sort(function(a, b){
+            return a.section - b.section;
+        });
+        edit.insertedIndexPaths.sort(function(a, b){
+            return a.indexPath.compare(b.indexPath);
+        });
+
+        var deletedElements = [];
+        var deletedAnimations = [];
+        var invisibleElements = [];
+
+        var i, l;
+        var elementIndex;
+        var deletedSection;
+        var deletedIndexPath;
+        var elements = this._visibleElements;
+        var element;
+
+        // find deleted elements and remove from this._visibleElements
+        elementIndex = elements.length - 1;
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            deletedSection = edit.deletedSections[i];
+            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section > deletedSection.section){
+                --elementIndex;
+            }
+            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section === deletedSection.section){
+                element = elements[elementIndex];
+                deletedElements.push(element);
+                deletedAnimations.push(deletedSection.animation);
+                elements.splice(elementIndex, 1);
+                --elementIndex;
+            }
+        }
+        elementIndex = elements.length - 1;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            deletedIndexPath = edit.deletedIndexPaths[i];
+            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isGreaterThan(deletedIndexPath.indexPath)){
+                --elementIndex;
+            }
+            if (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isEqual(deletedIndexPath.indexPath)){
+                element = elements[elementIndex];
+                deletedElements.push(element);
+                deletedAnimations.push(deletedIndexPath.animation);
+                elements.splice(elementIndex, 1);
+                --elementIndex;
+            }
+        }
+
+        // Update index paths of remaining visible elements
+        this._updateVisibleElementIndexPathsForEdit(edit);
+        this._updateSelectedIndexPathsForEdit(edit);
+        if (edit.didDeleteSelectedItem){
+            this._updateSelectedIndexPaths({notifyDelegate: true});
+        }
+
+        // Try to stay in the same place visually by adjusting the content offset
+        var contentOffset = JSPoint(this.contentOffset);
+        var attrs;
+        var dy;
+        if (elements.length > 0){
+            // If we're at the top, stay there.  Otherwise, keep the fist element in view
+            if (contentOffset.y > 0){
+                element = elements[0];
+                attrs = this.collectionViewLayout.layoutAttributesForElement(element);
+                contentOffset.y += attrs.frame.origin.y - element.attributes.frame.origin.y;
+            }
+        }
+        // sanitize the offset as UIScrollView will
+        var minContentOffset = JSPoint(-this.contentInsets.left, -this.contentInsets.top);
+        var maxContentOffset = JSPoint(
+            Math.max(minContentOffset.x, this.collectionViewLayout.collectionViewContentSize.width + this.contentInsets.right - this.contentView.bounds.size.width),
+            Math.max(minContentOffset.y, this.collectionViewLayout.collectionViewContentSize.height + this.contentInsets.bottom - this.contentView.bounds.size.height)
+        );
+        contentOffset.x = Math.round(contentOffset.x);
+        contentOffset.y = Math.round(contentOffset.y);
+        if (contentOffset.x < minContentOffset.x){
+            contentOffset.x = minContentOffset.x;
+        }else if (contentOffset.x > maxContentOffset.x){
+            contentOffset.x = maxContentOffset.x;
+        }
+        if (contentOffset.y < minContentOffset.y){
+            contentOffset.y = minContentOffset.y;
+        }else if (contentOffset.y > maxContentOffset.y){
+            contentOffset.y = maxContentOffset.y;
+        }
+
+        // Get the attributes for the elements that should be visible in the post-edit view
+        var visibleRect = JSRect(contentOffset, this.contentView.bounds.size);
+        var visibleElementMap = {};
+        var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
+        for (i = 0, l = attributes.length; i < l; ++i){
+            attrs = attributes[i];
+            visibleElementMap[attrs.elementIdentifier] = null;
+        }
+
+        // find any elements that will become invisible and remove them from this._visibleElements,
+        // but don't queue them for reuse yet because they need to animate out of view
+        for (elementIndex = elements.length - 1; elementIndex >= 0; --elementIndex){
+            element = elements[elementIndex];
+            if (element.attributes.elementIdentifier in visibleElementMap){
+                visibleElementMap[element.attributes.elementIdentifier] = element;
+            }else{
+                element.attributes = this.collectionViewLayout.layoutAttributesForElement(element);
+                invisibleElements.push(element);
+                elements.splice(elementIndex, 1);
+            }
+        }
+
+        // Create elements that are newly visible
+        var insertedSection;
+        var insertedIndexPath;
+        var insertedSectionSearcher = JSBinarySearcher(edit.insertedSections, function(a, b){
+            return a.section - b.section;
+        });
+        var insertedIndexPathSearcher = JSBinarySearcher(edit.insertedIndexPaths, function(a, b){
+            return a.indexPath.compare(b.indexPath);
+        });
+        var animation;
+        elementIndex = 0;
+        for (i = 0, l = attributes.length; i < l; ++i){
+            attrs = attributes[i];
+            element = visibleElementMap[attrs.elementIdentifier];
+            if (element === null){
+                element = VisibleElement(attrs);
+                this._createViewForVisibleElement(element);
+                elements.splice(elementIndex, 0, element);
+                if (elementIndex < elements.length - 1){
+                    this._elementsContainerView.insertSubviewBelowSibling(element.view, elements[elementIndex + 1].view);
+                }else{
+                    this._elementsContainerView.addSubview(element.view);
+                }
+                insertedSection = insertedSectionSearcher.itemMatchingValue({section: attrs.indexPath.section});
+                insertedIndexPath = insertedIndexPathSearcher.itemMatchingValue({indexPath: attrs.indexPath});
+                if (insertedSection !== null || insertedIndexPath !== null){
+                    if (insertedSection !== null){
+                        animation = insertedSection.animation;
+                    }else{
+                        animation = insertedIndexPath.animation;
+                    }
+                    element.view.alpha = 0;
+                    if (animation === UICollectionView.CellAnimation.scale){
+                        element.view.transform = JSAffineTransform.Scaled(0.1);
+                    }else if (animation === UICollectionView.CellAnimation.left){
+                        element.view.transform = JSAffineTransform.Translated(-element.view.bounds.size.width, 0);
+                    }else if (animation === UICollectionView.CellAnimation.right){
+                        element.view.transform = JSAffineTransform.Translated(element.view.bounds.size.width, 0);
+                    }
+                }else{
+                    // This was a previously invisible item.
+                    // Ideally we'd animate it from its previous position,
+                    // but we don't have that information, so we'll just fade
+                    // it in.
+                    element.attributes = attrs;
+                    element.view.applyAttributes(attrs);
+                    element.view.transform = JSAffineTransform.Scaled(0.1);
+                    element.view.alpha = 0;
+                }
+            }else{
+                element.attributes = attrs;
+            }
+            ++elementIndex;
+        }
+
+        // Order deleted views behind all others
+        for (i = 0, l = deletedElements.length; i < l; ++i){
+            element = deletedElements[i];
+            element.view.superview.insertSubviewAtIndex(element.view, i);
+        }
+
+        var animations = function(){
+            this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+            this.contentOffset = contentOffset;
+            this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
+            var i, l;
+            var element;
+            var animation;
+            // move visible items to new place
+            for (i = 0, l = this._visibleElements.length; i < l; ++i){
+                element = this._visibleElements[i];
+                element.view.alpha = 1;
+                element.view.applyAttributes(element.attributes);
+            }
+            // move invisible elements to new postion (out of view)
+            for (i = 0, l = invisibleElements.length; i < l; ++i){
+                element = invisibleElements[i];
+                element.view.applyAttributes(element.attributes);
+            }
+            // animate out deleted elements according to requested animation
+            for (i = 0, l = deletedElements.length; i < l; ++i){
+                element = deletedElements[i];
+                animation = deletedAnimations[i];
+                element.view.alpha = 0;
+                if (animation === UICollectionView.CellAnimation.scale){
+                    element.view.transform = JSAffineTransform.Scaled(0.1);
+                }else if (animation === UICollectionView.CellAnimation.left){
+                    element.view.transform = JSAffineTransform.Translated(-element.view.bounds.size.width, 0);
+                }else if (animation === UICollectionView.CellAnimation.right){
+                    element.view.transform = JSAffineTransform.Translated(element.view.bounds.size.width, 0);
+                }
+            }
+        };
+        var completeAnimations = function(){
+            var i, l;
+            var element;
+            for (i = 0, l = invisibleElements.length; i < l; ++i){
+                element = invisibleElements[i];
+                this._enqueueVisibleElement(element);
+            }
+            for (i = 0, l = deletedElements.length; i < l; ++i){
+                element = deletedElements[i];
+                this._enqueueVisibleElement(element);
+            }
+            this._removeQueuedCells();
+            this._removeQueuedViews();
+        };
+        if (edit.animated !== null){
+            this._editAnimator = UIViewPropertyAnimator.initWithDuration(this.editAnimationDuration);
+            this._editAnimator.addAnimations(animations, this);
+            this._editAnimator.addCompletion(completeAnimations, this);
+            this._editAnimator.addCompletion(function(){
+                this._editAnimator = null;
+            }, this);
+            this._editAnimator.start();
+        }else{
+            animations.call(this);
+            completeAnimations.call(this);
+        }
+    },
+
+    _updateVisibleElementIndexPathsForEdit: function(edit){
+        var elements = this._visibleElements;
+        var elementCount = elements.length;
+        var elementIndex = 0;
+        var i, l;
+        var j;
+        var indexPath;
+        var info;
+        var element;
+
+        // account for deleted index paths
+        elementIndex = elements.length - 1;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            info = edit.deletedIndexPaths[i];
+            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isGreaterThan(info.indexPath)){
+                --elementIndex;
+            }
+            for (j = elementIndex + 1; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
+                if (elements[j].attributes.elementCategory === UICollectionView.ElementCategory.cell){
+                    elements[j].attributes.indexPath.row -= 1;
+                }
+            }
+        }
+
+        // account for deleted sections
+        elementIndex = elements.length - 1;
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            info = edit.deletedSections[i];
+            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section > info.section){
+                --elementIndex;
+            }
+            for (j = elementIndex + 1; j < elementCount; ++j){
+                elements[j].attributes.indexPath.section -= 1;
+            }
+        }
+
+        // account for inserted sections
+        elementIndex = 0;
+        for (i = 0, l = edit.insertedSections.length; i < l; ++i){
+            info = edit.insertedSections[i];
+            while (elementIndex < elementCount && elements[elementIndex].attributes.indexPath.section < info.section){
+                ++elementIndex;
+            }
+            for (j = elementIndex; j < elementCount; ++j){
+                elements[j].attributes.indexPath.section += 1;
+            }
+        }
+
+        // account for inserted index paths
+        elementIndex = 0;
+        for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
+            info = edit.insertedIndexPaths[i];
+            while (elementIndex < elementCount && elements[elementIndex].attributes.indexPath.isLessThan(info.indexPath)){
+                ++elementIndex;
+            }
+            for (j = elementIndex; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
+                if (elements[j].attributes.elementCategory === UICollectionView.ElementCategory.cell){
+                    elements[j].attributes.indexPath.row += 1;
+                }
+            }
+        }
+    },
+
+    _updateSelectedIndexPathsForEdit: function(edit){
+        if (edit.selectionChanged){
+            this._updateVisibleCellStates();
+            return;
+        }
+        var i, l;
+        var section, indexPath;
+        var index;
+        var searcher = JSBinarySearcher(this._selectedIndexPaths, JSIndexPath.compare);
+        var parent;
+        var selectedLength = this._selectedIndexPaths.length;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            indexPath = edit.deletedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            if (index < selectedLength && this._selectedIndexPaths[index].isEqual(indexPath)){
+                this._selectedIndexPaths.splice(index, 1);
+                --selectedLength;
+            }
+            for (; index < selectedLength && this._selectedIndexPaths[index].startsWith(parent); ++index){
+                this._selectedIndexPaths[index][parent.length]--;
+            }
+        }
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            section = edit.deletedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && this._selectedIndexPaths[index].section == section; --selectedLength){
+                this._selectedIndexPaths.splice(index, 1);
+            }
+            for (; index < selectedLength; ++index){
+                this._selectedIndexPaths[index].section--;
+            }
+        }
+        for (i = 0, l = edit.insertedSections.length; i < l; ++i){
+            section = edit.insertedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && this._selectedIndexPaths[index].section >= section; ++index){
+                this._selectedIndexPaths[index].section++;
+            }
+        }
+        for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
+            indexPath = edit.insertedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            for (; index < selectedLength && this._selectedIndexPaths[index].startsWith(parent); ++index){
+                this._selectedIndexPaths[index][parent.length]++;
+            }
+        }
+    },
+
     _createViewForVisibleElement: function(element){
         if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell){
             element.view = this._createCellWithAttributes(element.attributes);
@@ -494,22 +935,13 @@ JSClass("UICollectionView", UIScrollView, {
         if (cell === null || cell === undefined){
             throw new Error("%s.cellForCollectionViewAtIndexPath() returned null/undefined cell for indexPath: %s".sprintf(this.dataSource.$class.className, attributes.indexPath));
         }
-        this._adoptCell(cell, attributes);
+        cell.collectionView = this;
         cell.applyAttributes(attributes);
-        cell.active = false;
-        cell.over = false;
+        cell.prepareForReuse();
         this._updateCellState(cell);
         cell.update();
         cell.setNeedsLayout();
         return cell;
-    },
-
-    _adoptCell: function(cell, attributes){
-        cell.collectionView = this;
-        cell.indexPath = JSIndexPath(attributes.indexPath);
-        cell.accessibilityRowIndex = attributes.rowIndex;
-        cell.accessibilityColumnIndex = attributes.columnIndex;
-        cell.postAccessibilityElementChangedNotification();
     },
 
     _createSupplimentaryViewWithAttributes: function(attributes){
@@ -522,6 +954,7 @@ JSClass("UICollectionView", UIScrollView, {
         }
         view.collectionView = this;
         view.applyAttributes(attributes);
+        view.prepareForReuse();
         view.setNeedsLayout();
         return view;
     },
@@ -1149,13 +1582,12 @@ JSClass("UICollectionView", UIScrollView, {
         if (!this.containsPoint(location)){
             return null;
         }
-        // While a binary search over the visible items would be a bit faster,
-        // the list may contain deleted items that should not be considered
-        var locationInContainer = this.convertPointToView(location, this._elementsContainerView);
         var element;
+        var locationInSubview;
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
             element = this._visibleElements[i];
-            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell && element.state !== UICollectionView.VisibleElementState.deleted && element.view.frame.containsPoint(locationInContainer)){
+            locationInSubview = this.convertPointToView(location, element.view);
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell && element.view.containsPoint(locationInSubview)){
                 return element.view;
             }
         }
@@ -1163,12 +1595,10 @@ JSClass("UICollectionView", UIScrollView, {
     },
 
     cellAtIndexPath: function(indexPath){
-        // While a binary search over the visible items would be a bit faster,
-        // the list may contain deleted items that should not be considered
         var element;
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
             element = this._visibleElements[i];
-            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell && element.state !== UICollectionView.VisibleElementState.deleted && element.view.indexPath.isEqual(indexPath)){
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell && element.view.indexPath.isEqual(indexPath)){
                 return element.view;
             }
         }
@@ -1184,11 +1614,11 @@ JSClass("UICollectionView", UIScrollView, {
 
     getVisibleIndexPaths: function(){
         var indexPaths = [];
-        var item;
+        var element;
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
-            item = this._visibleElements[i];
-            if (item.attributes.elementCategory === UICollectionView.ElementCategory.cell){
-                indexPaths.push(item.indexPath);
+            element = this._visibleElements[i];
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell){
+                indexPaths.push(element.attributes.indexPath);
             }
         }
         return indexPaths;
@@ -1198,11 +1628,11 @@ JSClass("UICollectionView", UIScrollView, {
 
     getVisibleCells: function(){
         var cells = [];
-        var item;
+        var element;
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
-            item = this._visibleElements[i];
-            if (item.attributes.elementCategory === UICollectionView.ElementCategory.cell){
-                cells.push(item.view);
+            element = this._visibleElements[i];
+            if (element.attributes.elementCategory === UICollectionView.ElementCategory.cell){
+                cells.push(element.view);
             }
         }
         return cells;
@@ -1247,6 +1677,13 @@ JSClass("UICollectionView", UIScrollView, {
 
 });
 
+UICollectionView.CellAnimation = {
+    none: 0,
+    default: 1,
+    scale: 2,
+    left: 3,
+    right: 4
+};
 
 UICollectionView.Styler = Object.create({}, {
     default: {
@@ -1312,27 +1749,12 @@ var VisibleElement = function(attributes){
         return new VisibleElement(attributes);
     }
     this.attributes = attributes;
-    this.indexPath = JSIndexPath(attributes.indexPath);
-    this.state = UICollectionView.VisibleElementState.normal;
 };
 
 VisibleElement.prototype = Object.create(Function.prototype, {
 
-    indexPath: { value: null, writable: true },
-    rect: { value: null, writable: true, configurable: true },
-    kind: { value: null, writable: true },
+    attributes: {value: null, writable: true},
     view: { value: null, writable: true },
-    state: { value: null, writable: true },
-    animation: { value: null, writable: true },
-
-    updateViewIdentity: {
-        value: function(){
-            if (this.state === UICollectionView.VisibleElementState.deleting){
-                return;
-            }
-            this.view.indexPath = JSIndexPath(this.indexPath);
-        }
-    }
 
 });
 
