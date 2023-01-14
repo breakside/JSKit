@@ -436,8 +436,10 @@ JSClass("UICollectionView", UIScrollView, {
                 insertedIndexPaths: [],
                 deletedIndexPaths: [],
                 animator: null,
+                selectionChanged: false,
                 didDeleteSelectedItem: false,
-                animated: false
+                animated: false,
+                scroll: null
             };
             this.setNeedsLayout();
         }
@@ -465,9 +467,6 @@ JSClass("UICollectionView", UIScrollView, {
     layoutSubviews: function(){
         UICollectionView.$super.layoutSubviews.call(this);
         var i, l;
-        if (this._editAnimator !== null){
-            this._editAnimator.stopAndCallCompletions();
-        }
         if (this._needsReload){
             // A full reload is requested
             // - enqueue all visible elements for reuse
@@ -665,6 +664,30 @@ JSClass("UICollectionView", UIScrollView, {
 
         // Get the attributes for the elements that should be visible in the post-edit view
         var visibleRect = JSRect(contentOffset, this.contentView.bounds.size);
+
+        // Check if a scroll is requested
+        var rect;
+        if (edit.scroll !== null){
+            rect = this.rectForCellAtIndexPath(edit.scroll.indexPath);
+            // If we can't handle it, just do a full reload
+            if (edit.scroll.position !== UIScrollView.ScrollPosition.auto || !visibleRect.intersectsRect(rect)){
+                // bail the edit and just do a regular reload
+                for (i = 0, l = deletedElements.length; i < l; ++i){
+                    this._enqueueVisibleElement(deletedElements[i]);
+                }
+                for (i = 0, l = elements.length; i < l; ++i){
+                    this._enqueueVisibleElement(elements[i]);
+                }
+                this._visibleElements = [];
+                this.contentSize = this.collectionViewLayout.collectionViewContentSize;
+                this._elementsContainerView.untransformedFrame = JSRect(JSPoint.Zero, this.contentSize);
+                this.scrollToRect(rect, edit.scroll.position);
+                this._updateVisibleElements();
+                return;
+            }
+        }
+
+
         var visibleElementMap = {};
         var attributes = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
         for (i = 0, l = attributes.length; i < l; ++i){
@@ -783,16 +806,21 @@ JSClass("UICollectionView", UIScrollView, {
             var element;
             for (i = 0, l = invisibleElements.length; i < l; ++i){
                 element = invisibleElements[i];
+                elementIndex.view.alpha = 1;
                 this._enqueueVisibleElement(element);
             }
             for (i = 0, l = deletedElements.length; i < l; ++i){
                 element = deletedElements[i];
+                element.view.alpha = 1;
                 this._enqueueVisibleElement(element);
             }
             this._removeQueuedCells();
             this._removeQueuedViews();
         };
         if (edit.animated !== null){
+            if (this._editAnimator !== null){
+                this._editAnimator.stopAndCallCompletions();
+            }
             this._editAnimator = UIViewPropertyAnimator.initWithDuration(this.editAnimationDuration);
             this._editAnimator.addAnimations(animations, this);
             this._editAnimator.addCompletion(completeAnimations, this);
@@ -1042,6 +1070,9 @@ JSClass("UICollectionView", UIScrollView, {
     _setSelectedIndexPaths: function(selectedIndexPaths, options){
         var indexPaths = JSCopy(selectedIndexPaths);
         indexPaths.sort(JSIndexPath.compare);
+        if (this._edit !== null){
+            this._edit.selectionChanged = true;
+        }
         if (indexPaths.length === this._selectedIndexPaths.length){
             for (var i = 0, l = this._selectedIndexPaths.length; i < l; ++i){
                 if (!indexPaths[i].isEqual(this._selectedIndexPaths[i])){
@@ -1056,10 +1087,6 @@ JSClass("UICollectionView", UIScrollView, {
             return;
         }
         this._selectedIndexPaths = indexPaths;
-        // TODO: editing
-        // if (this._edit !== null){
-        //     this._edit.selectionChanged = true;
-        // }
         this._updateSelectedIndexPaths(options);
     },
 
@@ -1642,13 +1669,17 @@ JSClass("UICollectionView", UIScrollView, {
     // MARK: - Scrolling
 
     scrollToCellAtIndexPath: function(indexPath, position){
-        this.layoutIfNeeded();
         if (position === undefined){
             position = UICollectionView.ScrollPosition.auto;
         }
-        var rect = this.rectForCellAtIndexPath(indexPath);
-        if (rect !== null){
-            this.scrollToRect(rect, position);
+        if (this._edit !== null){
+            this._edit.scroll = {indexPath: JSIndexPath(indexPath), position: position};
+        }else{
+            this.layoutIfNeeded();
+            var rect = this.rectForCellAtIndexPath(indexPath);
+            if (rect !== null){
+                this.scrollToRect(rect, position);
+            }
         }
     },
 
