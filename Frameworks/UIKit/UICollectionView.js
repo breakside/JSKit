@@ -492,9 +492,6 @@ JSClass("UICollectionView", UIScrollView, {
             this._updateVisibleElements();
         }else if (this._edit !== null){
             // An edit is requested
-            // - prepare the layout
-            this.collectionViewLayout.prepare();
-            this._hasPreparedLayout = true;
             this._updateVisibleElementsForEdit(this._edit);
             this._edit = null;
         }else if (this._hasPreparedLayout){
@@ -629,8 +626,71 @@ JSClass("UICollectionView", UIScrollView, {
             }
         }
 
+        var visibleRect;
+        var dy;
+
+        var previousElements = [];
+        var previoiusElementsMap = {};
+        if (deletedElements.length > 0){
+            // We're deleting at least one element, which means we may animate
+            // into view a previously invisble element.  We'd like it to animate
+            // from it's previous position, which is not currently recorded.
+            // So, before preparing the new layout, we'll grab attributes for
+            // about a page worth of elements before and after the currently
+            // visible elements.
+            //
+            // Note: when deleting a large number of elements, this expanded
+            // attribute query won't be enough.  For now, we'll say "oh well".
+            //
+            // Possible alternate solution: require layout implementations to
+            // be copyable so we can make a copy of the previously prepared
+            // layout and query individually if needed
+            visibleRect = JSRect(this.contentView.bounds);
+            dy = Math.min(visibleRect.origin.y, visibleRect.size.height);
+            visibleRect.origin.y -= dy;
+            visibleRect.size.height += dy + visibleRect.size.height;
+            attrs = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
+            for (i = 0, l = attrs.length; i < l; ++i){
+                element = VisibleElement(attrs[i]);
+                previousElements.push(element);
+            }
+            // remove deleted items from previousElements
+            elementIndex = previousElements.length - 1;
+            for (i = edit.deletedSections.length - 1; i >= 0; --i){
+                deletedSection = edit.deletedSections[i];
+                while (elementIndex >= 0 && (previousElements[elementIndex].attributes.indexPath.length === 0 || previousElements[elementIndex].attributes.indexPath.section > deletedSection.section)){
+                    --elementIndex;
+                }
+                while (elementIndex >= 0 && previousElements[elementIndex].attributes.indexPath.section === deletedSection.section){
+                    element = previousElements[elementIndex];
+                    previousElements.splice(elementIndex, 1);
+                    --elementIndex;
+                }
+            }
+            elementIndex = previousElements.length - 1;
+            for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+                deletedIndexPath = edit.deletedIndexPaths[i];
+                while (elementIndex >= 0 && (previousElements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || previousElements[elementIndex].attributes.indexPath.isGreaterThan(deletedIndexPath.indexPath))){
+                    --elementIndex;
+                }
+                if (elementIndex >= 0 && previousElements[elementIndex].attributes.indexPath.isEqual(deletedIndexPath.indexPath)){
+                    element = previousElements[elementIndex];
+                    previousElements.splice(elementIndex, 1);
+                    --elementIndex;
+                }
+            }
+            this._updateVisibleElementIndexPathsForEdit(previousElements, edit);
+            for (i = 0, l = previousElements.length; i < l; ++i){
+                element = previousElements[i];
+                previoiusElementsMap[element.attributes.elementIdentifier] = element;
+            }
+        }
+
+        this.collectionViewLayout.prepare();
+        this._hasPreparedLayout = true;
+
         // Update index paths of remaining visible elements
-        this._updateVisibleElementIndexPathsForEdit(edit);
+        this._updateVisibleElementIndexPathsForEdit(elements, edit);
         this._updateSelectedIndexPathsForEdit(edit);
         if (edit.didDeleteSelectedItem){
             this._updateSelectedIndexPaths({notifyDelegate: true});
@@ -639,7 +699,6 @@ JSClass("UICollectionView", UIScrollView, {
         // Try to stay in the same place visually by adjusting the content offset
         var contentOffset = JSPoint(this.contentOffset);
         var attrs;
-        var dy;
         if (elements.length > 0){
             // If we're at the top, stay there.  Otherwise, keep the fist element in view
             if (contentOffset.y > 0){
@@ -668,7 +727,7 @@ JSClass("UICollectionView", UIScrollView, {
         }
 
         // Get the attributes for the elements that should be visible in the post-edit view
-        var visibleRect = JSRect(contentOffset, this.contentView.bounds.size);
+        visibleRect = JSRect(contentOffset, this.contentView.bounds.size);
 
         // Check if a scroll is requested
         var rect;
@@ -755,12 +814,17 @@ JSClass("UICollectionView", UIScrollView, {
                 }else{
                     // This was a previously invisible item.
                     // Ideally we'd animate it from its previous position,
-                    // but we don't have that information, so we'll just fade
+                    // but we if don't have that information, so we'll just fade
                     // it in.
-                    element.attributes = attrs;
-                    element.view.applyAttributes(attrs);
-                    element.view.transform = JSAffineTransform.Scaled(0.1);
-                    element.view.alpha = 0;
+                    if (element.attributes.elementIdentifier in previoiusElementsMap){
+                        element.attributes = previoiusElementsMap[element.attributes.elementIdentifier].attributes;
+                        element.view.applyAttributes(element.attributes);
+                        element.attributes = attrs;
+                    }else{
+                        element.attributes = attrs;
+                        element.view.applyAttributes(attrs);
+                        element.view.alpha = 0;
+                    }
                 }
             }else{
                 element.attributes = attrs;
@@ -842,8 +906,7 @@ JSClass("UICollectionView", UIScrollView, {
         }
     },
 
-    _updateVisibleElementIndexPathsForEdit: function(edit){
-        var elements = this._visibleElements;
+    _updateVisibleElementIndexPathsForEdit: function(elements, edit){
         var elementCount = elements.length;
         var elementIndex = 0;
         var i, l;
