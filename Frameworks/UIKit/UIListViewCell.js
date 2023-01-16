@@ -229,7 +229,10 @@ JSClass("UIListViewCell", UIView, {
     },
 
     mouseEntered: function(event){
-        this.over = true;
+        var shouldSelect = (!this.listView || !this.listView.delegate || !this.listView.delegate.listViewShouldSelectCellAtIndexPath || this.listView.delegate.listViewShouldSelectCellAtIndexPath(this.listView, this.listView.indexPathOfCell(this)));
+        if (shouldSelect){
+            this.over = true;
+        }
     },
 
     mouseExited: function(event){
