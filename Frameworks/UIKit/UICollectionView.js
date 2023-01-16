@@ -628,6 +628,7 @@ JSClass("UICollectionView", UIScrollView, {
 
         var visibleRect;
         var dy;
+        var attrs;
 
         var previousElements = [];
         var previoiusElementsMap = {};
@@ -651,7 +652,7 @@ JSClass("UICollectionView", UIScrollView, {
             visibleRect.size.height += dy + visibleRect.size.height;
             attrs = this.collectionViewLayout.layoutAttributesForElementsInRect(visibleRect);
             for (i = 0, l = attrs.length; i < l; ++i){
-                element = VisibleElement(attrs[i]);
+                element = VisibleElement(attrs[i].copy());
                 previousElements.push(element);
             }
             // remove deleted items from previousElements
@@ -698,7 +699,6 @@ JSClass("UICollectionView", UIScrollView, {
 
         // Try to stay in the same place visually by adjusting the content offset
         var contentOffset = JSPoint(this.contentOffset);
-        var attrs;
         if (elements.length > 0){
             // If we're at the top, stay there.  Otherwise, keep the fist element in view
             if (contentOffset.y > 0){

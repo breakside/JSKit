@@ -78,6 +78,18 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
         this.transform = JSAffineTransform.Identity;
     },
 
+    copy: function(){
+        var copy = this.$class.init();
+        copy.elementCategory = this.elementCategory;
+        copy.kind = this.kind;
+        copy.indexPath = JSIndexPath(this.indexPath);
+        copy.frame = JSRect(this.frame);
+        copy.rowIndex = this.rowIndex;
+        copy.columnIndex = this.columnIndex;
+        copy.transform  = JSAffineTransform(this.transform);
+        return copy;
+    },
+
     elementCategory: 0,
     kind: null,
     indexPath: null,
