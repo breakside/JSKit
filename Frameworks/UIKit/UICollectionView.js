@@ -783,6 +783,8 @@ JSClass("UICollectionView", UIScrollView, {
         });
         var animation;
         elementIndex = 0;
+        var insertedElements = [];
+        var insertedAnimations = [];
         for (i = 0, l = attributes.length; i < l; ++i){
             attrs = attributes[i];
             element = visibleElementMap[attrs.elementIdentifier];
@@ -803,14 +805,8 @@ JSClass("UICollectionView", UIScrollView, {
                     }else{
                         animation = insertedIndexPath.animation;
                     }
-                    element.view.alpha = 0;
-                    if (animation === UICollectionView.CellAnimation.scale){
-                        element.view.transform = JSAffineTransform.Scaled(0.1);
-                    }else if (animation === UICollectionView.CellAnimation.left){
-                        element.view.transform = JSAffineTransform.Translated(-element.view.bounds.size.width, 0);
-                    }else if (animation === UICollectionView.CellAnimation.right){
-                        element.view.transform = JSAffineTransform.Translated(element.view.bounds.size.width, 0);
-                    }
+                    insertedElements.push(element);
+                    insertedAnimations.push(animation);
                 }else{
                     // This was a previously invisible item.
                     // Ideally we'd animate it from its previous position,
@@ -836,6 +832,38 @@ JSClass("UICollectionView", UIScrollView, {
         for (i = 0, l = deletedElements.length; i < l; ++i){
             element = deletedElements[i];
             element.view.superview.insertSubviewAtIndex(element.view, i);
+        }
+
+        // calculate transforms for deleted elements
+        var deletedPath = JSPath.init();
+        for (i = 0, l = deletedElements.length; i < l; ++i){
+            element = deletedElements[i];
+            animation = deletedAnimations[i];
+            if (animation === UICollectionView.CellAnimation.left || animation === UICollectionView.CellAnimation.right){
+                deletedPath.addRect(element.attributes.frame);
+            }
+        }
+
+        // calculate & apply transforms to inserted elements
+        var insertedPath = JSPath.init();
+        for (i = 0, l = insertedElements.length; i < l; ++i){
+            element = insertedElements[i];
+            animation = insertedAnimations[i];
+            if (animation === UICollectionView.CellAnimation.left || animation === UICollectionView.CellAnimation.right){
+                insertedPath.addRect(element.attributes.frame);
+            }
+        }
+        for (i = 0, l = insertedElements.length; i < l; ++i){
+            element = insertedElements[i];
+            animation = insertedAnimations[i];
+            element.view.alpha = 0;
+            if (animation === UICollectionView.CellAnimation.scale){
+                element.view.transform = JSAffineTransform.Scaled(0.1);
+            }else if (animation === UICollectionView.CellAnimation.left){
+                element.view.transform = JSAffineTransform.Translated(-insertedPath.boundingRect.size.width, 0);
+            }else if (animation === UICollectionView.CellAnimation.right){
+                element.view.transform = JSAffineTransform.Translated(insertedPath.boundingRect.size.width, 0);
+            }
         }
 
         var animations = function(){
@@ -864,9 +892,9 @@ JSClass("UICollectionView", UIScrollView, {
                 if (animation === UICollectionView.CellAnimation.scale){
                     element.view.transform = JSAffineTransform.Scaled(0.1);
                 }else if (animation === UICollectionView.CellAnimation.left){
-                    element.view.transform = JSAffineTransform.Translated(-element.view.bounds.size.width, 0);
+                    element.view.transform = JSAffineTransform.Translated(-deletedPath.boundingRect.size.width, 0);
                 }else if (animation === UICollectionView.CellAnimation.right){
-                    element.view.transform = JSAffineTransform.Translated(element.view.bounds.size.width, 0);
+                    element.view.transform = JSAffineTransform.Translated(deletedPath.boundingRect.size.width, 0);
                 }
             }
         };
