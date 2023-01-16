@@ -950,7 +950,7 @@ JSClass("UICollectionView", UIScrollView, {
             while (elementIndex >= 0 && (elements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[elementIndex].attributes.indexPath.isGreaterThan(info.indexPath))){
                 --elementIndex;
             }
-            for (j = elementIndex + 1; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
+            for (j = elementIndex + 1; j < elementCount && (elements[j].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[j].attributes.indexPath.section === info.indexPath.section); ++j){
                 if (elements[j].attributes.elementCategory === UICollectionView.ElementCategory.cell){
                     elements[j].attributes.indexPath.row -= 1;
                 }
@@ -988,7 +988,7 @@ JSClass("UICollectionView", UIScrollView, {
             while (elementIndex < elementCount && (elements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[elementIndex].attributes.indexPath.isLessThan(info.indexPath))){
                 ++elementIndex;
             }
-            for (j = elementIndex; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
+            for (j = elementIndex; j < elementCount && (elements[j].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[j].attributes.indexPath.section === info.indexPath.section); ++j){
                 if (elements[j].attributes.elementCategory === UICollectionView.ElementCategory.cell){
                     elements[j].attributes.indexPath.row += 1;
                 }
