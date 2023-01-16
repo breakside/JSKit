@@ -301,6 +301,10 @@ JSClass("UICollectionView", UIScrollView, {
         if (this._visibleElements.length === 0){
             return;
         }
+        if (this._edit !== null){
+            this._edit.reloadIndexPaths = this._edit.reloadIndexPaths.concat(indexPaths);
+            return;
+        }
 
         indexPaths = JSCopy(indexPaths);
         indexPaths.sort(function(a, b){
@@ -439,7 +443,8 @@ JSClass("UICollectionView", UIScrollView, {
                 selectionChanged: false,
                 didDeleteSelectedItem: false,
                 animated: false,
-                scroll: null
+                scroll: null,
+                reloadIndexPaths: [],
             };
             this.setNeedsLayout();
         }
@@ -598,7 +603,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = elements.length - 1;
         for (i = edit.deletedSections.length - 1; i >= 0; --i){
             deletedSection = edit.deletedSections[i];
-            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section > deletedSection.section){
+            while (elementIndex >= 0 && (elements[elementIndex].attributes.indexPath.length === 0 || elements[elementIndex].attributes.indexPath.section > deletedSection.section)){
                 --elementIndex;
             }
             while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section === deletedSection.section){
@@ -612,7 +617,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = elements.length - 1;
         for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
             deletedIndexPath = edit.deletedIndexPaths[i];
-            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isGreaterThan(deletedIndexPath.indexPath)){
+            while (elementIndex >= 0 && (elements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[elementIndex].attributes.indexPath.isGreaterThan(deletedIndexPath.indexPath))){
                 --elementIndex;
             }
             if (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isEqual(deletedIndexPath.indexPath)){
@@ -806,7 +811,7 @@ JSClass("UICollectionView", UIScrollView, {
             var element;
             for (i = 0, l = invisibleElements.length; i < l; ++i){
                 element = invisibleElements[i];
-                elementIndex.view.alpha = 1;
+                element.view.alpha = 1;
                 this._enqueueVisibleElement(element);
             }
             for (i = 0, l = deletedElements.length; i < l; ++i){
@@ -816,6 +821,9 @@ JSClass("UICollectionView", UIScrollView, {
             }
             this._removeQueuedCells();
             this._removeQueuedViews();
+            if (edit.reloadIndexPaths.length > 0){
+                this.reloadCellsAtIndexPaths(edit.reloadIndexPaths);
+            }
         };
         if (edit.animated !== null){
             if (this._editAnimator !== null){
@@ -848,7 +856,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = elements.length - 1;
         for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
             info = edit.deletedIndexPaths[i];
-            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.isGreaterThan(info.indexPath)){
+            while (elementIndex >= 0 && (elements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[elementIndex].attributes.indexPath.isGreaterThan(info.indexPath))){
                 --elementIndex;
             }
             for (j = elementIndex + 1; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
@@ -862,7 +870,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = elements.length - 1;
         for (i = edit.deletedSections.length - 1; i >= 0; --i){
             info = edit.deletedSections[i];
-            while (elementIndex >= 0 && elements[elementIndex].attributes.indexPath.section > info.section){
+            while (elementIndex >= 0 && (elements[elementIndex].attributes.indexPath.length === 0 || elements[elementIndex].attributes.indexPath.section > info.section)){
                 --elementIndex;
             }
             for (j = elementIndex + 1; j < elementCount; ++j){
@@ -874,7 +882,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = 0;
         for (i = 0, l = edit.insertedSections.length; i < l; ++i){
             info = edit.insertedSections[i];
-            while (elementIndex < elementCount && elements[elementIndex].attributes.indexPath.section < info.section){
+            while (elementIndex < elementCount && (elements[elementIndex].attributes.indexPath.length === 0 || elements[elementIndex].attributes.indexPath.section < info.section)){
                 ++elementIndex;
             }
             for (j = elementIndex; j < elementCount; ++j){
@@ -886,7 +894,7 @@ JSClass("UICollectionView", UIScrollView, {
         elementIndex = 0;
         for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
             info = edit.insertedIndexPaths[i];
-            while (elementIndex < elementCount && elements[elementIndex].attributes.indexPath.isLessThan(info.indexPath)){
+            while (elementIndex < elementCount && (elements[elementIndex].attributes.elementCategory !== UICollectionView.ElementCategory.cell || elements[elementIndex].attributes.indexPath.isLessThan(info.indexPath))){
                 ++elementIndex;
             }
             for (j = elementIndex; j < elementCount && elements[j].attributes.indexPath.section === info.indexPath.section; ++j){
