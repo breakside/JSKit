@@ -255,10 +255,10 @@ JSClass("UISliderLayerBasedStyler", UIControlStyler, {
             this.knobSize = spec.valueForKey("knobSize", JSSize);
         }
         if (spec.containsKey("trackWidth")){
-            this.trackWidth = spec.valueForKey("trackWidth");
+            this.trackWidth = spec.valueForKey("trackWidth", Number);
         }
         if (spec.containsKey("trackRadius")){
-            this.trackRadius = spec.valueForKey("trackRadius");
+            this.trackRadius = spec.valueForKey("trackRadius", Number);
         }
     },
 
@@ -407,7 +407,7 @@ JSClass("UISliderDefaultStyler", UISliderLayerBasedStyler, {
             this.disabledTrackBorderColor = this.normalTrackBorderColor;
         }
         if (spec.containsKey("trackBorderWidth")){
-            this.trackBorderWidth = spec.valueForKey("trackBorderWidth");
+            this.trackBorderWidth = spec.valueForKey("trackBorderWidth", Number);
         }
         if (spec.containsKey("trackInnerShadowColor")){
             this.trackInnerShadowColor = spec.valueForKey("trackInnerShadowColor", JSColor);
@@ -416,7 +416,7 @@ JSClass("UISliderDefaultStyler", UISliderLayerBasedStyler, {
             this.trackInnerShadowOffset = spec.valueForKey("trackInnerShadowOffset", JSPoint);
         }
         if (spec.containsKey("trackInnerShadowRadius")){
-            this.trackInnerShadowRadius = spec.valueForKey("trackInnerShadowRadius");
+            this.trackInnerShadowRadius = spec.valueForKey("trackInnerShadowRadius", Number);
         }
         if (spec.containsKey("normalKnobBackgroundColor")){
             this.normalKnobBackgroundColor = spec.valueForKey("normalKnobBackgroundColor", JSColor);
@@ -460,10 +460,10 @@ JSClass("UISliderDefaultStyler", UISliderLayerBasedStyler, {
             this.knobShadowOffset = spec.valueForKey("knobShadowOffset", JSPoint);
         }
         if (spec.containsKey("knobShadowRadius")){
-            this.knobShadowRadius = spec.valueForKey("knobShadowRadius");
+            this.knobShadowRadius = spec.valueForKey("knobShadowRadius", Number);
         }
         if (spec.containsKey("knobBorderWidth")){
-            this.knobBorderWidth = spec.valueForKey("knobBorderWidth");
+            this.knobBorderWidth = spec.valueForKey("knobBorderWidth", Number);
         }
         if (this.knobSize === null){
             this.knobSize = JSSize(16, 16);

@@ -93,31 +93,31 @@ JSClass("UISplitView", UIView, {
             this._trailingCollapses = spec.valueForKey("trailingCollapses");
         }
         if (spec.containsKey('leadingCollapsedSize')){
-            this._leadingCollapsedSize = spec.valueForKey("leadingCollapsedSize");
+            this._leadingCollapsedSize = spec.valueForKey("leadingCollapsedSize", Number);
         }
         if (spec.containsKey('trailingCollapsedSize')){
-            this._trailingCollapsedSize = spec.valueForKey("trailingCollapsedSize");
+            this._trailingCollapsedSize = spec.valueForKey("trailingCollapsedSize", Number);
         }
         if (spec.containsKey('leadingSize')){
-            this._leadingSize = spec.valueForKey("leadingSize");
+            this._leadingSize = spec.valueForKey("leadingSize", Number);
         }
         if (spec.containsKey('trailingSize')){
-            this._trailingSize = spec.valueForKey("trailingSize");
+            this._trailingSize = spec.valueForKey("trailingSize", Number);
         }
         if (spec.containsKey('minimumLeadingSize')){
-            this._minimumLeadingSize = spec.valueForKey("minimumLeadingSize");
+            this._minimumLeadingSize = spec.valueForKey("minimumLeadingSize", Number);
         }
         if (spec.containsKey('minimumTrailingSize')){
-            this._minimumTrailingSize = spec.valueForKey("minimumTrailingSize");
+            this._minimumTrailingSize = spec.valueForKey("minimumTrailingSize", Number);
         }
         if (spec.containsKey('minimumMainSize')){
-            this._minimumMainSize = spec.valueForKey("minimumMainSize");
+            this._minimumMainSize = spec.valueForKey("minimumMainSize", Number);
         }
         if (spec.containsKey('maximumLeadingSize')){
-            this._maximumLeadingSize = spec.valueForKey("maximumLeadingSize");
+            this._maximumLeadingSize = spec.valueForKey("maximumLeadingSize", Number);
         }
         if (spec.containsKey('maximumTrailingSize')){
-            this._maximumTrailingSize = spec.valueForKey("maximumTrailingSize");
+            this._maximumTrailingSize = spec.valueForKey("maximumTrailingSize", Number);
         }
         if (spec.containsKey('leadingViewOpen')){
             this._leadingViewOpen = spec.valueForKey("leadingViewOpen");

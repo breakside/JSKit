@@ -1584,13 +1584,13 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
             this.shadowColor = JSColor.windowShadow;
         }
         if (spec.containsKey("shadowRadius")){
-            this.shadowRadius = spec.valueForKey("shadowRadius");
+            this.shadowRadius = spec.valueForKey("shadowRadius", Number);
         }
         if (spec.containsKey("inactiveShadowRadius")){
-            this.inactiveShadowRadius = spec.valueForKey("inactiveShadowRadius");
+            this.inactiveShadowRadius = spec.valueForKey("inactiveShadowRadius", Number);
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("toolbarTitleColor")){
             this.toolbarTitleColor = spec.valueForKey("toolbarTitleColor", JSColor);

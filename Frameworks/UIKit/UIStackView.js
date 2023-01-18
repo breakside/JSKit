@@ -39,7 +39,7 @@ JSClass("UIStackView", UIView, {
             this._contentInsets = spec.valueForKey("contentInsets", JSInsets);
         }
         if (spec.containsKey('viewSpacing')){
-            this._viewSpacing = spec.valueForKey("viewSpacing");
+            this._viewSpacing = spec.valueForKey("viewSpacing", Number);
         }
         if (spec.containsKey('axis')){
             this._axis = spec.valueForKey("axis", UIStackView.Axis);

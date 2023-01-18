@@ -323,16 +323,16 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
             this.disabledBorderColor = JSColor.clear;
         }
         if (spec.containsKey("normalBorderWidth")){
-            this.normalBorderWidth = spec.valueForKey("normalBorderWidth");
+            this.normalBorderWidth = spec.valueForKey("normalBorderWidth", Number);
         }
         if (spec.containsKey("activeBorderWidth")){
-            this.activeBorderWidth = spec.valueForKey("activeBorderWidth");
+            this.activeBorderWidth = spec.valueForKey("activeBorderWidth", Number);
         }
         if (spec.containsKey("dropTargetBorderWidth")){
-            this.dropTargetBorderWidth = spec.valueForKey("dropTargetBorderWidth");
+            this.dropTargetBorderWidth = spec.valueForKey("dropTargetBorderWidth", Number);
         }
         if (spec.containsKey("disabledBorderWidth")){
-            this.disabledBorderWidth = spec.valueForKey("disabledBorderWidth");
+            this.disabledBorderWidth = spec.valueForKey("disabledBorderWidth", Number);
         }
         if (spec.containsKey("wellInsets")){
             this.wellInsets = spec.valueForKey("wellInsets", JSInsets);
@@ -340,7 +340,7 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
             this.wellInsets = JSInsets.Zero;
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("size")){
             this.size = spec.valueForKey("size", JSSize);
@@ -358,7 +358,7 @@ JSClass("UIColorWellDefaultStyler", UIColorWellStyler, {
             this.wellInnerShadowOffset = JSPoint(0, 1);
         }
         if (spec.containsKey("wellInnerShadowRadius")){
-            this.wellInnerShadowRadius = spec.valueForKey("wellInnerShadowRadius");
+            this.wellInnerShadowRadius = spec.valueForKey("wellInnerShadowRadius", Number);
         }
     },
 

@@ -82,13 +82,13 @@ JSClass('UIView', UIResponder, {
             this.borderColor = spec.valueForKey("borderColor", JSColor);
         }
         if (spec.containsKey("borderWidth")){
-            this.borderWidth = spec.valueForKey("borderWidth");
+            this.borderWidth = spec.valueForKey("borderWidth", Number);
         }
         if (spec.containsKey("shadowColor")){
             this.shadowColor = spec.valueForKey("shadowColor", JSColor);
         }
         if (spec.containsKey("shadowRadius")){
-            this.shadowRadius = spec.valueForKey("shadowRadius");
+            this.shadowRadius = spec.valueForKey("shadowRadius", Number);
         }
         if (spec.containsKey("shadowOffset")){
             this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
@@ -100,7 +100,7 @@ JSClass('UIView', UIResponder, {
             this.maskedBorders = spec.valueForKey("maskedBorders", UIView.Sides);
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("maskedCorners")){
             this.maskedCorners = spec.valueForKey("maskedCorners", UIView.Corners);
@@ -115,7 +115,7 @@ JSClass('UIView', UIResponder, {
             this.hidden = spec.valueForKey("hidden");
         }
         if (spec.containsKey("alpha")){
-            this.alpha = spec.valueForKey("alpha");
+            this.alpha = spec.valueForKey("alpha", Number);
         }
         if (spec.containsKey("userInteractionEnabled")){
             this.userInteractionEnabled = spec.valueForKey("userInteractionEnabled");

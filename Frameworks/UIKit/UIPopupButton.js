@@ -573,16 +573,16 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
             this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
         }
         if (spec.containsKey("shadowRadius")){
-            this.shadowRadius = spec.valueForKey("shadowRadius");
+            this.shadowRadius = spec.valueForKey("shadowRadius", Number);
         }
         if (spec.containsKey("borderWidth")){
-            this.borderWidth = spec.valueForKey("borderWidth");
+            this.borderWidth = spec.valueForKey("borderWidth", Number);
         }
         if (spec.containsKey("indicatorSpacing")){
-            this.indicatorSpacing = spec.valueForKey("indicatorSpacing");
+            this.indicatorSpacing = spec.valueForKey("indicatorSpacing", Number);
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
 
         this._fillInMissingColors();
@@ -813,7 +813,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
             this.showsOverState = true;
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("titleInsets")){
             this.titleInsets = spec.valueForKey("titleInsets", JSInsets);

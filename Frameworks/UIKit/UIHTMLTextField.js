@@ -57,7 +57,7 @@ JSClass("UIHTMLTextField", UIControl, {
             this.leftAccessoryInsets = spec.valueForKey("leftAccessoryInsets", JSInsets);
         }
         if (spec.containsKey('leftAccessoryVisibility')){
-            this.leftAccessoryVisibility = spec.valueForKey("leftAccessoryVisibility");
+            this.leftAccessoryVisibility = spec.valueForKey("leftAccessoryVisibility", UITextField.AccessoryVisibility);
         }
         if (spec.containsKey('rightImage')){
             this.rightImage = spec.valueForKey("rightImage", JSImage);

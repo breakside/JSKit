@@ -485,10 +485,10 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         this.shadowColor = JSColor.menuShadow;
         this.shadowOffset = JSPoint.Zero;
         if (spec.containsKey('capSize')){
-            this._capSize = spec.valueForKey("capSize");
+            this._capSize = spec.valueForKey("capSize", Number);
         }
         if (spec.containsKey('cornerRadius')){
-            this._cornerRadius = spec.valueForKey("cornerRadius");
+            this._cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey('textColor')){
             this._textColor = spec.valueForKey("textColor", JSColor);
@@ -509,7 +509,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             this._borderColor = spec.valueForKey("borderColor", JSColor);
         }
         if (spec.containsKey('borderWidth')){
-            this._borderWidth = spec.valueForKey("borderWidth");
+            this._borderWidth = spec.valueForKey("borderWidth", Number);
         }
         if (spec.containsKey('shadowColor')){
             this.shadowColor = spec.valueForKey("shadowColor", JSColor);
@@ -518,13 +518,13 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             this.shadowOffset = spec.valueForKey("shadowOffset", JSPoint);
         }
         if (spec.containsKey('shadowRadius')){
-            this.shadowRadius = spec.valueForKey("shadowRadius");
+            this.shadowRadius = spec.valueForKey("shadowRadius", Number);
         }
         if (spec.containsKey('separatorSize')){
-            this.separatorSize = spec.valueForKey("separatorSize");
+            this.separatorSize = spec.valueForKey("separatorSize", Number);
         }
         if (spec.containsKey('separatorLineWidth')){
-            this.separatorLineWidth = spec.valueForKey("separatorLineWidth");
+            this.separatorLineWidth = spec.valueForKey("separatorLineWidth", Number);
         }
         if (spec.containsKey('separatorColor')){
             this.separatorColor = spec.valueForKey("separatorColor", JSColor);
@@ -535,7 +535,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
         }
         if (spec.containsKey('indentationSize')){
-            this.indentationSize = spec.valueForKey("indentationSize");
+            this.indentationSize = spec.valueForKey("indentationSize", Number);
         }
     },
 

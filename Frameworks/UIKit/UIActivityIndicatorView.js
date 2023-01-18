@@ -61,7 +61,7 @@ JSClass("UIActivityIndicatorView", UIView, {
             var image = spec.valueForKey("spriteImage", JSImage);
             var singleFrameHeight;
             if (spec.containsKey('singleFrameHeight')){
-                singleFrameHeight = spec.valueForKey("singleFrameHeight");
+                singleFrameHeight = spec.valueForKey("singleFrameHeight", Number);
             }
             this.initWithSpriteImage(image, singleFrameHeight);
         }

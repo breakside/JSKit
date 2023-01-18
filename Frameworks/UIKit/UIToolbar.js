@@ -498,7 +498,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             this.contentInsets = JSInsets(5);
         }
         if (spec.containsKey("itemSpacing")){
-            this.itemSpacing = spec.valueForKey("itemSpacing");
+            this.itemSpacing = spec.valueForKey("itemSpacing", Number);
         }
         this._fillInMissingStyles();
     },

@@ -367,7 +367,7 @@ JSClass("UIButtonStyler", UIControlStyler, {
             this.titleInsets = spec.valueForKey("titleInsets", JSInsets);
         }
         if (spec.containsKey('titleImageSpacing')){
-            this.titleImageSpacing = spec.valueForKey("titleImageSpacing");
+            this.titleImageSpacing = spec.valueForKey("titleImageSpacing", Number);
         }
         if (spec.containsKey('font')){
             this.font = spec.valueForKey("font", JSFont);
@@ -531,7 +531,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             this.overTitleColor = spec.valueForKey("overTitleColor", JSColor);
         }
         if (spec.containsKey('cornerRadius')){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         this._commonInit();
     },

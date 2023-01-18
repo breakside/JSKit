@@ -74,7 +74,7 @@ JSClass('UILabel', UIView, {
             this.allowsSelection = spec.valueForKey("allowsSelection");
         }
         if (spec.containsKey("selectionColor")){
-            this._selectionColor = spec.valueForKey("selectionColor");
+            this._selectionColor = spec.valueForKey("selectionColor", JSColor);
         }else{
             this._selectionColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.2), JSColor.white.colorWithAlpha(0.2));
         }

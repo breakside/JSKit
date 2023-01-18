@@ -83,7 +83,7 @@ JSClass("UICollectionView", UIScrollView, {
             this._styler = spec.valueForKey("styler", UICollectionView.Styler);
         }
         if (spec.containsKey('layout')){
-            this.collectionViewLayout = spec.valueForKey("layout", UICollectionView.Styler);
+            this.collectionViewLayout = spec.valueForKey("layout");
         }else{
             throw new Error("layout is a required property in a UICollectionView spec file");
         }
@@ -109,7 +109,7 @@ JSClass("UICollectionView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler'));
+                    this.registerCellClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler', UICollectionView.Styler));
                 }
                 
             }
@@ -123,7 +123,7 @@ JSClass("UICollectionView", UIScrollView, {
                 if (typeof(reuse) === 'string'){
                     this.registerViewClassForReuseIdentifier(JSClass.FromName(reuse), identifier);
                 }else{
-                    this.registerViewClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler'));
+                    this.registerViewClassForReuseIdentifier(JSClass.FromName(reuse.valueForKey('className')), identifier, reuse.valueForKey('styler', UICollectionView.Styler));
                 }
             }
         }

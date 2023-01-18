@@ -261,7 +261,7 @@ JSClass("UINavigationBarStyler", JSObject, {
             this.itemFont = spec.valueForKey("itemFont", JSFont);
         }
         if (spec.containsKey("height")){
-            this.height = spec.valueForKey("height");
+            this.height = spec.valueForKey("height", Number);
         }
         this._fillInStyles();
     },
@@ -340,7 +340,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             this.contentSeparatorColor = spec.valueForKey("contentSeparatorColor", JSColor);
         }
         if (spec.containsKey("contentSeparatorSize")){
-            this.contentSeparatorSize = spec.valueForKey("contentSeparatorSize");
+            this.contentSeparatorSize = spec.valueForKey("contentSeparatorSize", Number);
         }
         if (spec.containsKey("titleColor")){
             this.titleColor = spec.valueForKey("titleColor", JSColor);

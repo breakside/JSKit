@@ -72,7 +72,7 @@ JSClass("UITextField", UIControl, {
             this.leftAccessoryInsets = spec.valueForKey("leftAccessoryInsets", JSInsets);
         }
         if (spec.containsKey('leftAccessoryVisibility')){
-            this.leftAccessoryVisibility = spec.valueForKey("leftAccessoryVisibility");
+            this.leftAccessoryVisibility = spec.valueForKey("leftAccessoryVisibility", UITextField.AccessoryVisibility);
         }
         if (spec.containsKey('rightImage')){
             this.rightImage = spec.valueForKey("rightImage", JSImage);
@@ -1445,10 +1445,10 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
             this.placeholderColor = spec.valueForKey("placeholderColor", JSColor);
         }
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("borderWidth")){
-            this.borderWidth = spec.valueForKey("borderWidth");
+            this.borderWidth = spec.valueForKey("borderWidth", Number);
         }
         if (spec.containsKey("textInsets")){
             this.textInsets = spec.valueForKey("textInsets", JSInsets);

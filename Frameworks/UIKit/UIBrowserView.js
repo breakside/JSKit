@@ -30,7 +30,7 @@ JSClass("UIBrowserView", UIScrollView, {
     initWithSpec: function(spec){
         UIBrowserView.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('dividerSize')){
-            this._dividerSize = spec.valueForKey("dividerSize");
+            this._dividerSize = spec.valueForKey("dividerSize", Number);
         }
         if (spec.containsKey('dividerColor')){
             this._dividerColor = spec.valueForKey("dividerColor", JSColor);

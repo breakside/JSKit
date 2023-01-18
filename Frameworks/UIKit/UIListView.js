@@ -84,13 +84,13 @@ JSClass("UIListView", UIScrollView, {
         }
         this._commonListInit();
         if (spec.containsKey('rowHeight')){
-            this._rowHeight = spec.valueForKey("rowHeight");
+            this._rowHeight = spec.valueForKey("rowHeight", Number);
         }
         if (spec.containsKey('headerHeight')){
-            this._headerHeight = spec.valueForKey("headerHeight");
+            this._headerHeight = spec.valueForKey("headerHeight", Number);
         }
         if (spec.containsKey('footerHeight')){
-            this._footerHeight = spec.valueForKey("footerHeight");
+            this._footerHeight = spec.valueForKey("footerHeight", Number);
         }
         if (spec.containsKey('delegate')){
             this.delegate = spec.valueForKey("delegate");
@@ -3125,7 +3125,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.cellContentInsets = spec.valueForKey("cellContentInsets", JSInsets);
         }
         if (spec.containsKey('cellContentCornerRadius')){
-            this.cellContentCornerRadius = spec.valueForKey("cellContentCornerRadius");
+            this.cellContentCornerRadius = spec.valueForKey("cellContentCornerRadius", Number);
         }
         this._commonStylerInit();
     },

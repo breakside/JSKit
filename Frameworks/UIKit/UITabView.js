@@ -712,7 +712,7 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
     initWithSpec: function(spec){
         UITabViewDefaultStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("cornerRadius")){
-            this.cornerRadius = spec.valueForKey("cornerRadius");
+            this.cornerRadius = spec.valueForKey("cornerRadius", Number);
         }
         if (spec.containsKey("itemContentInsets")){
             this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
@@ -724,10 +724,10 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
             this.dividerColor = spec.valueForKey("dividerColor", JSColor);
         }
         if (spec.containsKey("dividerSize")){
-            this.dividerSize = spec.valueForKey("dividerSize");
+            this.dividerSize = spec.valueForKey("dividerSize", Number);
         }
         if (spec.containsKey("imageSpacing")){
-            this.imageSpacing = spec.valueForKey("imageSpacing");
+            this.imageSpacing = spec.valueForKey("imageSpacing", Number);
         }
         if (spec.containsKey("normalItemColor")){
             this.normalItemColor = spec.valueForKey("normalItemColor", JSColor);
@@ -1108,10 +1108,10 @@ JSClass("UITabViewImagesStyler", UITabViewStyler, {
             null
         ];
         if (spec.containsKey('itemSize')){
-            this.itemSize = spec.valueForKey("itemSize");
+            this.itemSize = spec.valueForKey("itemSize", Number);
         }
         if (spec.containsKey('imageSize')){
-            this.imageSize = spec.valueForKey("imageSize");
+            this.imageSize = spec.valueForKey("imageSize", Number);
         }
         if (spec.containsKey('normalColor')){
             this._stateColors[UITabViewItem.State.normal] = spec.valueForKey("normalColor", JSColor);

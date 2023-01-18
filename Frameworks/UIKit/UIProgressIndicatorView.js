@@ -30,7 +30,7 @@ JSClass("UIProgressIndicatorView", UIView, {
             this._progressBarColor = spec.valueForKey("progressBarColor", JSColor);
         }
         if (spec.containsKey('progressBorderWidth')){
-            this._progressBorderWidth = spec.valueForKey("progressBorderWidth");
+            this._progressBorderWidth = spec.valueForKey("progressBorderWidth", Number);
         }
         if (spec.containsKey('style')){
             this._style = spec.valueForKey("style", UIProgressIndicatorView.Style);
