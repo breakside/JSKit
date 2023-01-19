@@ -96,6 +96,7 @@
 // #import "JSNotification.js"
 
 // #import "JSSynchronizer.js"
+// #import "JSDiff.js"
 
 // #import "JSLog.js"
 // #import "Zlib.js"
