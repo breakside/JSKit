@@ -16,6 +16,8 @@
 // #import Foundation
 'use strict';
 
+(function(){
+
 JSClass("UIDisplayServer", JSObject, {
 
     typesetter: JSReadOnlyProperty("_typesetter"),
@@ -462,3 +464,5 @@ UIDisplayServerQueue.prototype = {
     }
 
 };
+
+})();
