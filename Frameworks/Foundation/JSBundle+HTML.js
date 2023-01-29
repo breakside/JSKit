@@ -29,8 +29,9 @@ JSBundle.definePropertiesFromExtensions({
         var task = session.dataTaskWithURL(url, function(error){
             if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
                 completion.call(target, null);
+            }else{
+                completion.call(target, task.response.data);
             }
-            completion.call(target, task.response.data);
         });
         task.resume();
         return completion.promise;
