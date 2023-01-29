@@ -43,6 +43,9 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     initFromDictionary: function(dictionary){
+        if (dictionary === null || dictionary === undefined){
+            return null;
+        }
         this._string = typeof(dictionary.string) === "string" ? dictionary.string : "";
         this._runs = [];
         var i, l;

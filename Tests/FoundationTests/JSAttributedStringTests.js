@@ -1054,6 +1054,11 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(string.string, "test");
         TKAssertObjectEquals(string.rangeOfRunAtIndex(0), JSRange(0, 4));
         TKAssertObjectEquals(string.rangeOfRunAtIndex(4), JSRange(0, 4));
+
+        string = JSAttributedString.initFromDictionary(null);
+        TKAssertNull(string);
+        string = JSAttributedString.initFromDictionary(undefined);
+        TKAssertNull(string);
     },
 
     testFixParagraphStyles: function(){
