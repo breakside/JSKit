@@ -69,6 +69,9 @@ JSClass("UISplitViewController", UIViewController, {
 
     viewWillAppear: function(animated){
         UISplitViewController.$super.viewWillAppear.call(this, animated);
+        if (this.view.mainHidden){
+            this._moveMainViewControllerToLeading();
+        }
         if (this._leadingViewController !== null && this.leadingViewOpen){
             this._leadingViewController.viewWillAppear(animated);
         }
