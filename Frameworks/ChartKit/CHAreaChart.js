@@ -56,6 +56,7 @@ JSClass("CHAreaChart", CHCategoryChart, {
                 }
                 context.setLineWidth(series.style.lineWidth);
                 context.setLineCap(series.style.lineCap);
+                context.setLineJoin(series.style.lineJoin);
                 if (series.style.lineDashLengths !== null){
                     context.setLineDash(0, series.style.lineDashLengths);
                 }
@@ -164,6 +165,7 @@ JSClass("CHAreaChart", CHCategoryChart, {
             }
             context.setLineWidth(series.style.lineWidth);
             context.setLineCap(series.style.lineCap);
+            context.setLineJoin(series.style.lineJoin);
             if (series.style.lineDashLengths !== null){
                 context.setLineDash(0, series.style.lineDashLengths);
             }

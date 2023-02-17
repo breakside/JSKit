@@ -146,6 +146,7 @@ JSClass("CHSeriesLineStyle", CHSeriesStyle, {
     lineWidth: 4,
     lineDashLengths: null,
     lineCap: JSContext.LineCap.butt,
+    lineJoin: JSContext.LineJoin.miter,
     symbolPath: null,
     symbolFillColor: null,
     symbolStrokeColor: null,
