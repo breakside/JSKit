@@ -43,241 +43,601 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
     testBasic: function(){
         var formatter = JSNumberFormatter.init();
-        TKAssertEquals(formatter.format, "#;0;-#");
+        TKAssertExactEquals(formatter.format, "#;0;-#");
 
         var str = formatter.stringFromNumber(1);
-        TKAssertEquals(str, "1");
+        TKAssertExactEquals(str, "1");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "0");
+        TKAssertExactEquals(str, "0");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "-1");
+        TKAssertExactEquals(str, "-1");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "1");
+        TKAssertExactEquals(str, "1");
 
         str = formatter.stringFromNumber(0.12);
-        TKAssertEquals(str, "0");
+        TKAssertExactEquals(str, "0");
 
         str = formatter.stringFromNumber(-1.23);
-        TKAssertEquals(str, "-1");
+        TKAssertExactEquals(str, "-1");
         
         str = formatter.stringFromNumber(1.56);
-        TKAssertEquals(str, "2");
+        TKAssertExactEquals(str, "2");
 
         str = formatter.stringFromNumber(0.76);
-        TKAssertEquals(str, "1");
+        TKAssertExactEquals(str, "1");
 
         str = formatter.stringFromNumber(-1.56);
-        TKAssertEquals(str, "-2");
+        TKAssertExactEquals(str, "-2");
 
         str = formatter.stringFromNumber(123456);
-        TKAssertEquals(str, "123456");
+        TKAssertExactEquals(str, "123456");
     },
 
     testDecimal: function(){
         var formatter = JSNumberFormatter.init();
         formatter.style = JSNumberFormatter.Style.decimal;
-        TKAssertEquals(formatter.format, "#,##0.###;0;-#,##0.###");
+        TKAssertExactEquals(formatter.format, "#,##0.###;0;-#,##0.###");
 
         var str = formatter.stringFromNumber(1);
-        TKAssertEquals(str, "1");
+        TKAssertExactEquals(str, "1");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "0");
+        TKAssertExactEquals(str, "0");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "-1");
+        TKAssertExactEquals(str, "-1");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "1.23");
+        TKAssertExactEquals(str, "1.23");
 
         str = formatter.stringFromNumber(0.1);
-        TKAssertEquals(str, "0.1");
+        TKAssertExactEquals(str, "0.1");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "-1.235");
+        TKAssertExactEquals(str, "-1.235");
         
         str = formatter.stringFromNumber(1.5);
-        TKAssertEquals(str, "1.5");
+        TKAssertExactEquals(str, "1.5");
 
         str = formatter.stringFromNumber(0.7632);
-        TKAssertEquals(str, "0.763");
+        TKAssertExactEquals(str, "0.763");
 
         str = formatter.stringFromNumber(-1.56);
-        TKAssertEquals(str, "-1.56");
+        TKAssertExactEquals(str, "-1.56");
 
         str = formatter.stringFromNumber(1123456.89);
-        TKAssertEquals(str, "1,123,456.89");
+        TKAssertExactEquals(str, "1,123,456.89");
 
         str = formatter.stringFromNumber(-1123456.89);
-        TKAssertEquals(str, "-1,123,456.89");
+        TKAssertExactEquals(str, "-1,123,456.89");
     },
 
     testPercent: function(){
         var formatter = JSNumberFormatter.init();
         formatter.style = JSNumberFormatter.Style.percent;
-        TKAssertEquals(formatter.format, "#,##0%;0%;-#,##0%");
+        TKAssertExactEquals(formatter.format, "#,##0%;0%;-#,##0%");
 
         var str = formatter.stringFromNumber(0.5);
-        TKAssertEquals(str, "50%");
+        TKAssertExactEquals(str, "50%");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "0%");
+        TKAssertExactEquals(str, "0%");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "-100%");
+        TKAssertExactEquals(str, "-100%");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "123%");
+        TKAssertExactEquals(str, "123%");
 
         str = formatter.stringFromNumber(0.1);
-        TKAssertEquals(str, "10%");
+        TKAssertExactEquals(str, "10%");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "-123%");
+        TKAssertExactEquals(str, "-123%");
         
         str = formatter.stringFromNumber(0.0001);
-        TKAssertEquals(str, "0%");
+        TKAssertExactEquals(str, "0%");
 
         str = formatter.stringFromNumber(0.767);
-        TKAssertEquals(str, "77%");
+        TKAssertExactEquals(str, "77%");
 
         str = formatter.stringFromNumber(12345.67);
-        TKAssertEquals(str, "1,234,567%");
+        TKAssertExactEquals(str, "1,234,567%");
 
         formatter.maximumFractionDigits = 1;
-        TKAssertEquals(formatter.format, "#,##0.#%;0%;-#,##0.#%");
+        TKAssertExactEquals(formatter.format, "#,##0.#%;0%;-#,##0.#%");
 
         str = formatter.stringFromNumber(0.5);
-        TKAssertEquals(str, "50%");
+        TKAssertExactEquals(str, "50%");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "0%");
+        TKAssertExactEquals(str, "0%");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "-100%");
+        TKAssertExactEquals(str, "-100%");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "123%");
+        TKAssertExactEquals(str, "123%");
 
         str = formatter.stringFromNumber(0.1);
-        TKAssertEquals(str, "10%");
+        TKAssertExactEquals(str, "10%");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "-123.5%");
+        TKAssertExactEquals(str, "-123.5%");
         
         str = formatter.stringFromNumber(0.0001);
-        TKAssertEquals(str, "0%");
+        TKAssertExactEquals(str, "0%");
 
         str = formatter.stringFromNumber(0.767);
-        TKAssertEquals(str, "76.7%");
+        TKAssertExactEquals(str, "76.7%");
 
         str = formatter.stringFromNumber(12345.6789);
-        TKAssertEquals(str, "1,234,567.9%");
+        TKAssertExactEquals(str, "1,234,567.9%");
     },
 
     testCurrency: function(){
         var formatter = JSNumberFormatter.init();
         formatter.style = JSNumberFormatter.Style.currency;
-        TKAssertEquals(formatter.format, "¤#,##0.00;$0.00;-¤#,##0.00");
+        TKAssertExactEquals(formatter.format, "¤#,##0.00;$0.00;-¤#,##0.00");
 
         var str = formatter.stringFromNumber(0.5);
-        TKAssertEquals(str, "$0.50");
+        TKAssertExactEquals(str, "$0.50");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "$0.00");
+        TKAssertExactEquals(str, "$0.00");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "-$1.00");
+        TKAssertExactEquals(str, "-$1.00");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "$1.23");
+        TKAssertExactEquals(str, "$1.23");
 
         str = formatter.stringFromNumber(1234567.89);
-        TKAssertEquals(str, "$1,234,567.89");
+        TKAssertExactEquals(str, "$1,234,567.89");
 
         str = formatter.stringFromNumber(-1234567.89);
-        TKAssertEquals(str, "-$1,234,567.89");
+        TKAssertExactEquals(str, "-$1,234,567.89");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "-$1.23");
+        TKAssertExactEquals(str, "-$1.23");
         
         str = formatter.stringFromNumber(0.0001);
-        TKAssertEquals(str, "$0.00");
+        TKAssertExactEquals(str, "$0.00");
 
         str = formatter.stringFromNumber(0.767);
-        TKAssertEquals(str, "$0.77");
+        TKAssertExactEquals(str, "$0.77");
 
         str = formatter.stringFromNumber(12345.67);
-        TKAssertEquals(str, "$12,345.67");
+        TKAssertExactEquals(str, "$12,345.67");
 
         formatter.style = JSNumberFormatter.Style.currencyISOCode;
-        TKAssertEquals(formatter.format, "¤¤ #,##0.00;USD 0.00;¤¤ -#,##0.00");
+        TKAssertExactEquals(formatter.format, "¤¤ #,##0.00;USD 0.00;¤¤ -#,##0.00");
 
         str = formatter.stringFromNumber(0.5);
-        TKAssertEquals(str, "USD 0.50");
+        TKAssertExactEquals(str, "USD 0.50");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "USD 0.00");
+        TKAssertExactEquals(str, "USD 0.00");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "USD -1.00");
+        TKAssertExactEquals(str, "USD -1.00");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "USD 1.23");
+        TKAssertExactEquals(str, "USD 1.23");
 
         str = formatter.stringFromNumber(1234567.89);
-        TKAssertEquals(str, "USD 1,234,567.89");
+        TKAssertExactEquals(str, "USD 1,234,567.89");
 
         str = formatter.stringFromNumber(-1234567.89);
-        TKAssertEquals(str, "USD -1,234,567.89");
+        TKAssertExactEquals(str, "USD -1,234,567.89");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "USD -1.23");
+        TKAssertExactEquals(str, "USD -1.23");
         
         str = formatter.stringFromNumber(0.0001);
-        TKAssertEquals(str, "USD 0.00");
+        TKAssertExactEquals(str, "USD 0.00");
 
         str = formatter.stringFromNumber(0.767);
-        TKAssertEquals(str, "USD 0.77");
+        TKAssertExactEquals(str, "USD 0.77");
 
         str = formatter.stringFromNumber(12345.67);
-        TKAssertEquals(str, "USD 12,345.67");
+        TKAssertExactEquals(str, "USD 12,345.67");
 
         formatter.style = JSNumberFormatter.Style.currencyAccounting;
-        TKAssertEquals(formatter.format, "¤#,##0.00;$0.00;(¤#,##0.00)");
+        TKAssertExactEquals(formatter.format, "¤#,##0.00;$0.00;(¤#,##0.00)");
 
         str = formatter.stringFromNumber(0.5);
-        TKAssertEquals(str, "$0.50");
+        TKAssertExactEquals(str, "$0.50");
 
         str = formatter.stringFromNumber(0);
-        TKAssertEquals(str, "$0.00");
+        TKAssertExactEquals(str, "$0.00");
 
         str = formatter.stringFromNumber(-1);
-        TKAssertEquals(str, "($1.00)");
+        TKAssertExactEquals(str, "($1.00)");
         
         str = formatter.stringFromNumber(1.23);
-        TKAssertEquals(str, "$1.23");
+        TKAssertExactEquals(str, "$1.23");
 
         str = formatter.stringFromNumber(1234567.89);
-        TKAssertEquals(str, "$1,234,567.89");
+        TKAssertExactEquals(str, "$1,234,567.89");
 
         str = formatter.stringFromNumber(-1234567.89);
-        TKAssertEquals(str, "($1,234,567.89)");
+        TKAssertExactEquals(str, "($1,234,567.89)");
 
         str = formatter.stringFromNumber(-1.2346);
-        TKAssertEquals(str, "($1.23)");
+        TKAssertExactEquals(str, "($1.23)");
         
         str = formatter.stringFromNumber(0.0001);
-        TKAssertEquals(str, "$0.00");
+        TKAssertExactEquals(str, "$0.00");
 
         str = formatter.stringFromNumber(0.767);
-        TKAssertEquals(str, "$0.77");
+        TKAssertExactEquals(str, "$0.77");
 
         str = formatter.stringFromNumber(12345.67);
-        TKAssertEquals(str, "$12,345.67");
+        TKAssertExactEquals(str, "$12,345.67");
+    },
+
+    testNumberFromString: function(){
+        var formatter = JSNumberFormatter.init();
+        TKAssertExactEquals(formatter.format, "#;0;-#");
+        var n = formatter.numberFromString("1");
+        TKAssertExactEquals(n, 1);
+        n = formatter.numberFromString("0");
+        TKAssertExactEquals(n, 0);
+        n = formatter.numberFromString("-1");
+        TKAssertExactEquals(n, -1);
+        n = formatter.numberFromString("1.23");
+        TKAssertExactEquals(n, 1.23);
+        n = formatter.numberFromString("0.12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("0.12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("-1.23");
+        TKAssertExactEquals(n, -1.23);
+        n = formatter.numberFromString("1.56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("0.76");
+        TKAssertExactEquals(n, 0.76);
+        n = formatter.numberFromString("-1.56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+1.56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("- 1.56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+ 1.56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("123456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("123,456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12,3,456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12,3,456.78");
+        TKAssertExactEquals(n, 123456.78);
+
+        formatter.multiplier = 100;
+        n = formatter.numberFromString("1%");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("0%");
+        TKAssertExactEquals(n, 0);
+        n = formatter.numberFromString("-1%");
+        TKAssertExactEquals(n, -0.01);
+        n = formatter.numberFromString("+1%");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("- 1%");
+        TKAssertExactEquals(n, -0.01);
+        n = formatter.numberFromString("+ 1%");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("1.23%");
+        TKAssertExactEquals(n, 0.0123);
+        n = formatter.numberFromString("123%");
+        TKAssertExactEquals(n, 1.23);
+        n = formatter.numberFromString("42");
+        TKAssertExactEquals(n, 0.42);
+        n = formatter.numberFromString("1,234%");
+        TKAssertExactEquals(n, 12.34);
+        n = formatter.numberFromString("1,2,34");
+        TKAssertExactEquals(n, 12.34);
+
+        formatter.percentSymbol = "😀";
+        n = formatter.numberFromString("1😀");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("0😀");
+        TKAssertExactEquals(n, 0);
+        n = formatter.numberFromString("-1😀");
+        TKAssertExactEquals(n, -0.01);
+        n = formatter.numberFromString("+1😀");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("- 1😀");
+        TKAssertExactEquals(n, -0.01);
+        n = formatter.numberFromString("+ 1😀");
+        TKAssertExactEquals(n, 0.01);
+        n = formatter.numberFromString("1.23😀");
+        TKAssertExactEquals(n, 0.0123);
+        n = formatter.numberFromString("123😀");
+        TKAssertExactEquals(n, 1.23);
+        n = formatter.numberFromString("42");
+        TKAssertExactEquals(n, 0.42);
+        n = formatter.numberFromString("1,234😀");
+        TKAssertExactEquals(n, 12.34);
+        n = formatter.numberFromString("1,2,34");
+        TKAssertExactEquals(n, 12.34);
+        formatter.percentSymbol = "%";
+
+        formatter.multiplier = 1000;
+        n = formatter.numberFromString("1‰");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("0‰");
+        TKAssertExactEquals(n, 0);
+        n = formatter.numberFromString("-1‰");
+        TKAssertExactEquals(n, -0.001);
+        n = formatter.numberFromString("+1‰");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("- 1‰");
+        TKAssertExactEquals(n, -0.001);
+        n = formatter.numberFromString("+ 1‰");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("1.23‰");
+        TKAssertExactEquals(n, 0.00123);
+        n = formatter.numberFromString("123‰");
+        TKAssertExactEquals(n, 0.123);
+        n = formatter.numberFromString("42");
+        TKAssertExactEquals(n, 0.042);
+        n = formatter.numberFromString("1,234‰");
+        TKAssertExactEquals(n, 1.234);
+        n = formatter.numberFromString("1,2,34");
+        TKAssertExactEquals(n, 1.234);
+
+        formatter.perMilleSymbol = "😀";
+        n = formatter.numberFromString("1😀");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("0😀");
+        TKAssertExactEquals(n, 0);
+        n = formatter.numberFromString("-1😀");
+        TKAssertExactEquals(n, -0.001);
+        n = formatter.numberFromString("+1😀");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("- 1😀");
+        TKAssertExactEquals(n, -0.001);
+        n = formatter.numberFromString("+ 1😀");
+        TKAssertExactEquals(n, 0.001);
+        n = formatter.numberFromString("1.23😀");
+        TKAssertExactEquals(n, 0.00123);
+        n = formatter.numberFromString("123😀");
+        TKAssertExactEquals(n, 0.123);
+        n = formatter.numberFromString("42");
+        TKAssertExactEquals(n, 0.042);
+        n = formatter.numberFromString("1,234😀");
+        TKAssertExactEquals(n, 1.234);
+        n = formatter.numberFromString("1,2,34");
+        TKAssertExactEquals(n, 1.234);
+        formatter.perMilleSymbol = "‰";
+
+        formatter.multiplier = 0.01;
+        n = formatter.numberFromString("$1");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("$1.2");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("$1.23");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-$1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- $1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- $ 1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("$-1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("$ -1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("$ - 1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("$123.456");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("$123,456");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("$123,45,6");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("$ 1");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("$ 1.2");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("$ 1.23");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("$ 123.456");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("$ 123,456");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("$ 123,45,6");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("1$");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("1.2$");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("1.23$");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-1.23$");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- 1.23$");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("123.456$");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("123,456$");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("123,45,6$");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("1 $");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("1.2 $");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("1.23 $");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-1.23 $");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- 1.23 $");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("123.456 $");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("123,456 $");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("123,45,6 $");
+        TKAssertExactEquals(n, 12345600);
+
+        formatter.currencySymbol = "£";
+        n = formatter.numberFromString("£1");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("£1.2");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("£1.23");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-£1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- £1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- £ 1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("£-1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("£ -1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("£ - 1.23");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("£123.456");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("£123,456");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("£123,45,6");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("£ 1");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("£ 1.2");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("£ 1.23");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("£ 123.456");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("£ 123,456");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("£ 123,45,6");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("1£");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("1.2£");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("1.23£");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-1.23£");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- 1.23£");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("123.456£");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("123,456£");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("123,45,6£");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("1 £");
+        TKAssertExactEquals(n, 100);
+        n = formatter.numberFromString("1.2 £");
+        TKAssertExactEquals(n, 120);
+        n = formatter.numberFromString("1.23 £");
+        TKAssertExactEquals(n, 123);
+        n = formatter.numberFromString("-1.23 £");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("- 1.23 £");
+        TKAssertExactEquals(n, -123);
+        n = formatter.numberFromString("123.456 £");
+        TKAssertExactEquals(n, 12345.6);
+        n = formatter.numberFromString("123,456 £");
+        TKAssertExactEquals(n, 12345600);
+        n = formatter.numberFromString("123,45,6 £");
+        TKAssertExactEquals(n, 12345600);
+        formatter.currencySymbol = "$";
+
+        formatter.multiplier = 1;
+        TKAssertNull(formatter.numberFromString(""));
+        TKAssertNull(formatter.numberFromString("abc"));
+        TKAssertNull(formatter.numberFromString("123abc"));
+        TKAssertNull(formatter.numberFromString("123 abc"));
+        TKAssertNull(formatter.numberFromString("$123$"));
+        TKAssertNull(formatter.numberFromString("1$23"));
+        TKAssertNull(formatter.numberFromString("1..23"));
+        TKAssertNull(formatter.numberFromString("1%23"));
+        TKAssertNull(formatter.numberFromString("%123%"));
+        TKAssertNull(formatter.numberFromString("‰123‰"));
+        TKAssertNull(formatter.numberFromString("1.23,4"));
+        TKAssertNull(formatter.numberFromString("1.23,4"));
+        TKAssertNull(formatter.numberFromString("1.23£"));
+        TKAssertNull(formatter.numberFromString("123+"));
+        TKAssertNull(formatter.numberFromString("123-"));
+        TKAssertNull(formatter.numberFromString("+123-"));
+        TKAssertNull(formatter.numberFromString("+-123"));
+        TKAssertNull(formatter.numberFromString("-+123"));
+
+        formatter.groupingSeparator = ".";
+        formatter.decimalSeparator = ",";
+        n = formatter.numberFromString("1,23");
+        TKAssertExactEquals(n, 1.23);
+        n = formatter.numberFromString("0,12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("0,12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("-1,23");
+        TKAssertExactEquals(n, -1.23);
+        n = formatter.numberFromString("1,56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("0,76");
+        TKAssertExactEquals(n, 0.76);
+        n = formatter.numberFromString("-1,56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+1,56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("- 1,56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+ 1,56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("123456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("123.456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12.3.456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12.3.456,78");
+        TKAssertExactEquals(n, 123456.78);
+
+        formatter.groupingSeparator = "🙂";
+        formatter.decimalSeparator = "🙃";
+        n = formatter.numberFromString("1🙃23");
+        TKAssertExactEquals(n, 1.23);
+        n = formatter.numberFromString("0🙃12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("0🙃12");
+        TKAssertExactEquals(n, 0.12);
+        n = formatter.numberFromString("-1🙃23");
+        TKAssertExactEquals(n, -1.23);
+        n = formatter.numberFromString("1🙃56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("0🙃76");
+        TKAssertExactEquals(n, 0.76);
+        n = formatter.numberFromString("-1🙃56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+1🙃56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("- 1🙃56");
+        TKAssertExactEquals(n, -1.56);
+        n = formatter.numberFromString("+ 1🙃56");
+        TKAssertExactEquals(n, 1.56);
+        n = formatter.numberFromString("123456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("123🙂456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12🙂3🙂456");
+        TKAssertExactEquals(n, 123456);
+        n = formatter.numberFromString("12🙂3🙂456🙃78");
+        TKAssertExactEquals(n, 123456.78);
     }
 });
 

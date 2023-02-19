@@ -117,6 +117,44 @@ topics:
             type: Number
             summary: The number to format
   -
+    name: Parsing a String
+    members:
+      -
+        name: numberFromString
+        introduced: 2023.8.0
+        kind: method
+        summary: Parse a number from the given string
+        arguments:
+          -
+            name: string
+            type: String
+            summary: The string to parse
+        description: |
+          String parsing is loosely based on the format options, but does not
+          require the string to exactly match the format.
+
+          A sign may appear at the start of the string, but must be either
+          `plusSign` or `minusSign`, and only one can appear in the entire
+          string.  Signs are allowed even if the format doesn't include them.
+
+          If a decimal point is present, it must be `decimalSeparator`, and must
+          only appear once.  Even formats that do not include a decimal will
+          allow a decimal for parsing purposes, and will return a non-integer.
+
+          Group sepearators can be present anywhere in the whole number part of
+          the string.  They do not have to be spaced properly, but do have to
+          match `groupingSeparator`.  Group separators are allowed even if the
+          format doesn't include them.
+
+          A currency symbol can be present at the start or end of the string,
+          but must match `currencySymbol`, and must appear only once.  At the
+          start of the string, the currency symbol can be either before or
+          after the number's sign.
+
+          A percent symbol or a per-mille symbol can appear at the end of the
+          string, but must be `percentSymbol` or `perMilleSymbol`, and only
+          one can appear.
+  -
     name: Number of Digits
     summary:
       -

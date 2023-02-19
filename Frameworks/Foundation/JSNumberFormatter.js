@@ -542,7 +542,106 @@ JSClass("JSNumberFormatter", JSObject, {
             }
         }
         return prefix + str + suffix;
-    }
+    },
+
+    numberFromString: function(string){
+        var n = 0;
+        var f = 0;
+        var d = 1;
+        var sign = 1;
+        var iterator = string.unicodeIterator();
+        var i = 0;
+        var l = string.length;
+        var c;
+        var canSeeSign = true;
+        var canSeeCurrency = true;
+        var canSeeDecimal = true;
+        var canSeeInteger = true;
+        var canSeeFraction = false;
+        var canSeePercent = false;
+        var canSeeGroup = false;
+        var seenDigit = false;
+        var stringMatches = function(substr){
+            if (substr.length === 0){
+                return false;
+            }
+            return string.substr(i, substr.length) === substr;
+        };
+        while (i < l){
+            c = string.charCodeAt(i);
+            if (c >= 0x30 && c <= 0x39){
+                if (canSeeInteger){
+                    canSeeSign = false;
+                    canSeeGroup = true;
+                    canSeePercent = true;
+                    n *= 10;
+                    n += (c - 0x30);
+                }else if (canSeeFraction){
+                    f *= 10;
+                    f += (c - 0x30);
+                    d *= 10;
+                }else{
+                    return null;
+                }
+                seenDigit = true;
+                ++i;
+            }else if (canSeeSign && stringMatches(this.minusSign)){
+                sign = -1;
+                canSeeSign = false;
+                i += this.minusSign.length;
+            }else if (canSeeSign && stringMatches(this.plusSign)){
+                canSeeSign = false;
+                i += this.plusSign.length;
+            }else if (canSeeCurrency && stringMatches(this.currencySymbol)){
+                canSeeCurrency = false;
+                if (seenDigit){
+                    canSeeInteger = false;
+                    canSeeDecimal = false;
+                    canSeeFraction = false;
+                }
+                i += this.currencySymbol.length;
+            }else if (canSeePercent && stringMatches(this.percentSymbol)){
+                canSeePercent = false;
+                if (seenDigit){
+                    canSeeInteger = false;
+                    canSeeDecimal = false;
+                    canSeeFraction = false;
+                }
+                i += this.percentSymbol.length;
+            }else if (canSeePercent && stringMatches(this.perMilleSymbol)){
+                canSeePercent = false;
+                if (seenDigit){
+                    canSeeInteger = false;
+                    canSeeDecimal = false;
+                    canSeeFraction = false;
+                }
+                i += this.perMilleSymbol.length;
+            }else if (canSeeDecimal && stringMatches(this.decimalSeparator)){
+                canSeeDecimal = false;
+                canSeeGroup = false;
+                canSeeInteger = false;
+                canSeeFraction = true;
+                i += this.decimalSeparator.length;
+            }else if (canSeeGroup && stringMatches(this.groupingSeparator)){
+                i += this.groupingSeparator.length;
+            }else if (c == 0x20){
+                ++i;
+            }else{
+                return null;
+            }
+        }
+        if (!seenDigit){
+            return null;
+        }
+        if (f > 0){
+            n += f / d;
+        }
+        n /= this.multiplier;
+        if (sign < 0){
+            n = -n;
+        }
+        return n;
+    },
 
 });
 
