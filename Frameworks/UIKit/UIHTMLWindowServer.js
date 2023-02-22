@@ -928,6 +928,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.accessibilityObservers.selectedChildrenChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.selectedChildrenChanged, null, this.handleAccessibilitySelectedChildrenChanged, this);
         this.accessibilityObservers.firstResponderChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.firstResponderChanged, null, this.handleAccessibilityFirstResponderChanged, this);
         this.accessibilityObservers.rowCountChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCountChanged, null, this.handleAccessibilityRowCountChanged, this);
+        this.accessibilityObservers.columnCountChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.columnCountChanged, null, this.handleAccessibilityColumnCountChanged, this);
         this.accessibilityObservers.rowExpanded = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowExpanded, null, this.handleAccessibilityRowExpanded, this);
         this.accessibilityObservers.rowCollapsed = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.rowCollapsed, null, this.handleAccessibilityRowCollapsed, this);
     },
@@ -1042,6 +1043,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.updateAccessibilityRowCount(element);
+        }
+    },
+
+    handleAccessibilityColumnCountChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityColumnCount(element);
         }
     },
 

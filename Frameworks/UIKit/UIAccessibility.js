@@ -229,6 +229,7 @@ UIAccessibility.Notification = {
     keyWindowChanged: "UIAccessibility.Notification.keyWindowChanged",
     mainWindowChanged: "UIAccessibility.Notification.mainWindowChanged",
     rowCountChanged: "UIAccessibility.Notification.rowCountChanged",
+    columnCountChanged: "UIAccessibility.Notification.columnCountChanged",
     rowExpanded: "UIAccessibility.Notification.rowExpanded",
     rowCollapsed: "UIAccessibility.Notification.rowCollapsed",
     selectedChildrenChanged: "UIAccessibility.Notification.selectedChildrenChanged",

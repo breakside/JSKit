@@ -428,7 +428,10 @@ topics:
                 summary: Dispatched when the application's main window changes
               -
                 name: rowCountChanged
-                summary: Dispatched when a list's row count changes
+                summary: Dispatched when a grid's row count changes
+              -
+                name: coloumnCountChanged
+                summary: Dispatched when a grids's coloumn count changes
               -
                 name: rowExpanded
                 summary: Dispatched when an outline's row expands
@@ -437,7 +440,7 @@ topics:
                 summary: Dispatched when an outline's row collapses
               -
                 name: selectedChildrenChanged
-                summary: Dispatched when a list's selection changes
+                summary: Dispatched when a grid's selection changes
               -
                 name: selectedTextChanged
                 summary: Dispatched when a field's text selection changes
