@@ -187,6 +187,10 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.component2Field = UITextField.initWithStyler(componentStyler);
         this.component3Field = UITextField.initWithStyler(componentStyler);
         this.component4Field = UITextField.initWithStyler(componentStyler);
+        this.component1Field.keyboardType = UITextInput.KeyboardType.number;
+        this.component2Field.keyboardType = UITextInput.KeyboardType.number;
+        this.component3Field.keyboardType = UITextInput.KeyboardType.number;
+        this.component4Field.keyboardType = UITextInput.KeyboardType.number;
         this.hexLabel = UILabel.init();
         this.component1Label = UILabel.init();
         this.component2Label = UILabel.init();
