@@ -23,7 +23,7 @@ topics:
         type: JSContext.LineCap
         summary: The style of cap for line ends
       - name: lineJoin
-        introduced: 2023.8.0
+        introduced: 2023.9.0
         type: JSContext.LineJoin
         summary: The style of joins for line segments
   - name: Symbol

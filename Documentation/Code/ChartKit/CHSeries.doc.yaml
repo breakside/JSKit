@@ -23,6 +23,13 @@ topics:
           - name: name
             type: String
             summary: The name for the series
+          - name: style
+            type: CHSeriesStyle
+            summary: The style for the series
+          - name: values
+            type: any[]
+            summary: The values for the series
+            default: "[]"
         description: |
           While you can create a series directly, it's often easier to use the
           convenience methods such as `CHCategoryChart.addValues()` and
@@ -37,7 +44,7 @@ topics:
   - name: Data
     members:
       - name: values
-        type: Number[]
+        type: any[]
         summary: The array of data values
         description: |
           Any value that is not a finite number will be treated as an empty
@@ -47,7 +54,7 @@ topics:
         summary: Push a value onto the value set for this series
         arguments:
           - name: value
-            type: Number
+            type: any
             summary: The value to add to this series
   - name: Style
     members:

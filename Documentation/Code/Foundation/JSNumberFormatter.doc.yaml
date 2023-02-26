@@ -121,7 +121,7 @@ topics:
     members:
       -
         name: numberFromString
-        introduced: 2023.8.0
+        introduced: 2023.9.0
         kind: method
         summary: Parse a number from the given string
         arguments:
