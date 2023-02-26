@@ -93,6 +93,27 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
         str = formatter.stringFromNumber(1.23);
         TKAssertExactEquals(str, "1.23");
 
+        str = formatter.stringFromNumber(2.01);
+        TKAssertExactEquals(str, "2.01");
+
+        str = formatter.stringFromNumber(2.001);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0009);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0005);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0004);
+        TKAssertExactEquals(str, "2");
+
+        str = formatter.stringFromNumber(2.101);
+        TKAssertExactEquals(str, "2.101");
+
+        str = formatter.stringFromNumber(2.1);
+        TKAssertExactEquals(str, "2.1");
+
         str = formatter.stringFromNumber(0.1);
         TKAssertExactEquals(str, "0.1");
 
@@ -113,6 +134,104 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
         str = formatter.stringFromNumber(-1123456.89);
         TKAssertExactEquals(str, "-1,123,456.89");
+
+        formatter.format = "#.000";
+        str = formatter.stringFromNumber(1);
+        TKAssertExactEquals(str, "1.000");
+
+        str = formatter.stringFromNumber(0);
+        TKAssertExactEquals(str, "0.000");
+
+        str = formatter.stringFromNumber(-1);
+        TKAssertExactEquals(str, "-1.000");
+        
+        str = formatter.stringFromNumber(1.23);
+        TKAssertExactEquals(str, "1.230");
+
+        str = formatter.stringFromNumber(2.01);
+        TKAssertExactEquals(str, "2.010");
+
+        str = formatter.stringFromNumber(2.001);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0009);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0005);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0004);
+        TKAssertExactEquals(str, "2.000");
+
+        str = formatter.stringFromNumber(2.101);
+        TKAssertExactEquals(str, "2.101");
+
+        str = formatter.stringFromNumber(2.1);
+        TKAssertExactEquals(str, "2.100");
+
+        str = formatter.stringFromNumber(0.1);
+        TKAssertExactEquals(str, "0.100");
+
+        str = formatter.stringFromNumber(-1.2346);
+        TKAssertExactEquals(str, "-1.235");
+        
+        str = formatter.stringFromNumber(1.5);
+        TKAssertExactEquals(str, "1.500");
+
+        str = formatter.stringFromNumber(0.7632);
+        TKAssertExactEquals(str, "0.763");
+
+        str = formatter.stringFromNumber(-1.56);
+        TKAssertExactEquals(str, "-1.560");
+
+        formatter.format = "#.0##";
+        str = formatter.stringFromNumber(1);
+        TKAssertExactEquals(str, "1.0");
+
+        str = formatter.stringFromNumber(0);
+        TKAssertExactEquals(str, "0.0");
+
+        str = formatter.stringFromNumber(-1);
+        TKAssertExactEquals(str, "-1.0");
+        
+        str = formatter.stringFromNumber(1.23);
+        TKAssertExactEquals(str, "1.23");
+
+        str = formatter.stringFromNumber(2.01);
+        TKAssertExactEquals(str, "2.01");
+
+        str = formatter.stringFromNumber(2.001);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0009);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0005);
+        TKAssertExactEquals(str, "2.001");
+
+        str = formatter.stringFromNumber(2.0004);
+        TKAssertExactEquals(str, "2.0");
+
+        str = formatter.stringFromNumber(2.101);
+        TKAssertExactEquals(str, "2.101");
+
+        str = formatter.stringFromNumber(2.1);
+        TKAssertExactEquals(str, "2.1");
+
+        str = formatter.stringFromNumber(0.1);
+        TKAssertExactEquals(str, "0.1");
+
+        str = formatter.stringFromNumber(-1.2346);
+        TKAssertExactEquals(str, "-1.235");
+        
+        str = formatter.stringFromNumber(1.5);
+        TKAssertExactEquals(str, "1.5");
+
+        str = formatter.stringFromNumber(0.7632);
+        TKAssertExactEquals(str, "0.763");
+
+        str = formatter.stringFromNumber(-1.56);
+        TKAssertExactEquals(str, "-1.56");
     },
 
     testPercent: function(){
@@ -191,6 +310,18 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
         str = formatter.stringFromNumber(-1);
         TKAssertExactEquals(str, "-$1.00");
+
+        str = formatter.stringFromNumber(2.01);
+        TKAssertExactEquals(str, "$2.01");
+        
+        str = formatter.stringFromNumber(2.006);
+        TKAssertExactEquals(str, "$2.01");
+        
+        str = formatter.stringFromNumber(2.004);
+        TKAssertExactEquals(str, "$2.00");
+        
+        str = formatter.stringFromNumber(2.1);
+        TKAssertExactEquals(str, "$2.10");
         
         str = formatter.stringFromNumber(1.23);
         TKAssertExactEquals(str, "$1.23");
@@ -227,6 +358,18 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
         
         str = formatter.stringFromNumber(1.23);
         TKAssertExactEquals(str, "USD 1.23");
+        
+        str = formatter.stringFromNumber(2.01);
+        TKAssertExactEquals(str, "USD 2.01");
+        
+        str = formatter.stringFromNumber(2.006);
+        TKAssertExactEquals(str, "USD 2.01");
+        
+        str = formatter.stringFromNumber(2.004);
+        TKAssertExactEquals(str, "USD 2.00");
+        
+        str = formatter.stringFromNumber(2.1);
+        TKAssertExactEquals(str, "USD 2.10");
 
         str = formatter.stringFromNumber(1234567.89);
         TKAssertExactEquals(str, "USD 1,234,567.89");

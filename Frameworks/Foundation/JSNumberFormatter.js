@@ -526,16 +526,14 @@ JSClass("JSNumberFormatter", JSObject, {
             if (this._minimumFractionDigits > 0 || fraction !== 0){
                 fraction *= Math.pow(10, this._maximumFractionDigits);
                 fraction = Math.round(fraction);
-                var extras = this._maximumFractionDigits - this._minimumFractionDigits;
-                while (extras > 0 && ((fraction % 10) === 0)){
-                    fraction /= 10;
-                    --extras;
-                }
                 if (this._minimumFractionDigits > 0 || fraction !== 0){
                     str += ".";
                     var fractionString = fraction.toString();
-                    while (fractionString.length < this._minimumFractionDigits){
-                        fractionString += "0";
+                    while (fractionString.length < this._maximumFractionDigits){
+                        fractionString = "0" + fractionString;
+                    }
+                    while (fractionString.length > this._minimumFractionDigits && fractionString[fractionString.length - 1] === "0"){
+                        fractionString = fractionString.substr(0, fractionString.length - 1);
                     }
                     str += fractionString;
                 }
