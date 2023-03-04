@@ -73,9 +73,10 @@ DOMParser.prototype = {
         }else{
             element = this.document.createElement(name);
         }
+        var attrs = attributes.all();
         var attr;
-        for (var i = 0, l = attributes.length; i < l; ++i){
-            attr = attributes[i];
+        for (var i = 0, l = attrs.length; i < l; ++i){
+            attr = attrs[i];
             if (attr.namespace){
                 if (attr.prefix !== null){
                     element.setAttributeNS(attr.namespace, attr.prefix + ':' + attr.name, attr.value);

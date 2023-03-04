@@ -414,18 +414,14 @@ var addMetadata = {
                     return multiple[unit] * n;
                 };
                 if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                    var attrs = {};
-                    for (let i = 0, l = attributes.length; i < l; ++i){
-                        let attr = attributes[i];
-                        if (attr.namespace === null){
-                            attrs[attr.name] = attr.value;
-                        }
-                    }
-                    if (attrs.width && attrs.height){
-                        metadata.image.width = px(attrs.width);
-                        metadata.image.height = px(attrs.height);
-                    }else if (attrs.viewBox){
-                        var box = attrs.viewBox.split(/\s+/).map(n => parseInt(n));
+                    let width = attributes.get("width");
+                    let height = attributes.get("height");
+                    let viewBox = attributes.get("viewBox");
+                    if (width && height){
+                        metadata.image.width = px(width);
+                        metadata.image.height = px(height);
+                    }else if (viewBox){
+                        var box = viewBox.split(/\s+/).map(n => parseInt(n));
                         metadata.image.width = box[2];
                         metadata.image.height = box[3];
                     }

@@ -108,7 +108,7 @@ topics:
                     summary: The element full namespace identifier (url), if any
                     nullable: true
                   - name: attributes
-                    type: JSXMLAttributeArray
+                    type: JSXMLAttributeMap
                     summary: The attributes specified on the element
               - name: xmlParserDidEndElement
                 arguments:
@@ -126,14 +126,13 @@ topics:
                     type: String
                     summary: The element full namespace identifier (url), if any
                     nullable: true
-              - name: JSXMLAttributeArray
+              - name: JSXMLAttributeMap
                 kind: class
-                inherits: Attribute[]
-                summary: A special kind of array/map hybrid for xml attributes
+                summary: A special kind of map for xml attributes
                 topics:
                   - name: Accessing Attributes by Name
                     members:
-                      - name: containsName
+                      - name: contains
                         kind: method
                         type: Boolean
                         summary: Indicates if the given attribute is present, even if it has no value
@@ -146,7 +145,7 @@ topics:
                             nullable: true
                             default: "null"
                             summary: The namespace uri for the attribute
-                      - name: valueForName
+                      - name: get
                         kind: method
                         type: String
                         nullable: true
@@ -160,6 +159,12 @@ topics:
                             nullable: true
                             default: "null"
                             summary: The namespace uri for the attribute
+                  - name: Listing All Attributes
+                    members:
+                      - name: all
+                        kind: method
+                        type: Attribute[]
+                        summary: Return a list of all attributes
               - name: Attribute
                 kind: class
                 anonymous: true

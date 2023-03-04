@@ -60,8 +60,9 @@ JSClass("JSXMLParser", JSObject, {
     },
 
     parse: function(){
+        this.isStopped = false;
+        this.error = null;
         var input = this.xml;
-        var parser = this;
         var length = input.length;
         var offset = 0;
         var isHTML = this.mode === JSXMLParser.Mode.html;
@@ -341,13 +342,13 @@ JSClass("JSXMLParser", JSObject, {
                 name: resolved.name,
                 prefix: resolved.prefix,
                 namespace: resolved.namespace,
-                attributes: JSXMLAttributeArray()
+                attributes: JSXMLAttributeMap()
             };
             for (i = 0, l = attributes.length; i < l; ++i){
                 attr = attributes[i];
                 if (!attr.name.startsWith("xmlns:") && attr.name != "xmlns"){
                     resolved = resolveNamespace(attr.name, true);
-                    element.attributes.push({
+                    element.attributes.add({
                         name: resolved.name,
                         prefix: resolved.prefix,
                         namespace: resolved.namespace,
@@ -422,7 +423,7 @@ JSClass("JSXMLParser", JSObject, {
                     element = resolveElementNamespace(obj.name, obj.attributes);
                     elementStack.push(element);
                     if (this.delegate && this.delegate.xmlParserDidBeginElement){
-                        this.delegate.xmlParserDidBeginElement(this, element.name, element.prefix, element.namespace, element.attributes, obj.isClosed);
+                        this.delegate.xmlParserDidBeginElement(this, element.name, element.prefix, element.namespace, element.attributes);
                     }
                     var elementIsClosed = obj.isClosed;
                     if (obj.rawContents !== null){
@@ -570,52 +571,56 @@ JSXMLParser.Mode = {
     html: "html"
 };
 
-JSGlobalObject.JSXMLAttributeArray = function(){
+JSGlobalObject.JSXMLAttributeMap = function(){
     if (this === undefined){
-        return new JSXMLAttributeArray();
+        return new JSXMLAttributeMap();
     }
-    Array.call(this);
-    this._map = {};
+    this.namespaces = {};
+    this.noNamespace = {};
+    this.attributes = [];
 };
 
-JSXMLAttributeArray.prototype = Object.create(Array.prototype, {
+JSXMLAttributeMap.prototype = {
 
-    push: {
-        value: function(attr){
-            Array.prototype.push.call(this, attr);
-            var key = this._makeKey(attr.name, attr.namespace);
-            this._map[key] = attr;
+    namespaces: null,
+    noNamespace: null,
+    attributes: null,
+
+    add: function(attr){
+        this.attributes.push(attr);
+        var map = this.noNamespace;
+        if (attr.namespace){
+            map = this.namespaces[attr.namespace];
+            if (!map){
+                map = this.namespaces[attr.namespace] = {};
+            }
         }
+        map[attr.name] = attr;
     },
 
-    containsName: {
-        value: function(name, namespace){
-            var key = this._makeKey(name, namespace);
-            var attr = this._map[key];
-            return attr !== undefined;
-        }
+    all: function(){
+        return this.attributes;
     },
 
-    valueForName: {
-        value: function(name, namespace){
-            var key = this._makeKey(name, namespace);
-            var attr = this._map[key];
-            if (attr !== undefined){
+    contains: function(name, namespace){
+        var map = namespace ? this.namespaces[namespace] : this.noNamespace;
+        if (map){
+            return name in map;
+        }
+        return false;
+    },
+
+    get: function(name, namespace){
+        var map = namespace ? this.namespaces[namespace] : this.noNamespace;
+        if (map){
+            var attr = map[name];
+            if (attr){
                 return attr.value;
             }
-            return null;
         }
+        return null;
     },
 
-    _makeKey: {
-        value: function(name, namespace){
-            if (namespace === null || namespace === undefined){
-                return name;
-            }
-            return namespace + ":" + name;
-        }
-    }
-
-});
+};
 
 })();

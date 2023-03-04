@@ -898,14 +898,15 @@ JSClass('JSXMLParserTests', TKTestSuite, {
 
     xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
         TKAssertInstance(parser, JSXMLParser);
-        TKAssertInstance(attributes, JSXMLAttributeArray);
+        TKAssertInstance(attributes, JSXMLAttributeMap);
         this.output.push("beginElement");
         this.output.push(String(name));
         this.output.push(String(prefix));
         this.output.push(String(namespace));
         var attr;
-        for (var i = 0, l = attributes.length; i < l; ++i){
-            attr = attributes[i];
+        var attrs = attributes.all();
+        for (var i = 0, l = attrs.length; i < l; ++i){
+            attr = attrs[i];
             this.output.push(String(attr.name));
             this.output.push(String(attr.prefix));
             this.output.push(String(attr.namespace));
@@ -929,66 +930,64 @@ JSClass('JSXMLParserTests', TKTestSuite, {
 
 });
 
-JSClass("JSXMLAttributeArrayTests", TKTestSuite, {
+JSClass("JSXMLAttributeMapTests", TKTestSuite, {
 
     testConstructor: function(){
-        var attrs = JSXMLAttributeArray();
-        TKAssertInstance(attrs, JSXMLAttributeArray);
-        TKAssertInstance(attrs, Array);
+        var attrs = JSXMLAttributeMap();
+        TKAssertInstance(attrs, JSXMLAttributeMap);
 
-        attrs = new JSXMLAttributeArray();
-        TKAssertInstance(attrs, JSXMLAttributeArray);
-        TKAssertInstance(attrs, Array);
+        attrs = new JSXMLAttributeMap();
+        TKAssertInstance(attrs, JSXMLAttributeMap);
     },
 
-    testPush: function(){
-        var attrs = JSXMLAttributeArray();
-        attrs.push({
+    testAdd: function(){
+        var attrs = JSXMLAttributeMap();
+        attrs.add({
             name: "test",
             prefix: null,
             namespace: null,
             value: null
         });
-        TKAssertExactEquals(attrs.length, 1);
-        TKAssertExactEquals(attrs[0].name, "test");
-        TKAssertExactEquals(attrs.containsName("test"), true);
-        TKAssertExactEquals(attrs.valueForName("test"), null);
-        TKAssertExactEquals(attrs.containsName("other"), false);
-        TKAssertExactEquals(attrs.containsName("test", "http://breakside.io/xml"), false);
+        TKAssertExactEquals(attrs.all().length, 1);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), false);
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), false);
 
-        attrs.push({
+        attrs.add({
             name: "other",
             prefix: null,
             namespace: null,
             value: "testing"
         });
-        TKAssertExactEquals(attrs.length, 2);
-        TKAssertExactEquals(attrs[0].name, "test");
-        TKAssertExactEquals(attrs[1].name, "other");
-        TKAssertExactEquals(attrs.containsName("test"), true);
-        TKAssertExactEquals(attrs.valueForName("test"), null);
-        TKAssertExactEquals(attrs.containsName("other"), true);
-        TKAssertExactEquals(attrs.valueForName("other"), "testing");
-        TKAssertExactEquals(attrs.containsName("test", "http://breakside.io/xml"), false);
+        TKAssertExactEquals(attrs.all().length, 2);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.all()[1].name, "other");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), true);
+        TKAssertExactEquals(attrs.get("other"), "testing");
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), false);
 
-        attrs.push({
+        attrs.add({
             name: "test",
             prefix: "xyz",
             namespace: "http://breakside.io/xml",
             value: "hello"
         });
-        TKAssertExactEquals(attrs.length, 3);
-        TKAssertExactEquals(attrs[0].name, "test");
-        TKAssertExactEquals(attrs[1].name, "other");
-        TKAssertExactEquals(attrs[2].name, "test");
-        TKAssertExactEquals(attrs[2].prefix, "xyz");
-        TKAssertExactEquals(attrs[2].namespace, "http://breakside.io/xml");
-        TKAssertExactEquals(attrs.containsName("test"), true);
-        TKAssertExactEquals(attrs.valueForName("test"), null);
-        TKAssertExactEquals(attrs.containsName("other"), true);
-        TKAssertExactEquals(attrs.valueForName("other"), "testing");
-        TKAssertExactEquals(attrs.containsName("test", "http://breakside.io/xml"), true);
-        TKAssertExactEquals(attrs.valueForName("test", "http://breakside.io/xml"), "hello");
+        TKAssertExactEquals(attrs.all().length, 3);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.all()[1].name, "other");
+        TKAssertExactEquals(attrs.all()[2].name, "test");
+        TKAssertExactEquals(attrs.all()[2].prefix, "xyz");
+        TKAssertExactEquals(attrs.all()[2].namespace, "http://breakside.io/xml");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), true);
+        TKAssertExactEquals(attrs.get("other"), "testing");
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), true);
+        TKAssertExactEquals(attrs.get("test", "http://breakside.io/xml"), "hello");
     }
 
 });
