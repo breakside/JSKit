@@ -82,7 +82,12 @@ JSClass("UINavigationController", UIViewController, {
     viewDidLoad: function(){
         UINavigationController.$super.viewDidLoad.call(this);
         this.view.addSubview(this._navigationBar);
-        this.view.insertSubviewBelowSibling(this.topViewController.view, this._navigationBar);
+        var topView = this.topViewController.view;
+        if (this.topViewController.navigationItem.hidesNavigationBar){
+            this.view.addSubview(topView);
+        }else{
+            this.view.insertSubviewBelowSibling(topView, this._navigationBar);
+        }
         this.view.setNeedsLayout();
     },
 
