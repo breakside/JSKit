@@ -382,9 +382,9 @@ var addMetadata = {
         metadata.image = {
             vector: true
         };
-        var parser = JSXMLParser.init();
-        parser.parse(xml, {
-            beginElement: function(name, prefix, namespace, attributes, isClosed){
+        var parser = JSXMLParser.initWithString(xml);
+        parser.delegate  = {
+            xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
                 var multiple = {
                     'em': 12,
                     'ex': 24,
@@ -432,7 +432,8 @@ var addMetadata = {
                 }
                 parser.stop();
             }
-        });
+        };
+        parser.parse();
     },
 
     '.ttf': async function(name, contents, metadata){

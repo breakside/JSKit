@@ -373,10 +373,10 @@ _JSDataImage.sizeFromJPEGData = function(data){
 };
 
 _JSDataImage.sizeFromSVGData = function(data){
-    var parser = JSXMLParser.init();
+    var parser = JSXMLParser.initWithData(data);
     var size = JSSize(1, 1);
-    parser.parse(data.stringByDecodingUTF8(), {
-        beginElement: function(name, prefix, namespace, attributes, isClosed){
+    parser.delegate = {
+        xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
             var multiple = {
                 'em': 12,
                 'ex': 24,
@@ -424,7 +424,8 @@ _JSDataImage.sizeFromSVGData = function(data){
             }
             parser.stop();
         }
-    });
+    };
+    parser.parse();
     return size;
 };
 

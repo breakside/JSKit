@@ -1,0 +1,270 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2023.9.1
+inherits: JSObject
+summary: An event driven XML parser
+description: |
+  Parses XML data and sends a `delegate` events as it encounteres various
+  types of XML nodes.
+
+  In contrast to a `DOMParser`, this XML parser does not read the entire
+  document first.
+topics:
+  - name: Creating a Parser
+    members:
+      - name: initWithString
+        kind: init
+        summary: Create an XML parser for the given XML string
+        arguments:
+          - name: xmlString
+            type: String
+            summary: The xml string to parse
+      - name: initWithData
+        kind: init
+        summary: Create an XML parser for the given XML data and encoding
+        arguments:
+          - name: xmlData
+            type: JSData
+            summary: The xml data to convert into a string and parse
+          - name: encoding
+            type: String.Encoding
+            default: String.Encoding.utf8
+            summary: The text encoding of the data
+  - name: Delegate
+    members:
+      - name: delegate
+        type: JSXMLParserDelegate
+        summary: The delgate that will receive calls as the parser encounters
+          various XML nodes
+      - name: JSXMLParserDelegate
+        kind: protocol
+        summary: The xml parser delegate protocol
+        description: |
+          All methods are optional
+        topics:
+          - name: Document Events
+            members:
+              - name: xmlParserDidBeginDocument
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+              - name: xmlParserFoundDocumentType
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: name
+                    type: String
+                    summary: The document type name
+                  - name: publicID
+                    type: String
+                    summary: The public ID specified in the document type, if any
+                    nullable: true
+                  - name: systemID
+                    type: String
+                    summary: The system ID specified in the document type, if any
+                    nullable: true
+              - name: xmlParserFoundProcessingInstruction
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: name
+                    type: String
+                    summary: The document type name
+                  - name: data
+                    type: String
+                    summary: The processing instruction data
+              - name: xmlParserFoundComment
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: text
+                    type: String
+                    summary: The text of the comment
+              - name: xmlParserDidEndDocument
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+          - name: Elements
+            members:
+              - name: xmlParserDidBeginElement
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: name
+                    type: String
+                    summary: The element name
+                  - name: prefix
+                    type: String
+                    summary: The element name's prefix, if any
+                    nullable: true
+                  - name: namespace
+                    type: String
+                    summary: The element full namespace identifier (url), if any
+                    nullable: true
+                  - name: attributes
+                    type: JSXMLAttributeArray
+                    summary: The attributes specified on the element
+              - name: xmlParserDidEndElement
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: name
+                    type: String
+                    summary: The element name
+                  - name: prefix
+                    type: String
+                    summary: The element name's prefix, if any
+                    nullable: true
+                  - name: namespace
+                    type: String
+                    summary: The element full namespace identifier (url), if any
+                    nullable: true
+              - name: JSXMLAttributeArray
+                kind: class
+                inherits: Attribute[]
+                summary: A special kind of array/map hybrid for xml attributes
+                topics:
+                  - name: Accessing Attributes by Name
+                    members:
+                      - name: containsName
+                        kind: method
+                        type: Boolean
+                        summary: Indicates if the given attribute is present, even if it has no value
+                        arguments:
+                          - name: name
+                            type: String
+                            summary: The un-prefixed attribute name
+                          - name: namespace
+                            type: String
+                            nullable: true
+                            default: "null"
+                            summary: The namespace uri for the attribute
+                      - name: valueForName
+                        kind: method
+                        type: String
+                        nullable: true
+                        summary: Get the value for the given attribute
+                        arguments:
+                          - name: name
+                            type: String
+                            summary: The un-prefixed attribute name
+                          - name: namespace
+                            type: String
+                            nullable: true
+                            default: "null"
+                            summary: The namespace uri for the attribute
+              - name: Attribute
+                kind: class
+                anonymous: true
+                topics:
+                  - name: Properties
+                    members:
+                      - name: name
+                        type: String
+                        summary: The attribute's name
+                      - name: prefix
+                        type: String
+                        summary: The attribute's name's prefix, if any
+                        nullable: true
+                      - name: namespace
+                        type: String
+                        summary: The attribute's full namespace identifier (url), if any
+                        nullable: true
+                      - name: value
+                        type: String
+                        summary: The attribute's value, if any
+                        nullable: true
+          - name: Text
+            members:
+              - name: xmlParserFoundText
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: text
+                    type: String
+                    summary: The text, including whitespace
+              - name: xmlParserFoundCDATA
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: text
+                    type: String
+                    summary: The text of the CDATA node
+          - name: Errors
+            members:
+              - name: xmlParserErrorOccurred
+                arguments:
+                  - name: parser
+                    type: JSXMLParser
+                    summary: The xml parser
+                  - name: error
+                    type: Error
+                    summary: The error that occurred
+                    note: |
+                      If this method is implemented by the delgate, the parser
+                      will stop itself and call the method.
+
+                      If unimplemented, the parser will stop itself and throw
+                      the error.
+  - name: Parsing
+    members:
+      - name: parse
+        kind: method
+        summary: Begin parsing the XML
+      - name: stop
+        kind: method
+        summary: Stop parsing the XML
+        description: |
+          After parsing is stopped, no more events will be sent.
+
+          While some use cases require reading an entire document, others
+          may only need to read up to a certain element.  In such cases,
+          stopping the parser saves the work of reading through the remainder
+          of the document that would be necessary for a `DOMParser`.
+  - name: Options
+    members:
+      - name: mode
+        type: Mode
+        summary: The general parsing mode
+        description: |
+          Defaults to `xml`(Mode.xml)
+      - name: Mode
+        suffix: enum
+        kind: enum
+        summary: The possible parsing modes
+        topics:
+          - name: Options
+            members:
+              - name: xml
+                summary: Strict XML parsing
+              - name: html
+                summary: HTML parsing
+                description: |
+                  HTML isn't XML, but the parser can be configured to treat the
+                  input as HTML.
+
+                  When parsing HTML, certain elements are considered self-closing
+                  even without the XML style `/>` end of the tag.  Additionally,
+                  some standard HTML entities are supported.  Other elements,
+                  such as `<script>`, are assumed to have raw text content.
+                important:
+                  Use with caution.  The parser still expects relatively well-formed HTML,
+                  so it will produce errors on input that a true HTML parser would
+                  be more lenient with.
+  - name: Contents
+    members:
+      - name: xml
+        type: String
+        summary: The completed xml string that is being parsed
+        description: |
+          This is the string (or decoded data) that was provided to the parser's
+          init method.

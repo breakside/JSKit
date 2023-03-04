@@ -14,25 +14,57 @@
 // limitations under the License.
 
 // #import "JSObject.js"
+// #import "JSProtocol.js"
+// #import "String+JS.js"
 'use strict';
 
 (function(){
 
+JSProtocol("JSXMLParserDelegate", JSProtocol, {
+
+    xmlParserDidBeginDocument: function(parser){},
+    xmlParserDidEndDocument: function(parser){},
+    xmlParserFoundDocumentType: function(parser, name, publicId, systemId){},
+    xmlParserFoundProcessingInstruction: function(parser, name, data){},
+    xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){},
+    xmlParserDidEndElement: function(parser, name, prefix, namespace){},
+    xmlParserFoundComment: function(parser, text){},
+    xmlParserFoundCDATA: function(parser, text){},
+    xmlParserFoundText: function(parser, text){},
+    xmlParserErrorOccurred: function(parser, error){}
+
+});
+
 JSClass("JSXMLParser", JSObject, {
 
-    isHTML: false,
+    initWithData: function(data, encoding){
+        if (encoding === undefined){
+            encoding = String.Encoding.utf8;
+        }
+        var xml = String.initWithData(data, encoding);
+        this.initWithString(xml);
+    },
 
-    state: null,
+    initWithString: function(str){
+        this.xml = str;
+    },
+
+    mode: "xml",
+
+    xml: null,
+    error: null,
     isStopped: false,
 
     stop: function(){
         this.isStopped = true;
     },
 
-    parse: function(input, listener){
+    parse: function(){
+        var input = this.xml;
+        var parser = this;
         var length = input.length;
         var offset = 0;
-        var isHTML = this.isHTML;
+        var isHTML = this.mode === JSXMLParser.Mode.html;
         var c;
         var lineNumber = 1;
         var lineOffset;
@@ -309,7 +341,7 @@ JSClass("JSXMLParser", JSObject, {
                 name: resolved.name,
                 prefix: resolved.prefix,
                 namespace: resolved.namespace,
-                attributes: []
+                attributes: JSXMLAttributeArray()
             };
             for (i = 0, l = attributes.length; i < l; ++i){
                 attr = attributes[i];
@@ -325,110 +357,125 @@ JSClass("JSXMLParser", JSObject, {
             }
             return element;
         };
-
-        var obj;
-        if (isHTML){
-            readWhitespace();
-        }else{
-            obj = readObject();
-            if (obj === null || obj.kind != 'PI' || obj.name != 'xml'){
-                throw new Error("Expecting <?xml at start of document");
+        try{
+            var obj;
+            if (isHTML){
+                readWhitespace();
+            }else{
+                obj = readObject();
+                if (obj === null || obj.kind != 'PI' || obj.name != 'xml'){
+                    throw new Error("Expecting <?xml at start of document");
+                }
             }
-        }
-        obj = readObject();
-        var elementNameStack = [];
-        var namespaces = {
-            ':default:': null,
-            'xml': 'http://www.w3.org/XML/1998/namespace'
-        };
-        var namespacesStack = [];
-        var hasDocumentElement = false;
-        var hasSentDoctype = false;
-        if (listener.beginDocument){
-            listener.beginDocument();
-        }
-        while (!this.isStopped && obj !== null){
-            if (obj.kind == 'Doctype'){
-                if (hasSentDoctype){
-                    throw new Error("Only one doctype allowed");
-                }
-                if (hasDocumentElement){
-                    throw new Error("Doctype must come before the document element");
-                }
-                if (elementNameStack.length > 0){
-                    throw new Error("Doctype only allowed at document root");
-                }
-                if (listener.handleDocumentType){
-                    listener.handleDocumentType(obj.name, obj.publicId || null, obj.systemId || null);
-                }
-                hasSentDoctype = true;
-            }else if (obj.kind == "PI"){
-                if (elementNameStack.length > 0){
-                    throw new Error("Processing instructions only allowed at document root");
-                }
-                if (listener.handleProcessingInstruction){
-                    listener.handleProcessingInstruction(obj.name, obj.value);
-                }
-            }else if (obj.kind == 'CDATA'){
-                if (elementNameStack.length === 0){
-                    throw new Error("CDATA not allowed at document root");
-                }
-                if (listener.handleCDATA){
-                    listener.handleCDATA(obj.value);
-                }
-            }else if (obj.kind == 'Comment'){
-                if (listener.handleComment){
-                    listener.handleComment(obj.value);
-                }
-            }else if (obj.kind == 'ElementStart'){
-                if (elementNameStack.length === 0){
-                    hasDocumentElement = true;
-                }
-                elementNameStack.push(obj.name);
-                namespacesStack.push(namespaces);
-                namespaces = Object.create(namespaces);
-                var element = resolveElementNamespace(obj.name, obj.attributes);
-                if (listener.beginElement){
-                    listener.beginElement(element.name, element.prefix, element.namespace, element.attributes, obj.isClosed);
-                }
-                var elementIsClosed = obj.isClosed;
-                if (obj.rawContents !== null){
-                    if (!this.isStopped && listener.handleText && obj.rawContents.length > 0){
-                        listener.handleText(obj.rawContents);
+            obj = readObject();
+            var elementStack = [];
+            var namespaces = {
+                ':default:': null,
+                'xml': 'http://www.w3.org/XML/1998/namespace'
+            };
+            var namespacesStack = [];
+            var hasDocumentElement = false;
+            var hasSentDoctype = false;
+            var element;
+            if (this.delegate && this.delegate.xmlParserDidBeginDocument){
+                this.delegate.xmlParserDidBeginDocument(this);
+            }
+            while (!this.isStopped && obj !== null){
+                if (obj.kind == 'Doctype'){
+                    if (hasSentDoctype){
+                        throw new Error("Only one doctype allowed");
                     }
-                    if (!this.isStopped && listener.endElement){
-                        listener.endElement();
+                    if (hasDocumentElement){
+                        throw new Error("Doctype must come before the document element");
                     }
-                    elementIsClosed = true;
-                }
-                if (elementIsClosed){
-                    elementNameStack.pop();
+                    if (elementStack.length > 0){
+                        throw new Error("Doctype only allowed at document root");
+                    }
+                    if (this.delegate && this.delegate.xmlParserFoundDocumentType){
+                        this.delegate.xmlParserFoundDocumentType(this, obj.name, obj.publicId || null, obj.systemId || null);
+                    }
+                    hasSentDoctype = true;
+                }else if (obj.kind == "PI"){
+                    if (elementStack.length > 0){
+                        throw new Error("Processing instructions only allowed at document root");
+                    }
+                    if (this.delegate && this.delegate.xmlParserFoundProcessingInstruction){
+                        this.delegate.xmlParserFoundProcessingInstruction(this, obj.name, obj.value);
+                    }
+                }else if (obj.kind == 'CDATA'){
+                    if (elementStack.length === 0){
+                        throw new Error("CDATA not allowed at document root");
+                    }
+                    if (this.delegate && this.delegate.xmlParserFoundCDATA){
+                        this.delegate.xmlParserFoundCDATA(this, obj.value);
+                    }
+                }else if (obj.kind == 'Comment'){
+                    if (this.delegate && this.delegate.xmlParserFoundComment){
+                        this.delegate.xmlParserFoundComment(this, obj.value);
+                    }
+                }else if (obj.kind == 'ElementStart'){
+                    if (elementStack.length === 0){
+                        hasDocumentElement = true;
+                    }
+                    namespacesStack.push(namespaces);
+                    namespaces = Object.create(namespaces);
+                    element = resolveElementNamespace(obj.name, obj.attributes);
+                    elementStack.push(element);
+                    if (this.delegate && this.delegate.xmlParserDidBeginElement){
+                        this.delegate.xmlParserDidBeginElement(this, element.name, element.prefix, element.namespace, element.attributes, obj.isClosed);
+                    }
+                    var elementIsClosed = obj.isClosed;
+                    if (obj.rawContents !== null){
+                        if (!this.isStopped && this.delegate.xmlParserFoundText && obj.rawContents.length > 0){
+                            this.delegate.xmlParserFoundText(this, obj.rawContents);
+                        }
+                        elementIsClosed = true;
+                    }
+                    if (elementIsClosed){
+                        if (!this.isStopped && this.delegate.xmlParserDidEndElement){
+                            this.delegate.xmlParserDidEndElement(this, element.name, element.prefix, element.namespace);
+                        }
+                        elementStack.pop();
+                        namespaces = namespacesStack.pop();
+                    }
+                }else if (obj.kind == 'Text'){
+                    if (elementStack.length === 0){
+                        if (!obj.value.match(/^[\r\n\t ]*$/)){
+                            throw new Error("Text not allowed at the document root");
+                        }
+                    }else{
+                        if (this.delegate && this.delegate.xmlParserFoundText){
+                            this.delegate.xmlParserFoundText(this, obj.value);
+                        }
+                    }
+                }else if (obj.kind == 'ElementEnd'){
+                    element = elementStack.pop();
                     namespaces = namespacesStack.pop();
-                }
-            }else if (obj.kind == 'Text'){
-                if (elementNameStack.length === 0){
-                    if (!obj.value.match(/^[\r\n\t ]*$/)){
-                        throw new Error("Text not allowed at the document root");
+                    if (element.prefix !== null){
+                        if (obj.name != element.prefix + ":" + element.name){
+                            throw new Error("Mismatched end tag");
+                        }
+                    }else{
+                        if (obj.name != element.name){
+                            throw new Error("Mismatched end tag");
+                        }
                     }
-                }else{
-                    if (listener.handleText){
-                        listener.handleText(obj.value);
+                    if (this.delegate && this.delegate.xmlParserDidEndElement){
+                        this.delegate.xmlParserDidEndElement(this, element.name, element.prefix, element.namespace);
                     }
                 }
-            }else if (obj.kind == 'ElementEnd'){
-                var name = elementNameStack.pop();
-                namespaces = namespacesStack.pop();
-                if (obj.name != name){
-                    throw new Error("Mismatched end tag");
-                }
-                if (listener.endElement){
-                    listener.endElement();
-                }
+                obj = readObject();
             }
-            obj = readObject();
-        }
-        if (!this.isStopped && listener.endDocument){
-            listener.endDocument();
+            if (!this.isStopped && this.delegate.xmlParserDidEndDocument){
+                this.delegate.xmlParserDidEndDocument(this);
+            }
+        }catch (e){
+            this.isStopped = true;
+            if (this.delegate && this.delegate.xmlParserErrorOccurred){
+                this.delegate.xmlParserErrorOccurred(this, e);
+            }else{
+                throw e;
+            }
         }
     }
 
@@ -517,5 +564,58 @@ var htmlElements = {
     closed: new Set(['script', 'style', 'title', 'body']),
     raw: new Set(['script', 'style'])
 };
+
+JSXMLParser.Mode = {
+    xml: "xml",
+    html: "html"
+};
+
+JSGlobalObject.JSXMLAttributeArray = function(){
+    if (this === undefined){
+        return new JSXMLAttributeArray();
+    }
+    Array.call(this);
+    this._map = {};
+};
+
+JSXMLAttributeArray.prototype = Object.create(Array.prototype, {
+
+    push: {
+        value: function(attr){
+            Array.prototype.push.call(this, attr);
+            var key = this._makeKey(attr.name, attr.namespace);
+            this._map[key] = attr;
+        }
+    },
+
+    containsName: {
+        value: function(name, namespace){
+            var key = this._makeKey(name, namespace);
+            var attr = this._map[key];
+            return attr !== undefined;
+        }
+    },
+
+    valueForName: {
+        value: function(name, namespace){
+            var key = this._makeKey(name, namespace);
+            var attr = this._map[key];
+            if (attr !== undefined){
+                return attr.value;
+            }
+            return null;
+        }
+    },
+
+    _makeKey: {
+        value: function(name, namespace){
+            if (namespace === null || namespace === undefined){
+                return name;
+            }
+            return namespace + ":" + name;
+        }
+    }
+
+});
 
 })();
