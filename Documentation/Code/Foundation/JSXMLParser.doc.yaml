@@ -45,11 +45,13 @@ topics:
           - name: Document Events
             members:
               - name: xmlParserDidBeginDocument
+                summary: Called at the start of parsing
                 arguments:
                   - name: parser
                     type: JSXMLParser
                     summary: The xml parser
               - name: xmlParserFoundDocumentType
+                summary: Called when a document type definition is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -66,6 +68,7 @@ topics:
                     summary: The system ID specified in the document type, if any
                     nullable: true
               - name: xmlParserFoundProcessingInstruction
+                summary: Called When an XML processing instruction is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -77,6 +80,7 @@ topics:
                     type: String
                     summary: The processing instruction data
               - name: xmlParserFoundComment
+                summary: Called When an comment is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -85,6 +89,7 @@ topics:
                     type: String
                     summary: The text of the comment
               - name: xmlParserDidEndDocument
+                summary: Called after the entire document has been parsed
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -92,6 +97,7 @@ topics:
           - name: Elements
             members:
               - name: xmlParserDidBeginElement
+                summary: Called when an opening element tag is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -111,6 +117,7 @@ topics:
                     type: JSXMLAttributeMap
                     summary: The attributes specified on the element
               - name: xmlParserDidEndElement
+                summary: Called when an opening closing tag is found (including self-closing tags)
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -189,6 +196,7 @@ topics:
           - name: Text
             members:
               - name: xmlParserFoundText
+                summary: Called when text content is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -197,6 +205,7 @@ topics:
                     type: String
                     summary: The text, including whitespace
               - name: xmlParserFoundCDATA
+                summary: Called when a character data section is found
                 arguments:
                   - name: parser
                     type: JSXMLParser
@@ -207,6 +216,7 @@ topics:
           - name: Errors
             members:
               - name: xmlParserErrorOccurred
+                summary: Called when an error occurrs
                 arguments:
                   - name: parser
                     type: JSXMLParser
