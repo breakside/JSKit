@@ -22,73 +22,82 @@ JSGlobalObject.DOMParser = function DOMParser(){
 
 DOMParser.prototype = {
 
+    document: null,
+    currentNode: null,
+
     parseFromString: function(str, mimetype){
-        var parser = JSXMLParser.init();
-        var isHTML = mimetype == "text/html";
-        parser.isHTML = isHTML;
-        var document = null;
-        var node = null;
-        var stack = [];
-        parser.parse(str, {
-            beginDocument: function(){
-                document = DOM.createDocument();
-                node = document;
-            },
-            handleDocumentType: function(name, publicId, systemId){
-                var doctype = document.implementation.createDocumentType(name, publicId, systemId);
-                document.appendChild(doctype);
-            },
-            handleProcessingInstruction: function(name, data){
-                var pi = document.createProcessingInstruction(name, data);
-                node.appendChild(pi);
-            },
-            handleComment: function(text){
-                var comment = document.createComment(text);
-                node.appendChild(comment);
-            },
-            handleCDATA: function(text){
-                var cdata = document.createCDATASection(text);
-                node.appendChild(cdata);
-            },
-            beginElement: function(name, prefix, namespace, attributes, isClosed){
-                var element;
-                if (namespace !== null){
-                    if (prefix !== null){
-                        element = document.createElementNS(namespace, prefix + ':' + name);   
-                    }else{
-                        element = document.createElementNS(namespace, name);
-                    }
-                }else{
-                    element = document.createElement(name);
-                }
-                var attr;
-                for (var i = 0, l = attributes.length; i < l; ++i){
-                    attr = attributes[i];
-                    if (attr.namespace){
-                        if (attr.prefix !== null){
-                            element.setAttributeNS(attr.namespace, attr.prefix + ':' + attr.name, attr.value);
-                        }else{
-                            element.setAttribute(attr.namespace, attr.name, attr.value);
-                        }
-                    }else{
-                        element.setAttribute(attr.name, attr.value);
-                    }
-                }
-                node.appendChild(element);
-                if (!isClosed){
-                    stack.push(node);
-                    node = element;
-                }
-            },
-            handleText: function(text){
-                var textNode = document.createTextNode(text);
-                node.appendChild(textNode);
-            },
-            endElement: function(){
-                node = stack.pop();
+        var parser = JSXMLParser.initWithString(str);
+        if (mimetype == "text/html"){
+            parser.mode = JSXMLParser.Mode.html;
+        }
+        this.document = null;
+        this.currentNode = null;
+        parser.delegate = this;
+        parser.parse();
+        return this.document;
+    },
+
+    xmlParserDidBeginDocument: function(parser){
+        this.document = DOM.createDocument();
+        this.currentNode = this.document;
+    },
+
+    xmlParserFoundDocumentType: function(parser, name, publicId, systemId){
+        var doctype = this.document.implementation.createDocumentType(name, publicId, systemId);
+        this.document.appendChild(doctype);
+    },
+
+    xmlParserFoundProcessingInstruction: function(parser, name, data){
+        var pi = this.document.createProcessingInstruction(name, data);
+        this.currentNode.appendChild(pi);
+    },
+
+    xmlParserFoundComment: function(parser, text){
+        var comment = this.document.createComment(text);
+        this.currentNode.appendChild(comment);
+    },
+
+    xmlParserFoundCDATA: function(parser, text){
+        var cdata = this.document.createCDATASection(text);
+        this.currentNode.appendChild(cdata);
+    },
+
+    xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
+        var element;
+        if (namespace !== null){
+            if (prefix !== null){
+                element = this.document.createElementNS(namespace, prefix + ':' + name);   
+            }else{
+                element = this.document.createElementNS(namespace, name);
             }
-        });
-        return document;
+        }else{
+            element = this.document.createElement(name);
+        }
+        var attrs = attributes.all();
+        var attr;
+        for (var i = 0, l = attrs.length; i < l; ++i){
+            attr = attrs[i];
+            if (attr.namespace){
+                if (attr.prefix !== null){
+                    element.setAttributeNS(attr.namespace, attr.prefix + ':' + attr.name, attr.value);
+                }else{
+                    element.setAttribute(attr.namespace, attr.name, attr.value);
+                }
+            }else{
+                element.setAttribute(attr.name, attr.value);
+            }
+        }
+        this.currentNode.appendChild(element);
+        this.currentNode = element;
+    },
+
+    xmlParserFoundText: function(parser, text){
+        var textNode = this.document.createTextNode(text);
+        this.currentNode.appendChild(textNode);
+    },
+
+    xmlParserDidEndElement: function(parser){
+        this.currentNode = this.currentNode.parentNode;
     }
 
 };

@@ -30,6 +30,98 @@ JSClass("JSImageTests", TKTestSuite, {
         });
 
         this.wait(expectation, 2.0);
+    },
+
+    testInitWithData: function(){
+        var svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12px" height="34px" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        var image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 12);
+        TKAssertExactEquals(image.size.height, 34);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12" height="34" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 12);
+        TKAssertExactEquals(image.size.height, 34);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 12);
+        TKAssertExactEquals(image.size.height, 34);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12em" height="34em" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 144);
+        TKAssertExactEquals(image.size.height, 408);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12ex" height="34ex" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 288);
+        TKAssertExactEquals(image.size.height, 816);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12in" height="34in" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 864);
+        TKAssertExactEquals(image.size.height, 2448);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12cm" height="34cm" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertFloatEquals(image.size.width, 864/2.54);
+        TKAssertFloatEquals(image.size.height, 2448/2.54);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12mm" height="34mm" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertFloatEquals(image.size.width, 864/25.4);
+        TKAssertFloatEquals(image.size.height, 2448/25.4);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12pt" height="34pt" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertFloatEquals(image.size.width, 12);
+        TKAssertFloatEquals(image.size.height, 34);
+
+        svg = [
+            '<?xml version="1.0" encoding="utf-8"?>',
+            '<svg width="12pc" height="34pc" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 144);
+        TKAssertExactEquals(image.size.height, 408);
     }
 
 });

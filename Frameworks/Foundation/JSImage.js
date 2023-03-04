@@ -373,10 +373,10 @@ _JSDataImage.sizeFromJPEGData = function(data){
 };
 
 _JSDataImage.sizeFromSVGData = function(data){
-    var parser = JSXMLParser.init();
+    var parser = JSXMLParser.initWithData(data);
     var size = JSSize(1, 1);
-    parser.parse(data.stringByDecodingUTF8(), {
-        beginElement: function(name, prefix, namespace, attributes, isClosed){
+    parser.delegate = {
+        xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
             var multiple = {
                 'em': 12,
                 'ex': 24,
@@ -406,25 +406,22 @@ _JSDataImage.sizeFromSVGData = function(data){
                 return multiple[unit] * n;
             };
             if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                var attrs = {};
-                for (var i = 0, l = attributes.length; i < l; ++i){
-                    var attr = attributes[i];
-                    if (attr.namespace === null){
-                        attrs[attr.name] = attr.value;
-                    }
-                }
-                if (attrs.width && attrs.height){
-                    size.width = px(attrs.width);
-                    size.height = px(attrs.height);
-                }else if (attrs.viewBox){
-                    var box = attrs.viewBox.split(/\s+/).map(function(n){ return parseInt(n); });
+                var width = attributes.get("width");
+                var height = attributes.get("height");
+                var viewBox = attributes.get("viewBox");
+                if (width && height){
+                    size.width = px(width);
+                    size.height = px(height);
+                }else if (viewBox){
+                    var box = viewBox.split(/\s+/).map(function(n){ return parseInt(n); });
                     size.width = box[2];
                     size.height = box[3];
                 }
             }
             parser.stop();
         }
-    });
+    };
+    parser.parse();
     return size;
 };
 

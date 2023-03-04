@@ -21,8 +21,15 @@
 
 JSClass('JSXMLParserTests', TKTestSuite, {
 
+    setup: function(){
+        this.resetOutput();
+    },
+
+    resetOutput: function(){
+        this.output = [];
+    },
+
     testBasicXML: function(){
-        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<abc>',
@@ -30,25 +37,27 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        var listener = TestListener();
-        parser.parse(xml, listener);
+        var parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        parser.parse();
         var expected = [
             "beginDocument",
             "beginElement",
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
@@ -63,16 +72,21 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null"
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
     },
 
     testNamespaces: function(){
-        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<abc:root xmlns:abc="http://breakside.io/test">',
@@ -80,25 +94,27 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc:root>'
         ].join("\n");
-        var listener = TestListener();
-        parser.parse(xml, listener);
+        var parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        parser.parse();
         var expected = [
             "beginDocument",
             "beginElement",
             "root",
             "abc",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "abc",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "abc",
+            "http://breakside.io/test",
             "handleText",
             "\n  ",
             "beginElement",
@@ -113,15 +129,20 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "root",
+            "abc",
+            "http://breakside.io/test",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<root xmlns="http://breakside.io/test">',
@@ -129,25 +150,28 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <abc:c xmlns:abc="http://breakside.io/test2" one="1" two="2"/>',
             '</root>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "beginElement",
             "root",
             "null",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "null",
+            "http://breakside.io/test",
             "handleText",
             "\n  ",
             "beginElement",
@@ -162,14 +186,19 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "abc",
+            "http://breakside.io/test2",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "root",
+            "null",
+            "http://breakside.io/test",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<root xmlns="http://breakside.io/test">',
@@ -178,22 +207,22 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  </test>',
             '</root>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "beginElement",
             "root",
             "null",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "http://breakside.io/test2",
-            "false",
             "handleText",
             "\n    ",
             "beginElement",
@@ -208,17 +237,25 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "http://breakside.io/test2",
             "handleText",
             "\n  ",
             "endElement",
+            "test",
+            "null",
+            "http://breakside.io/test2",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "root",
+            "null",
+            "http://breakside.io/test",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<a:root xmlns:a="http://breakside.io/test">',
@@ -228,22 +265,22 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <a:test2/>',
             '</a:root>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "beginElement",
             "root",
             "a",
             "http://breakside.io/test",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "a",
             "http://breakside.io/test2",
-            "false",
             "handleText",
             "\n    ",
             "beginElement",
@@ -258,24 +295,35 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "endElement",
+            "test",
+            "a",
+            "http://breakside.io/test2",
             "handleText",
             "\n  ",
             "beginElement",
             "test2",
             "a",
             "http://breakside.io/test",
-            "true",
+            "endElement",
+            "test2",
+            "a",
+            "http://breakside.io/test",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "root",
+            "a",
+            "http://breakside.io/test",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<xml:root>',
@@ -285,22 +333,22 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <xml:test2/>',
             '</xml:root>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "beginElement",
             "root",
             "xml",
             "http://www.w3.org/XML/1998/namespace",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "xml",
             "http://www.w3.org/XML/1998/namespace",
-            "false",
             "handleText",
             "\n    ",
             "beginElement",
@@ -315,26 +363,37 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "endElement",
+            "test",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
             "handleText",
             "\n  ",
             "beginElement",
             "test2",
             "xml",
             "http://www.w3.org/XML/1998/namespace",
-            "true",
+            "endElement",
+            "test2",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "root",
+            "xml",
+            "http://www.w3.org/XML/1998/namespace",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
     },
 
     testCommentsAndCData: function(){
-        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!-- Start of document -->',
@@ -344,8 +403,9 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  comment -->',
             '</abc>'
         ].join("\n");
-        var listener = TestListener();
-        parser.parse(xml, listener);
+        var parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        parser.parse();
         var expected = [
             "beginDocument",
             "handleComment",
@@ -354,31 +414,33 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleCDATA",
             "anything<goes>&here;",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "handleComment",
             " another\n  comment ",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
     },
 
     testHTML: function(){
-        var parser = JSXMLParser.init();
-        parser.isHTML = true;
         var xml = [
             '<!DOCTYPE html>',
             '<html>',
@@ -395,8 +457,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  </body>',
             '</html>'
         ].join("\n");
-        var listener = TestListener();
-        parser.parse(xml, listener);
+        var parser = JSXMLParser.initWithString(xml);
+        parser.mode = JSXMLParser.Mode.html;
+        parser.delegate = this;
+        parser.parse();
         var expected = [
             "beginDocument",
             "handleDocumentType",
@@ -407,14 +471,12 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "html",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "head",
             "null",
             "null",
-            "false",
             "handleText",
             "\n    ",
             "beginElement",
@@ -429,7 +491,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "text/css",
-            "true",
+            "endElement",
+            "link",
+            "null",
+            "null",
             "handleText",
             "\n    ",
             "beginElement",
@@ -444,8 +509,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "script.js",
-            "false",
             "endElement",
+            "script",
+            "null",
+            "null",
             "handleText",
             "\n    ",
             "beginElement",
@@ -456,32 +523,41 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "text/javascript",
-            "false",
             "handleText",
             "\n      // scripts can include < & special chars &amp;\n      if (0 < 1){\n      }\n    ",
             "endElement",
+            "script",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "endElement",
+            "head",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
             "body",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "endElement",
+            "body",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "html",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
     },
 
     testDoctypes: function(){
-        var parser = JSXMLParser.init();
         var xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name>',
@@ -490,8 +566,9 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        var listener = TestListener();
-        parser.parse(xml, listener);
+        var parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        parser.parse();
         var expected = [
             "beginDocument",
             "handleDocumentType",
@@ -502,17 +579,18 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
@@ -527,14 +605,19 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name',
@@ -544,11 +627,12 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
-        TKAssertArrayEquals(listener.output, expected);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name [',
@@ -558,11 +642,12 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
-        TKAssertArrayEquals(listener.output, expected);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name SYSTEM "test">',
@@ -571,8 +656,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "handleDocumentType",
@@ -583,17 +670,18 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
@@ -608,14 +696,19 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name PUBLIC "test" "test2">',
@@ -624,8 +717,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "handleDocumentType",
@@ -636,17 +731,18 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleText",
             "testing 123",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
@@ -661,14 +757,19 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name PUBLIC "test" "test2" []>',
@@ -677,11 +778,12 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
-        TKAssertArrayEquals(listener.output, expected);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name PUBLIC "test" "test2" [',
@@ -691,11 +793,12 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="1" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
-        TKAssertArrayEquals(listener.output, expected);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        TKAssertArrayEquals(this.output, expected);
 
-        parser = JSXMLParser.init();
         xml = [
             '<?xml version="1.0" encoding="utf-8"?>',
             '<!DOCTYPE name PUBLIC "test" "test2" [',
@@ -707,8 +810,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             '  <c one="&entity2;" two="2"/>',
             '</abc>'
         ].join("\n");
-        listener = TestListener();
-        parser.parse(xml, listener);
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
         expected = [
             "beginDocument",
             "handleDocumentType",
@@ -719,17 +824,18 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "abc",
             "null",
             "null",
-            "false",
             "handleText",
             "\n  ",
             "beginElement",
             "test",
             "null",
             "null",
-            "false",
             "handleText",
             "hello",
             "endElement",
+            "test",
+            "null",
+            "null",
             "handleText",
             "\n  ",
             "beginElement",
@@ -744,66 +850,146 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null",
             "null",
             "2",
-            "true",
+            "endElement",
+            "c",
+            "null",
+            "null",
             "handleText",
             "\n",
-            "endElement"
+            "endElement",
+            "abc",
+            "null",
+            "null",
         ];
-        TKAssertArrayEquals(listener.output, expected);
+        TKAssertArrayEquals(this.output, expected);
+    },
+
+    xmlParserDidBeginDocument: function(parser){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("beginDocument");
+    },
+
+    xmlParserFoundDocumentType: function(parser, name, publicId, systemId){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("handleDocumentType");
+        this.output.push(String(name));
+        this.output.push(String(publicId));
+        this.output.push(String(systemId));
+    },
+
+    xmlParserFoundProcessingInstruction: function(parser, name, data){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("handleProcessingInstruction");
+        this.output.push(String(name));
+        this.output.push(String(data));
+    },
+
+    xmlParserFoundComment: function(parser, text){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("handleComment");
+        this.output.push(String(text));
+    },
+
+    xmlParserFoundCDATA: function(parser, text){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("handleCDATA");
+        this.output.push(String(text));
+    },
+
+    xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
+        TKAssertInstance(parser, JSXMLParser);
+        TKAssertInstance(attributes, JSXMLAttributeMap);
+        this.output.push("beginElement");
+        this.output.push(String(name));
+        this.output.push(String(prefix));
+        this.output.push(String(namespace));
+        var attr;
+        var attrs = attributes.all();
+        for (var i = 0, l = attrs.length; i < l; ++i){
+            attr = attrs[i];
+            this.output.push(String(attr.name));
+            this.output.push(String(attr.prefix));
+            this.output.push(String(attr.namespace));
+            this.output.push(String(attr.value));
+        }
+    },
+
+    xmlParserFoundText: function(parser, text){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("handleText");
+        this.output.push(String(text));
+    },
+
+    xmlParserDidEndElement: function(parser, name, prefix, namespace){
+        TKAssertInstance(parser, JSXMLParser);
+        this.output.push("endElement");
+        this.output.push(String(name));
+        this.output.push(String(prefix));
+        this.output.push(String(namespace));
     },
 
 });
 
-var TestListener = function(){
-    var output = [];
-    var obj = {
-        beginDocument: function(){
-            output.push("beginDocument");
-        },
-        handleDocumentType: function(name, publicId, systemId){
-            output.push("handleDocumentType");
-            output.push(String(name));
-            output.push(String(publicId));
-            output.push(String(systemId));
-        },
-        handleProcessingInstruction: function(name, data){
-            output.push("handleProcessingInstruction");
-            output.push(String(name));
-            output.push(String(data));
-        },
-        handleComment: function(text){
-            output.push("handleComment");
-            output.push(String(text));
-        },
-        handleCDATA: function(text){
-            output.push("handleCDATA");
-            output.push(String(text));
-        },
-        beginElement: function(name, prefix, namespace, attributes, isClosed){
-            output.push("beginElement");
-            output.push(String(name));
-            output.push(String(prefix));
-            output.push(String(namespace));
-            var attr;
-            for (var i = 0, l = attributes.length; i < l; ++i){
-                attr = attributes[i];
-                output.push(String(attr.name));
-                output.push(String(attr.prefix));
-                output.push(String(attr.namespace));
-                output.push(String(attr.value));
-            }
-            output.push(String(isClosed));
-        },
-        handleText: function(text){
-            output.push("handleText");
-            output.push(String(text));
-        },
-        endElement: function(){
-            output.push("endElement");
-        },
-    };
-    Object.defineProperty(obj, 'output', {get: function(){ return output; }});
-    return obj;
-};
+JSClass("JSXMLAttributeMapTests", TKTestSuite, {
+
+    testConstructor: function(){
+        var attrs = JSXMLAttributeMap();
+        TKAssertInstance(attrs, JSXMLAttributeMap);
+
+        attrs = new JSXMLAttributeMap();
+        TKAssertInstance(attrs, JSXMLAttributeMap);
+    },
+
+    testAdd: function(){
+        var attrs = JSXMLAttributeMap();
+        attrs.add({
+            name: "test",
+            prefix: null,
+            namespace: null,
+            value: null
+        });
+        TKAssertExactEquals(attrs.all().length, 1);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), false);
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), false);
+
+        attrs.add({
+            name: "other",
+            prefix: null,
+            namespace: null,
+            value: "testing"
+        });
+        TKAssertExactEquals(attrs.all().length, 2);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.all()[1].name, "other");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), true);
+        TKAssertExactEquals(attrs.get("other"), "testing");
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), false);
+
+        attrs.add({
+            name: "test",
+            prefix: "xyz",
+            namespace: "http://breakside.io/xml",
+            value: "hello"
+        });
+        TKAssertExactEquals(attrs.all().length, 3);
+        TKAssertExactEquals(attrs.all()[0].name, "test");
+        TKAssertExactEquals(attrs.all()[1].name, "other");
+        TKAssertExactEquals(attrs.all()[2].name, "test");
+        TKAssertExactEquals(attrs.all()[2].prefix, "xyz");
+        TKAssertExactEquals(attrs.all()[2].namespace, "http://breakside.io/xml");
+        TKAssertExactEquals(attrs.contains("test"), true);
+        TKAssertExactEquals(attrs.get("test"), null);
+        TKAssertExactEquals(attrs.contains("other"), true);
+        TKAssertExactEquals(attrs.get("other"), "testing");
+        TKAssertExactEquals(attrs.contains("test", "http://breakside.io/xml"), true);
+        TKAssertExactEquals(attrs.get("test", "http://breakside.io/xml"), "hello");
+    }
+
+});
 
 })();

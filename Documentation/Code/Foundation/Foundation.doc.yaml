@@ -253,6 +253,7 @@ topics:
       - JSGlobalObject
       - JSTimer
       - JSNumberFormatter
+      - JSXMLParser
       # - JSBinarySearcher
       # - JSValueTransformer
       # - JSMath
