@@ -119,3 +119,28 @@ JSClass("UIDesaturateEffect", UIVisualEffect, {
     }
 
 });
+
+JSClass("UIDarkenEffect", UIVisualEffect, {
+
+    percentage: 1,
+
+    initWithPercentage: function(percentage){
+        this.percentage = percentage;
+    },
+
+    initWithSpec: function(spec){
+        UIDesaturateEffect.$super.initWithSpec.call(this, spec);
+        if (spec.containsKey("percentage")){
+            this.percentage = spec.valueForKey("percentage", Number);
+        }
+    },
+
+    animationInterpolation: function(from, to, progress){
+        return UIDesaturateEffect.initWithPercentage(from.percentage + (to.percentage - from.percentage) * progress);
+    },
+
+    defaultAnimationValue: function(){
+        return UIDesaturateEffect.initWithPercentage(0);
+    }
+
+});

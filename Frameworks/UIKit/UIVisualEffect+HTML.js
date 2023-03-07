@@ -55,3 +55,11 @@ UIDesaturateEffect.definePropertiesFromExtensions({
     }
 
 });
+
+UIDarkenEffect.definePropertiesFromExtensions({
+
+    cssFilterString: function(){
+        return "brightness(%f)".sprintf(1 - this.percentage);
+    }
+
+});
