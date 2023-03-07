@@ -49,7 +49,7 @@ JSClass("TKTestSuite", JSObject, {
 
     getResourceData: function(resourceName, ext, completion, target){
         var metadata = this.bundle.metadataForResourceName(resourceName, ext);
-        this.bundle.getResourceData(metadata, completion, target);
+        return this.bundle.getResourceData(metadata, completion, target);
     }
 
 });
