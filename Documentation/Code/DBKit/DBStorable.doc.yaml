@@ -141,10 +141,10 @@ topics:
               this.created = JSDate.now;
             },
 
-            initFromStorableDictionary: async function(dictionary, graph){
+            initFromStorableDictionary: function(dictionary, graph){
               this.data = dictionary.data.dataByDecodingBase64();
               this.created = JSDate.initWithTimeIntervalSince1970(dictionary.created);
-              this.senderID = await graph.object(dictionary.senderID);
+              this.senderID = dictionary.senderID;
             },
 
             encodeToStorableDictionary: function(dictionary){

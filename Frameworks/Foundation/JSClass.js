@@ -178,8 +178,6 @@ JSClass.prototype = {
                 if (result instanceof Promise){
                     return result.then(function(promiseResult){
                         return promiseResult || obj;
-                    }, function(){
-                        return null;
                     });
                 }
                 return result;
