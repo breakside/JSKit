@@ -28,7 +28,7 @@ JSClass("CHPieChart", CHChart, {
         this.valueFormatter = JSNumberFormatter.init();
         this.valueFormatter.format = "0%";
         this.valueFormatter.multiplier = 100;
-        this.labelFont = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.bold);
+        this.labelFont = JSFont.systemFontOfSize(JSFont.Size.normal).bolderFont();
         this.labelTextColor = JSColor.white;
         this.labelShadowColor = JSColor.black.colorWithAlpha(0.4);
         this.labelShadowOffset = JSPoint(1, 1);

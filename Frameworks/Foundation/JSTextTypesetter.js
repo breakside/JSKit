@@ -335,7 +335,7 @@ JSClass("JSTextTypesetter", JSObject, {
             if (attributes.bold || attributes.italic){
                 attributes = JSCopy(attributes);
                 if (attributes.bold){
-                    attributes.font = attributes.font.fontWithWeight(JSFont.Weight.bold);
+                    attributes.font = attributes.font.bolderFont();
                 }
                 if (attributes.italic){
                     attributes.font = attributes.font.fontWithStyle(JSFont.Style.italic);

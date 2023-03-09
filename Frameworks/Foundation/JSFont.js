@@ -134,6 +134,14 @@ JSClass("JSFont", JSObject, {
         return JSFont.initWithDescriptor(descriptor, this.pointSize);
     },
 
+    bolderFont: function(){
+        var descriptor = this.descriptor.bolderDescriptor();
+        if (descriptor === null){
+            descriptor = this.descriptor.fontWithWeight(JSFont.Weight.bold);
+        }
+        return JSFont.initWithDescriptor(descriptor, this.pointSize);
+    },
+
     fontWithStyle: function(style){
         if (style == this.descriptor.style){
             return this;

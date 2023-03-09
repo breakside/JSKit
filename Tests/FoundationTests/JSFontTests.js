@@ -14,6 +14,8 @@ JSClass("JSFontTests", TKTestSuite, {
                 JSFontMockDescriptor.Resources.normal,
                 JSFontMockDescriptor.Resources.bold,
                 JSFontMockDescriptor.Resources.boldItalic,
+                JSFontMockDescriptor.Resources.light,
+                JSFontMockDescriptor.Resources.semibold
             ],
             ResourceLookup:{
                 global: {
@@ -23,12 +25,18 @@ JSClass("JSFontTests", TKTestSuite, {
                     "Dummy-Bold.otf": [1],
                     "Dummy-BoldItalic": [2],
                     "Dummy-BoldItalic.otf": [2],
+                    "Dummy-Light": [3],
+                    "Dummy-Light.otf": [3],
+                    "Dummy-SemiBold": [4],
+                    "Dummy-SemiBold.otf": [4],
                 }
             },
             Fonts: [
                  0,
                  1,
-                 2
+                 2,
+                 3,
+                 4
             ]
         });
         this.descriptors = JSFont.registerBundleFonts(this.bundle);
@@ -51,6 +59,32 @@ JSClass("JSFontTests", TKTestSuite, {
 
     testFontWithWeight: function(){
         var font = JSFont.initWithDescriptor(this.descriptors[0], 30).fontWithWeight(JSFont.Weight.bold);
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+    },
+
+    testBolderFont: function(){
+        var font = JSFont.initWithDescriptor(this.descriptors[0], 30).bolderFont();
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+
+        font = JSFont.initWithDescriptor(this.descriptors[3], 30).bolderFont();
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.semibold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[4]);
+
+        font = JSFont.initWithDescriptor(this.descriptors[1], 30).bolderFont();
         TKAssertNotNull(font);
         TKAssertExactEquals(font.descriptor.family, "Dummy");
         TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
@@ -208,6 +242,25 @@ JSClass("JSFontMockDescriptor", JSFontDescriptor, {
 });
 
 JSFontMockDescriptor.Resources = {
+    light: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "Light",
+            family: "Dummy",
+            name: "Dummy Light",
+            postscript_name: "Dummy-Light",
+            style: "normal",
+            unique_identifier: "UIKitTesting;dummy-light",
+            unitsPerEM: 2048,
+            weight: 300,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    },
     normal: {
         font: {
             ascender: 1700,
@@ -224,6 +277,25 @@ JSFontMockDescriptor.Resources = {
             unique_identifier: "UIKitTesting;dummy-regular",
             unitsPerEM: 2048,
             weight: 400,
+            widths: "eJwBAgD9/wAIAAoACQ=="
+        }
+    },
+    semibold: {
+        font: {
+            ascender: 1700,
+            cmap: {
+                format: 13,
+                data: "eJwBEADv/wEAAAAAAAAA/////wAAAAAaBgP+",
+            },
+            descender: -300,
+            face: "SemiBold",
+            family: "Dummy",
+            name: "Dummy SemiBold",
+            postscript_name: "Dummy-SemiBold",
+            style: "normal",
+            unique_identifier: "UIKitTesting;dummy-semibold",
+            unitsPerEM: 2048,
+            weight: 600,
             widths: "eJwBAgD9/wAIAAoACQ=="
         }
     },

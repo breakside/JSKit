@@ -75,7 +75,7 @@ JSClass("UIAlertController", UIViewController, {
             this._titleLabel.maximumNumberOfLines = 2;
             this._titleLabel.textAlignment = JSTextAlignment.center;
             this._titleLabel.text = this.title;
-            this._titleLabel.font = this._titleLabel.font.fontWithWeight(JSFont.Weight.bold);
+            this._titleLabel.font = this._titleLabel.font.bolderFont();
             this._primaryStackView.addSubview(this._titleLabel);
         }
         if (this.message !== null && this.message !== ''){
@@ -214,7 +214,7 @@ UIAlertController.ButtonStylers = Object.create({}, {
         configurable: true,
         get: function(){
             var styler = UIButtonDefaultStyler.init();
-            styler.font = styler.font.fontWithPointSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.bold);
+            styler.font = styler.font.fontWithPointSize(JSFont.Size.detail).bolderFont();
             styler.normalTitleColor = JSColor.destructive;
             styler.activeTitleColor = JSColor.destructive.colorDarkenedByPercentage(0.2);
             styler.disabledTitleColor = JSColor.destructive.colorWithAlpha(0.5);

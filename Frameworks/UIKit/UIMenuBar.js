@@ -882,7 +882,7 @@ JSClass("UIMenuBarItemView", UIView, {
             if (this._titleLabel){
                 var font = this._menuBar.font;
                 if (this._item === this._menuBar.primaryMenuItem){
-                    font = font.fontWithWeight(JSFont.Weight.bold);
+                    font = font.bolderFont();
                 }
                 this._titleLabel.font = font;
                 this._titleLabel.textColor = textColor;

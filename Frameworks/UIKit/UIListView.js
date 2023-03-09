@@ -3135,7 +3135,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             this.cellFont = JSFont.systemFontOfSize(JSFont.Size.normal);
         }
         if (this.headerFont === null){
-            this.headerFont = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.bold);
+            this.headerFont = JSFont.systemFontOfSize(JSFont.Size.normal).bolderFont();
         }
         if (this.cellTextColor === null){
             this.cellTextColor = JSColor.text;
