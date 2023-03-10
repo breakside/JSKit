@@ -191,8 +191,8 @@ JSClass("JSTextLine", JSObject, {
         return line;
     },
 
-    truncatedLine: function(width, token){
-        if (width + 0.1 >= this._size.width){
+    truncatedLine: function(width, token, force){
+        if (width + 0.1 >= this._size.width && force !== true){
             return this;
         }
 

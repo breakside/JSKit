@@ -1382,7 +1382,7 @@ JSClass("JSTextFramesetterTests", TKTestSuite, {
         TKAssertEquals(line.range.length, 12);
         TKAssertFloatEquals(line.origin.x, 0);
         TKAssertFloatEquals(line.origin.y, 0);
-        TKAssertFloatEquals(line.size.width, 270);
+        TKAssertFloatEquals(line.size.width, 280);
         TKAssertFloatEquals(line.size.height, 16.40625);
         TKAssertEquals(line.runs[0].range.location, 0);
         TKAssertEquals(line.runs[0].range.length, 12);

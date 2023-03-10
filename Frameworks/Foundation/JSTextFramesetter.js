@@ -109,11 +109,16 @@ JSClass("JSTextFramesetter", JSObject, {
             if (remianingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than word break
+                y = line.origin.y;
                 lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), paragraphStyle.lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
+                line.origin.y = y;
+                line = line.truncatedLine(widthLimit, undefined, true);
+                lines.push(line);
+            }else{
+                line = line.truncatedLine(widthLimit);
+                lines.push(line);
             }
-            var truncated = line.truncatedLine(widthLimit);
-            lines.push(truncated);
         }
         var frame = this.constructFrame(lines, size);
         this._alignLinesInFrame(frame);

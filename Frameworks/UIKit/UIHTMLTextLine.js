@@ -64,8 +64,8 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     //     // HTML does this for us
     // },
 
-    truncatedLine: function(width, token){
-        if (width + 0.1 >= this._size.width){
+    truncatedLine: function(width, token, force){
+        if (width + 0.1 >= this._size.width && force !== true){
             return this;
         }
 
@@ -119,12 +119,13 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             line.size.width += tokenRun.size.width;
 
             var iterator = run.textNode.nodeValue.userPerceivedCharacterIterator(run.textNode.nodeValue.length - 1);
-            while (iterator.character !== null && iterator.isMandatoryLineBreak){
-                iterator.decrement();
+            while (iterator.firstCharacter !== null && iterator.isMandatoryLineBreak){
                 run.range.length -= iterator.range.length;
                 line.range.length -= iterator.range.length;
+                run.textNode.nodeValue = run.textNode.nodeValue.substr(0, run.textNode.nodeValue.length - iterator.range.length);
+                iterator.decrement();
             }
-            while (iterator.character !== null && line.size.width > width){
+            while (iterator.firstCharacter !== null && line.size.width > width){
                 metrics = this.canvasContext.measureText(iterator.utf16);
                 run.size.width -= metrics.width;
                 run.range.length -= iterator.range.length;
