@@ -2421,6 +2421,9 @@ JSClass("UIListView", UIScrollView, {
             if (this._touch.cell){
                 this._touch.cell.active = false;
                 this._setSelectedIndexPaths([this._touch.cell.indexPath], {notifyDelegate: true});
+                if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
+                    this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, this._touch.cell.indexPath);
+                }
             }
             this._touch = null;
         }
