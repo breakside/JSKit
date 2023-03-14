@@ -22,6 +22,7 @@
 // #import "UIDraggingSession.js"
 // #import "UIUserInterface.js"
 // #import "UIColorSpace.js"
+// #import "UIScreen.js"
 'use strict';
 
 (function(){
@@ -273,6 +274,7 @@ JSClass("UIWindowServer", JSObject, {
             window = this.windowStack[i];
             this.layoutWindow(window);
         }
+        JSNotificationCenter.shared.post(UIScreen.Notification.frameChanged, this, {screen: this.screen});
     },
 
     layoutWindow: function(window){
