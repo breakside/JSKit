@@ -97,6 +97,7 @@ JSClass("UICollectionViewLayoutAttributes", JSObject, {
     rowIndex: 0,
     columnIndex: 0,
     transform: null,
+    zIndex: 0,
 
     elementIdentifier: JSReadOnlyProperty(),
 
