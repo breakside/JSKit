@@ -58,3 +58,7 @@ JSClass("UIScreen", JSObject, {
     }
 
 });
+
+UIScreen.Notification = {
+    frameChanged: "UIScreenFrameChanged"
+};

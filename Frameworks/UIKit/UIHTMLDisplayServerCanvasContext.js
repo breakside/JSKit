@@ -56,7 +56,8 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             cornerRadius: true,
             shadow: true,
             contentVisualEffect: true,
-            backgroundVisualEffect: true
+            backgroundVisualEffect: true,
+            zIndex: true,
         };
         this._imageElements = [];
         this._canvasElements = [];
@@ -375,6 +376,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     updateHTMLProperty_contentVisualEffect: function(layer){
         this.style.filter = layer.presentation.contentVisualEffect ? layer.presentation.contentVisualEffect.cssFilterString() : '';
+    },
+
+    updateHTMLProperty_zIndex: function(layer){
+        this.style.zIndex = layer.zIndex;
     },
 
     // --------------------------------------------------------------------

@@ -58,6 +58,7 @@ JSClass("UICollectionReusableView", UIView, {
     applyAttributes: function(attributes){
         this.untransformedFrame = attributes.frame;
         this.transform = attributes.transform;
+        this.zIndex = attributes.zIndex;
         if (!attributes.indexPath.isEqual(this.indexPath)){
             this.indexPath = JSIndexPath(attributes.indexPath);
         }

@@ -306,6 +306,16 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    zIndex: JSDynamicProperty(),
+
+    setZIndex: function(zIndex){
+        logger.warn("setting zIndex on UIWindow has no effect");
+    },
+
+    getZIndex: function(){
+        return 0;
+    },
+
     // -------------------------------------------------------------------------
     // MARK: Traits
 

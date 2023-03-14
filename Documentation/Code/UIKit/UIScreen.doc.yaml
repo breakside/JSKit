@@ -50,3 +50,14 @@ topics:
 
           Objects such as `JSImage` use the screen's scale to determine whether
           high resolution images should be loaded.
+  - name: Notifications
+    members:
+      - name: Notification
+        introduced: 2023.11.0
+        kind: enum
+        summary: Names for screen related notifications
+        topics:
+          - name: Notification Names
+            members:
+              - name: sizeChanged
+                summary: Posted when the screen's size changes
