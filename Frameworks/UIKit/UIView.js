@@ -138,6 +138,9 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("tag")){
             this.tag = spec.valueForKey("tag");
         }
+        if (spec.containsKey("zIndex")){
+            this.zIndex = spec.valueForKey("zIndex", Number);
+        }
         var i, l;
         if (spec.containsKey("gestureRecognizers")){
             var recognizers = spec.valueForKey("gestureRecognizers");
@@ -193,6 +196,7 @@ JSClass('UIView', UIResponder, {
     shadowOffset: UIViewLayerProperty(),
     shadowRadius: UIViewLayerProperty(),
     contentVisualEffect: UIViewLayerProperty(),
+    zIndex: UIViewLayerProperty(),
     cursor: JSDynamicProperty(),
     tooltip: null,
 
@@ -205,6 +209,10 @@ JSClass('UIView', UIResponder, {
         if (layer === this.layer){
             this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
         }
+    },
+
+    layerDidChangeZIndexSublayers: function(layer){
+        this.zIndexOrderedSubviews = null;
     },
 
     // -------------------------------------------------------------------------
@@ -967,6 +975,8 @@ JSClass('UIView', UIResponder, {
 
     userInteractionEnabled: true,
 
+    zIndexOrderedSubviews: null,
+
     containsPoint: function(point){
         return this.layer.containsPoint(point);
     },
@@ -975,11 +985,19 @@ JSClass('UIView', UIResponder, {
         var subview;
         var locationInSubview;
         var hit = null;
-        for (var i = this.subviews.length - 1; i >= 0 && hit === null; --i){
-            subview = this.subviews[i];
+        var subviews = this.subviews;
+        if (this.layer.numberOfSublayersWithNonZeroZIndex > 0){
+            if (this.zIndexOrderedSubviews === null){
+                this.zIndexOrderedSubviews = JSCopy(subviews);
+                this.zIndexOrderedSubviews.sort(UIView.compareZIndex);
+            }
+            subviews = this.zIndexOrderedSubviews;
+        }
+        for (var i = subviews.length - 1; i >= 0 && hit === null; --i){
+            subview = subviews[i];
             locationInSubview = this.layer.convertPointToLayer(locationInView, subview.layer);
             if (!subview.hidden && subview.layer.presentation.alpha > 0 && (!subview.clipsToBounds || subview.containsPoint(locationInSubview))){
-                hit  = subview.hitTest(locationInSubview);
+                hit = subview.hitTest(locationInSubview);
             }
         }
         if (hit === null && this.userInteractionEnabled && this.containsPoint(locationInView)){
@@ -1205,3 +1223,7 @@ UIView.noIntrinsicSize = -1;
 
 UIView.Corners = UILayer.Corners;
 UIView.Sides = UILayer.Sides;
+
+UIView.compareZIndex = function(a, b){
+    return a.layer._zIndex - b.layer._zIndex;
+};

@@ -489,8 +489,59 @@ JSClass("UILayerTests", TKTestSuite, {
         TKAssertFloatEquals(point.y, 3);
     },
 
+    testHitTest: function(){
+        var layer = UILayer.init();
+        layer.bounds = JSRect(0, 0, 100, 100);
+        var hit = layer.hitTest(JSPoint(0, 0));
+        TKAssertExactEquals(hit, layer);
+        hit = layer.hitTest(JSPoint(99.9, 99.9));
+        TKAssertExactEquals(hit, layer);
+        hit = layer.hitTest(JSPoint(100, 99.9));
+        TKAssertExactEquals(hit, null);
+        hit = layer.hitTest(JSPoint(99.0, 100));
+        TKAssertExactEquals(hit, null);
+        hit = layer.hitTest(JSPoint(0, -0.1));
+        TKAssertExactEquals(hit, null);
+        hit = layer.hitTest(JSPoint(-0.1, 0));
+        TKAssertExactEquals(hit, null);
+
+        var sublayer1 = UILayer.init();
+        sublayer1.frame = JSRect(10, 10, 50, 50);
+        var sublayer2 = UILayer.init();
+        sublayer2.frame = JSRect(40, 40, 50, 50);
+        layer.addSublayer(sublayer1);
+        layer.addSublayer(sublayer2);
+        hit = layer.hitTest(JSPoint(9, 9));
+        TKAssertExactEquals(hit, layer);
+        hit = layer.hitTest(JSPoint(90, 90));
+        TKAssertExactEquals(hit, layer);
+        hit = layer.hitTest(JSPoint(10, 10));
+        TKAssertExactEquals(hit, sublayer1);
+        hit = layer.hitTest(JSPoint(39, 39));
+        TKAssertExactEquals(hit, sublayer1);
+        hit = layer.hitTest(JSPoint(40, 40));
+        TKAssertExactEquals(hit, sublayer2);
+        hit = layer.hitTest(JSPoint(89, 89));
+        TKAssertExactEquals(hit, sublayer2);
+
+        sublayer1.zIndex = 1;
+        hit = layer.hitTest(JSPoint(40, 40));
+        TKAssertExactEquals(hit, sublayer1);
+        hit = layer.hitTest(JSPoint(59, 59));
+        TKAssertExactEquals(hit, sublayer1);
+        hit = layer.hitTest(JSPoint(60, 60));
+        TKAssertExactEquals(hit, sublayer2);
+
+        sublayer1.zIndex = 0;
+        hit = layer.hitTest(JSPoint(40, 40));
+        TKAssertExactEquals(hit, sublayer2);
+        hit = layer.hitTest(JSPoint(59, 59));
+        TKAssertExactEquals(hit, sublayer2);
+        hit = layer.hitTest(JSPoint(60, 60));
+        TKAssertExactEquals(hit, sublayer2);
+    },
+
     // TODO: point/rect conversions with rotated transformations
-    // TODO: hit testing
     // TODO: animations
     // TODO: layout & display (maybe some of this goes in UIDisplayServerTests?)
     // TODO: JSContext.drawLayerProperties (extension method defined by UILayer)

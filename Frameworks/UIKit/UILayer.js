@@ -80,6 +80,7 @@ JSClass("UILayer", JSObject, {
     shadowOffset:       UILayerAnimatedProperty(),
     shadowRadius:       UILayerAnimatedProperty(),
     clipsToBounds:      JSDynamicProperty('_clipsToBounds', false),
+    zIndex:             JSDynamicProperty("_zIndex", 0),
     model:              null,
     presentation:       null,
     superlayer:         null,
@@ -300,6 +301,34 @@ JSClass("UILayer", JSObject, {
         return path;
     },
 
+    setZIndex: function(zIndex){
+        if (zIndex !== this._zIndex){
+            var previousZIndex = this._zIndex;
+            this._zIndex = zIndex;
+            this.didChangeProperty('zIndex');
+            if (this.superlayer !== null){
+                if (previousZIndex === 0){
+                    this.superlayer.numberOfSublayersWithNonZeroZIndex += 1;
+                }else{
+                    if (zIndex === 0){
+                        this.superlayer.numberOfSublayersWithNonZeroZIndex -= 1;
+                    }
+                }
+                this.superlayer.setNeedsZIndexOrderedSublayers();
+            }
+        }
+    },
+
+    numberOfSublayersWithNonZeroZIndex: 0,
+    zIndexOrderedSublayers: null,
+
+    setNeedsZIndexOrderedSublayers: function(){
+        this.zIndexOrderedSublayers = null;
+        if (this.delegate && this.delegate.layerDidChangeZIndexSublayers){
+            this.delegate.layerDidChangeZIndexSublayers(this);
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Shadows
 
@@ -340,6 +369,12 @@ JSClass("UILayer", JSObject, {
             }
         }
         this.sublayers.splice(index, 0, sublayer);
+        if (sublayer.zIndex !== 0){
+            this.numberOfSublayersWithNonZeroZIndex += 1;
+            this.setNeedsZIndexOrderedSublayers();
+        }else if (this.numberOfSublayersWithNonZeroZIndex > 0){
+            this.setNeedsZIndexOrderedSublayers();
+        }
         sublayer.sublayerIndex = index;
         for (i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
             this.sublayers[i].sublayerIndex += 1;
@@ -373,6 +408,12 @@ JSClass("UILayer", JSObject, {
             }
             for (var i = sublayer.sublayerIndex + 1, l = this.sublayers.length; i < l; ++i){
                 this.sublayers[i].sublayerIndex -= 1;
+            }
+            if (this.numberOfSublayersWithNonZeroZIndex > 0){
+                this.setNeedsZIndexOrderedSublayers();
+            }
+            if (sublayer.zIndex !== 0){
+                this.numberOfSublayersWithNonZeroZIndex -= 1;
             }
             this.sublayers.splice(sublayer.sublayerIndex,1);
             sublayer.superlayer = null;
@@ -540,8 +581,16 @@ JSClass("UILayer", JSObject, {
         var sublayer;
         var locationInSublayer;
         var hit = null;
-        for (var i = this.sublayers.length - 1; i >= 0 && hit === null; --i){
-            sublayer = this.sublayers[i];
+        var sublayers = this.sublayers;
+        if (this.numberOfSublayersWithNonZeroZIndex > 0){
+            if (this.zIndexOrderedSublayers === null){
+                this.zIndexOrderedSublayers = JSCopy(sublayers);
+                this.zIndexOrderedSublayers.sort(UILayer.compareZIndex);
+            }
+            sublayers = this.zIndexOrderedSublayers;
+        }
+        for (var i = sublayers.length - 1; i >= 0 && hit === null; --i){
+            sublayer = sublayers[i];
             locationInSublayer = this.convertPointToLayer(locationInLayer, sublayer);
             if (!sublayer.hidden && sublayer.presentation.alpha > 0 && (!sublayer.clipsToBounds || sublayer.containsPoint(locationInSublayer))){
                 hit = sublayer.hitTest(locationInSublayer);
@@ -796,8 +845,17 @@ JSClass("UILayer", JSObject, {
         if (includeSublayers && !hidden){
             var sublayer;
             var transform;
-            for (var i = 0, l = this.sublayers.length; i < l; ++i){
-                sublayer = this.sublayers[i];
+            var sublayers = this.sublayers;
+            if (this.numberOfSublayersWithNonZeroZIndex > 0){
+                if (this.zIndexOrderedSublayers === null){
+                    this.zIndexOrderedSublayers = JSCopy(sublayers);
+                    this.zIndexOrderedSublayers.sort(UILayer.compareZIndex);
+                }
+                sublayers = this.zIndexOrderedSublayers;
+            }
+            sublayers.sort(function(a, b){ return a._zIndex - b._zIndex; });
+            for (var i = 0, l = sublayers.length; i < l; ++i){
+                sublayer = sublayers[i];
                 if (!sublayer.hidden){
                     context.save();
                     transform = sublayer._presentationTransformFromSuperlayer();
@@ -840,6 +898,10 @@ UILayer.Path = {
     background: 0,
     border: 1,
     shadow: 2
+};
+
+UILayer.compareZIndex = function(a, b){
+    return a._zIndex - b._zIndex;
 };
 
 JSContext.definePropertiesFromExtensions({

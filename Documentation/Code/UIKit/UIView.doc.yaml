@@ -575,6 +575,24 @@ topics:
         static: true
         summary: A value to return in `getIntrinsicSize()` when the view has
            no intrinsic size in that dimension.
+      -
+        name: zIndex
+        introduced: 2023.11.0
+        type: Number
+        summary: Controls the drawing order of this view compared to its siblings
+        description: |
+          By default, with everything at `zIndex = 0`, sibling views are drawn
+          acording to their `subviewIndex` ordering.
+
+          However, the `zIndex` can be used to preserve the `subviewIndex`
+          ordering, but alter the drawing order.
+
+          For example, a list view with headers that stick to top may set a
+          positive `zIndex` on those headers so they're drawn over the cells,
+          while remaining before the cells in the list's `subviews`.
+
+          Preserving a natural subview ordering such as headers-before-list-cells
+          is helpful for accessibility purposes.
   -
     name: Visibility
     members:
