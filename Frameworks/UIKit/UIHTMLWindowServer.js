@@ -857,6 +857,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         UIHTMLWindowServer.$super.orderWindowFront.call(this, window);
         if (window.subviewIndex === 0){
             this.updateThemeColorElement();
+            this.updateDocumentTitle();
         }
     },
 
@@ -867,6 +868,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         UIHTMLWindowServer.$super.setMenuBar.call(this, menuBar);
         this.updateThemeColorElement();
     },
+
+    // --------------------------------------------------------------------
+    // MARK: - HTML Document/Window
 
     updateThemeColorElement: function(){
         if (this.themeColorElement === null){
@@ -896,6 +900,15 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.themeColorElement.setAttribute("content", color.cssString());
     },
 
+    updateDocumentTitle: function(){
+        var window = this.windowStack[0];
+        if (window instanceof UIRootWindow){
+            if (this.rootElement === this.domDocument.body){
+                this.domDocument.title = window.title;
+            }
+        }
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Screen Updates
 
@@ -921,7 +934,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.accessibilityObservers = {};
         this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
         this.accessibilityObservers.elementChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementChanged, null, this.handleAccessibilityElementChanged, this);
-        this.accessibilityObservers.titleChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.titleChanged, null, this.handleAccessibilityTitleChanged, this);
+        this.accessibilityObservers.labelChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.labelChanged, null, this.handleAccessibilityLabelChanged, this);
         this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
         this.accessibilityObservers.visibilityChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.visibilityChanged, null, this.handleAccessibilityVisibilityChanged, this);
         this.accessibilityObservers.enabledChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.enabledChanged, null, this.handleAccessibilityEnabledChanged, this);
@@ -977,11 +990,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
-    handleAccessibilityTitleChanged: function(notification){
+    handleAccessibilityLabelChanged: function(notification){
         var element = notification.sender;
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.updateAccessibilityLabel(element);
+        }
+        if (element instanceof UIRootWindow){
+            this.updateDocumentTitle();
         }
     },
 

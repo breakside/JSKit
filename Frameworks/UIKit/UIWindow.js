@@ -157,6 +157,7 @@ JSClass('UIWindow', UIView, {
         this._title = title;
         this.setNeedsLayout();
         this._styler.updateWindow(this);
+        this.postAccessibilityNotification(UIAccessibility.Notification.labelChanged);
     },
 
     setIcon: function(icon){
@@ -1235,13 +1236,10 @@ JSClass("UIRootWindow", UIWindow, {
 
     level: UIWindow.Level.back,
 
-    getAccessibilityLabel: function(){
-        return this.application.accessibilityLabel;
-    },
-
     _commonWindowInit: function(){
         UIRootWindow.$super._commonWindowInit.call(this);
         this.frame = this.application.windowServer.screen.frame;
+        this.title = this.application.bundle.localizedStringForInfoKey("UIApplicationTitle");
     },
 
     isAccessibilityElement: false,

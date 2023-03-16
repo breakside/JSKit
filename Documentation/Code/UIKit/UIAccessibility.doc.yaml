@@ -445,7 +445,7 @@ topics:
                 name: selectedTextChanged
                 summary: Dispatched when a field's text selection changes
               -
-                name: titleChanged
+                name: labelChanged
                 summary: Dispatched when an element's label changes
               -
                 name: valueChanged

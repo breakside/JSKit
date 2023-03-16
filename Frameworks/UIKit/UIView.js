@@ -1161,6 +1161,7 @@ JSClass('UIView', UIResponder, {
 
     setAccessibilityLabel: function(accessibilityLabel){
         this._accessibilityLabel = accessibilityLabel;
+        this.postAccessibilityNotification(UIAccessibility.Notification.labelChanged);
     },
 
     setAccessibilityHidden: function(accessibilityHidden){
