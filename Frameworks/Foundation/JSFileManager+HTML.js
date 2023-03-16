@@ -57,7 +57,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     // MARK: - Opening the File System
 
     open: function(completion, target){
-        logger.info("opening indexeddb file manager");
         if (!completion){
             completion = Promise.completion(function JSFileManager_open_promise_completion(status){
                 if (status != JSFileManager.State.success){
@@ -90,7 +89,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             }
         };
         request.onsuccess = function JSFileManager_open_onsuccess(e){
-            logger.info("indexeddb open");
             manager._db = e.target.result;
             completion.call(target, JSFileManager.State.success);
         };
@@ -201,7 +199,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             var request = index.get(lookup);
             var metadata;
             request.onsuccess = function JSFileManager_metadata_onsuccess(e){
-                logger.debug("metadata query success; exists: %b", !!e.target.result);
                 completion(e.target.result || null);
                 // FIXME: url could include a symlink folder, in which case we won't
                 // get a result here even if the url is valid after resolving the symlink.
@@ -219,7 +216,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
                 logger.error("Error querying metadata: %{error}", request.error);
                 completion(null);
             };
-            logger.debug("looking up metadata");
         }catch(e){
             logger.error("Exception thrown querying metadata: %{error}", e);
         }
@@ -309,7 +305,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createFileAtURL cannot create root path");
         }
-        logger.debug("creating file");
         var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
@@ -318,7 +313,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         var metadata = null;
         var create = function JSFileManager_createFile_create(parentExists){
             if (parentExists){
-                logger.debug("writing file data");
                 var dataRequest;
                 if (metadata === null){
                     dataRequest = transaction.data.add(data);
@@ -354,16 +348,13 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         };
         manager._metadataInTransactionAtURL(transaction, url, function JSFileManager_createFile_metadata(existingMetadata){
             if (existingMetadata !== null){
-                logger.debug("overwriting file");
                 metadata = existingMetadata;
                 create(true);
             }else{
-                logger.debug("new file, checking for parent");
                 manager._metadataInTransactionAtURL(transaction, parent, function JSFileManager_createFile_parent_metadata(parentMetadata){
                     if (parentMetadata !== null){
                         create(parentMetadata.itemType == JSFileManager.ItemType.directory);
                     }else{
-                        logger.debug("creating parent");
                         manager._createDirectoryInTransactionAtURL(transaction, parent, create);
                     }
                 });
