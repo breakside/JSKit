@@ -263,9 +263,9 @@ JSClass("JSFileManagerTests", TKTestSuite, {
             TKAssert(success);
             expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                 TKAssert(exists);
-                expectation.call(manager.removeItemAtURL, manager, parent, function(success){
+                expectation.call(manager.removeItemAtURL, manager, temp, function(success){
                     TKAssertNotNull(success);
-                    expectation.call(manager.itemExistsAtURL, manager, parent, function(exists){
+                    expectation.call(manager.itemExistsAtURL, manager, temp, function(exists){
                         TKAssert(!exists);
                         expectation.call(manager.itemExistsAtURL, manager, url, function(exists){
                             TKAssert(!exists);

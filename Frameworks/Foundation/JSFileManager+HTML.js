@@ -45,6 +45,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     _identifier: null,
 
     _db: null,
+    _rootURL: null,
 
     error: null,
 
@@ -67,6 +68,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         }
         var request = indexedDB.open(this._identifier, CURRENT_DATABASE_VERSION);
         var manager = this;
+        var oldVersion = 0;
         request.onblocked = function JSFileManager_open_onblocked(e){
             logger.info("indexeddb file manager upgrade blocked by other windows");
             completion.call(target, JSFileManager.State.conflictingVersions);
@@ -80,6 +82,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         request.onupgradeneeded = function JSFileManager_open_onupgradeneeded(e){
             logger.info("indexeddb upgrade needed");
             logger.info("indexeddb upgrading");
+            oldVersion = e.oldVersion;
             try{
                 manager._db = e.target.result;
                 manager.upgrade(e.oldVersion, e.newVersion);
@@ -90,8 +93,23 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         };
         request.onsuccess = function JSFileManager_open_onsuccess(e){
             manager._db = e.target.result;
-            completion.call(target, JSFileManager.State.success);
+            if (oldVersion === 1){
+                var v1url = manager._rootURL.appendingPathComponents(["Containers", "io.breakside.JSKit.Foundation.JSFileManager"], true);
+                var v2url = manager.persistentContainerURL;
+                logger.info("moving persistentContainerURL from %{public} to %{public}", v1url.encodedString, v2url.encodedString);
+                manager.moveItemAtURL(v1url, v2url, function(success){
+                    if (success){
+                        completion.call(target, JSFileManager.State.success);        
+                    }else{
+                        logger.error("failed to move persistentContainerURL");
+                        completion.call(target, JSFileManager.State.genericFailure);
+                    }
+                });
+            }else{
+                completion.call(target, JSFileManager.State.success);
+            }
         };
+        this._rootURL = this.urlForPath("/");
         return completion.promise;
     },
 
@@ -106,7 +124,6 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         url.path = path;
         if (path.startsWith("/")){
             url.scheme = JSFileManager.Scheme.jskitfile;
-            url.host = "";
         }
         if (baseURL){
             url.resolveToBaseURL(baseURL);
@@ -130,7 +147,10 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     },
 
     _getPersistentContainerURL: function(){
-        return JSURL.initWithString('%s:///Containers/%s/'.sprintf(JSFileManager.Scheme.jskitfile, this._identifier));
+        if (JSBundle.mainBundleIdentifier){
+            return this._rootURL.appendingPathComponents(["Containers", JSBundle.mainBundleIdentifier], true);
+        }
+        return this._rootURL;
     },
 
     _getWorkingDirectoryURL: function(){
@@ -138,7 +158,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     },
 
     begin: function(permission, stores){
-        return new JSFileManagerTransaction(this._db, stores, permission);
+        return new JSHTMLFileManagerTransaction(this._db, stores, permission);
     },
 
     // --------------------------------------------------------------------
@@ -156,7 +176,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             throw new Error("JSFileManager.itemExistsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         var exists = false;
-        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.read, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(function JSFileManager_itemExists_completion(success){
             completion.call(target, success && exists);
         });
@@ -181,7 +201,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         var metadata = null;
-        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.read, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(function JSFileManager_attributesOfItem_completion(success){
             completion.call(target, metadata);
         });
@@ -194,7 +214,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     _metadataInTransactionAtURL: function(transaction, url, completion){
         var parent = url.removingLastPathComponent();
         try {
-            var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
+            var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataPath);
             var lookup = [parent.path || '', url.lastPathComponent];
             var request = index.get(lookup);
             var metadata;
@@ -238,7 +258,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createDirectoryAtURL cannot create root path");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(completion, target);
         this._createDirectoryInTransactionAtURL(transaction, url, function JSFileManager_createDirectory_completion(success){
             if (!success){
@@ -305,7 +325,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.pathComponents.length === 1){
             throw new Error("JSFileManager.createFileAtURL cannot create root path");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, [JSHTMLFileManager.Tables.metadata, JSHTMLFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
         var manager = this;
@@ -393,7 +413,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.path == toURL.path){
             throw new Error("JSFileManager.moveItemAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
         var toParent = toURL.removingLastPathComponent();
@@ -405,18 +425,15 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             }else{
                 var move = function JSFileManager_moveItem_move(toParentExists){
                     if (toParentExists){
-                        var toMetadata = JSCopy(metadata);
-                        toMetadata.parent = toParent.path;
-                        toMetadata.name = toURL.lastPathComponent;
-                        var request = transaction.metadata.put(toMetadata);
-                        request.onsuccess = function JSFileManager_moveItem_onsuccess(){
+                        manager._moveItemInTransactionAtURL(transaction, url, toURL, toParent, metadata);
+                        transaction.indexedDBTransaction.addEventListener("complete", function(){
                             try{
                                 manager.postNotificationForURL(parent, JSFileManager.Notification.directoryDidRemoveItem, {url: url, name: metadata.name, itemType: metadata.itemType});
-                                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toMetadata.name, itemType: toMetadata.itemType});
+                                manager.postNotificationForURL(toParent, JSFileManager.Notification.directoryDidAddItem, {url: toURL, name: toURL.lastPathComponent, itemType: metadata.itemType});
                             }catch (e){
                                 logger.error("Error posting notification: %{error}", e);
                             }
-                        };
+                        });
                     }else{
                         logger.info("could not create parent directory, aborting move transaction");
                         transaction.abort();
@@ -432,6 +449,59 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             }
         });
         return completion.promise;
+    },
+
+    _moveItemInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
+        switch (metadata.itemType){
+            case JSFileManager.ItemType.directory:
+                this._moveDirectoryInTransactionAtURL(transaction, url, toURL, toParent, metadata);
+                break;
+            case JSFileManager.ItemType.file:
+                this._moveMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
+                break;
+            case JSFileManager.ItemType.symbolicLink:
+                this._moveMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
+                break;
+        }
+    },
+
+    _moveMetadataInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
+        var manager = this;
+        var copiedMetadata = JSCopy(metadata);
+        copiedMetadata.parent = toParent.path;
+        copiedMetadata.name = toURL.lastPathComponent;
+        transaction.metadata.put(copiedMetadata);
+        var lookup = [url.removingLastPathComponent().path, url.lastPathComponent];
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataPath);
+        var keyRequest = index.getKey(lookup);
+        keyRequest.onsuccess = function JSFileManager_removeMetadata_onsuccess(e){
+            var key = e.target.result;
+            if (key !== undefined){
+                transaction.metadata.delete(key);
+            }
+        };
+    },
+
+    _moveDirectoryInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
+        this._moveMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataParent);
+        var lookup = url.path;
+        var request = index.getAll(lookup);
+        var manager = this;
+        request.onsuccess = function JSFileManager_removeDirectory_onsuccess(e){
+            var results = e.target.result;
+            if (results){
+                var child;
+                var childURL;
+                var childToURL;
+                for (var i = 0, l = results.length; i < l; ++i){
+                    child = results[i];
+                    childURL = url.appendingPathComponent(child.name, child.itemType == JSFileManager.ItemType.directory);
+                    childToURL = toURL.appendingPathComponent(child.name, child.itemType == JSFileManager.ItemType.directory);
+                    manager._moveItemInTransactionAtURL(transaction, childURL, childToURL, toURL, child);
+                }
+            }
+        };
     },
 
     copyItemAtURL: function(url, toURL, completion, target){
@@ -461,7 +531,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.path == toURL.path){
             throw new Error("JSFileManager.copyItemAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, [JSHTMLFileManager.Tables.metadata, JSHTMLFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
         var toParent = toURL.removingLastPathComponent();
         var manager = this;
@@ -530,6 +600,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         var manager = this;
         var copiedMetadata = JSCopy(metadata);
         copiedMetadata.parent = toParent.path;
+        copiedMetadata.name = toURL.lastPathComponent;
         var request = transaction.metadata.put(copiedMetadata);
         request.onsuccess = function JSFileManager_copyMetadata_onsuccess(){
             try{
@@ -542,7 +613,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
 
     _copyDirectoryInTransactionAtURL: function(transaction, url, toURL, toParent, metadata){
         this._copyMetadataInTransactionAtURL(transaction, url, toURL, toParent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataParent);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataParent);
         var lookup = url.path;
         var request = index.getAll(lookup);
         var manager = this;
@@ -580,9 +651,9 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             throw new Error("JSFileManager.removeItemAtURL cannot remove root path");
         }
         var parent = url.removingLastPathComponent();
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, [JSHTMLFileManager.Tables.metadata, JSHTMLFileManager.Tables.data]);
         transaction.addCompletion(completion, target);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataPath);
         var manager = this;
         this._metadataInTransactionAtURL(transaction, url, function JSFileManager_removeItem_metadata(metadata){
             if (metadata !== null){
@@ -617,7 +688,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     _removeMetadataInTransactionAtURL: function(transaction, url, parent, metadata){
         var manager = this;
         var lookup = [parent.path, url.lastPathComponent];
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataPath);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataPath);
         var keyRequest = index.getKey(lookup);
         keyRequest.onsuccess = function JSFileManager_removeMetadata_onsuccess(e){
             var key = e.target.result;
@@ -636,7 +707,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
 
     _removeDirectoryInTransactionAtURL: function(transaction, url, parent, metadata){
         this._removeMetadataInTransactionAtURL(transaction, url, parent, metadata);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataParent);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataParent);
         var lookup = url.path;
         var request = index.getAll(lookup);
         var manager = this;
@@ -668,7 +739,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.contentsAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var transaction = this.begin(JSFileManager.Permission.readonly, [JSFileManager.Tables.metadata, JSFileManager.Tables.data]);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readonly, [JSHTMLFileManager.Tables.metadata, JSHTMLFileManager.Tables.data]);
         var contents = null;
         var visitedURLSet = {};
         transaction.addCompletion(function JSFileManager_contents_completion(success){
@@ -728,9 +799,9 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.scheme != JSFileManager.Scheme.jskitfile){
             throw new Error("JSFileManager.removeItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, [JSFileManager.Tables.metadata]);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, [JSHTMLFileManager.Tables.metadata]);
         transaction.addCompletion(completion, target);
-        var index = transaction.metadata.index(JSFileManager.Indexes.metadataParent);
+        var index = transaction.metadata.index(JSHTMLFileManager.Indexes.metadataParent);
         var lookup = url.path;
         var request = index.getAll(lookup);
         var manager = this;
@@ -783,7 +854,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         if (url.isEqual(absoluteToURL)){
             throw new Error("JSFileManager.createSymbolicLinkAtURL target and destination are the same");
         }
-        var transaction = this.begin(JSFileManager.Permission.readwrite, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.readwrite, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(completion, target);
         var parent = url.removingLastPathComponent();
         var manager = this;
@@ -827,7 +898,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             throw new Error("JSFileManager.attributesOfItemAtURL unsupported scheme: %s".sprintf(url.scheme));
         }
         var link = null;
-        var transaction = this.begin(JSFileManager.Permission.read, JSFileManager.Tables.metadata);
+        var transaction = this.begin(JSHTMLFileManager.Permission.read, JSHTMLFileManager.Tables.metadata);
         transaction.addCompletion(function JSFileManager_destinationOfSymbolicLink_completion(success){
             completion.call(target, link);
         });
@@ -886,11 +957,11 @@ JSClass("JSHTMLFileManager", JSFileManager, {
     },
 
     _createCurrentVersion: function(){
-        var metadata = this._db.createObjectStore(JSFileManager.Tables.metadata, {autoIncrement: true, keyPath: "id"});
+        var metadata = this._db.createObjectStore(JSHTMLFileManager.Tables.metadata, {autoIncrement: true, keyPath: "id"});
         var transaction = metadata.transaction;
-        var pathIndex = metadata.createIndex(JSFileManager.Indexes.metadataPath, ["parent", "name"], {unique: true});
-        var parentIndex = metadata.createIndex(JSFileManager.Indexes.metadataParent, "parent", {unique: false});
-        var data = this._db.createObjectStore(JSFileManager.Tables.data, {autoIncrement: true});
+        var pathIndex = metadata.createIndex(JSHTMLFileManager.Indexes.metadataPath, ["parent", "name"], {unique: true});
+        var parentIndex = metadata.createIndex(JSHTMLFileManager.Indexes.metadataParent, "parent", {unique: false});
+        var data = this._db.createObjectStore(JSHTMLFileManager.Tables.data, {autoIncrement: true});
         var t = this.timestamp;
         var root = {parent: '', name: '/', itemType: JSFileManager.ItemType.directory, created: t, updated: t, added: t, size: 0};
         metadata.add(root);
@@ -902,9 +973,9 @@ JSClass("JSHTMLFileManager", JSFileManager, {
 });
 
 
-var JSFileManagerTransaction = function(db, storeName, permission){
+var JSHTMLFileManagerTransaction = function(db, storeName, permission){
     if (this === undefined){
-        return new JSFileManagerTransaction(db, storeName, permission);
+        return new JSHTMLFileManagerTransaction(db, storeName, permission);
     }
     this.indexedDBTransaction = db.transaction(storeName, permission);
     this.indexedDBTransaction.addEventListener('abort', this);
@@ -920,7 +991,7 @@ var JSFileManagerTransaction = function(db, storeName, permission){
     }
 };
 
-JSFileManagerTransaction.prototype = {
+JSHTMLFileManagerTransaction.prototype = {
 
     addCompletion: function(completion, target){
         this.completion = completion;
@@ -982,21 +1053,21 @@ if (self){
     indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
 }
 
-var CURRENT_DATABASE_VERSION = 1;
+var CURRENT_DATABASE_VERSION = 2;
 
-JSFileManager.Tables = {
+JSHTMLFileManager.Tables = {
     // {parent: "/some/path", name: "filename.txt", itemType: 1, created: 1234, modified: 1234, added: 1234, dataKey: 1234}
     metadata: "metadata",
     // Blob
     data: "data"
 };
 
-JSFileManager.Indexes = {
+JSHTMLFileManager.Indexes = {
     metadataPath: "path",
     metadataParent: "parent"
 };
 
-JSFileManager.Permission = {
+JSHTMLFileManager.Permission = {
     readonly: "readonly",
     readwrite: "readwrite"
 };

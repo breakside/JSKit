@@ -60,6 +60,13 @@ JSClass("JSNodeFileManager", JSFileManager, {
             });
         }
         this._rootURL = this.urlForPath(pathLib.join(process.cwd(), this._identifier), true);
+        var v1Path = this.pathForURL(this._rootURL.appendingPathComponent(this._identifier, true));
+        var v1Exists = fs.existsSync();
+        if (v1Exists){
+            var v2Path = this.pathForURL(this.persistentContainerURL);
+            logger.info("Moving persistentContainerURL from %{public} to %{public}", v1Path, v2Path);
+            fs.renameSync(v1Path, v2Path);
+        }
         completion.call(target, JSFileManager.State.success);
         return completion.promise;
     },
@@ -115,7 +122,7 @@ JSClass("JSNodeFileManager", JSFileManager, {
     },
 
     _getPersistentContainerURL: function(){
-        return this._rootURL.appendingPathComponent(this._identifier, true);
+        return this._rootURL.appendingPathComponents(["Containers", JSBundle.mainBundleIdentifier], true);
     },
 
     // --------------------------------------------------------------------
