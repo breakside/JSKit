@@ -194,7 +194,6 @@ JSClass("JSUserDefaults", JSObject, {
             }
         }else{
             var data = JSON.stringify(this._values).utf8();
-            logger.info("saving user defaults");
             this._fileManager.createFileAtURL(this._url, data, function JSUserDefaults_persist_createFile(success){
                 if (!success){
                     logger.error("failed to write user defaults");
