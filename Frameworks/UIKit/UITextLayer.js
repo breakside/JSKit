@@ -201,7 +201,7 @@ JSClass("UITextLayer", UILayer, {
         this._displayQueued = false;
     },
 
-    integerSizeRequired: false,
+    integerSizeRequired: true,
 
     sizeToFitSize: function(maxSize){
         var size = JSSize(maxSize);
