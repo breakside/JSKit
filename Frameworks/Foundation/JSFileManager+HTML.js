@@ -124,6 +124,7 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         url.path = path;
         if (path.startsWith("/")){
             url.scheme = JSFileManager.Scheme.jskitfile;
+            url._hasAuthority = true;
         }
         if (baseURL){
             url.resolveToBaseURL(baseURL);
