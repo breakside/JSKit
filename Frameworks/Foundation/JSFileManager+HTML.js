@@ -96,13 +96,19 @@ JSClass("JSHTMLFileManager", JSFileManager, {
             if (oldVersion === 1){
                 var v1url = manager._rootURL.appendingPathComponents(["Containers", "io.breakside.JSKit.Foundation.JSFileManager"], true);
                 var v2url = manager.persistentContainerURL;
-                logger.info("moving persistentContainerURL from %{public} to %{public}", v1url.encodedString, v2url.encodedString);
-                manager.moveItemAtURL(v1url, v2url, function(success){
-                    if (success){
-                        completion.call(target, JSFileManager.State.success);        
+                manager.itemExistsAtURL(v1url, function(exists){
+                    if (exists){
+                        logger.info("moving persistentContainerURL from %{public} to %{public}", v1url.encodedString, v2url.encodedString);
+                        manager.moveItemAtURL(v1url, v2url, function(success){
+                            if (success){
+                                completion.call(target, JSFileManager.State.success);
+                            }else{
+                                logger.error("failed to move persistentContainerURL");
+                                completion.call(target, JSFileManager.State.genericFailure);
+                            }
+                        });
                     }else{
-                        logger.error("failed to move persistentContainerURL");
-                        completion.call(target, JSFileManager.State.genericFailure);
+                        completion.call(target, JSFileManager.State.success);
                     }
                 });
             }else{
