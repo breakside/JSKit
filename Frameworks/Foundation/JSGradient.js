@@ -142,6 +142,61 @@ JSClass('JSGradient', JSObject, {
         return 'linear-gradient(%fdeg, %s)'.sprintf(angle, cssStops.join(', '));
     },
 
+    colorAtPosition: function(position){
+        if (position <= this.stops[0].position){
+            return this.stops[0].color;
+        }
+        var l = this.stops.length;
+        if (position >= this.stops[l - 1].position){
+            return this.stops[l - 1].color;
+        }
+        var i;
+        for (i = l - 2; i > 0; --i){
+            if (position >= this.stops[i].position){
+                break;
+            }
+        }
+        var stop0 = this.stops[i];
+        var stop1 = this.stops[i + 1];
+        var percentage = (position - stop0.position) / (stop1.position - stop0.position);
+        return stop0.color.colorByBlendingColor(stop1.color, percentage);
+    },
+
+    gradientBetweenPositions: function(position0, position1){
+        var gradient = JSGradient.init();
+        var position;
+        var color;
+        var i = 0;
+        var l = this.stops.length;
+        var stop0, stop1;
+        var percentage;
+        for (; i < l && this.stops[i].position < position0; ++i){
+        }
+        if (i < l){
+            if (i > 0){
+                stop0 = this.stops[i - 1];
+                stop1 = this.stops[i];
+                color = stop0.color.colorByBlendingColor(stop1.color, (position0 - stop0.position) / (stop1.position - stop0.position));
+                gradient.addStop(0, color);
+            }
+            for (; i < l && this.stops[i].position <= position1; ++i){
+                stop0 = this.stops[i];
+                position = (stop0.position - position0) / (position1 - position0);
+                gradient.addStop(position, stop0.color);
+            }
+            if (i < l && position1 > stop0.position){
+                stop0 = this.stops[i - 1];
+                stop1 = this.stops[i];
+                color = stop0.color.colorByBlendingColor(stop1.color, (position1 - stop0.position) / (stop1.position - stop0.position));
+                gradient.addStop(1, color);
+            }
+        }else{
+            gradient.addStop(0, this.stops[l - 1].color);
+            gradient.addStop(1, this.stops[l - 1].color);
+        }
+        return gradient;
+    },
+
     rotated: function(radians){
         var transform = JSAffineTransform.Translated(0.5, 0.5);
         transform = transform.rotatedBy(radians);
