@@ -422,7 +422,7 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         if (shouldHideTooltip){
-            if (view !== null && view.tooltip !== null){
+            if (view !== null && view.tooltip !== null && view.tooltip !== ""){
                 this.showTooltipForView(view, this.mouseLocation);
             }else{
                 this._scheduleHideTooltip();
