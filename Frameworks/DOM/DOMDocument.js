@@ -52,6 +52,17 @@ DOM.createDocument = function(namespace, qualifiedName, doctype){
     return document;
 };
 
+DOM.createHTMLDocument = function(title){
+    var doctype = DOM.createDocumentType("html", "", "");
+    var document = DOM.createDocument(null, "html", doctype);
+    document.head = document.documentElement.appendChild(document.createElement("head"));
+    if (title){
+        document.head.appendChild(document.createElement("title")).appendChild(document.createTextNode(title));
+    }
+    document.body = document.documentElement.appendChild(document.createElement("body"));
+    return document;
+};
+
 DOM.createDocumentType = function(name, publicId, systemId){
     var doctype = Object.create(DOM.DocumentType.prototype, {
         nodeType: {value: DOM.Node.DOCUMENT_TYPE_NODE},
