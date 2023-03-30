@@ -125,6 +125,13 @@ topics:
                 nullable: true
                 summary: Called when an external action requests a new
                   application state
+                arguments:
+                  - name: application
+                    type: UIApplication
+                    summary: The application that has an update
+                  - name: state
+                    type: UIState
+                    summary: The requested state
                 description: |
                   For HTML applications, this will be called when a user edits
                   the page's URL.
@@ -141,6 +148,10 @@ topics:
                 name: applicationUpdateAvailable
                 kind: method
                 summary: Called when an update is available
+                arguments:
+                  - name: application
+                    type: UIApplication
+                    summary: The application that has an update
                 description: |
                   Gives the application a change to notify the user ang give
                   them a choice of when to update.
