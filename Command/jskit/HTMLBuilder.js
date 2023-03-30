@@ -876,8 +876,18 @@ JSClass("HTMLBuilder", Builder, {
             HTTP_PORT: this.arguments['http-port'],
             SSL_LISTEN: this.arguments['tls-cert'] ? " ssl" : "",
             SSL_CERT: this.arguments['tls-cert'] ? "ssl_certificate tls.crt;" : "",
-            SSL_KEY: this.arguments['tls-key'] ? "ssl_certificate_key tls.key;" : ""
+            SSL_KEY: this.arguments['tls-key'] ? "ssl_certificate_key tls.key;" : "",
+            STATE_PATH_REDIRECTS: "",
         };
+        let statePaths = this.project.info.UIHTMLStatePaths || [];
+        for (let path of statePaths){
+            path = path.trim();
+            if (path.endsWith("/")){
+                params.STATE_PATH_REDIRECTS += "location %s {\n            rewrite ^(.*)$ /#$1 redirect;\n        }\n\n        ".sprintf(path);
+            }else{
+                params.STATE_PATH_REDIRECTS += "location = %s {\n            rewrite ^(.*)$ /#$1 redirect;\n        }\n\n        ".sprintf(path);
+            }
+        }
         var projectConfURL = this.project.url.appendingPathComponents(["conf", this.debug ? "debug" : "release"], true);
         var entries = await this.fileManager.contentsOfDirectoryAtURL(projectConfURL);
         for (let i = 0, l = entries.length; i < l; ++i){

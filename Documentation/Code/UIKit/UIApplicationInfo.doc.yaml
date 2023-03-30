@@ -286,3 +286,33 @@ topics:
           For debug builds, a git-ignored `.env` file in the working directory
           will be used by default, allowing each developer to have custom
           settings.
+      - name: UIHTMLUseURLPathForState
+        introduced: 2023.13.0
+        type: Boolean
+        summary: Causes the application to use URL paths instead of fragments
+          for `UIState` management
+        description: |
+          By default an HTML-based `UIApplication` will construct URLs like
+          `/#/some/state` for `UIState` paths.
+
+          When `UIHTMLUseURLPathForState` is set to `true`, the application
+          will construct URLs like `/some/state`.
+
+          We recommend also setting `UIHTMLStatePaths`, so JSKit can automatically
+          configure your server to correctly handle HTTP requests directly to
+          a state's URL.
+      - name: UIHTMLStatePaths
+        introduced: 2023.13.0
+        type: String[]
+        summary: A list of allowed `UIState` paths
+        description: |
+          When using `UIHTMLUseURLPathForState = true`, HTTP requests directly
+          to state paths will 404 without proper server configuration.
+
+          Listing the state paths here allows JSKit to automatically adjust the
+          server configuration at build time to handle state paths.
+
+          The paths can be either complete paths, or path prefixes. If an entry
+          ends with `/`, it is considered a prefix and will match any path that
+          begins with the prefix.  If a entry does not end with `/`, it will
+          only match requests to that exact path.
