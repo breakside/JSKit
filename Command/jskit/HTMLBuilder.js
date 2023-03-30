@@ -932,6 +932,8 @@ JSClass("HTMLBuilder", Builder, {
         lines.push("  exit 1");
         lines.push("fi");
         lines.push("");
+
+        var emptyPath = emptyURL.encodedStringRelativeTo(this.wwwURL);
         let resourcesPath = this.resourcesURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
         let cacheBustingPath = this.cacheBustingURL.settingHasDirectoryPath(true).encodedStringRelativeTo(this.wwwURL);
         let indexPath = this.indexURL.encodedStringRelativeTo(this.wwwURL);
@@ -960,16 +962,48 @@ JSClass("HTMLBuilder", Builder, {
         lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='max-age=315360000' --expires 'Thu, 31 Dec 2037 23:55:55 GMT' || exit 1".sprintf(preflightPath));
         lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(bootstrapperPath));
         lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(indexPath));
+        let statePaths = this.project.info.UIHTMLStatePaths || [];
+        let statePathPrefixes = [];
+        for (let path of statePaths){
+            if (path.endsWith("/")){
+                statePathPrefixes.push(path);
+            }else{
+                lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}%2$s --website-redirect /#%2$s || exit 1".sprintf(emptyPath, path));
+            }
+        }
         if (manifestPath !== null){
             lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' --content-type='text/cache-manifest' || exit 1".sprintf(manifestPath));
         }
         if (serviceWorkerPath !== null){
             lines.push("aws s3 cp ${LOCAL_ROOT}/%1$s ${S3_ROOT}/%1$s --cache-control='no-cache' --expires 'Thu, 01 Jan 1970 00:00:01 GMT' || exit 1".sprintf(serviceWorkerPath));
         }
+        let lambdaFunctionURL = this.s3URL.appendingPathComponent("lambda-redirect.js");
+        if (statePathPrefixes.length > 0){
+            lines.push("echo 'Lambda@Edge CloudFront Behavior function required for some state path redirects'");
+            lines.push("echo ''");
+            lines.push("echo ''");
+            lines.push("cat ${LOCAL_ROOT}/%1$s".sprintf(lambdaFunctionURL.encodedStringRelativeTo(this.wwwURL)));
+        }
         lines.push("");
         var contents = lines.join("\n").utf8();
         await this.fileManager.createFileAtURL(scriptURL, contents);
         await this.fileManager.makeExecutableAtURL(scriptURL);
+
+        if (statePathPrefixes.length > 0){
+            lines = [];
+            lines.push("export async function handler(event){");
+            lines.push("  let request = event.Records[0].cf.request;");
+            for (let path of statePathPrefixes){
+                lines.push("  if (request.uri.startsWith('%1$s')){".sprintf(path));
+                lines.push("    return {status: 302, statusDescription: 'Found', headers: {location: [{value: '/#' + request.uri}]}};");
+                lines.push("  }");
+            }
+            lines.push("  return request;");
+            lines.push("}");
+            lines.push("");
+            contents = lines.join("\n").utf8();
+            await this.fileManager.createFileAtURL(lambdaFunctionURL, contents);
+        }
     },
 
     // -----------------------------------------------------------------------
