@@ -726,7 +726,7 @@ JSClass("UIWindowServer", JSObject, {
         var event;
         for (windowIndex = this.windowStack.length - 1; windowIndex >= 0 && window === null; --windowIndex){
             location = this.windowStack[windowIndex].convertPointFromScreen(this.mouseLocation);
-            if (this.windowStack[windowIndex].userInteractionEnabled && this.windowStack[windowIndex].containsPoint(location)){
+            if (this.windowStack[windowIndex].userInteractionEnabled && (this.windowStack[windowIndex].containsPoint(location) || this.windowStack[windowIndex].receivesAllEvents)){
                 window = this.windowStack[windowIndex];
             }
         }

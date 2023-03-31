@@ -795,6 +795,9 @@ JSClass('UIWindow', UIView, {
         if (this.mouseTrackingViews === null || this.mouseTrackingViews.length === 0){
             return;
         }
+        if (this._modal !== null){
+            return;
+        }
         var view;
         var area;
         var viewIndex, viewCount;
