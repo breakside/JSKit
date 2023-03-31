@@ -928,7 +928,9 @@ JSClass('UIWindow', UIView, {
         }
         switch (event.type){
             case UIEvent.Type.leftMouseDown:
-                this.makeKeyAndOrderFront();
+                if (this._isOpen){
+                    this.makeKeyAndOrderFront();
+                }
                 eventTarget.mouseDown(event);
                 this._validateToolbar();
                 break;
