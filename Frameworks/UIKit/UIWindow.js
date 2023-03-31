@@ -901,6 +901,9 @@ JSClass('UIWindow', UIView, {
         while (modal !== null && modal._modal !== null){
             modal = modal._modal;
         }
+        if (this.mouseEventView !== null && this.mouseEventView.window !== this){
+            this.mouseEventView = null;
+        }
         if (modal !== null){
             this.mouseEventView = null;
             if (event.type == UIEvent.Type.mouseEntered || event.type == UIEvent.Type.mouseExited || event.type == UIEvent.mouseMoved){
