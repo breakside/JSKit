@@ -125,8 +125,12 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var attributes = this._attributedString.attributesAtIndex(range.location);
         attributes = this.resolveAttributes(attributes);
         var font = attributes.font || null;
-        var element = this._createLineElement();
-        return UIHTMLTextLine.initWithElementAndFont(element, font, font.displayLineHeight, range.location, this.canvasContext);
+        var span = this._createRunElement();
+        span.appendChild(span.ownerDocument.createTextNode("\u200B"));
+        this._styleTextElementWithAttributes(span, attributes, font);
+        var div = this._createLineElement();
+        var emptyRun = UIHTMLTextRun.initWithElement(span, font, attributes, range);
+        return UIHTMLTextLine.initWithElement(div, [emptyRun], 0, [], this.canvasContext);
     },
 
     _createLineFromHTMLLayout: function(layout){
@@ -136,6 +140,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         var runDescriptor;
         var span;
         var attachmentRuns = [];
+        var endsWithMandatoryLineBreak = false;
         for (var i = 0, l = layout.runDescriptors.length; i < l; ++i){
             runDescriptor = layout.runDescriptors[i];
             span = this._createRunElement();
@@ -150,6 +155,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 }else{
                     span.appendChild(span.ownerDocument.createTextNode(utf16));
                 }
+                endsWithMandatoryLineBreak = utf16.userPerceivedCharacterIterator(utf16.length - 1).isMandatoryLineBreak;
             }else{
                 this._styleAttachmentElementWithAttributes(span, runDescriptor.attributes, runDescriptor.attachment);
                 if (span.childNodes.length > 0){
@@ -169,7 +175,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             return this._createEmptyHTMLLine(layout.range);
         }
         var div = this._createLineElement();
-        return UIHTMLTextLine.initWithElement(div, runs, layout.trailingWhitespaceWidth, attachmentRuns, this.canvasContext);
+        return UIHTMLTextLine.initWithElement(div, runs, layout.trailingWhitespaceWidth, attachmentRuns, this.canvasContext, endsWithMandatoryLineBreak);
     },
 
     _styleTextElementWithAttributes: function(span, attributes, font){

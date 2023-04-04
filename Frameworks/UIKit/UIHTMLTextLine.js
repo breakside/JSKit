@@ -20,28 +20,17 @@
 
 (function(){
 
+var logger = JSLog("uikit", "text");
+
 JSClass("UIHTMLTextLine", JSTextLine, {
 
     element: null,
-    emptyTextNode: null,
     attachmentRuns: null,
     fontLineHeight: 0,
     canvasContext: null,
+    brElement: null,
 
-    initWithElementAndFont: function(element, font, height, location, canvasContext){
-        UIHTMLTextLine.$super.initWithHeight.call(this, height, -font.displayDescender, location);
-        this.element = element;
-        element.style.font = font.cssString(height);
-        this.emptyTextNode = element.appendChild(element.ownerDocument.createTextNode('\u200B'));
-        this.fontLineHeight = font.displayLineHeight;
-        this.attachmentRuns = [];
-        this.element.dataset.rangeLocation = location;
-        this.element.dataset.rangeLength = 0;
-        this.element.dataset.jstext = "line";
-        this.canvasContext = canvasContext;
-    },
-
-    initWithElement: function(element, runs, trailingWhitespaceWidth, attachmentRuns, canvasContext){
+    initWithElement: function(element, runs, trailingWhitespaceWidth, attachmentRuns, canvasContext, endsWithMandatoryLineBreak){
         // constructing this.element before super init because super init calls
         // this.align, which neesd to use this.element
         UIHTMLTextLine.$super.initWithRuns.call(this, runs, trailingWhitespaceWidth);
@@ -53,6 +42,22 @@ JSClass("UIHTMLTextLine", JSTextLine, {
             if (run.element.parentNode !== this.element){
                 this.element.appendChild(run.element);
             }
+        }
+        if (endsWithMandatoryLineBreak && features.shouldIncludeBR){
+            // Not necessary for visual, but helps Android Chrome understand
+            // there's a hard line break during contenteditable mode (used by
+            // UIHTMLContentEditableTextInputManager).  Other broswers don't
+            // seem to have an issue, as it seems to be an issue related to
+            // android's so we'll limit this to Android only.
+            //
+            // It would perhaps be more correct to remove the trailing newline
+            // character in the final run's textNode and replace it with a <br>
+            // inside the run, and that's maybe even a job for the HTML
+            // typesetter, but since this is only used on Android, it's ok to
+            // just throw it at the end of the line.
+            this.brElement = this.element.appendChild(this.element.ownerDocument.createElement("br"));
+            this.brElement.dataset.rangeLocation = this._range.end - 1;
+            this.brElement.dataset.rangeLength = 1;
         }
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
@@ -151,10 +156,6 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     copy: function(){
         var line = UIHTMLTextLine.$super.copy.call(this);
         line.element = this.element.cloneNode();
-        if (this.emptyTextNode !== null){
-            line.emptyTextNode = this.emptyTextNode.cloneNode();
-            line.element.appendChild(line.emptyTextNode);
-        }
         for (var i = 0, l = line.runs.length; i < l; ++i){
             line.element.appendChild(line.runs[i].element);
         }
@@ -169,9 +170,6 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     },
 
     domSelectionPointForCharacterAtIndex: function(index){
-        if (this.range.length === 0){
-            return {node: this.emptyTextNode, offset: 0};
-        }
         var run = this.runForCharacterAtIndex(index);
         if (run !== null){
             return run.domSelectionPointForCharacterAtIndex(index);
@@ -182,9 +180,6 @@ JSClass("UIHTMLTextLine", JSTextLine, {
     debugDescription: JSReadOnlyProperty(),
 
     getDebugDescription: function(){
-        if (this.emptyTextNode !== null){
-            "  %dx%d @%d->%d [empty]".sprintf(this._size.width, this._size.height, this._range.location, this._range.end);
-        }
         var lines = [];
         lines.push(["  %dx%d @%d->%d".sprintf(this._size.width, this._size.height, this._range.location, this._range.end)]);
         for (var i = 0, l = this.runs.length; i < l; ++i){
@@ -244,8 +239,33 @@ JSClass("UIHTMLTextLine", JSTextLine, {
         }
         this.element.dataset.rangeLocation = this._range.location;
         this.element.dataset.rangeLength = this._range.length;
+        if (this.brElement !== null){
+            this.brElement.dataset.rangeLocation = this._range.end - 1;
+            this.brElement.dataset.rangeLength = 1;
+        }
         return diff;
     },
+
+});
+
+var features = Object.create({}, {
+
+    shouldIncludeBR: {
+        configurable: true,
+        get: function(){
+            // User agent checks aren't ideal, but Android is the only place
+            // where we need to include BRs to have text input work correctly.
+            var shouldIncludeBR = false;
+            try{
+                var matches = navigator.userAgent.match(/Android[\/ ](\d+)/);
+                shouldIncludeBR = matches !== null;
+            }catch (e){
+                logger.warn("Failed to check user agent: %{error}", e);
+            }
+            Object.defineProperty(this, "shouldIncludeBR", {value: shouldIncludeBR});
+            return shouldIncludeBR;
+        }
+    }
 
 });
 
