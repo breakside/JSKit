@@ -139,7 +139,7 @@ JSClass("UIHTMLTextTypesetterTests", TKTestSuite, {
         TKAssertEquals(line.size.width, 0);
         TKAssertEquals(line.size.height, 16);
         TKAssertEquals(line.trailingWhitespaceWidth, 0);
-        TKAssertEquals(line.runs.length, 0);
+        TKAssertEquals(line.runs.length, 1);
     },
 
     testCreateLineNewline: function(){
