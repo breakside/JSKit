@@ -247,9 +247,14 @@ JSClass("UIHTMLTextRun", JSTextRun, {
 
     recalculateRange: function(offset){
         var diff = 0;
+        var length = 0;
         if (this.textNode){
-            diff = this.textNode.nodeValue.length - this._range.length;
-            this._range = JSRange(this._range.location + offset, this.textNode.nodeValue.length);
+            length = this.textNode.nodeValue.length;
+            if (length > 0 && this.textNode.nodeValue[length - 1] === 0x200B){
+                length -= 1;
+            }
+            diff = length - this._range.length;
+            this._range = JSRange(this._range.location + offset, length);
         }else{
             this._range = JSRange(this._range.location + offset, this._range.length);
         }

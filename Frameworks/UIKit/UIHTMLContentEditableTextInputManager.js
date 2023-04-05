@@ -15,7 +15,7 @@
 
 // #import "UITextInputManager.js"
 // #feature 'key' in KeyboardEvent.prototype
-/* global UIHTMLTextInputManager */
+/* global UIHTMLTextInputManager, UIDevice, UIView, UIUserInterface */
 // jshint browser: true
 'use strict';
 
@@ -29,7 +29,10 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     domWindow: null,
     domDocument: null,
     rootElement: null,
+    textInputLayer: JSDynamicProperty("_textInputLayer", null),
+    layoutManager: JSDynamicProperty("_layoutManager", null),
     editableElement: JSDynamicProperty("_editableElement", null),
+    editableContext: JSDynamicProperty("_editableContext", null),
     styleElement: null,
     supportsBeforeinputEvent: false,
 
@@ -38,9 +41,9 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this.rootElement = rootElement;
         this.domDocument = this.rootElement.ownerDocument;
         this.domWindow = this.domDocument.defaultView;
-        // NOTE: onbeforeinput insn't exposed in Chrome even though it supports the beforeinput event
+        // NOTE: onbeforeinput insn't exposed in older Chrome versions even though it supports the beforeinput event
         this.supportsBeforeinputEvent = ("onbeforeinput" in HTMLElement.prototype) || userAgentKnownToSupportBeforeInput();
-        this.canLayoutDuringComposition = !userAgentIsKnownToFailCompositionIfDOMChanges();
+        this.shouldPreventSpaceInput = !userAgentKnownToRequireSpaceInput();
         this.styleElement = this.domDocument.createElement("style");
         this.styleElement.type = "text/css";
         this.domDocument.head.appendChild(this.styleElement);
@@ -51,21 +54,29 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     windowDidChangeResponder: function(window){
         UIHTMLTextInputManager.$super.windowDidChangeResponder.call(this, window);
         if (this.textInputClient === null){
-            this.editableElement = null;
+            this.textInputLayer = null;
+            this.layoutManager = null;
         }else{
-            var layer = null;
-            var context = null;
-            if (this.textInputClient.textInputLayer){
-                layer = this.textInputClient.textInputLayer();
-                if (layer !== null){
-                    context = this.windowServer.displayServer.contextForLayer(layer);
-                }
-            }
-            if (context !== null){
-                this.editableElement = context.element;
-            }else{
-                this.editableElement = null;
-            }
+            this.textInputLayer = this.textInputClient.textInputLayer ? this.textInputClient.textInputLayer() : null;
+            this.layoutManager = this.textInputClient.textInputLayoutManager ? this.textInputClient.textInputLayoutManager() : null;
+        }
+    },
+
+    setTextInputLayer: function(layer){
+        this._textInputLayer = layer;
+        if (this._textInputLayer !== null){
+            this.editableContext = this.windowServer.displayServer.contextForLayer(this._textInputLayer);
+        }else{
+            this.editableContext = null;
+        }
+    },
+
+    setEditableContext: function(context){
+        this._editableContext = context;
+        if (this._editableContext !== null){
+            this.editableElement = this._editableContext.element;
+        }else{
+            this.editableElement = null;
         }
     },
 
@@ -99,16 +110,12 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     },
 
     textFrameForSelections: function(){
-        if (this.textInputClient === null){
-            return null;
-        }
-        if (!this.textInputClient.textInputLayoutManager){
+        if (this._layoutManager === null){
             return null;
         }
         if (!this.textInputClient.textInputSelections){
             return null;
         }
-        var layoutManager = this.textInputClient.textInputLayoutManager();
         var selections = this.textInputClient.textInputSelections();
         var selection;
         var range;
@@ -128,8 +135,8 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             return null;
         }
         selection = selections[0];
-        container1 = layoutManager.textContainerForCharacterAtIndex(selection.startLocation);
-        container2 = layoutManager.textContainerForCharacterAtIndex(selection.insertionLocation);
+        container1 = this._layoutManager.textContainerForCharacterAtIndex(selection.startLocation);
+        container2 = this._layoutManager.textContainerForCharacterAtIndex(selection.insertionLocation);
         if (container1 && container2){
             if (container1 === container2){
                 return container1.textFrame;
@@ -376,7 +383,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             logger.warn("dom selection point is not in a text frame");
             return null;
         }
-        return +element.dataset.rangeLocation + element.dataset.rangeLength;
+        return +element.dataset.rangeLocation + (+element.dataset.rangeLength);
     },
 
     keydown: function(e){
@@ -406,7 +413,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this.windowServer._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown, preventDefault);
         if (!this.supportsBeforeinputEvent && this.textInputClient !== null && text !== null && text !== ""){
             e.preventDefault();
-            this.insertText(text);
+            this.textClient.insertText(text);
         }
     },
 
@@ -419,17 +426,16 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         var selections = this.selectionsForDOMRanges(domRanges);
         var inputClientSelections = [];
         // logger.debug("beforeinput %{public}: type=%{public}, data=%{public} dataTransfer=%{public}", selections, e.inputType, e.data, e.dataTransfer !== null ? e.dataTransfer.getData("text/plain") : null);
-        if (domRanges.length > 0){
-            // logger.debug("  range start     : %{public} @ %d", domRanges[0].startContainer.nodeValue, domRanges[0].startOffset);
-            // logger.debug("  range end       : %{public} @ %d", domRanges[0].endContainer.nodeValue, domRanges[0].endOffset);
-        }
-        if (domSelection.anchorNode){
-            // logger.debug("  selection anchor: %{public} @ %d", domSelection.anchorNode.nodeValue, domSelection.anchorOffset);
-            // logger.debug("  range focus     : %{public} @ %d", domSelection.focusNode.nodeValue, domSelection.focusOffset);
-        }
+        // if (domRanges.length > 0){
+        //     logger.debug("  range start     : %{public} @ %d", domRanges[0].startContainer.nodeValue, domRanges[0].startOffset);
+        //     logger.debug("  range end       : %{public} @ %d", domRanges[0].endContainer.nodeValue, domRanges[0].endOffset);
+        // }
+        // if (domSelection.anchorNode){
+        //     logger.debug("  selection anchor: %{public} @ %d", domSelection.anchorNode.nodeValue, domSelection.anchorOffset);
+        //     logger.debug("  range focus     : %{public} @ %d", domSelection.focusNode.nodeValue, domSelection.focusOffset);
+        // }
         switch (e.inputType){
             case "insertText":
-                e.preventDefault();
                 // Chrome will use insertText when it really should use replaceText, so
                 // we could look for situations that seem more like a replacement, when
                 // the event selections are different from our current selections.
@@ -446,6 +452,9 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 //         }
                 //     }
                 // }
+                if (this.shouldPreventSpaceInput || e.data !== " "){
+                    e.preventDefault();
+                }
                 this.textInputClient.insertText(e.data);
                 this.scheduleDocumentSelectionUpdate();
                 break;
@@ -548,56 +557,26 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                     this.scheduleDocumentSelectionUpdate();
                 }
                 break;
-            case "deleteByComposition":
-                // 2021-03-26 not supported by any browser
-                // - should be called before the first insertCompositionText
-                //   if there's a current selection
-                // - UITextEditor will clear the text automatically if necessary
-                // e.preventDefault();
-                // this.textInputClient.replaceText(selections, "");
-                break;
             case "insertCompositionText":
                 // not cancelable
-                // browser will insert the new composing text 1
-                if (this.compositionstartHasData){
-                    // When compositionstart has data, it means some text will
-                    // be replaced.  The range of that text is not available
-                    // until the subsequent beforeinput event.
-                    // In such a scenario, Firefox will fire compositionupdate
-                    // before the beforeinput event, which gets things out of
-                    // order, so we check for that and queue the update data
-                    // to be handled here.
-                    if (this.textInputClient.replaceText){
-                        this.textInputClient.replaceText(selections, "");
-                    }else{
-                        logger.warn("UITextInputClient missing implementation of replaceText()");
-                    }
-                    this.compositionstartHasData = false;
-                    if (this.compositionupdateData){
-                        if (this.textInputClient.setMarkedText){
-                            this.textInputClient.setMarkedText(this.compositionupdateData);
-                        }else{
-                            logger.warn("UITextInput missing implementation of setMarkedText()");
-                        }
-                        this.compositionupdateData = null;
-                    }
+                // browser will insert the new composing text
+                if (this.textInputClient.replaceText){
+                    this.textInputClient.replaceText(selections, e.data);
                 }
                 break;
             case "deleteCompositionText":
-                // 2021-03-26 only supported by safari
-                // not cancelable
-                // - called before insertFromComposition to indicate the
-                //   compsed text will be deleted
-                // - we'll handle this in compositionend instead
+                // Removed from input events spec, but Safari implemented it,
+                // so it may still fire. Need to handle.
+                if (this.textInputClient.replaceText){
+                    this.textInputClient.replaceText(selections, "");
+                }
                 break;
             case "insertFromComposition":
-                // 2021-03-26 only supported by safari
-                // - we'll handle this in compositionend instead
-                // - preventing default so input doesn't fire and DOM isn't updated
-                // NOTE:
-                // Safari calls beforeinput, input, then compositionend
-                // Spec says beforeinput, compositionend, input
-                e.preventDefault();
+                // Removed from input events spec, but Safari implemented it,
+                // so it may still fire. Need to handle.
+                if (this.textInputClient.replaceText){
+                    this.textInputClient.replaceText(selections, e.data);
+                }
                 break;
             case "deleteByDrag":
             case "deleteByCut":
@@ -631,6 +610,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 break;
             default:
                 // anything else, not allowed
+                logger.warn("contenteditable received unknown beforeinput %{public}", e.inputType);
                 e.preventDefault();
                 break;
         }
@@ -639,76 +619,132 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     input: function(e){
         // logger.debug("input: type=%{public}, data=%{public} dataTransfer=%{public}", e.inputType, e.data, e.dataTransfer !== null ? e.dataTransfer.getData("text/plain") : null);
         // logger.debug("%{public}", this._editableElement.innerHTML);
-        var layoutManager = this.textInputClient.textInputLayoutManager ? this.textInputClient.textInputLayoutManager() : null;
         switch (e.inputType){
             case "insertCompositionText":
-                // Firefox calls this after compositionend, making it an
-                // unreliable signal for marked text updates.
-                // We'll use compositionupdate instead, which is fired correctly.
-                // Setting the marked text (in compositionupdate) will trigger a layout, which will
-                // update DOM.  Safari and Firefox are fine, but Chrome doesn't
-                // appreciate such an edit and will fail to complete the composition.
-                // So instead:
-                // - tell the layout manager it doesn't need an update after all
-                // - update the text frame to match the edited HTML
-                if (!this.canLayoutDuringComposition){
-                    if (layoutManager !== null){
-                        layoutManager.updateHTMLFrameRangesAfterEdit();
-                    }
-                }
+                // Cannot be canceled during beforeinput, so we expect this 
+                // input event to run. Allow the browser to do its thing here.
                 break;
             case "deleteCompositionText":
-                // Only safari supports this, and we don't really care because
-                // we can do what we need in compositionend instead, which
-                // all browsers support
+            case "insertFromComposition":
+                // Removed from input events spec, but Safari implemented it,
+                // so it may still fire.  No need to log a warning.
+                break;
+            case "deleteContentBackward":
+                // Android doesn't cancel deleteContentBackward in some situations
+                // related to text re-composition.  Nothing for us to do here,
+                // but also no need to log a warning.
                 break;
             default:
                 // logger.debug("input: %{public}", e.data);
-                logger.warn("contenteditable received input");
+                if (this.shouldPreventSpaceInput || e.inputType !== "insertText" || e.data !== " "){
+                    logger.warn("contenteditable received input %{public}", e.inputType);
+                }
                 // Trigger a new layout of the edited text, which will recreate
                 // the lines/runs without whatever was just inserted by the browser
-                if (layoutManager !== null){
-                    layoutManager.setNeedsLayout();
+                if (this._layoutManager !== null){
+                    this._layoutManager.setNeedsLayout();
                     this.scheduleDocumentSelectionUpdate();
                 }
                 break;
         }
     },
 
-    compositionstartHasData: false,
-    compositionupdateData: null,
+    _isComposing: false,
 
     compositionstart: function(e){
-        // logger.debug("compositionstart: %{public}", e.data);
-        if (e.data !== null && e.data.length > 0){
-            this.compositionstartHasData = true;
-            // data will be deleted in beforeinput
+        // var domSelection = this.domDocument.getSelection();
+        // var domRanges = [];
+        // for (var i = 0, l = domSelection.rangeCount; i < l; ++i){
+        //     domRanges.push(domSelection.getRangeAt(i));
+        // }
+        // var selections = this.selectionsForDOMRanges(domRanges);
+        // logger.debug("compositionstart %{public}: %{public}", selections, e.data);
+        if (!this._isComposing){
+            this._isComposing = true;
+            this._preventDOMUpdates();
+        }else{
+            // known to happen with Android SwiftKey keyboard
+            logger.warn("received compositionstart, but already started");
         }
     },
 
     compositionupdate: function(e){
-        // logger.debug("compositionupdate: %{public}", e.data);
-        if (this.compositionstartHasData){
-            this.compositionupdateData = e.data;
-        }else{
-            if (this.textInputClient.setMarkedText){
-                this.textInputClient.setMarkedText(e.data);
-            }else{
-                logger.warn("UITextInputClient missing implementation of setMarkedText()");
-            }
+        // var domSelection = this.domDocument.getSelection();
+        // var domRanges = [];
+        // for (var i = 0, l = domSelection.rangeCount; i < l; ++i){
+        //     domRanges.push(domSelection.getRangeAt(i));
+        // }
+        // var selections = this.selectionsForDOMRanges(domRanges);
+        // logger.debug("compositionupdate %{public}: %{public}", selections, e.data);
+        if (!this._isComposing){
+            logger.warn("got compositionupdate, but not started");
         }
     },
 
     compositionend: function(e){
         // logger.debug("compositionend: %{public}", e.data);
-        if (this.textInputClient.clearMarkedText){
-            this.textInputClient.clearMarkedText();
+
+        if (this._isComposing){
+            this._isComposing = false;
+            this._resumeDOMUpdates();
+            this.scheduleDocumentSelectionUpdate();
+            this._cleanupTextNodes();
         }else{
-            logger.warn("UITextInputClient missing implementation of clearMarkedText");
+            logger.warn("got compositionend, but already ended");
         }
-        this.textInputClient.insertText(e.data);
-        this.scheduleDocumentSelectionUpdate();
-        this._cleanupTextNodes();
+    },
+
+    _originalLayoutMethod: null,
+
+    _preventDOMUpdates: function(){
+        if (this._layoutManager === null){
+            return;
+        }
+        this._originalLayoutMethod = this._layoutManager.layout;
+        Object.defineProperty(this._layoutManager, "layout", {
+            configurable: true,
+            writable: false,
+            enumerable: false,
+            value: function(){
+                var container;
+                var offset = 0;
+                for (var i = 0, l = this._textContainers.length; i < l; ++i){
+                    container = this._textContainers[i];
+                    offset += container._textFrame.recalculateRange(offset);
+                    container._textFrame.recalculateSize();
+                    container.framesetter._updateSizesAndPositionsOfLinesInFrame(container._textFrame);
+                }
+            }
+        });
+        // var container;
+        // var i, l;
+        // for (i = 0, l = this._layoutManager._textContainers.length; i < l; ++i){
+        //     container = this._layoutManager._textContainers[i];
+        //     if (container._textFrame instanceof UIHTMLTextFrame){
+        //         container._textFrame.element.style.overflow = "visible";
+        //     }
+        // }
+    },
+
+    _resumeDOMUpdates: function(){
+        if (this._layoutManager === null){
+            return;
+        }
+        // var container;
+        // var i, l;
+        // for (i = 0, l = this._layoutManager._textContainers.length; i < l; ++i){
+        //     container = this._layoutManager._textContainers[i];
+        //     if (container._textFrame instanceof UIHTMLTextFrame){
+        //         container._textFrame.element.style.overflow = "hidden";
+        //     }
+        // }
+        Object.defineProperty(this._layoutManager, "layout", {
+            configurable: true,
+            writable: false,
+            enumerable: false,
+            value: this._originalLayoutMethod
+        });
+        this._originalLayoutMethod = null;
     },
 
     _ensureCorrectFocus: function(){
@@ -743,27 +779,20 @@ var userAgentKnownToSupportBeforeInput = function(){
             return parseInt(matches[1]) >= 88;
         }
     }catch (e){
-        logger(e);
+        logger.warn("Failed to check user agent: %{error}", e);
     }
     return false;
 };
 
-var userAgentIsKnownToFailCompositionIfDOMChanges = function(){
-    // User agent checks aren't ideal, but there's really no other
-    // way to tell how the browser behaves during input composition.
-    // 2021-03-29: Safari and Firefox are known to be fine with DOM
-    // changes during input composition.  Chrome is known have problems.
+var userAgentKnownToRequireSpaceInput = function(){
+    // User agent checks aren't ideal, but Android has issues with calling
+    // preventDefault() on beforeinput when the input text is a space, so
+    // a user agent check is the best we can do.
     try{
-        var matches = navigator.userAgent.match(/Android\/(\d+)/);
-        if (matches !== null){
-            return true;
-        }
-        matches = navigator.userAgent.match(/Chrome\/(\d+)/);
-        if (matches !== null){
-            return true;
-        }
+        var matches = navigator.userAgent.match(/Android[\/ ](\d+)/);
+        return matches !== null;
     }catch (e){
-        logger(e);
+        logger.warn("Failed to check user agent: %{error}", e);
     }
     return false;
 };
@@ -808,21 +837,5 @@ htmlAutocompleteByTextContentType[UITextInput.TextContentType.state] = "address-
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.locality] = "address-level3";
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.country] = "country-name";
 htmlAutocompleteByTextContentType[UITextInput.TextContentType.postalCode] = "postal-code";
-
-JSTextLayoutManager.definePropertiesFromExtensions({
-
-    updateHTMLFrameRangesAfterEdit: function(){
-        this._needsLayout = false;
-        var container;
-        var offset = 0;
-        for (var i = 0, l = this._textContainers.length; i < l; ++i){
-            container = this._textContainers[i];
-            offset += container._textFrame.recalculateRange(offset);
-            container._textFrame.recalculateSize();
-            container.framesetter._updateSizesAndPositionsOfLinesInFrame(container._textFrame);
-        }
-    }
-
-});
 
 })();

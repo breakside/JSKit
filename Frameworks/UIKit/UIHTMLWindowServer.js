@@ -600,6 +600,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     touchend: function(e){
         e.preventDefault();
         this._createTouchEventFromDOMEvent(e, UIEvent.Type.touchesEnded);
+        this.textInputManager._ensureCorrectFocus();
     },
 
     touchcancel: function(e){
