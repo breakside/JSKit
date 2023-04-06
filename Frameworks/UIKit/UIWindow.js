@@ -821,9 +821,7 @@ JSClass('UIWindow', UIView, {
                             enters.push(area);
                         }
                     }
-                    if ((area.trackingType & UIMouseTrackingArea.TrackingType.move) !== 0){
-                        moves.push(area);
-                    }
+                    moves.push(area);
                 }else{
                     if (area._entered){
                         area._entered = false;
@@ -844,6 +842,12 @@ JSClass('UIWindow', UIView, {
                 area = exits[areaIndex];
                 area.mouseExited(event);
             }
+            for (areaIndex = 0, areaCount = moves.length; areaIndex < areaCount; ++areaIndex){
+                area = moves[areaIndex];
+                if (area.cursor !== null){
+                    area.cursor.set();
+                }
+            }
         }
         if (enters.length > 0){
             event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseEntered, timestamp, this, locationInWindow, modifiers, 0);
@@ -855,8 +859,10 @@ JSClass('UIWindow', UIView, {
         if (moves.length > 0){
             event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseMoved, timestamp, this, locationInWindow, modifiers, 0);
             for (areaIndex = 0, areaCount = moves.length; areaIndex < areaCount; ++areaIndex){
-                area = moves[areaIndex];
-                area.mouseMoved(event);
+                if ((area.trackingType & UIMouseTrackingArea.TrackingType.move) !== 0){
+                    area = moves[areaIndex];
+                    area.mouseMoved(event);
+                }
             }
         }
     },
