@@ -201,7 +201,7 @@ JSClass("UITokenFieldTokenView", UIView, {
         this.tokenLabel.cornerRadius = 3.0;
         this.addSubview(this.tokenLabel);
         this._tokenInsets = JSInsets(0, 1.5);
-        this.tokenLabel.cursor = UICursor.arrow;
+        this.tokenLabel.cursor = UICursor.systemDefault;
         this.setNeedsLayout();
     },
 

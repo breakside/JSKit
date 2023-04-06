@@ -105,7 +105,7 @@ JSClass("UIHTMLTextField", UIControl, {
         this._clipView.userInteractionEnabled = false;
         this._clipView.backgroundColor = null;
         this._clipView.clipsToBounds = true;
-        this.cursor = UICursor.arrow;
+        this.cursor = UICursor.systemDefault;
         if (this._styler === null){
             this._styler = UITextField.Styler.default;
         }
