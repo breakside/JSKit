@@ -1717,6 +1717,7 @@ JSClass("UIListView", UIScrollView, {
 
     windowDidChangeKeyStatus: function(){
         this._updateVisibleCellStyles();
+        UIListView.$super.windowDidChangeKeyStatus.call(this);
     },
 
     keyDown: function(event){

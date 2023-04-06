@@ -784,6 +784,7 @@ JSClass("UIHTMLTextField", UIControl, {
 
     windowDidChangeKeyStatus: function(){
         this.updateInputElementFocus();
+        UIHTMLTextField.$super.windowDidChangeKeyStatus.call(this);
     },
 
     _inputElementFocused: false,

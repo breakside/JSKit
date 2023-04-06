@@ -896,6 +896,7 @@ JSClass("UITextField", UIControl, {
 
     windowDidChangeKeyStatus: function(){
         this._localEditor.windowDidChangeKeyStatus(this.window);
+        UITextField.$super.windowDidChangeKeyStatus.call(this);
     },
 
     _isHandlingMouseDown: false,
