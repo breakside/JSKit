@@ -78,7 +78,7 @@ JSClass("UIToolbar", UIView, {
 
     setItems: function(items){
         var i, l;
-        for (i = this._items.length; i >= 0; --i){
+        for (i = this._items.length - 1; i >= 0; --i){
             this.removeItemAtIndex(i);
         }
         for (i = 0, l = items.length; i < l; ++i){
@@ -218,7 +218,7 @@ JSClass("UIToolbarItemView", UIView, {
         }else{
             switch (item.identifier){
                 case UIToolbarItem.Identifier.space:
-                    this.contentView = UIToolbarItemSpaceView.initWithWidth(item.minimumWidth ? item.minimumWidth.width : item.toolbar.imageSize);
+                    this.contentView = UIToolbarItemSpaceView.initWithWidth(item.minimumSize !== null ? item.minimumSize.width : item.toolbar.imageSize);
                     this._handlesEvents = false;
                     break;
                 case UIToolbarItem.Identifier.flexibleSpace:
@@ -267,10 +267,11 @@ JSClass("UIToolbarItemView", UIView, {
             }
             var width;
             var height;
-            if (!isNaN(this._item.minimumWidth) && this._item.minimumWidth > 0){
-                width = this._item.minimumWidth;
-            }else if (this._item.view !== null){
+            if (this._item.view !== null){
                 width = this._item.view.intrinsicSize.width;
+                if (width === UIView.noIntrinsicSize){
+                    width = bounds.size.width;
+                }
             }else{
                 width = this._item.image.size.width * toolbar._imageSize / this._item.image.size.height;
             }
@@ -292,10 +293,15 @@ JSClass("UIToolbarItemView", UIView, {
         var toolbar = this._item.toolbar;
         var width;
         if (this._item.identifier == UIToolbarItem.Identifier.custom){
-            if (!isNaN(this._item.minimumWidth) && this._item.minimumWidth > 0){
-                width = this._item.minimumWidth;
-            }else if (this._item.view !== null){
+            if (this._item.view !== null){
                 width = this._item.view.intrinsicSize.width;
+                if (width === UIView.noIntrinsicSize){
+                    if (this._item.minimumSize !== null){
+                        width = this._item.minimumSize.width;
+                    }else{
+                        width = toolbar._imageSize;
+                    }
+                }
             }else{
                 width = this._item.image.size.width * toolbar._imageSize / this._item.image.size.height;
             }
@@ -541,7 +547,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             itemView.index = i;
             itemView.item = item;
         }
-        for (var j = l - 1; j >= i; --j){
+        for (var j = props.itemViews.length - 1; j >= i; --j){
             itemView = props.itemViews.pop();
             itemView.removeFromSuperview();
         }
@@ -655,6 +661,8 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             itemSizes.push(size);
             itemsWidth += size.width;
             if (item.identifier === UIToolbarItem.Identifier.flexibleSpace){
+                flexibleItemSizes.push(size);
+            }else if (item.minimumSize !== null && item.maximumSize !== null && item.minimumSize.width < item.maximumSize.width){
                 flexibleItemSizes.push(size);
             }
         }
