@@ -436,6 +436,28 @@ JSClass("UITextEditor", JSObject, {
         this._toggleBooleanAttribute("underline", "Underline");
     },
 
+    strike: function(sender){
+        this._toggleBooleanAttribute("strike", "Strike");
+    },
+
+    setAttribute: function(name, value, undoName){
+        this.undoManager.beginUndoGrouping();
+        var i, l;
+        var selection;
+        var selections = this._selectionsCopy();
+        for (i = 0, l = selections.length; i < l; ++i){
+            selection = selections[i];
+            this._setAttributeValueForSelection(name, value, selection);
+        }
+        this._setSelectionsAllowingUndo(selections);
+        this.undoManager.endUndoGrouping();
+        this.undoManager.setActionName(undoName);
+    },
+
+    removeAttribute: function(name, undoName){
+        this.setAttribute(name, undefined, undoName);
+    },
+
     removeParagraphAttribute: function(name, undoName){
         this.setParagraphAttribute(name, undefined, undoName);
     },
@@ -535,7 +557,7 @@ JSClass("UITextEditor", JSObject, {
         var selections = this._selectionsCopy();
         for (i = 0, l = selections.length; i < l; ++i){
             selection = selections[i];
-            this._setBooleanAttributeForSelection(name, !currentValue, selection);
+            this._setAttributeValueForSelection(name, !currentValue, selection);
         }
         this._setSelectionsAllowingUndo(selections);
         this.undoManager.endUndoGrouping();
@@ -543,25 +565,26 @@ JSClass("UITextEditor", JSObject, {
         this._resetSelectionAffinity();
     },
 
-    _setBooleanAttributeForSelection: function(name, value, selection){
+    _setAttributeValueForSelection: function(name, value, selection){
         var textStorage = this.textLayoutManager.textStorage;
         var replacementString;
         if (selection.range.length > 0){
             replacementString = textStorage.attributedSubstringInRange(selection.range);
-            if (value){
-                replacementString.addAttributeInRange(name, true, JSRange(0, replacementString.string.length));
+            if (value !== null && value !== undefined){
+                replacementString.addAttributeInRange(name, value, JSRange(0, replacementString.string.length));
             }else{
                 replacementString.removeAttributeInRange(name, JSRange(0, replacementString.string.length));
             }
             this._replaceTextStorageRangeAllowingUndo(textStorage, selection.range, replacementString);
         }else{
             selection.attributes = this._insertAttributesForSelection(selection);
-            if (value){
-                selection.attributes[name] = true;
+            var currentValue = selection.attributes[name];
+            if (value !== null && value !== undefined){
+                selection.attributes[name] = value;
             }else{
                 delete selection.attributes[name];
             }
-            this.undoManager.registerUndo(this, this._setBooleanAttributeForSelection, name, !value, selection);
+            this.undoManager.registerUndo(this, this._setAttributeValueForSelection, name, currentValue, selection);
         }
     },
 
