@@ -202,23 +202,51 @@ JSClass("UITextEditor", JSObject, {
         }
         this._draggingSelection = null;
     },
+    _touchBeganInfo: null,
 
     handleTouchesBeganAtLocation: function(location, touches, event){
         this._setSingleSelectionAtLocation(location);
+        this._touchBeganInfo = {
+            timestamp: event.timestamp,
+            location: location,
+            moved: false
+        };
     },
 
     handleTouchesMovedAtLocation: function(location, touches, event){
         this._setSingleSelectionAtLocation(location);
+        if (this._touchBeganInfo !== null){
+            this._touchBeganInfo.moved = this._touchBeganInfo.moved || location.distanceToPoint(this._touchBeganInfo.location) > 10;
+        }
     },
 
     handleTouchesEndedAtLocation: function(location, touches, event){
         this._setSingleSelectionAtLocation(location);
+        if (this._touchBeganInfo !== null){
+            this._touchBeganInfo = null;
+        }
     },
 
     handleTouchesEnded: function(touches, event){
+        if (this._touchBeganInfo !== null){
+            if (this.selections.length === 1 && !this._touchBeganInfo.moved){
+                if ((event.timestamp - this._touchBeganInfo.timestamp) > JSTimeInterval.seconds(0.5)){
+                    var selection = this.selections[0];
+                    var range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(this.selections[0].range.location);
+                    if (range.length > 0){
+                        var wordSelection = this._createSelection(range);
+                        this._setSingleSelection(wordSelection);
+                    }
+                }
+            }
+            this._touchBeganInfo = null;
+        }
     },
 
     handleTouchesCanceled: function(touches, event){
+        if (this._touchBeganInfo !== null){
+            this._touchBeganInfo = null;
+        }
     },
 
     didBecomeFirstResponder: function(isWindowKey, shouldSelect){
