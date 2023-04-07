@@ -395,7 +395,7 @@ JSClass('UIWindow', UIView, {
 
     makeKeyAndOrderFront: function(){
         this.orderFront();
-        this.windowServer.makeWindowKey(this);
+        this.makeKey();
     },
 
     receivesAllEvents: false,
