@@ -599,7 +599,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
     },
 
     createOverflowMenuForToolbar: function(toolbar){
-        var index = toolbar.stylerProperties.lastVisibleIndex;
+        var index = toolbar.stylerProperties.lastVisibleIndex + 1;
         var overflowItems = [];
         var i, l;
         var item;
@@ -699,7 +699,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
         if (flexibleItemSizes.length > 0){
             var flexibleWidth = extraSpace / flexibleItemSizes.length;
             for (i = 0, l = flexibleItemSizes.length; i < l; ++i){
-                flexibleItemSizes[i].width = flexibleWidth;
+                flexibleItemSizes[i].width += flexibleWidth;
             }
         }
 
