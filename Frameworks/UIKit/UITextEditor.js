@@ -746,7 +746,7 @@ JSClass("UITextEditor", JSObject, {
         }
         var index = selection.range.location;
         var iterator;
-        if (index > 0){
+        if (selection.range.length === 0 && index > 0){
             iterator = this.textLayoutManager.textStorage.string.userPerceivedCharacterIterator(index);
             iterator.decrement();
             if (!iterator.isParagraphBreak){
