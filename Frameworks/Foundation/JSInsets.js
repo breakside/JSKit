@@ -39,10 +39,10 @@ JSInsets.prototype = {
 
     insetsWithInsets: function(top, left, bottom, right){
         if (top instanceof JSInsets){
-            top = top.top;
             left = top.left;
             bottom = top.bottom;
             right = top.right;
+            top = top.top;
         }
         if (left === undefined) left = top;
         if (bottom === undefined) bottom =  top;
