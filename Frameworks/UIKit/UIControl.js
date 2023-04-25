@@ -159,7 +159,7 @@ JSClass("UIControl", UIView, {
                 var actions = this._actionsByEvent[event];
                 if (actions){
                     for (var i = actions.length - 1; i >= 0; --i){
-                        if (actions[i] === action && actions[i].target === target){
+                        if (actions[i].action === action && actions[i].target === target){
                             actions.splice(i, 1);
                         }
                     }
