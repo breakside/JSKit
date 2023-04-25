@@ -83,8 +83,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             body.style.right = '0';
             body.style.bottom = '0';
             body.style.overflow = 'hidden';
-            body.style.borderLeft = "env(safe-area-inset-left) solid black";
-            body.style.borderRight = "env(safe-area-inset-right) solid black";
+            body.style.setProperty("--jskit-safe-area-inset-left", "env(safe-area-inset-left)");
+            body.style.setProperty("--jskit-safe-area-inset-right", "env(safe-area-inset-right)");
+            body.style.setProperty("--jskit-safe-area-inset-top", "env(safe-area-inset-top)");
+            body.style.setProperty("--jskit-safe-area-inset-bottom", "env(safe-area-inset-bottom)");
             var head = this.domDocument.head;
             var child;
             for (var i = head.childNodes.length - 1; i >= 0; --i){
@@ -719,6 +721,22 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         return JSSize(this.rootElement.clientWidth, this.rootElement.clientHeight);
     },
 
+    safeAreaInsets: function(){
+        var style = this.domWindow.getComputedStyle(this.rootElement);
+        var parseValue = function(value){
+            if (value.endsWith("px")){
+                return parseInt(value.substr(0, value.length - 2));
+            }
+            return 0;
+        };
+        return JSInsets(
+            parseValue(style.getPropertyValue("--jskit-safe-area-inset-top")),
+            parseValue(style.getPropertyValue("--jskit-safe-area-inset-left")),
+            parseValue(style.getPropertyValue("--jskit-safe-area-inset-bottom")),
+            parseValue(style.getPropertyValue("--jskit-safe-area-inset-right"))
+        );
+    },
+
     contextmenu: function(e){
         // prevent the default context menu
         e.preventDefault();
@@ -921,6 +939,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _updateScreenClientOrigin: function(){
         var clientRect = this.rootElement.getBoundingClientRect();
         this._screenClientOrigin = JSPoint(clientRect.left, clientRect.top);
+    },
+
+    layoutWindow: function(window){
+        UIHTMLWindowServer.$super.layoutWindow.call(this, window);
+        if (window instanceof UIRootWindow){
+            window.contentInsets = this.safeAreaInsets();
+        }
     },
 
     // ----------------------------------------------------------------------
