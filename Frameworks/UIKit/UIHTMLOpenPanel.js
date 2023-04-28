@@ -25,8 +25,14 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
     },
 
     show: function(action, target){
-        var fileInput = document.createElement('input');
+        if (UIHTMLOpenPanel.fileInput !== null){
+            UIHTMLOpenPanel.fileInput.parentNode.removeChild(UIHTMLOpenPanel.fileInput);
+        }
+        UIHTMLOpenPanel.fileInput = document.createElement('input');
+        var fileInput = UIHTMLOpenPanel.fileInput;
         fileInput.type = 'file';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
         if (this.allowsMultipleSelection){
             fileInput.multiple = true;
         }
@@ -38,7 +44,7 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
             }
         }
         var panel = this;
-        fileInput.onchange = function(){
+        fileInput.addEventListener("change", function(){
             if (panel.allowsMultipleSelection || panel.chooseDirectories){
                 if (fileInput.webkitEntries && fileInput.webkitEntries.length > 0){
                     panel._fileEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(fileInput.webkitEntries);
@@ -51,11 +57,19 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
                 }
             }
             action.call(target, panel);
-        };
+            fileInput.parentNode.removeChild(fileInput);
+            UIHTMLOpenPanel.fileInput = null;
+        });
+        fileInput.addEventListener("cancel", function(){
+            fileInput.parentNode.removeChild(fileInput);
+            UIHTMLOpenPanel.fileInput = null;
+        });
         fileInput.click();
     }
 
 });
+
+UIHTMLOpenPanel.fileInput = null;
 
 UIOpenPanel.definePropertiesFromExtensions({
     init: function(){
