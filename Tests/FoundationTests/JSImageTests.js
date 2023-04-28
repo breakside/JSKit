@@ -122,6 +122,15 @@ JSClass("JSImageTests", TKTestSuite, {
         image = JSImage.initWithData(svg.utf8());
         TKAssertExactEquals(image.size.width, 144);
         TKAssertExactEquals(image.size.height, 408);
+        
+        // XML 1.0 doesn't require the XML prolog, and many SVG documents don't include it
+        svg = [
+            '<svg width="12px" height="34px" viewBox="0 0 12 34" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">',
+            '</svg>'
+        ].join("\n");
+        image = JSImage.initWithData(svg.utf8());
+        TKAssertExactEquals(image.size.width, 12);
+        TKAssertExactEquals(image.size.height, 34);
     }
 
 });

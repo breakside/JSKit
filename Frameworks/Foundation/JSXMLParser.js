@@ -362,13 +362,21 @@ JSClass("JSXMLParser", JSObject, {
             var obj;
             if (isHTML){
                 readWhitespace();
-            }else{
-                obj = readObject();
-                if (obj === null || obj.kind != 'PI' || obj.name != 'xml'){
-                    throw new Error("Expecting <?xml at start of document");
-                }
             }
             obj = readObject();
+            if (!isHTML){
+                if (obj === null){
+                    throw new Error("Expecting XML prolog or root element");
+                }
+                if (obj.kind === "PI"){
+                    if (obj.name != 'xml'){
+                        throw new Error("Expecting XML prolog");
+                    }
+                    obj = readObject();
+                }else if (obj.kind !== "ElementStart"){
+                    throw new Error("Expecting XML root element");
+                }
+            }
             var elementStack = [];
             var namespaces = {
                 ':default:': null,

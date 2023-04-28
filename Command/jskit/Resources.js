@@ -370,19 +370,10 @@ var addMetadata = {
     },
 
     '.svg': async function(name, contents, metadata){
-        var xml = contents.stringByDecodingUTF8();
-        // SVG icons from fontawesome don't start with xml prologue, so 
-        // add one if it looks to be missing
-        if (xml.startsWith("<svg ")){
-            xml = '<?xml version="1.0" encoding="utf-8"?>\n' + xml;
-        }
-        if (!xml.startsWith("<?xml")){
-            return;
-        }
         metadata.image = {
             vector: true
         };
-        var parser = JSXMLParser.initWithString(xml);
+        var parser = JSXMLParser.initWithData(contents);
         parser.delegate  = {
             xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
                 var multiple = {

@@ -84,6 +84,96 @@ JSClass('JSXMLParserTests', TKTestSuite, {
             "null"
         ];
         TKAssertArrayEquals(this.output, expected);
+
+        // Prolog wasn't required in xml 1.0
+        xml = [
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        expected = [
+            "beginDocument",
+            "beginElement",
+            "abc",
+            "null",
+            "null",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "test",
+            "null",
+            "null",
+            "handleText",
+            "testing 123",
+            "endElement",
+            "test",
+            "null",
+            "null",
+            "handleText",
+            "\n  ",
+            "beginElement",
+            "c",
+            "null",
+            "null",
+            "one",
+            "null",
+            "null",
+            "1",
+            "two",
+            "null",
+            "null",
+            "2",
+            "endElement",
+            "c",
+            "null",
+            "null",
+            "handleText",
+            "\n",
+            "endElement",
+            "abc",
+            "null",
+            "null"
+        ];
+        TKAssertArrayEquals(this.output, expected);
+
+        // Without a prolog, a document cannot start with comments or a doctype
+        xml = [
+            '<!-- comment -->',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        expected = [
+            "error",
+        ];
+        TKAssertArrayEquals(this.output, expected);
+
+        // Without a prolog, a document cannot start with comments or a doctype
+        xml = [
+            '<!DOCTYPE name>',
+            '<abc>',
+            '  <test>testing 123</test>',
+            '  <c one="1" two="2"/>',
+            '</abc>'
+        ].join("\n");
+        parser = JSXMLParser.initWithString(xml);
+        parser.delegate = this;
+        this.resetOutput();
+        parser.parse();
+        expected = [
+            "error",
+        ];
+        TKAssertArrayEquals(this.output, expected);
     },
 
     testNamespaces: function(){
@@ -927,6 +1017,10 @@ JSClass('JSXMLParserTests', TKTestSuite, {
         this.output.push(String(prefix));
         this.output.push(String(namespace));
     },
+
+    xmlParserErrorOccurred: function(parser, error){
+        this.output.push("error");
+    }
 
 });
 

@@ -314,8 +314,19 @@ JSImage.contentTypeOfData = function(data){
         return JSMediaType("image/png");
     }else if (data.length > 2 && data[0] == 0xFF && data[1] == 0xD8){
         return JSMediaType("image/jpeg");
-    }else if (data.length > 5 && data[0] == 0x3C && data[1] == 0x3F && data[2] == 0x78 && data[3] == 0x6D && data[4] == 0x6C){
-        return JSMediaType("image/svg+xml");
+    }else if (data.length > 0 && data[0] == 0x3C){
+        var parser = JSXMLParser.initWithData(data);
+        var contentType = null;
+        parser.delegate = {
+            xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
+                if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
+                    contentType = JSMediaType("image/svg+xml");
+                }
+                parser.stop();
+            }
+        };
+        parser.parse();
+        return contentType;
     }
     return null;
 };
