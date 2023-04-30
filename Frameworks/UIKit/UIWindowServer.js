@@ -414,7 +414,7 @@ JSClass("UIWindowServer", JSObject, {
         var view = null;
         if (window !== null){
             view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
-            while (view !== null && view.tooltip === null){
+            while (view !== null && (view.tooltip === null || view.tooltip === "")){
                 view = view.superview;
             }
             if (view === this._tooltipSourceView){
@@ -705,10 +705,10 @@ JSClass("UIWindowServer", JSObject, {
         var window = this.windowForEventAtLocation(this.mouseLocation);
         if (window !== null){
             var view = window.hitTest(window.convertPointFromScreen(this.mouseLocation));
-            while (view !== null && view.tooltip === null){
+            while (view !== null && (view.tooltip === null || view.tooltip === "")){
                 view = view.superview;
             }
-            if (view !== null && view.tooltip !== null){
+            if (view !== null && view.tooltip !== null && view.tooltip !== ""){
                 this.showTooltipForView(view, this.mouseLocation);
             }
         }
