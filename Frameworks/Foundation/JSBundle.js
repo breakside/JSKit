@@ -16,7 +16,12 @@
 // #import "JSObject.js"
 // #import "JSLocale.js"
 // #import "JSFile.js"
+// #import "JSLog.js"
 'use strict';
+
+(function(){
+
+var logger = JSLog("foundation", "bundle");
 
 JSClass('JSBundle', JSObject, {
 
@@ -252,6 +257,14 @@ JSClass('JSBundle', JSObject, {
         if (metadata !== null){
             return metadata.strings[key];
         }
+        var langs;
+        if (locale){
+            langs = this._getSupportedLanguagesForLocaleIdentifiers([locale.identifier]);
+        }else{
+            this._updateSupportedUserLanguagesIfNeeded();
+            langs = this._supportedPreferredLanguages;
+        }
+        logger.warn("Missing localization key '%{public}' in %{public} for %{public}", key, table, langs.join(","));
         return key;
     },
 
@@ -313,3 +326,5 @@ Object.defineProperty(JSBundle, 'mainBundle', {
         return bundle;
     }
 });
+
+})();
