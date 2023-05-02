@@ -724,11 +724,16 @@ JSClass("UIWindowServer", JSObject, {
         var windowIndex;
         var location;
         var event;
+        var hasWindowReceivingAllEvents = false;
         for (windowIndex = this.windowStack.length - 1; windowIndex >= 0 && window === null; --windowIndex){
             location = this.windowStack[windowIndex].convertPointFromScreen(this.mouseLocation);
-            if (this.windowStack[windowIndex].userInteractionEnabled && (this.windowStack[windowIndex].containsPoint(location) || this.windowStack[windowIndex].receivesAllEvents)){
+            hasWindowReceivingAllEvents = hasWindowReceivingAllEvents || this.windowStack[windowIndex].receivesAllEvents;
+            if (this.windowStack[windowIndex].userInteractionEnabled && this.windowStack[windowIndex].containsPoint(location)){
                 window = this.windowStack[windowIndex];
             }
+        }
+        if (hasWindowReceivingAllEvents && window !== null && !window.receivesAllEvents){
+            window = null;
         }
         if (this._mouseTrackingWindow !== null){
             if (window !== this._mouseTrackingWindow){
