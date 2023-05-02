@@ -859,8 +859,8 @@ JSClass('UIWindow', UIView, {
         if (moves.length > 0){
             event = UIEvent.initMouseEventWithType(UIEvent.Type.mouseMoved, timestamp, this, locationInWindow, modifiers, 0);
             for (areaIndex = 0, areaCount = moves.length; areaIndex < areaCount; ++areaIndex){
+                area = moves[areaIndex];
                 if ((area.trackingType & UIMouseTrackingArea.TrackingType.move) !== 0){
-                    area = moves[areaIndex];
                     area.mouseMoved(event);
                 }
             }
