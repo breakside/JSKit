@@ -1036,7 +1036,6 @@ JSHTMLFileManagerTransaction.prototype = {
     },
 
     event_error: function(e){
-        logger.error(this.indexedDBTransaction.error);
         // error events should result in abort events, so we'll handle everything in the abort
     },
 
