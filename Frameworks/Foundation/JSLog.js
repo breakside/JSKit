@@ -237,7 +237,7 @@ var jslog_formatter = {
     error: function(e, options){
         // var frames = e.frames;
         // return e.toString() + ' \u2014 ' + frames[0].method + ' \u2014 ' + frames[0].filename + ':' + frames[0].lineno;
-        return e.toString();
+        return String(e);
     },
 
     public: String.printf_formatter.s
