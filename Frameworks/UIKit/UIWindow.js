@@ -1082,19 +1082,21 @@ JSClass('UIWindow', UIView, {
         for (var id in touchesByView){
             touches = touchesByView[id];
             view = touches[0].view;
-            switch (event.type){
-                case UIEvent.Type.touchesBegan:
-                    view.touchesBegan(touches, event);
-                    break;
-                case UIEvent.Type.touchesMoved:
-                    view.touchesMoved(touches, event);
-                    break;
-                case UIEvent.Type.touchesCanceled:
-                    view.touchesCanceled(touches, event);
-                    break;
-                case UIEvent.Type.touchesEnded:
-                    view.touchesEnded(touches, event);
-                    break;
+            if (view.window === this){
+                switch (event.type){
+                    case UIEvent.Type.touchesBegan:
+                        view.touchesBegan(touches, event);
+                        break;
+                    case UIEvent.Type.touchesMoved:
+                        view.touchesMoved(touches, event);
+                        break;
+                    case UIEvent.Type.touchesCanceled:
+                        view.touchesCanceled(touches, event);
+                        break;
+                    case UIEvent.Type.touchesEnded:
+                        view.touchesEnded(touches, event);
+                        break;
+                }
             }
         }
     },
