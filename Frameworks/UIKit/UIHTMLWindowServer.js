@@ -340,6 +340,8 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // prevent the default wheel behavior so we can do our own
         e.preventDefault();
         this._createScrollEventFromDOMEvent(e, UIEvent.Type.scrollWheel);
+        var modifiers = this._modifiersFromDOMEvent(e);
+        this.mouseDidMove(e.timeStamp / 1000.0, modifiers);
     },
 
     _createMouseEventFromDOMEvent: function(e, type){
