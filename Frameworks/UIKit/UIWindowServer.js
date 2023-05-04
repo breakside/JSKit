@@ -814,6 +814,10 @@ JSClass("UIWindowServer", JSObject, {
         return this._draggingSession !== null;
     },
 
+    shouldCancelDragOnEscape: function(){
+        return true;
+    },
+
     handleDraggingKeyEvent: function(event){
         switch (event.type){
             case UIEvent.Type.keyDown:
@@ -822,7 +826,9 @@ JSClass("UIWindowServer", JSObject, {
                         // Resetting the entire mouse state.  If we only stopped the drag
                         // session, mouse move events would be directed to the view that
                         // started the drag, and it likely will just start another drag
-                        this.resetMouseState();
+                        if (this.shouldCancelDragOnEscape()){
+                            this.resetMouseState();
+                        }
                         break;
                     case UIEvent.Key.option:
                         // prefer copy

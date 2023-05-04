@@ -466,6 +466,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         }
     },
 
+    shouldCancelDragOnEscape: function(){
+        return !this._dragingSessionStartedOutsideBrowser;
+    },
+
     _correctedEventKey: function(key){
         if (key === 'Left'){
             return 'ArrowLeft';
