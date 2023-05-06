@@ -1033,16 +1033,22 @@ JSClass('UIWindow', UIView, {
         while (modal !== null && modal._modal !== null){
             modal = modal._modal;
         }
+        var i, l;
         if (modal !== null){
-            if (event.type == UIEvent.Type.touchesBegan){
-                if (modal._isOpen){
+            if (event.type == UIEvent.Type.touchesEnded){
+                var activeTouchCount = 0;
+                for (i = 0, l = event.touches.length; i < l; ++i){
+                    if (event.touches[i].phase !== UITouch.Phase.ended && event.touches[i].phase !== UITouch.Phase.canceled){
+                        ++activeTouchCount;
+                    }
+                }
+                if (modal._isOpen && activeTouchCount === 0){
                     modal.makeKeyAndOrderFront();
                     modal.indicateModalStatus();
                 }
             }
             return;
         }
-        var i, l;
         var j, k;
         // We only dispatch the touches that changed in this version of the event.
         // A view can get all the touches it wants from the event.
