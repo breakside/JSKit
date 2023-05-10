@@ -1028,21 +1028,22 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    _hadModalWhenTouchesBegan: false,
+
     _sendTouchEvent: function(event){
         var modal = this._modal;
         while (modal !== null && modal._modal !== null){
             modal = modal._modal;
         }
         var i, l;
+        if (event.type === UIEvent.Type.touchesBegan){
+            if (!event.hasPastTouches()){
+                this._hadModalWhenTouchesBegan = modal !== null;
+            }
+        }
         if (modal !== null){
             if (event.type == UIEvent.Type.touchesEnded){
-                var activeTouchCount = 0;
-                for (i = 0, l = event.touches.length; i < l; ++i){
-                    if (event.touches[i].phase !== UITouch.Phase.ended && event.touches[i].phase !== UITouch.Phase.canceled){
-                        ++activeTouchCount;
-                    }
-                }
-                if (modal._isOpen && activeTouchCount === 0){
+                if (modal._isOpen && !event.hasFutureTouches() && this._hadModalWhenTouchesBegan){
                     modal.makeKeyAndOrderFront();
                     modal.indicateModalStatus();
                 }

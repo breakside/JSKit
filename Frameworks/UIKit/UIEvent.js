@@ -142,6 +142,24 @@ JSClass('UIEvent', JSObject, {
         return touches;
     },
 
+    hasPastTouches: function(){
+        for (var i = 0, l = this._touches.length; i < l; ++i){
+            if (this._touches[i].phase !== UITouch.Phase.began){
+                return true;
+            }
+        }
+        return false;
+    },
+
+    hasFutureTouches: function(){
+        for (var i = 0, l = this._touches.length; i < l; ++i){
+            if (this._touches[i].phase !== UITouch.Phase.ended && this._touches[i].phase !== UITouch.Phase.canceled){
+                return true;
+            }
+        }
+        return false;
+    },
+
     changedTouchesInWindow: function(window){
         var touches = this.touchesInWindow(window);
         for (var i = touches.length - 1; i >= 0; --i){
