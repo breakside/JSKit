@@ -1053,55 +1053,72 @@ JSClass('UIWindow', UIView, {
         var j, k;
         // We only dispatch the touches that changed in this version of the event.
         // A view can get all the touches it wants from the event.
-        var touches = event.changedTouchesInWindow(this);
-        if (touches.length === 0){
+        var changedTouches = event.changedTouchesInWindow(this);
+        if (changedTouches.length === 0){
             return;
         }
         var touch;
         var view;
-        var touchesByView = {};
-        for (i = 0, l = touches.length; i < l; ++i){
-            touch = touches[i];
+        var changedTouchesByView = {};
+        for (i = 0, l = changedTouches.length; i < l; ++i){
+            touch = changedTouches[i];
             if (touch.view){
-                if (!touchesByView[touch.view.objectID]){
-                    touchesByView[touch.view.objectID] = [];
+                if (!changedTouchesByView[touch.view.objectID]){
+                    changedTouchesByView[touch.view.objectID] = [];
                 }
-                touchesByView[touch.view.objectID].push(touch);
+                changedTouchesByView[touch.view.objectID].push(touch);
             }
         }
         if (event.type === UIEvent.Type.touchesBegan){
-            for (i = 0, l = touches.length; i < l; ++i){
-                touch = touches[i];
+            var allTouches = event.touches;
+            var allTouchesByView = {};
+            for (i = 0, l = allTouches.length; i < l; ++i){
+                touch = allTouches[i];
+                if (touch.view){
+                    if (!allTouchesByView[touch.view.objectID]){
+                        allTouchesByView[touch.view.objectID] = [];
+                    }
+                    allTouchesByView[touch.view.objectID].push(touch);
+                }
+            }
+            for (i = 0, l = changedTouches.length; i < l; ++i){
+                touch = changedTouches[i];
                 if (touch.view !== null){
                     logger.warn("beginning touch that already has a view");
                     continue;
                 }
                 view = this.hitTest(touch.locationInWindow) || this;
-                if (!touchesByView[view.objectID]){
-                    touchesByView[view.objectID] = [];
-                }
-                if (view.isMultipleTouchEnabled || touchesByView[view.objectID].length === 0){
+                // For views that don't support multiple touch, only the first
+                // seen touch will be associated with the view.  If a touch isn't
+                // associated with a view here on touchesBegan, the touch will
+                // never be sent to any view for any future event.
+                if (view.isMultipleTouchEnabled || !allTouchesByView[view.objectID]){
+                    allTouchesByView[view.objectID] = [];
+                    if (!changedTouchesByView[view.objectID]){
+                        changedTouchesByView[view.objectID] = [];
+                    }
                     touch.view = view;
-                    touchesByView[view.objectID].push(touch);
+                    changedTouchesByView[view.objectID].push(touch);
+                    allTouchesByView[view.objectID].push(touch);
                 }
             }
         }
-        for (var id in touchesByView){
-            touches = touchesByView[id];
-            view = touches[0].view;
+        for (var id in changedTouchesByView){
+            changedTouches = changedTouchesByView[id];
+            view = changedTouches[0].view;
             if (view.window === this){
                 switch (event.type){
                     case UIEvent.Type.touchesBegan:
-                        view.touchesBegan(touches, event);
+                        view.touchesBegan(changedTouches, event);
                         break;
                     case UIEvent.Type.touchesMoved:
-                        view.touchesMoved(touches, event);
+                        view.touchesMoved(changedTouches, event);
                         break;
                     case UIEvent.Type.touchesCanceled:
-                        view.touchesCanceled(touches, event);
+                        view.touchesCanceled(changedTouches, event);
                         break;
                     case UIEvent.Type.touchesEnded:
-                        view.touchesEnded(touches, event);
+                        view.touchesEnded(changedTouches, event);
                         break;
                 }
             }
