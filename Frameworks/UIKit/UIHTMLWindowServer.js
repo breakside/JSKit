@@ -623,18 +623,25 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
 
     _createTouchEventFromDOMEvent: function(e, type){
         var timestamp = e.timeStamp / 1000.0;
-        var touchDescriptors = [];
+        var touchIdentifiers = new Set();
+        var changedTouchDescriptors = [];
         var touchDescriptor = null;
         var domTouch;
-        for (var i = 0, l = e.changedTouches.length; i < l; ++i){
+        var i, l;
+        for (i = 0, l = e.touches.length; i < l; ++i){
+            domTouch = e.touches[i];
+            touchIdentifiers.add(domTouch.identifier);
+        }
+        for (i = 0, l = e.changedTouches.length; i < l; ++i){
             domTouch = e.changedTouches[i];
             touchDescriptor = {
                 identifier: domTouch.identifier,
                 location: this._locationOfDOMTouchInScreen(domTouch)
             };
-            touchDescriptors.push(touchDescriptor);
+            changedTouchDescriptors.push(touchDescriptor);
+            touchIdentifiers.add(domTouch.identifier);
         }
-        this.createTouchEvent(type, timestamp, touchDescriptors);
+        this.createTouchEvent(type, timestamp, changedTouchDescriptors, touchIdentifiers);
     },
 
     // --------------------------------------------------------------------

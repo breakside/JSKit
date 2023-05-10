@@ -850,13 +850,22 @@ JSClass("UIWindowServer", JSObject, {
 
     activeTouchEvent: null,
 
-    createTouchEvent: function(type, timestamp, changedTouchDescriptors){
+    createTouchEvent: function(type, timestamp, changedTouchDescriptors, touchIdentifiers){
         var window;
         var touch;
         var descriptor;
         var location;
         var i, l;
         var phase = this._touchPhaseForEventType(type);
+
+        if (this.activeTouchEvent !== null){
+            if (this.activeTouchEvent.removeUnreferencedTouches(touchIdentifiers) > 0){
+                logger.warn("removed unreferenced touches");
+            }
+            if (this.activeTouchEvent.touches.length === 0){
+                this.activeTouchEvent = null;
+            }
+        }
 
         // Create or update the active touch event
         if (this.activeTouchEvent === null){

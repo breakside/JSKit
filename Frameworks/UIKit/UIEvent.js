@@ -115,6 +115,19 @@ JSClass('UIEvent', JSObject, {
         }
     },
 
+    removeUnreferencedTouches: function(touchIdentifiers){
+        var count = 0;
+        var touch;
+        for (var i = this._touches.length - 1; i >= 0; --i){
+            touch = this._touches[i];
+            if (!touchIdentifiers.has(touch.identifier)){
+                ++count;
+                this._touches.splice(i, 1);
+            }
+        }
+        return count;
+    },
+
     updateTouches: function(type, timestamp){
         this._timestamp = timestamp;
         this._type = type;
