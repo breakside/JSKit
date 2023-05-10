@@ -20,6 +20,8 @@
 
 (function(){
 
+var logger = JSLog("foundation", "locale");
+
 JSClass("JSLocale", JSObject, {
 
     identifier: JSReadOnlyProperty('_identifier', null),
@@ -626,6 +628,8 @@ JSLocale.preferredLanguagesVersion = 1;
 
 JSLocale.data = {};
 
+var warnedIdentifiers = {};
+
 Object.defineProperties(JSLocale, {
 
     preferredLanguages: {
@@ -641,7 +645,16 @@ Object.defineProperties(JSLocale, {
     current: {
         configurable: true,
         get: function JSLocale_getCurrent(){
-            return JSLocale.initWithIdentifier(JSLocale._preferredLanguages[0]);
+            var preferredIdentifier = JSLocale._preferredLanguages[0];
+            var locale = JSLocale.initWithIdentifier(preferredIdentifier);
+            if (locale === null){
+                if (!(preferredIdentifier in warnedIdentifiers)){
+                    warnedIdentifiers[preferredIdentifier] = true;
+                    logger.warn("Unable to create locale from identifier '%{public}'", preferredIdentifier);
+                }
+                locale = JSLocale.initWithIdentifier(JSBundle.mainBundle.info.JSDevelopmentLanguage);
+            }
+            return locale;
         }
     }
 
