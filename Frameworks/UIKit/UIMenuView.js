@@ -390,14 +390,22 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Touch Events
 
+    _activeTouchInfo: null,
+
     touchesBegan: function(touches, event){
         if (this._isClosing){
             return;
         }
-        if (touches.length > 1){
-            return;
+        if (this._activeTouchInfo !== null){
+            if (event.touchForIdentifier(this._activeTouchInfo.identifier) !== null){
+                return;
+            }
         }
-        var location = touches[0].locationInView(this);
+        var touch = touches[0];
+        this._activeTouchInfo = {
+            identifier: touch.identifier
+        };
+        var location = touch.locationInView(this);
         if (!this.containsPoint(location)){
             if (this._menu.supermenu && this._menu.supermenu.stylerProperties.window){
                 this._menu.supermenu.stylerProperties.window.touchesBegan(touches, event);
@@ -411,10 +419,14 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     touchesMoved: function(touches, event){
-        if (this._isClosing){
+        if (this._activeTouchInfo === null){
             return;
         }
-        var location = touches[0].locationInView(this);
+        var touch = event.touchForIdentifier(this._activeTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
+        var location = touch.locationInView(this);
         this._lastMoveLocation = location;
         this._adjustHighlightForLocation(this._lastMoveLocation);
         if (!this.containsPoint(location)){
@@ -428,10 +440,15 @@ JSClass("UIMenuWindow", UIWindow, {
         if (event.timestamp - this._itemDownTimestamp < 0.2){
             return;
         }
-        if (this._isClosing){
+        if (this._activeTouchInfo === null){
             return;
         }
-        var location = touches[0].locationInView(this);
+        var touch = event.touchForIdentifier(this._activeTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
+        this._activeTouchInfo = null;
+        var location = touch.locationInView(this);
         if (this.containsPoint(location)){
             this._performActionForHighlightedItem();
         }else{
@@ -444,6 +461,14 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     touchesCanceled: function(touches, event){
+        if (this._activeTouchInfo === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._activeTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
+        this._activeTouchInfo = null;
     },
 
     // -----------------------------------------------------------------------

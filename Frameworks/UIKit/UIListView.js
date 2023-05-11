@@ -2385,53 +2385,73 @@ JSClass("UIListView", UIScrollView, {
 
     touchesBegan: function(touches, event){
         UIListView.$super.touchesBegan.call(this, touches, event);
-        if (touches.length > 1){
-            return;
+        if (this._touch !== null){
+            if (event.touchForIdentifier(this._touch.identifier) !== null){
+                return;
+            }
         }
+        var touch = touches[0];
         this._touch = {
-            location0: touches[0].locationInWindow,
+            identifier: touch.identifier,
+            location0: touch.locationInWindow,
             cell: null,
             timer: JSTimer.scheduledTimerWithInterval(0.05, function(){
                 this._touch.timer = null;
-                this._makeTouchActiveCell(touches[0], true);
+                this._makeTouchActiveCell(touch, true);
             }, this)
         };
     },
 
     touchesMoved: function(touches, event){
         UIListView.$super.touchesMoved.call(this, touches, event);
-        if (this._touch !== null){
-            var location = touches[0].locationInWindow;
-            var diff = location.subtracting(this._touch.location0);
-            if ((diff.x * diff.x + diff.y * diff.y) > 2){
-                this._cancelTouchSelection();
-            }
+        if (this._touch === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._touch.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
+        var location = touch.locationInWindow;
+        var diff = location.subtracting(this._touch.location0);
+        if ((diff.x * diff.x + diff.y * diff.y) > 2){
+            this._cancelTouchSelection();
         }
     },
 
     touchesEnded: function(touches, event){
         UIListView.$super.touchesEnded.call(this, touches, event);
-        if (touches.length > 1){
+        if (this._touch === null){
             return;
         }
-        if (this._touch !== null){
-            if (this._touch.timer !== null){
-                this._touch.timer.invalidate();
-                this._makeTouchActiveCell(touches[0]);
-            }
-            if (this._touch.cell){
-                this._touch.cell.active = false;
-                this._setSelectedIndexPaths([this._touch.cell.indexPath], {notifyDelegate: true});
-                if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
-                    this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, this._touch.cell.indexPath);
-                }
-            }
-            this._touch = null;
+        var touch = event.touchForIdentifier(this._touch.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
         }
+        if (this._touch.timer !== null){
+            this._touch.timer.invalidate();
+            if (touch !== null){
+                this._makeTouchActiveCell(touch);
+            }
+        }
+        if (this._touch.cell){
+            this._touch.cell.active = false;
+            this._setSelectedIndexPaths([this._touch.cell.indexPath], {notifyDelegate: true});
+            if (this.delegate && this.delegate.listViewDidFinishSelectingCellAtIndexPath){
+                this.delegate.listViewDidFinishSelectingCellAtIndexPath(this, this._touch.cell.indexPath);
+            }
+        }
+        this._touch = null;
     },
 
     touchesCanceled: function(touches, event){
         UIListView.$super.touchesCanceled.call(this, touches, event);
+        if (this._touch === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._touch.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
         this._cancelTouchSelection();
     },
 

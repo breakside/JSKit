@@ -48,7 +48,7 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
         var touch = touches[0];
         var location = touch.locationInWindow;
         this._touchTracking = {
-            identifier: touches[0],
+            identifier: touch.identifier,
             startingLocation: JSPoint(location),
             location: location,
             contentOffset: JSPoint(this.contentOffset),
@@ -80,9 +80,12 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
         if (!this._scrollsVertically && !this._scrollsHorizontally){
             return;
         }
-        if (this._touchTracking === null){
-            this._beginTrackingTouches(touches, event);
+        if (this._touchTracking !== null){
+            if (event.touchForIdentifier(this._touchTracking.identifier) !== null){
+                return;
+            }
         }
+        this._beginTrackingTouches(touches, event);
     },
 
     touchesMoved: function(touches, event){
@@ -96,8 +99,8 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
             }
         }
         var touch = event.touchForIdentifier(this._touchTracking.identifier);
-        if (touch === null){
-            touch = touches[0];
+        if (touches.indexOf(touch) < 0){
+            return;
         }
         var location = touch.locationInWindow;
         var delta = location.subtracting(this._touchTracking.startingLocation);
@@ -133,6 +136,13 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
         if (!this._scrollsVertically && !this._scrollsHorizontally){
             return;
         }
+        if (this._touchTracking === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._touchTracking.identifier);
+        if (touches.indexOf(touch) < 0){
+            return;
+        }
         var dt = event.timestamp - this._touchTracking.timestamp;
         if (dt < 0.05){
             this._beginCoasting(this._touchTracking.velocity);
@@ -144,6 +154,13 @@ JSClass("UIScrollGestureRecognizer", UIGestureRecognizer, {
 
     touchesCanceled: function(touches, event){
         if (!this._scrollsVertically && !this._scrollsHorizontally){
+            return;
+        }
+        if (this._touchTracking === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._touchTracking.identifier);
+        if (touches.indexOf(touch) < 0){
             return;
         }
         this._endTrackingTouches();

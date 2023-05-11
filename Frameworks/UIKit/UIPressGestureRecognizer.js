@@ -36,48 +36,45 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
 
     // MARK: - Events
 
-    began: false,
-    beganLocation: null,
-    beganTouchID: null,
-    pressTimer: null,
+    _firstTouchInfo: null,
 
     touchesBegan: function(touches, event){
-        if (this.began){
-            return;
-        }
-        this.began = true;
         if (this._state === UIGestureRecognizer.State.possible){
-            if (touches.length === 1){
-                this.beganTouchID = touches[0].identifier;
-                this.beganLocation = touches[0].locationInView(this.view);
-                this.pressTimer = JSTimer.scheduledTimerWithInterval(this.minimumPressInterval, this.minimumTimeReached, this);
+            if (touches.length === 1 && event.touches.length === 1){
+                var touch = touches[0];
+                this._firstTouchInfo = {
+                    identifier: touch.identifier,
+                    location: touch.locationInWindow,
+                    timer: JSTimer.scheduledTimerWithInterval(this.minimumPressInterval, this.minimumTimeReached, this)
+                };
                 this._setState(UIGestureRecognizer.State.began);
             }
         }else{
-            this._setState(UIGestureRecognizer.State.failed);
+            this.end(UIGestureRecognizer.State.failed);
         }
     },
 
     minimumTimeReached: function(timer){
+        this._firstTouchInfo = null;
         this._setState(UIGestureRecognizer.State.recognized);
-        this.pressTimer = null;
     },
 
     end: function(state){
-        if (this.pressTimer !== null){
-            this.pressTimer.invalidate();
-            this.pressTimer = null;
+        if (this._firstTouchInfo !== null){
+            if (this._firstTouchInfo.timer !== null){
+                this._firstTouchInfo.timer.invalidate();
+            }
+            this._firstTouchInfo = null;
         }
-        this._setState(UIGestureRecognizer.State.failed);
+        this._setState(state);
     },
 
     touchesMoved: function(touches, event){
-        if (this._state === UIGestureRecognizer.State.possible){
+        if (this._firstTouchInfo === null){
             return;
         }
-        var touch = event.touchForIdentifier(this.beganTouchID);
-        if (touch === null){
-            this.end(UIGestureRecognizer.State.failed);
+        var touch = event.touchForIdentifier(this._firstTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
             return;
         }
         var location = touch.locationInView(this.view);
@@ -88,26 +85,22 @@ JSClass("UIPressGestureRecognizer", UIGestureRecognizer, {
     },
 
     touchesEnded: function(touches, event){
-        var beganTouchID = this.beganTouchID;
-        this.began = false;
-        this.beganLocation = null;
-        this.beganTouchID = null;
-        if (this._state === UIGestureRecognizer.State.possible){
+        if (this._firstTouchInfo === null){
             return;
         }
-        var touch = event.touchForIdentifier(beganTouchID);
-        if (touch === null){
-            this.end(UIGestureRecognizer.State.failed);
+        var touch = event.touchForIdentifier(this._firstTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
             return;
         }
         this.end(UIGestureRecognizer.State.cancled);
     },
 
     touchesCanceled: function(touches, event){
-        this.began = false;
-        this.beganLocation = null;
-        this.beganTouchID = null;
-        if (this._state === UIGestureRecognizer.State.possible){
+        if (this._firstTouchInfo === null){
+            return;
+        }
+        var touch = event.touchForIdentifier(this._firstTouchInfo.identifier);
+        if (touches.indexOf(touch) < 0){
             return;
         }
         this.end(UIGestureRecognizer.State.failed);
