@@ -682,6 +682,10 @@ JSClass("UIMenuWindow", UIWindow, {
 
     close: function(){
         this._isClosing = true;
+        if (this.submenuTimer !== null){
+            this.submenuTimer.invalidate();
+            this.submenuTimer = null;
+        }
         if (this.submenu){
             this.submenu.close();
             this.submenu = null;
