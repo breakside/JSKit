@@ -37,25 +37,27 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
 
     registerForRemoteNotifications: function(request, completion, target){
         if (!completion){
-            completion = Promise.completion();
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         if (this.serviceWorkerContainer === null){
             logger.warn("Remote notifications not supported on this device (no service workers)");
-            JSRunLoop.main.schedule(completion, target, null);
+            JSRunLoop.main.schedule(completion, target, null, null);
         }else{
             this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
                 if (!serviceWorkerRegistration){
                     logger.warn("Missing service worker registration");
-                    completion.call(target, null);
+                    completion.call(target, null, null);
                     return;
                 }
                 if (!serviceWorkerRegistration.pushManager){
                     logger.warn("Remote notifications not supported on this device (no push manager)");
-                    completion.call(target, null);
+                    completion.call(target, null, null);
                     return;
                 }
-                var options = {};
-                if (request.signingJWK !== null){
+                var options = {
+                    userVisibleOnly: true
+                };
+                if (request.signingJWK){
                     options.applicationServerKey = JSData.initWithChunks([
                         JSData.initWithArray([0x04]),
                         request.signingJWK.x.dataByDecodingBase64URL(),
@@ -66,13 +68,17 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
                     var registration = {
                         type: NKUserNotificationCenter.RegistrationType.web,
                         endpoint: subscription.endpoint,
-                        encryptionKey: JSData.initWithBuffer(subscription.getKey("p256dh")).base64URLStringRepresentation(),
-                        secret: JSData.initWithBuffer(subscription.getKey("auth")).base64URLStringRepresentation()
+                        expirationTime: subscription.expirationTime,
+                        applicationServerKeyID: request.signingJWK.kid,
+                        keys: {
+                            p256dh: JSData.initWithBuffer(subscription.getKey("p256dh")).base64URLStringRepresentation(),
+                            auth: JSData.initWithBuffer(subscription.getKey("auth")).base64URLStringRepresentation()
+                        },
                     };
-                    completion.call(target, registration);
+                    completion.call(target, registration, null);
                 }, function(error){
                     logger.error("Failed to subscribe to push: %{error}", error);
-                    completion.call(target, null);
+                    completion.call(target, null, error);
                 });
             });
         }
