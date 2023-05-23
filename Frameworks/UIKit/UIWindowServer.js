@@ -165,9 +165,6 @@ JSClass("UIWindowServer", JSObject, {
         if (this._normalLevelRange.location === 0 && window.level === UIWindow.Level.normal){
             window.level = UIWindow.Level.back;
         }
-        if (this._normalLevelRange.location === 0 && window.level == UIWindow.Level.back){
-            this.updateRootWindowInsets(window);
-        }
         this._beginWindowOrderChange();
         this._windowsById[window.objectID] = window;
         switch (window.level){
@@ -278,8 +275,13 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     layoutWindow: function(window){
-        if (window.level === UIWindow.Level.back){
+        if (window instanceof UIRootWindow){
             window.frame = window._screen.frame;
+            var insets = JSInsets.Zero;
+            if (this._menuBar !== null && this._menuBar.isOpaque){
+                insets.top = this._menuBar.frame.size.height;
+            }
+            window.contentInsets = insets;
         }else{
             // TODO: make sure nothing has moved off screen
         }
@@ -291,14 +293,6 @@ JSClass("UIWindowServer", JSObject, {
             insets.top = this._menuBar.frame.size.height + 1;
         }
         this.screen.availableInsets = insets;
-    },
-
-    updateRootWindowInsets: function(rootWindow){
-        var insets = JSInsets.Zero;
-        if (this._menuBar !== null && this._menuBar.isOpaque){
-            insets.top = this._menuBar.frame.size.height;
-            rootWindow.contentInsets = insets;
-        }
     },
 
     // -----------------------------------------------------------------------
@@ -346,7 +340,7 @@ JSClass("UIWindowServer", JSObject, {
         }
         this.updateScreenAvailableInsets();
         if (this.windowStack.length > 0 && this._normalLevelRange.location > 0){
-            this.updateRootWindowInsets(this.windowStack[0]);
+            this.layoutWindow(this.windowStack[0]);
         }
     },
 

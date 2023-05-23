@@ -957,7 +957,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     layoutWindow: function(window){
         UIHTMLWindowServer.$super.layoutWindow.call(this, window);
         if (window instanceof UIRootWindow){
-            window.contentInsets = this.safeAreaInsets();
+            window.contentInsets = window.contentInsets.insetsWithInsets(this.safeAreaInsets());
         }
     },
 
