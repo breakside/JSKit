@@ -167,3 +167,27 @@ self.addEventListener('message', function(event){
     self.skipWaiting();
   }
 });
+
+// Push notification handling example:
+//
+// self.addEventListener('push', function(event){
+//   let message = event.data.json();
+//   console.log("received push message", message);
+//   if (message.type === "notification"){
+//     if (!self.Notification){
+//       console.warn("notifications not available");
+//     }
+//     if (self.Notification.permission !== "granted"){
+//       console.warn("notifications permission not granted");
+//     }
+//     var options = {
+//     };
+//     if (message.identifier){
+//       options.tag = message.identifier;
+//     }
+//     if (message.body !== null && message.body !== undefined){
+//         options.body = message.body;
+//     }
+//     self.registration.showNotification(message.title, options);
+//   }
+// });
