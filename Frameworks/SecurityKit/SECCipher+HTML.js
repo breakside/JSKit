@@ -341,8 +341,17 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
         }
-        var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = algorithm.iv.truncatedToLength(8);
+        var nonce = JSData.initWithArray([
+            1,
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
+        ]);
+        var algorithm = this._getHTMLEncryptAlgorithm(nonce, 16);
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
             var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(bytes)]);
             completion.call(target, noncePrefixed);
@@ -356,7 +365,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
+        var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData, 8, 16);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
         crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
