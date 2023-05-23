@@ -222,6 +222,8 @@ HTMLAppBootstrapper.prototype = {
         this.setStatus(HTMLAppBootstrapper.STATUS.appCrashed);
     },
 
+    scriptContainerElement: null,
+
     include: function(src, async, callback, errorCallback){
         try{
             this.loadingScripts[src] = {
@@ -244,7 +246,11 @@ HTMLAppBootstrapper.prototype = {
                 errorCallback(new Error("Include of '" + src + "' failed"));
             });
             script.src = src;
-            this.rootElement.ownerDocument.body.appendChild(script);
+            if (this.scriptContainerElement === null){
+                this.scriptContainerElement = this.rootElement.appendChild(this.rootElement.ownerDocument.createElement("div"));
+                this.scriptContainerElement.style.display = "none";
+            }
+            this.scriptContainerElement.appendChild(script);
         }catch (e){
             errorCallback(e);
         }
