@@ -26,11 +26,213 @@ topics:
         description: |
           The shared user notification center is created automatically, and is
           the only possible user notification center to access.
+  - name: Push Notifications
+    members:
+      - name: registerForRemoteNotifications
+        introduced: 2023.21.0
+        environment: html
+        summary: Register the current device for push notifications, using a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: registration
+                  type: RemoteNotificationsRegistration
+                  summary: An object containing the successful registration information
+                - name: error
+                  type: Error
+                  nullable: true
+                  summary: The error, if any
+            summary: The function to call when the registration is complete
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          For HTML environments, a [Push API](https://w3c.github.io/push-api/)
+          subscription will be created.
+
+          Also in HTML environments, you will need to set the
+          `webPushApplicationServerJWK` option in order to support signed web
+          push messages.
+        note: |
+          Registering for remote notifications will automatically request
+          permission if needed.
+      - name: registerForRemoteNotifications
+        suffix: promise
+        introduced: 2023.21.0
+        environment: html
+        summary: Register the current device for push notifications, using a promise
+        type: Promise
+        promise:
+          resolve:
+            type: RemoteNotificationsRegistration
+            summary: An object containing the successful registration information
+        description: |
+          For HTML environments, a [Push API](https://w3c.github.io/push-api/)
+          subscription will be created.
+
+          Also in HTML environments, you will need to set the
+          `webPushApplicationServerJWK` option in order to support signed web
+          push messages.
+        note: |
+          Registering for remote notifications will automatically request
+          permission if needed.
+      - name: unregisterForRemoteNotifications
+        introduced: 2023.21.0
+        environment: html
+        summary: Unregister the current device for push notifications, using a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: error
+                  type: Error
+                  nullable: true
+                  summary: The error, if any
+            summary: The function to call when the registration is complete
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+      - name: unregisterForRemoteNotifications
+        suffix: promise
+        introduced: 2023.21.0
+        environment: html
+        summary: Unregister the current device for push notifications, using a promise
+        type: Promise
+        promise:
+          resolve:
+            summary: Resolves with no value upon success
+      - name: webPushApplicationServerJWK
+        introduced: 2023.21.0
+        type: SECJSONWebToken.JSONWebKey
+        nullable: true
+        summary: The public key corresponding to the private key used to sign
+          push messages on a server, in JWK format.
+        description: |
+          Required for Web Push subscription where the server signs push messages.
+
+          This JWK will be included in the result of
+          `registerForRemoteNotifications()`, so it can be send to your server
+          and its `kid`() can be used to find a matching private key on the server.
+        see:
+          - RemoteNotificationsRegistration.options
+          - WebPushOptions.applicationServerJWK
+      - name: RegistrationType
+        introduced: 2023.21.0
+        environment: html
+        kind: enum
+        summary: The possible registration types
+        topics:
+          - name: Options
+            members:
+              - name: web
+                value: '"web"'
+                summary: Indcates a Web Push registration
+      - name: RemoteNotificationsRegistration
+        introduced: 2023.21.0
+        kind: class
+        anonymous: true
+        summary: The properties returned for a successful notifcation registration request
+        description: |
+          While this documentation describes the properties as if they were a class,
+          registration objects are plain dictionaries with only JSON-compatibile
+          values, suitable for serialization via `JSON.stringify()`().
+
+          Registration objects are intended to be sent as-is to a server for
+          storage.
+        topics:
+          - name: Properties
+            members:
+              - name: type
+                type: RegistrationType
+                summary: The type of push notification registration
+          - name: Web Push Properties
+            summary: Properties available when the `type` is `web`
+            members:
+              - name: options
+                type: WebPushOptions
+                summary: The options used when creating the web push subscription
+              - name: subscription
+                type: WebPushSubscription
+                description: |
+                  This is identical to the `PushSubscription.toJSON()`() method
+                  defined in [Push API](https://w3c.github.io/push-api/)
+                  specification.
+                summary: The web push subscription information
+          - name: Types
+            members:
+              - name: WebPushSubscription
+                kind: class
+                anonymous: true
+                summary: The properties of a web push subscription
+                description: |
+                  This is identical to the `PushSubscription.toJSON()`() method
+                  defined in [Push API](https://w3c.github.io/push-api/)
+                  specification.
+                topics:
+                  - name: Properties
+                    members:
+                      - name: endpoint
+                        type: String
+                        summary: The string representation of a URL that can be used by
+                          your server to send push notifications to the registered device
+                      - name: expirationTime
+                        type: Number
+                        summary: The UNIX timestamp in milliseconds of the registration's expiration, if any
+                        nullable: true
+                      - name: keys
+                        type: WebPushSubscriptionKeys
+                        summary: The keys to be used by your server when encrypting the
+                          message payload
+                        description: |
+                          See [RFC 8291](https://www.rfc-editor.org/rfc/rfc8291) for
+                          details of message encryption.
+                  - name: Types
+                    members:
+                      - name: WebPushSubscriptionKeys
+                        kind: class
+                        anonymous: true
+                        description: |
+                          See [RFC 8291](https://www.rfc-editor.org/rfc/rfc8291) for
+                          details of message encryption.
+                        topics:
+                          - name: Properties
+                            members:
+                              - name: p256dh
+                                type: String
+                                summary: base64-url encoded key data
+                                description: |
+                                  See [RFC 8291](https://www.rfc-editor.org/rfc/rfc8291) for
+                                  details of message encryption.
+                              - name: auth
+                                type: String
+                                summary: base64-url encoded key data
+                                description: |
+                                  See [RFC 8291](https://www.rfc-editor.org/rfc/rfc8291) for
+                                  details of message encryption.
+              - name: WebPushOptions
+                kind: class
+                anonymous: true
+                summary: The properties of a web push subscription options
+                topics:
+                  - name: Properties
+                    members:
+                      - name: applicationServerJWK
+                        type: SECJSONWebToken.JSONWebKey
+                        summary: The public key used when creating the web push
+                          subscription, in JWK format.
+                        description: |
+                          This value is pulled from the `webPushApplicationServerJWK`
+                          option on the notification center.  It is included so
+                          you can use its `kid`() property to find a matching
+                          private key on your server.
   - name: Requesting Permission
     members:
       - name: requestAuthorization
         kind: method
-        summary: Request permission to show notifications, using a callback
+        summary: Request permission to show local notifications, using a callback
         arguments:
           - name: completion
             type:
@@ -51,7 +253,7 @@ topics:
           resolve:
             type: AuthorizationStatus
             summary: The user's response to permission request
-        summary: Request permission to show notifications, using a promise
+        summary: Request permission to show local notifications, using a promise
       - name: getAuthorizationStatus
         kind: method
         summary: Query if the user has granted permission to show notifications,

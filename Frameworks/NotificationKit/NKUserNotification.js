@@ -21,6 +21,8 @@ JSClass("NKUserNotification", JSObject, {
     title: null,
     body: null,
     identifier: null,
+    timeToLive: 3600,
+    priority: 0,
 
     initWithTitle: function(title, body){
         this.title = title;
@@ -29,3 +31,12 @@ JSClass("NKUserNotification", JSObject, {
     }
 
 });
+
+NKUserNotification.Priority = {
+
+    normal: 0,
+    veryLow: 1,
+    low: 2,
+    high: 3,
+
+};

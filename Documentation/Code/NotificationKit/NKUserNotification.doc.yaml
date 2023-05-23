@@ -26,6 +26,10 @@ topics:
             summary: The body text of the notification
   - name: Notification Content
     members:
+      - name: identifier
+        introduced: 2023.21.0
+        summary: A unique identifier for the notification
+        type: String
       - name: title
         summary: The title of the notification
         type: String
@@ -36,3 +40,29 @@ topics:
         summary: The body text of the notification
         type: String
         nullable: true
+  - name: Push Settings
+    members:
+      - name: priority
+        introduced: 2023.21.0
+        summary: The priority for this notification when sent via push
+        type: Priority
+      - name: Priority
+        suffix: enum
+        introduced: 2023.21.0
+        summary: The possible notification priorities
+        kind: enum
+        topics:
+          - name: Options
+            members:
+              - name: normal
+                summary: The default priority
+              - name: veryLow
+                summary: A very low priority, for notifications like advertisements
+              - name: low
+                summary: A low priority, for notifications like topic updates
+              - name: high
+                summary: A high priority, for notification like incoming calls or time-sensitive alerts
+      - name: timeToLive
+        introduced: 2023.21.0
+        type: Number
+        summary: The maximum amount of time, in seconds, this notification is valid

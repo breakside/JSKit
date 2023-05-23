@@ -36,6 +36,9 @@ JSClass("NKUserNotificationCenter", JSObject, {
     registerForRemoteNotifications: function(completion, target){
     },
 
+    unregisterForRemoteNotifications: function(completion, target){
+    },
+
     addNotification: function(notification, date){
     },
 
@@ -43,6 +46,8 @@ JSClass("NKUserNotificationCenter", JSObject, {
     },
 
     defaultIcon: null,
+
+    webPushApplicationServerJWK: null,
 
 });
 

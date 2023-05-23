@@ -35,50 +35,85 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
     domDocument: null,
     serviceWorkerContainer: null,
 
-    registerForRemoteNotifications: function(request, completion, target){
+    registerForRemoteNotifications: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.rejectNonNullSecondArgument);
         }
         if (this.serviceWorkerContainer === null){
-            logger.warn("Remote notifications not supported on this device (no service workers)");
-            JSRunLoop.main.schedule(completion, target, null, null);
+            JSRunLoop.main.schedule(completion, target, null, new Error("Remote notifications not supported on this device (no service workers)"));
         }else{
+            var notificationCenter = this;
             this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
                 if (!serviceWorkerRegistration){
-                    logger.warn("Missing service worker registration");
-                    completion.call(target, null, null);
+                    completion.call(target, null, new Error("Missing service worker registration"));
                     return;
                 }
                 if (!serviceWorkerRegistration.pushManager){
-                    logger.warn("Remote notifications not supported on this device (no push manager)");
-                    completion.call(target, null, null);
+                    completion.call(target, null, new Error("Remote notifications not supported on this device (no push manager)"));
                     return;
                 }
                 var options = {
                     userVisibleOnly: true
                 };
-                if (request.signingJWK){
+                if (notificationCenter.webPushApplicationServerJWK){
                     options.applicationServerKey = JSData.initWithChunks([
                         JSData.initWithArray([0x04]),
-                        request.signingJWK.x.dataByDecodingBase64URL(),
-                        request.signingJWK.y.dataByDecodingBase64URL()
+                        notificationCenter.webPushApplicationServerJWK.x.dataByDecodingBase64URL(),
+                        notificationCenter.webPushApplicationServerJWK.y.dataByDecodingBase64URL()
                     ]).base64URLStringRepresentation();
                 }
                 serviceWorkerRegistration.pushManager.subscribe(options).then(function(subscription){
                     var registration = {
                         type: NKUserNotificationCenter.RegistrationType.web,
-                        endpoint: subscription.endpoint,
-                        expirationTime: subscription.expirationTime,
-                        applicationServerKeyID: request.signingJWK.kid,
-                        keys: {
-                            p256dh: JSData.initWithBuffer(subscription.getKey("p256dh")).base64URLStringRepresentation(),
-                            auth: JSData.initWithBuffer(subscription.getKey("auth")).base64URLStringRepresentation()
+                        options: {
+                            applicationServerJWK: notificationCenter.webPushApplicationServerJWK,
                         },
+                        subscription: {
+                            endpoint: subscription.endpoint,
+                            expirationTime: subscription.expirationTime,
+                            keys: {
+                                p256dh: JSData.initWithBuffer(subscription.getKey("p256dh")).base64URLStringRepresentation(),
+                                auth: JSData.initWithBuffer(subscription.getKey("auth")).base64URLStringRepresentation()
+                            },
+                        }
                     };
                     completion.call(target, registration, null);
                 }, function(error){
-                    logger.error("Failed to subscribe to push: %{error}", error);
                     completion.call(target, null, error);
+                });
+            });
+        }
+        return completion.promise;
+    },
+
+    unregisterForRemoteNotifications: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.rejectNonNullFirstArgument);
+        }
+        if (this.serviceWorkerContainer === null){
+            JSRunLoop.main.schedule(completion, target, new Error("Remote notifications not supported on this device (no service workers)"));
+        }else{
+            this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
+                if (!serviceWorkerRegistration){
+                    completion.call(target, new Error("Missing service worker registration"));
+                    return;
+                }
+                if (!serviceWorkerRegistration.pushManager){
+                    completion.call(target, new Error("Remote notifications not supported on this device (no push manager)"));
+                    return;
+                }
+                serviceWorkerRegistration.pushManager.getSubscription().then(function(subscription){
+                    if (subscription){
+                        subscription.unsubscribe(function(){
+                            completion.call(target, null);
+                        }, function(error){
+                            completion.call(target, error);
+                        });
+                    }else{
+                        completion.call(target, null);
+                    }
+                }, function(error){
+                    completion.call(target, error);
                 });
             });
         }
