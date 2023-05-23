@@ -182,14 +182,6 @@ SECCipherAESCounter.definePropertiesFromExtensions({
                 return completion.promise;
             }
             var nonce = data.subdataInRange(JSRange(0, 8));
-            this.decryptedMessageId =
-                  (nonce[6] << 48)
-                | (nonce[5] << 40)
-                | (nonce[4] << 32)
-                | (nonce[3] << 24)
-                | (nonce[2] << 16)
-                | (nonce[1] << 8)
-                | (nonce[0]);
             var iv = JSData.initWithLength(16);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv(name, key.keyData, iv);
@@ -217,41 +209,31 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         return null;
     },
 
-    encrypt: function(data, key, completion, target){
+    encryptWithNonce: function(nonce, data, key, completion, target, _ivLength){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
-        }
-        if (!this.ensureUniqueMessageID()){
-            JSRunLoop.main.schedule(completion, target, null);
-            return completion.promise;
         }
         var name = this._cipherNameForKey(key);
         if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
         }
-        var nonce = JSData.initWithArray([
-            1,
-            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
-            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
-            (this.encryptedMessageId / 0x100000000) & 0xFF,
-            (this.encryptedMessageId >> 24) & 0xFF,
-            (this.encryptedMessageId >> 16) & 0xFF,
-            (this.encryptedMessageId >> 8) & 0xFF,
-            this.encryptedMessageId & 0xF
-        ]);
-        var iv = JSData.initWithLength(16);
+        if (_ivLength === undefined){
+            _ivLength = nonce.length;
+        }
+        var iv = JSData.initWithLength(_ivLength);
         nonce.copyTo(iv, 0);
         var cipher = crypto.createCipheriv(name, key.keyData, iv);
         var chunks = [nonce, cipher.update(data), cipher.final()];
-        var tag = JSData.initWithLength(16);
+        var tagLength = 16;
+        var tag = JSData.initWithLength(tagLength);
         cipher.getAuthTag().copyTo(tag, 0);
         chunks.push(tag);
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         return completion.promise;
     },
 
-    decrypt: function(data, key, completion, target){
+    decryptWithNonceLength: function(nonceLength, data, key, completion, target, _ivLength){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
@@ -261,21 +243,17 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
                 JSRunLoop.main.schedule(completion, target, null);
                 return completion.promise;
             }
-            var nonce = data.subdataInRange(JSRange(0, 8));
-            this.decryptedMessageId =
-                  (nonce[6] << 48)
-                | (nonce[5] << 40)
-                | (nonce[4] << 32)
-                | (nonce[3] << 24)
-                | (nonce[2] << 16)
-                | (nonce[1] << 8)
-                | (nonce[0]);
-            var iv = JSData.initWithLength(16);
+            var nonce = data.subdataInRange(JSRange(0, nonceLength));
+            if (_ivLength === undefined){
+                _ivLength = nonceLength;
+            }
+            var iv = JSData.initWithLength(_ivLength);
             nonce.copyTo(iv, 0);
             var cipher = crypto.createDecipheriv(name, key.keyData, iv);
-            var tag = data.subdataInRange(JSRange(data.length - 16, 16));
+            var tagLength = 16;
+            var tag = data.subdataInRange(JSRange(data.length - tagLength, tagLength));
             cipher.setAuthTag(tag);
-            var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8 - 16))), cipher.final()];
+            var chunks = [cipher.update(data.subdataInRange(JSRange(nonceLength, data.length - nonceLength - tagLength))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch(e){
             JSRunLoop.main.schedule(completion, target, null);
