@@ -190,7 +190,6 @@ JSClass("SECCipherAESCipherBlockChaining", SECCipher, {
 JSClass("SECCipherAESCounter", SECCipher, {
 
     encryptedMessageId: 0,
-    decryptedMessageId: 0,
 
     ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
@@ -205,7 +204,6 @@ JSClass("SECCipherAESCounter", SECCipher, {
 JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
 
     encryptedMessageId: 0,
-    decryptedMessageId: 0,
 
     ensureUniqueMessageID: function(){
         if (this.encryptedMessageId == 9007199254740991){
@@ -213,7 +211,39 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
         }
         ++this.encryptedMessageId;
         return true;
-    }
+    },
+
+    encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        if (!this.ensureUniqueMessageID()){
+            JSRunLoop.main.schedule(completion, target, null);
+            return completion.promise;
+        }
+        var nonce = JSData.initWithArray([
+            1,
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
+        ]);
+        this.encryptWithNonce(nonce, data, key, completion, target, 16);
+        return completion.promise;
+    },
+
+    decrypt: function(data, key, completion, target){
+        return this.decryptWithNonceLength(8, data, key, completion, target, 16);
+    },
+
+    encryptWithNonce: function(nonce, data, key, completion, target){
+    },
+
+    decryptWithNonceLength: function(nonceLength, data, key, completion, target){
+    },
 
 });
 

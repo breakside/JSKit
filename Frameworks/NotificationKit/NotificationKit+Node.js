@@ -13,30 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import Foundation
+// #import "NotificationKit.js"
 "use strict";
 
-JSClass("NKUserNotification", JSObject, {
-
-    title: null,
-    body: null,
-    identifier: null,
-    timeToLive: 3600,
-    priority: 0,
-
-    initWithTitle: function(title, body){
-        this.title = title;
-        this.body = body || null;
-        this.identifier = UUID();
-    }
-
-});
-
-NKUserNotification.Priority = {
-
-    normal: 0,
-    veryLow: 1,
-    low: 2,
-    high: 3,
-
-};
+// #import "NKWebPushService.js"

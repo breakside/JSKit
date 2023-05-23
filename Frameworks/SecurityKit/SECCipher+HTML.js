@@ -195,14 +195,6 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             counter: JSData.initWithLength(16),
             length: 64
         };
-        this.decryptedMessageId =
-              (nonce[6] << 48)
-            | (nonce[5] << 40)
-            | (nonce[4] << 32)
-            | (nonce[3] << 24)
-            | (nonce[2] << 16)
-            | (nonce[1] << 8)
-            | (nonce[0]);
         nonce.copyTo(algorithm.counter, 0);
         return algorithm;
     },
@@ -282,55 +274,41 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 
     htmlAlgorithmName: HTMLCryptoAlgorithmNames.aesGCM,
 
-    _getHTMLEncryptAlgorithm: function(){
-        var nonce = JSData.initWithArray([
-            1,
-            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
-            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
-            (this.encryptedMessageId / 0x100000000) & 0xFF,
-            (this.encryptedMessageId >> 24) & 0xFF,
-            (this.encryptedMessageId >> 16) & 0xFF,
-            (this.encryptedMessageId >> 8) & 0xFF,
-            this.encryptedMessageId & 0xF
-        ]);
+    _getHTMLEncryptAlgorithm: function(nonce, _ivLength){
+        if (_ivLength === undefined){
+            _ivLength = nonce.length;
+        }
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesGCM,
-            iv: JSData.initWithLength(16),
+            iv: JSData.initWithLength(_ivLength),
             tagLength: 128
         };
         nonce.copyTo(algorithm.iv, 0);
         return algorithm;
     },
 
-    _getHTMLDecryptAlgorithm: function(prefixedData){
-        var nonce = prefixedData.subdataInRange(JSRange(0, 8));
+    _getHTMLDecryptAlgorithm: function(prefixedData, nonceLength, _ivLength){
+        if (nonceLength === undefined){
+            nonceLength = 8;
+        }
+        if (_ivLength === undefined){
+            _ivLength = nonceLength;
+        }
+        var nonce = prefixedData.subdataInRange(JSRange(0, nonceLength));
         var algorithm = {
             name: HTMLCryptoAlgorithmNames.aesGCM,
-            iv: JSData.initWithLength(16),
+            iv: JSData.initWithLength(_ivLength),
             tagLength: 128
         };
-        this.decryptedMessageId =
-              (nonce[6] << 48)
-            | (nonce[5] << 40)
-            | (nonce[4] << 32)
-            | (nonce[3] << 24)
-            | (nonce[2] << 16)
-            | (nonce[1] << 8)
-            | (nonce[0]);
         nonce.copyTo(algorithm.iv, 0);
         return algorithm;
     },
 
-    encrypt: function(data, key, completion, target){
+    encryptWithNonce: function(nonce, data, key, completion, target, _ivLength){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        if (!this.ensureUniqueMessageID()){
-            JSRunLoop.main.schedule(completion, target, null);
-            return completion.promise;
-        }
-        var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = algorithm.iv.truncatedToLength(8);
+        var algorithm = this._getHTMLEncryptAlgorithm(nonce, _ivLength);
         crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
             var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(encrypted)]);
             completion.call(target, noncePrefixed);
@@ -340,12 +318,12 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         return completion.promise;
     },
 
-    decrypt: function(data, key, completion, target){
+    decryptWithNonceLength: function(nonceLength, data, key, completion, target, _ivLength){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var algorithm = this._getHTMLDecryptAlgorithm(data);
-        var encrypted = data.subdataInRange(JSRange(8, data.length - 8));
+        var algorithm = this._getHTMLDecryptAlgorithm(data, nonceLength, _ivLength);
+        var encrypted = data.subdataInRange(JSRange(nonceLength, data.length - nonceLength));
         crypto.subtle.decrypt(algorithm, key.htmlKey, encrypted).then(function(decrypted){
             var decryptedData = JSData.initWithBuffer(decrypted);
             completion.call(target, decryptedData);
@@ -363,8 +341,17 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
         }
-        var algorithm = this._getHTMLEncryptAlgorithm();
-        var nonce = algorithm.iv.truncatedToLength(8);
+        var nonce = JSData.initWithArray([
+            1,
+            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
+            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
+            (this.encryptedMessageId / 0x100000000) & 0xFF,
+            (this.encryptedMessageId >> 24) & 0xFF,
+            (this.encryptedMessageId >> 16) & 0xFF,
+            (this.encryptedMessageId >> 8) & 0xFF,
+            this.encryptedMessageId & 0xF
+        ]);
+        var algorithm = this._getHTMLEncryptAlgorithm(nonce, 16);
         crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
             var noncePrefixed = JSData.initWithChunks([nonce, JSData.initWithBuffer(bytes)]);
             completion.call(target, noncePrefixed);
@@ -378,7 +365,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData);
+        var algorithm = this._getHTMLDecryptAlgorithm(wrappedKeyData, 8, 16);
         var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
         wrappedKeyData = wrappedKeyData.subdataInRange(JSRange(8, wrappedKeyData.length - 8));
         crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
