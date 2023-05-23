@@ -65,3 +65,20 @@ SECHMAC.Algorithm = {
     sha384: "sha384",
     sha512: "sha512"
 };
+
+SECHMAC.digest = function(algorithm, keyData, data, completion, target){
+    if (!completion){
+        completion = Promise.completion(Promise.resolveNonNull);
+    }
+    var hmac = SECHMAC.initWithAlgorithm(algorithm);
+    hmac.createKeyWithData(keyData, function(key){
+        if (key === null){
+            completion.call(target, null);
+            return;
+        }
+        hmac.key = key;
+        hmac.update(data);
+        hmac.sign(completion, target);
+    });
+    return completion.promise;
+};
