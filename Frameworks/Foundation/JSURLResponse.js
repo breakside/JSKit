@@ -175,7 +175,7 @@ JSURLResponse.error = function(statusCode, object){
 
 JSGlobalObject.JSURLResponseError = function(response){
     if (this === undefined){
-        return new JSURLResponseError();
+        return new JSURLResponseError(response);
     }
     this.name = "JSURLResponseError";
     if (response instanceof JSURLResponseError){
