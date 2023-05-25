@@ -1,0 +1,9 @@
+{
+    "lang": "en",
+    "name": "${PROJECT_NAME}",
+    "short_name": "${PROJECT_NAME}",
+    "scope": "/",
+    "start_url": "/",
+    "display": "standalone",
+    "shortcuts": []
+}
