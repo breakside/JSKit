@@ -484,7 +484,8 @@ JSClass("HTMLBuilder", Builder, {
     wwwCSSPaths:  null,
     wwwPaths: null,
     uncachedWWWPaths: null,
-    manifestURL: null,
+    webApplicationManifestURL: null,
+    legacyAppcacheManifestURL: null,
     preflightId: null,
     preflightURL: null,
     preflightFeatures: null,
@@ -497,14 +498,14 @@ JSClass("HTMLBuilder", Builder, {
         // As of Dec 2019...
         // Browsers are in the process of removing the appcache API soon (Chrome
         // says it'll be gone by April 2020), so there's no point to contunue
-        // supporting it.  Keeping this `manifestURL` `null` will disable the
+        // supporting it.  Keeping this `legacyAppcacheManifestURL` `null` will disable the
         // appcache behavior in the built application, but has the advantage of
         // keeping our builder code otherwise as-is should we need to reference
         // it or turn it back on (like for IE 11 support).  The way we use
         // service workers (the appcache replacement API) is to essentially
         // mimic the way appcache worked because although others didn't like it,
         // appcache was perfect for our use case.
-        // this.manifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
+        // this.legacyAppcacheManifestURL = this.wwwURL.appendingPathComponent("manifest.appcache");
 
         await this.buildCSS();
         await this.buildPreflight();
@@ -552,7 +553,8 @@ JSClass("HTMLBuilder", Builder, {
             }
         }
 
-        await this.buildManifest();
+        await this.buildLegacyAppcacheManifest();
+        await this.updateWebApplicationManifest();
     },
 
     _copyWWWEntry: async function(entry, wwwPath, manifestConfiguration){
@@ -612,6 +614,11 @@ JSClass("HTMLBuilder", Builder, {
             }else if (element.localName == 'title' && element.parentNode.localName == 'head'){
                 let title = this.project.getInfoString('UIApplicationTitle', this.resources);
                 element.appendChild(document.createTextNode(title));
+            }else if (element.localName == 'link' && element.parentNode.localName == 'head' && element.getAttribute("rel") == "manifest"){
+                let href = element.getAttribute("href");
+                if (href !== "" && href !== null){
+                    this.webApplicationManifestURL = JSURL.initWithString(href, toURL);
+                }
             }else if (element.localName == 'script' && element.getAttribute('type') == 'text/javascript'){
                 if (element.hasAttribute("jskit")){
                     let params = {
@@ -653,8 +660,8 @@ JSClass("HTMLBuilder", Builder, {
                 }
             }
         }
-        if (this.manifestURL){
-            document.documentElement.setAttribute('manifest', this.manifestURL.encodedStringRelativeTo(this.wwwURL));
+        if (this.legacyAppcacheManifestURL){
+            document.documentElement.setAttribute('manifest', this.legacyAppcacheManifestURL.encodedStringRelativeTo(this.wwwURL));
         }
         let serializer = new XMLSerializer();
         html = serializer.serializeToString(document);
@@ -785,8 +792,24 @@ JSClass("HTMLBuilder", Builder, {
         await this.fileManager.createFileAtURL(this.preflightURL, contents);
     },
 
-    buildManifest: async function(){
-        if (!this.manifestURL){
+    updateWebApplicationManifest: async function(){
+        if (!this.webApplicationManifestURL){
+            return;
+        }
+        let data = await this.fileManager.contentsAtURL(this.webApplicationManifestURL);
+        let manifest = JSON.parse(data.stringByDecodingUTF8());
+        if (!manifest.name){
+            manifest.name = this.project.getInfoString('UIApplicationTitle', this.resources);
+        }
+        if (!manifest.icons){
+            manifest.icons = this.manifestIcons();
+        }
+        data = JSON.stringify(manifest).utf8();
+        await this.fileManager.createFileAtURL(this.webApplicationManifestURL, data);
+    },
+
+    buildLegacyAppcacheManifest: async function(){
+        if (!this.legacyAppcacheManifestURL){
             return;
         }
         this.printer.setStatus("Creating manifest.appcache...");
@@ -827,7 +850,7 @@ JSClass("HTMLBuilder", Builder, {
         lines.push("*");
         lines.push("");
         let txt = lines.join("\n");
-        await this.fileManager.createFileAtURL(this.manifestURL, txt.utf8());
+        await this.fileManager.createFileAtURL(this.legacyAppcacheManifestURL, txt.utf8());
     },
 
     applicationIcons: function(){
@@ -840,15 +863,48 @@ JSClass("HTMLBuilder", Builder, {
             let images = contents.images;
             for (let i = 0, l = images.length; i < l; ++i){
                 let image = images[i];
-                let metadata = this.resources.getMetadata(image.filename, setName);
-                let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
-                icons.push({
-                    rel: image.mask ? "mask-icon" : "icon",
-                    href: bundledURL.encodedStringRelativeTo(this.wwwURL),
-                    type: metadata.mimetype,
-                    sizes: image.vector ? "any" : '%dx%d'.sprintf(metadata.image.width, metadata.image.height),
-                    color: image.color || null
-                });
+                if (image.use === undefined || image.use === "web-icon" || image.use == "app-icon-base"){
+                    let metadata = this.resources.getMetadata(image.filename, setName);
+                    let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
+                    let rel = "icon";
+                    if (image.use === "app-icon-base"){
+                        rel = "apple-touch-icon";
+                    }else if (image.mask){
+                        rel = "mask-icon";
+                    }
+                    icons.push({
+                        rel: rel,
+                        href: bundledURL.encodedStringRelativeTo(this.wwwURL),
+                        type: metadata.mimetype,
+                        sizes: (image.vector || metadata.image.vector) ? "any" : '%dx%d'.sprintf(metadata.image.width, metadata.image.height),
+                        color: image.color || null
+                    });
+                }
+            }
+        }
+        return icons;
+    },
+
+    manifestIcons: function(){
+        var icons = [];
+        let setName = this.project.info.UIApplicationIcon;
+        if (setName){
+            setName += '.imageset';
+            let metadata = this.resources.getMetadata('Contents.json', setName);
+            let contents = metadata.value;
+            let images = contents.images;
+            for (let i = 0, l = images.length; i < l; ++i){
+                let image = images[i];
+                if (image.use === "app-icon" || image.use === "app-icon-base"){
+                    let metadata = this.resources.getMetadata(image.filename, setName);
+                    let bundledURL = this.resourcesURL.appendingPathComponent(metadata.hash + metadata.ext);
+                    icons.push({
+                        src: bundledURL.encodedStringRelativeTo(this.wwwURL),
+                        type: metadata.mimetype,
+                        sizes: metadata.image.vector ? "any" : '%dx%d'.sprintf(metadata.image.width, metadata.image.height),
+                        purpose: image.use === "app-icon-base" ? "maskable" : "any"
+                    });
+                }
             }
         }
         return icons;
@@ -948,8 +1004,8 @@ JSClass("HTMLBuilder", Builder, {
             indexPath,
             bootstrapperPath
         ];
-        if (this.manifestURL !== null){
-            manifestPath = this.manifestURL.encodedStringRelativeTo(this.wwwURL);
+        if (this.legacyAppcacheManifestURL !== null){
+            manifestPath = this.legacyAppcacheManifestURL.encodedStringRelativeTo(this.wwwURL);
             excludes.push(manifestPath);
         }
         if (this.serviceWorkerURL !== null){

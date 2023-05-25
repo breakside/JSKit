@@ -401,6 +401,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
                         preventDefault = false;
                     }
                     break;
+                case 81: // q
+                    if (modifiers === UIPlatform.shared.commandModifier){
+                        // We want to let the quit shortcut go through, so it can be
+                        // handled by the system.
+                        preventDefault = false;
+                    }
+                    break;
                 case 88: // x
                     if (modifiers === UIPlatform.shared.commandModifier){
                         // We want to let the cut keyboard shortcut go through, so it can be
