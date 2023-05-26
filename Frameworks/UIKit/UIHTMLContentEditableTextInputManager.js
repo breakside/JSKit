@@ -57,8 +57,8 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             this.textInputLayer = null;
             this.layoutManager = null;
         }else{
-            this.textInputLayer = this.textInputClient.textInputLayer ? this.textInputClient.textInputLayer() : null;
             this.layoutManager = this.textInputClient.textInputLayoutManager ? this.textInputClient.textInputLayoutManager() : null;
+            this.textInputLayer = this.textInputClient.textInputLayer ? this.textInputClient.textInputLayer() : null;
         }
     },
 
