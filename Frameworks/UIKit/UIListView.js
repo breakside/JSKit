@@ -535,9 +535,10 @@ JSClass("UIListView", UIScrollView, {
     },
 
     _approximateYForVisibleItem: function(item){
+        var y;
         if (item.kind === VisibleItem.Kind.cell){
             var row = this._sectionRowForIndexPath(item.indexPath);
-            var y = this._approximateYForSection(item.indexPath.section);
+            y = this._approximateYForSection(item.indexPath.section);
             y += this._approximateYForSectionRow(item.indexPath.section, row);
             return y;
         }
@@ -545,7 +546,8 @@ JSClass("UIListView", UIScrollView, {
             return this._approximateYForSection(item.indexPath.section);
         }
         if (item.kind === VisibleItem.Kind.footer){
-            return this._approximateYForSectionFooter(item.indexPath.section);
+            y = this._approximateYForSection(item.indexPath.section);
+            return y + this._approximateYForSectionFooter(item.indexPath.section);
         }
         return 0;
     },
