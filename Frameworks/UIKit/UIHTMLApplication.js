@@ -305,6 +305,8 @@ JSGlobalObject.UIApplicationMain = function(rootElement, bootstrapper){
     application.run(function(error){
         if (error === null){
             application.addEventListeners();
+        }else{
+            application.windowServer.stop();
         }
         if (bootstrapper){
             bootstrapper.applicationLaunchResult(application, error);
