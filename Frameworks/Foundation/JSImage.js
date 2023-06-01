@@ -417,16 +417,18 @@ _JSDataImage.sizeFromSVGData = function(data){
                 return multiple[unit] * n;
             };
             if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                var width = attributes.get("width");
-                var height = attributes.get("height");
+                var width = px(attributes.get("width"));
+                var height = px(attributes.get("height"));
                 var viewBox = attributes.get("viewBox");
-                if (width && height){
-                    size.width = px(width);
-                    size.height = px(height);
+                if (width !== undefined && height !== undefined){
+                    size.width = width;
+                    size.height = height;
                 }else if (viewBox){
                     var box = viewBox.split(/\s+/).map(function(n){ return parseInt(n); });
-                    size.width = box[2];
-                    size.height = box[3];
+                    if (!isNaN(box[2]) && !isNaN(box[3])){
+                        size.width = box[2];
+                        size.height = box[3];
+                    }
                 }
             }
             parser.stop();

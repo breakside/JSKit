@@ -291,136 +291,37 @@ var addMetadata = {
     },
 
     '.png': async function(name, contents, metadata){
-        if (contents.length >= 24 &&
-            // magic
-            contents[0] == 0x89 &&
-            contents[1] == 0x50 &&
-            contents[2] == 0x4E &&
-            contents[3] == 0x47 &&
-            contents[4] == 0x0D &&
-            contents[5] == 0x0A &&
-            contents[6] == 0x1A &&
-            contents[7] == 0x0A && 
-
-            // IHDR
-            contents[12] == 0x49 &&
-            contents[13] == 0x48 &&
-            contents[14] == 0x44 &&
-            contents[15] == 0x52)
-        {
-            var dataView = contents.dataView();
+        var contentType = JSImage.contentTypeOfData(contents);
+        if (contentType !== null && contentType.subtype === "png"){
+            var image = JSImage.initWithData(contents);
             metadata.image = {
-                width: dataView.getUint32(16),
-                height: dataView.getUint32(20)
+                width: image.size.width,
+                height: image.size.height
             };
         }
     },
 
     '.jpg': async function(name, contents, metadata){
-        if (contents.length < 2 || contents[0] != 0xFF || contents[1] != 0xD8){
-            // not a jpeg
-            return;
-        }
-        var dataView = contents.dataView();
-        var i = 0;
-        var b;
-        var l = contents.length;
-        var blockLength;
-        var blockdata;
-        while (i < l){
-            b = contents[i++];
-            if (b != 0xFF){
-                // TODO: Error, not at a maker
-                return;
-            }
-            if (i == l){
-                // TODO: Error, not enough room for marker
-                return;
-            }
-            b = contents[i++];
-            if (b == 0x00){
-                // TODO: Error, invalid marker
-                return;
-            }
-            // D0-D9 are standalone markers...make sure not to look for a length
-            if (b < 0xD0 || b > 0xD9){
-                if (i >= l - 2){
-                    // TODO: Error, not enough room for block header
-                    return;
-                }
-                blockLength = dataView.getUint16(i);
-                if (i + blockLength > l){
-                    // TODO: Error, not enough room for block data
-                    return;
-                }
-                // C0-CF are start of frame blocks, expect for C4 and CC
-                // start of frame blocks have image sizes
-                if (b >= 0xC0 && b <= 0xCF && b != 0xC4 && b != 0xCC){
-                    if (blockLength >= 7){
-                        metadata.image = {
-                            height: dataView.getUint16(i + 3),
-                            width: dataView.getUint16(i + 5)
-                        };
-                    }
-                    return;
-                }
-                i += blockLength;
-            }
+        var contentType = JSImage.contentTypeOfData(contents);
+        if (contentType !== null && contentType.subtype === "jpeg"){
+            var image = JSImage.initWithData(contents);
+            metadata.image = {
+                width: image.size.width,
+                height: image.size.height
+            };
         }
     },
 
     '.svg': async function(name, contents, metadata){
-        metadata.image = {
-            vector: true
-        };
-        var parser = JSXMLParser.initWithData(contents);
-        parser.delegate  = {
-            xmlParserDidBeginElement: function(parser, name, prefix, namespace, attributes){
-                var multiple = {
-                    'em': 12,
-                    'ex': 24,
-                    'px': 1,
-                    'in': 72,
-                    'cm': 72/2.54,
-                    'mm': 72/25.4,
-                    'pt': 1,
-                    'pc': 12
-                };
-                var px = function(length){
-                    if (length === undefined || length === null){
-                        return undefined;
-                    }
-                    var matches = length.match(/^\s*(\d+)\s*(em|ex|px|in|cm|mm|pt|pc|%)?\s*$/);
-                    if (!matches){
-                        return undefined;
-                    }
-                    let n = parseInt(matches[1]);
-                    if (!matches[2]){
-                        return n;
-                    }
-                    let unit = matches[2];
-                    if (unit == '%'){
-                        return undefined;
-                    }
-                    return multiple[unit] * n;
-                };
-                if (namespace == 'http://www.w3.org/2000/svg' && name.toLowerCase() == 'svg'){
-                    let width = attributes.get("width");
-                    let height = attributes.get("height");
-                    let viewBox = attributes.get("viewBox");
-                    if (width && height){
-                        metadata.image.width = px(width);
-                        metadata.image.height = px(height);
-                    }else if (viewBox){
-                        var box = viewBox.split(/\s+/).map(n => parseInt(n));
-                        metadata.image.width = box[2];
-                        metadata.image.height = box[3];
-                    }
-                }
-                parser.stop();
-            }
-        };
-        parser.parse();
+        var contentType = JSImage.contentTypeOfData(contents);
+        if (contentType !== null && contentType.subtype === "svg+xml"){
+            var image = JSImage.initWithData(contents);
+            metadata.image = {
+                vector: true,
+                width: image.size.width,
+                height: image.size.height
+            };
+        }
     },
 
     '.ttf': async function(name, contents, metadata){
