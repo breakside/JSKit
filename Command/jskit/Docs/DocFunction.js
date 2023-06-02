@@ -165,6 +165,13 @@
                 dd.appendChild(children[i]);
             }
         }
+        if (arg.introduced){
+            let p = document.createElement("p");
+            let i = document.createElement("i");
+            i.appendChild(document.createTextNode("(Added %s)".sprintf(arg.introduced)));
+            p.appendChild(i);
+            dd.appendChild(p);
+        }
     },
 
     declarationCode: function(){
