@@ -641,8 +641,14 @@ JSClass("UIListView", UIScrollView, {
         }
         this._beginEditIfNeeded(animation);
         var i, l;
+        var j, k;
         for (i = 0, l = sections.length; i < l; ++i){
             this._edit.deletedSections.push({section: sections[i], animation: animation});
+            for (j = 0, k = this._selectedIndexPaths.length; j < k && !this._edit.didDeleteSelectedItem; ++j){
+                if (this._selectedIndexPaths[j].section === sections[i]){
+                    this._edit.didDeleteSelectedItem = true;
+                }
+            }
         }
     },
 
