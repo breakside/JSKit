@@ -25,6 +25,7 @@ JSClass("UIDraggingSession", JSObject, {
     pasteboard: JSReadOnlyProperty('_pasteboard', null),
     source: null,
     destination: null,
+    userInfo: null,
     allowedOperations: UIDragOperation.all,
     operation: UIDragOperation.none,
     isActive: JSDynamicProperty('_isActive', false),
@@ -37,6 +38,7 @@ JSClass("UIDraggingSession", JSObject, {
         this._screenLocation = JSPoint(event.window.convertPointToScreen(event.locationInWindow));
         this._pasteboard = UIPasteboard.init();
         this.source = view;
+        this.userInfo = {};
         this.writeItemsToPasteboard(this._pasteboard);
     },
 
@@ -44,6 +46,7 @@ JSClass("UIDraggingSession", JSObject, {
         this._items = [];
         this._screenLocation = JSPoint(screenLocation);
         this._pasteboard = pasteboard;
+        this.userInfo = {};
     },
 
     writeItemsToPasteboard: function(pasteboard){
