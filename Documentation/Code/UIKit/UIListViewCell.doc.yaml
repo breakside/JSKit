@@ -188,6 +188,10 @@ topics:
                 name: contextSelected
                 summary: When a cell is context-selected, like by a right click
               -
+                name: dropTarget
+                introduced: 2023.22.0
+                summary: When a cell is a drop target for dragged items
+              -
                 name: firstUserState
                 summary: The first value a subclass can use for a custom
                   state.  Subsequent values shoulde be made by shifting this
@@ -211,6 +215,11 @@ topics:
         type: boolean
         summary: Indicates the cell is context-selected, like when it is
           right-clicked
+      -
+        name: dropTarget
+        introduced: 2023.22.0
+        type: boolean
+        summary: Indicates the cell is a drop target for dragged content
       -
         name: toggleStates
         introduced: 2021.36.2

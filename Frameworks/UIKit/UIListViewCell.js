@@ -148,6 +148,7 @@ JSClass("UIListViewCell", UIView, {
     selected: JSDynamicProperty(null, null, 'isSelected'),
     contextSelected: JSDynamicProperty(null, null, 'isContextSelected'),
     over: JSDynamicProperty(null, null, 'isOver'),
+    dropTarget: JSDynamicProperty(null, null, 'isDropTarget'),
 
     _updateState: function(newState){
         if (newState != this._state){
@@ -214,6 +215,14 @@ JSClass("UIListViewCell", UIView, {
         this._toggleState(UIListViewCell.State.over, isOver);
     },
 
+    isDropTarget: function(){
+        return (this._state & UIListViewCell.State.dropTarget) === UIListViewCell.State.dropTarget;
+    },
+
+    setDropTarget: function(isDropTarget){
+        this._toggleState(UIListViewCell.State.dropTarget, isDropTarget);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Over State
 
@@ -274,5 +283,6 @@ UIListViewCell.State = {
     selected: 1 << 2,
     contextSelected: 1 << 3,
     over: 1 << 4,
-    firstUserState: 1 << 5
+    dropTarget: 1 << 5,
+    firstUserState: 1 << 6
 };

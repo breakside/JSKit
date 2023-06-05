@@ -20,6 +20,7 @@
 // #import "UIViewPropertyAnimator.js"
 // #import "JSColor+UIKit.js"
 // #import "UIPressGestureRecognizer.js"
+// #import "UIListViewDragDestination.js"
 /* global UIListViewCell, UIListViewHeaderFooterView */
 'use strict';
 
@@ -51,7 +52,11 @@ JSProtocol("UIListViewDelegate", JSProtocol, {
     // Dragging cells
     listViewShouldDragCellAtIndexPath: function(listView, indexPath){},
     pasteboardItemsForListViewAtIndexPath: function(listView, indexPath){},
-    listViewWillBeginDraggingSession: function(listView, session){}
+    listViewWillBeginDraggingSession: function(listView, session){},
+
+    // Dragging destination
+    listViewDraggingUpdated: function(listView, session, listDragDestination){},
+    listViewPerformDragOperation: function(listView, session, operation, listDragDestination){}
 
 });
 
@@ -2016,6 +2021,13 @@ JSClass("UIListView", UIScrollView, {
     _updateCellState: function(cell){
         cell.selected = this._selectionContainsIndexPath(cell.indexPath);
         cell.contextSelected = this._contextSelectionContainsIndexPath(cell.indexPath);
+        var dropTarget = false;
+        if (this.listDragDestination !== null){
+            if (this.listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.onRow){
+                dropTarget = cell.indexPath.isEqual(this.listDragDestination.indexPath);
+            }
+        }
+        cell.dropTarget = dropTarget;
     },
 
     _updateVisibleCellStyles: function(){
@@ -2252,6 +2264,7 @@ JSClass("UIListView", UIScrollView, {
         var cell = this._cellHitTest(location);
         if (this._shouldDrag){
             var dragItems = [];
+            var indexPaths = [];
             if (cell !== null){
                 var cellItems = [];
                 if (this.allowsMultipleSelection && this._selectionContainsIndexPath(cell.indexPath)){
@@ -2263,6 +2276,7 @@ JSClass("UIListView", UIScrollView, {
                             if (cellItems !== null){
                                 dragItems = dragItems.concat(cellItems);
                             }
+                            indexPaths.push(indexPath);
                         }
                     }
                 }else{
@@ -2271,13 +2285,14 @@ JSClass("UIListView", UIScrollView, {
                         if (cellItems !== null){
                             dragItems = cellItems;
                         }
+                        indexPaths.push(cell.indexPath);
                     }
                 }
             }
             if (dragItems.length > 0){
                 var session = this.beginDraggingSessionWithItems(dragItems, event);
                 if (this.delegate && this.delegate.listViewWillBeginDraggingSession){
-                    this.delegate.listViewWillBeginDraggingSession(this, session);
+                    this.delegate.listViewWillBeginDraggingSession(this, session, indexPaths, location);
                 }
             }
         }else{
@@ -2463,6 +2478,100 @@ JSClass("UIListView", UIScrollView, {
         this._cancelTouchSelection();
     },
 
+    // ----------------------------------------------------------------------
+    // MARK: - Drag Destination
+
+    listDragDestination: null,
+
+    draggingEntered: function(session){
+        this.listDragDestination = UIListViewDragDestination.init();
+        return UIDragOperation.none;
+    },
+
+    draggingUpdated: function(session){
+        var location = this.convertPointFromScreen(session.screenLocation);
+        this._updateDragDestinationForLocation(location);
+        if (this.delegate && this.delegate.listViewDraggingUpdated){
+            this.delegate.listViewDraggingUpdated(this, session, this.listDragDestination);
+        }
+        this._updateDropTarget();
+        if (this.listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.none){
+            return UIDragOperation.none;
+        }
+        if (session.source === this && session.allowsOperation(UIDragOperation.move)){
+            return UIDragOperation.move;
+        }
+        return UIDragOperation.copy;
+    },
+
+    draggingExited: function(session){
+        this.listDragDestination = null;
+        this._updateDropTarget();
+    },
+
+    performDragOperation: function(session, operation){
+        var listDragDestination = this.listDragDestination;
+        this.listDragDestination = null;
+        this._updateDropTarget();
+        if (this.delegate && this.delegate.listViewPerformDragOperation){
+            this.delegate.listViewPerformDragOperation(this, session, operation, listDragDestination);
+        }
+    },
+
+    _updateDragDestinationForLocation: function(location){
+        var locationInContainer = this.convertPointToView(location, this._cellsContainerView);
+        if (this.listDragDestination === null){
+            this.listDragDestination = UIListViewDragDestination.init();
+        }
+        this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.none;
+        this.listDragDestination.indexPath = null;
+        if (this._visibleItems.length === 0){
+            this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.onList;
+            return;
+        }
+        var i, l;
+        var item;
+        if (this._headersStickToTop){
+            if (this._stickyHeader !== null){
+                if (this._stickyHeader.frame.containsPoint(locationInContainer)){
+                    this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.onSection;
+                    this.listDragDestination.indexPath = JSIndexPath([this._stickyHeader.section]);
+                    return;
+                }
+            }
+        }
+        for (i = 0, l = this._visibleItems.length; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.state !== VisibleItem.State.deleted && item.view.frame.containsPoint(locationInContainer)){
+                if (item.kind === VisibleItem.Kind.cell){
+                    this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.onRow;
+                    this.listDragDestination.indexPath = JSIndexPath(item.indexPath);
+                    return;
+                }
+                this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.onSection;
+                this.listDragDestination.indexPath = JSIndexPath([item.indexPath.section]);
+                return;
+            }
+        }
+        this.listDragDestination.dropLocation = UIListViewDragDestination.DropLocation.onList;
+    },
+
+    _updateDropTarget: function(){
+        var onRowIndexPath = null;
+        if (this.listDragDestination !== null && this.listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.onRow){
+            onRowIndexPath = this.listDragDestination.indexPath;
+        }
+        var i, l;
+        var item;
+        for (i = 0, l = this._visibleItems.length; i < l; ++i){
+            item = this._visibleItems[i];
+            if (item.kind === VisibleItem.Kind.cell){
+                item.view.dropTarget = item.indexPath.isEqual(onRowIndexPath);
+            }
+        }
+        this._styler.updateListDragDestination(this, this.listDragDestination);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Finding Cells by Location
 
@@ -2634,6 +2743,56 @@ JSClass("UIListView", UIScrollView, {
             return this.contentView.convertRectFromView(cell.bounds, cell);
         }
         return null;
+    },
+
+    rectForListDragDestination: function(listDragDestination){
+        if (listDragDestination === null){
+            return null;
+        }
+        if (listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.none){
+            return null;
+        }
+        if (listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.onRow){
+            return null;
+        }
+        var y0 = this.contentOffset.y;
+        var y1 = y0 + this.contentView.bounds.size.height;
+        var i, l;
+        var item;
+        var frame;
+        if (listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.onSection && listDragDestination.indexPath !== null && listDragDestination.indexPath.length > 0){
+            for (i = 0, l = this._visibleItems.length; i < l && this._visibleItems[i].indexPath.section !== listDragDestination.indexPath.section; ++i){
+                item = this._visibleItems[i];
+                frame = item.view.frame;
+                y0 = frame.origin.y + frame.size.height;
+            }
+            if (this._visibleItems.length > 0){
+                item = this._visibleItems[this._visibleItems.length - 1];
+                frame = item.view.frame;
+                y1 = Math.min(y1, frame.origin.y + frame.size.height);
+            }
+            for (i = this._visibleItems.length - 1; i >= 0 && this._visibleItems[i].indexPath.section !== listDragDestination.indexPath.section; --i){
+                item = this._visibleItems[i];
+                frame = item.view.frame;
+                y1 = frame.origin.y;
+            }
+        }else if (listDragDestination.dropLocation === UIListViewDragDestination.DropLocation.insertRow){
+            for (i = 0, l = this._visibleItems.length; i < l; ++i){
+                item = this._visibleItems[i];
+                frame = item.view.frame;
+                if (item.kind === VisibleItem.Kind.cell){
+                    y0 = y1 = frame.origin.y;
+                }
+                if (item.indexPath.isGreaterThanOrEqual(listDragDestination.indexPath)){
+                    break;
+                }
+                if (item.kind === VisibleItem.Kind.cell){
+                    y0 = y1 = frame.origin.y + frame.size.height;
+                }
+            }
+        }
+        var rect = JSRect(0, y0, this.contentView.bounds.size.width, y1 - y0);
+        return this.convertRectFromView(rect, this._cellsContainerView);
     },
 
     headerAtSection: function(section){
@@ -2998,6 +3157,9 @@ JSClass("UIListViewStyler", JSObject, {
     },
 
     updateFooter: function(footer, section){
+    },
+
+    updateListDragDestination: function(listView, listDragDestination){
     }
 
 });
@@ -3255,9 +3417,9 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
 
     updateCell: function(cell, indexPath){
         cell.contentView.cornerRadius = this.cellContentCornerRadius;
-        if (cell.contextSelected){
+        if (cell.contextSelected || cell.dropTarget){
             cell.contentView.borderWidth = 2.0;
-            cell.contentView.borderColor = this.selectedCellBackgroundColor;
+            cell.contentView.borderColor = this.contextSelectedCellBorderColor;
         }else{
             cell.contentView.borderWidth = 0;
         }
@@ -3444,7 +3606,35 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (footer._titleLabel !== null){
             footer._titleLabel.textColor = this.headerTextColor;
         }
-    }
+    },
+
+    updateListDragDestination: function(listView, listDragDestination){
+        var dropIndicatorView = null;
+        var props = listView.stylerProperties;
+        var rect = listView.rectForListDragDestination(listDragDestination);
+        if (rect !== null){
+            dropIndicatorView = props.dropIndicatorView || UIView.init();
+            dropIndicatorView.userInteractionEnabled = false;
+            dropIndicatorView.borderWidth = 2;
+            dropIndicatorView.borderColor = this.contextSelectedCellBorderColor;
+            if (rect.size.height === 0){
+                rect = rect.rectWithInsets(-1, 0);
+                if (rect.origin.y < 0){
+                    rect.origin.y = 0;
+                }
+            }
+            dropIndicatorView.frame = rect;
+        }
+        if (dropIndicatorView !== props.dropIndicatorView){
+            if (props.dropIndicatorView){
+                props.dropIndicatorView.removeFromSuperview();
+            }
+            props.dropIndicatorView = dropIndicatorView;
+            if (dropIndicatorView !== null){
+                listView.addSubview(dropIndicatorView);
+            }
+        }
+    },
 
 });
 

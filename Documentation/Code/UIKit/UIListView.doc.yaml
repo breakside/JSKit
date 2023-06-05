@@ -781,11 +781,73 @@ topics:
                     name: session
                     type: UIDraggingSession
                     summary: The dragging session
+                  -
+                    name: indexPaths
+                    introduced: 2023.22.0
+                    type: JSIndexPath[]
+                    summary: The index paths that will be dragged
+                  -
+                    name: location
+                    introduced: 2023.22.0
+                    type: JSPoint
+                    summary: The event location in the list view
                 description: |
                   Gives the delgate an opportunity to configure the session.
 
                   For example, the delegate can set the session's
                   `image`(UIDraggingSession.image).
+          -
+            name: Dragging Destination
+            members:
+              -
+                name: listViewDraggingSessionUpdated
+                introduced: 2023.22.0
+                summary: Called when the list view is updated as a drag destination 
+                type: UIDragOperation
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                  -
+                    name: listDragDestination
+                    type: UIListViewDragDestination
+                    summary: Details about exactly where the drop should occur
+                      on the list
+                description: |
+                  On each call, the list view will set the properties of
+                  `listDragDestination` to what it things is the best place
+                  to drop the dragged item(s).
+
+                  You can modify the properties of `listDragDestination` to
+                  alter where the drop will occur.
+              -
+                name: listViewPerformDragOperation
+                introduced: 2023.22.0
+                summary: Called when the user drops dragged items on a list view
+                type: UIDragOperation
+                arguments:
+                  -
+                    name: listView
+                    type: UIListView
+                    summary: The list view making the call
+                  -
+                    name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                  -
+                    name: operation
+                    type: UIDragOperation
+                    summary: The operation to perfom
+                  -
+                    name: listDragDestination
+                    type: UIListViewDragDestination
+                    summary: Details about exactly where the drop should occur
+                      on the list
       -
         name: UIListViewDataSource
         kind: protocol
@@ -2574,3 +2636,76 @@ topics:
             default: UIScrollView.ScrollPosition.auto
             summary: The position the cell should have in the view after
               scrolling
+  -
+    name: Drag & Drop
+    members:
+      -
+        name: UIListViewDragDestination
+        introduced: 2023.22.0
+        kind: class
+        inherits: JSObject
+        summary: Details about exactly where a drop should occur on a list
+        topics:
+          -
+            name: Properties
+            members:
+              -
+                name: indexPath
+                type: JSIndexPath
+                summary: The index path where an item should be dropped
+                nullable: true
+                description: |
+                  Can be `null` if dropping on the list as a whole.
+
+                  Can be a length-1 index path if dropping on a section as a whole.
+
+                  Or can be a specific index path of a cell.
+              -
+                name: dropLocation
+                type: DropLocation
+                summary: The location to drop relative to the index path
+              -
+                name: DropLocation
+                suffix: enum
+                kind: enum
+                summary: The possible drop locations
+                topics:
+                  -
+                    name: Options
+                    members:
+                      -
+                        name: none
+                        summary: Drop is not allowed on the list
+                        description: |
+                          Useful to indicate that the dragged items cannot be
+                          dropped on the list, at least not at the current
+                          location.
+                      -
+                        name: onList
+                        summary: Indicates the drop will be on the list as
+                          a whole.  `indexPath` will be ignored.
+                        description: |
+                          Useful when the list it auto-sorted and dropping
+                          at a specific location doesn't make sense.
+                      -
+                        name: onSection
+                        summary: Indicates the drop will be on a specific
+                          section.  Only the `section`(JSIndexPath.section)
+                          property of the `indexPath` will be considered.
+                        description: |
+                          Useful when the list it auto-sorted and dropping
+                          at a specific location doesn't make sense, but the
+                          dragged items are only relevant in the given section.
+                      -
+                        name: onRow
+                        summary: Indicates the drop will be on a specific row.
+                        description: |
+                          Useful when replacing a row or adding to a
+                          collection the row represents.
+                      -
+                        name: insertRow
+                        summary: Indicates the drop will be an insert, with
+                          inserted content placed at the specific row.
+                        description: |
+                          Useful when adding to a list where the user controls
+                          the sort order.
