@@ -72,6 +72,9 @@ JSClass("JSTextLayoutManager", JSObject, {
 
     replaceTextStorage: function(storage){
         var originalStorage = this._textStorage;
+        if (storage === originalStorage){
+            return;
+        }
         if (originalStorage !== null){
             var managers = originalStorage.layoutManagers;
             originalStorage.removeAllLayoutManagers();

@@ -167,8 +167,10 @@ JSClass("UITextLayer", UILayer, {
         if (!text.isKindOfClass(JSTextStorage)){
             text = JSTextStorage.initWithAttributedString(text);
         }
-        this._textStorage = text;
-        this._textLayoutManager.replaceTextStorage(this._textStorage);
+        if (text !== this._textStorage){
+            this._textStorage = text;
+            this._textLayoutManager.replaceTextStorage(this._textStorage);
+        }
         this.setNeedsDisplay();
         this._displayQueued = true;
     },
