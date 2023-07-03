@@ -21,7 +21,12 @@ JSGlobalObject.XMLSerializer = function XMLSerializer(){
 
 XMLSerializer.prototype = {
 
-    serializeToString: function(document){
+    serializeToString: function(node){
+        return this._serializeToString(node, false);
+    },
+
+    _serializeToString: function(node, childrenOnly){
+        var document = node.ownerDocument || node;
         var doctype = document.doctype;
         var isHTML = doctype && doctype.name == "html";
         var str = "";
@@ -127,10 +132,31 @@ XMLSerializer.prototype = {
             }
         };
 
-        if (!isHTML){
+        if (!isHTML && !childrenOnly){
             str += '<?xml version="1.0" encoding="utf-8"?>\n';
         }
-        writeNode(document, {':global:': null});
+        if (childrenOnly){
+            var namespaces = {':global:': null};
+            if (node.nodeType === DOM.Node.ELEMENT_NODE){
+                if (node.namespaceURI !== null){
+                    if (node.prefix !== null){
+                        if (namespaces[node.prefix] != node.namespaceURI){
+                            namespaces[node.prefix] =  node.namespaceURI;
+                        }
+                    }else{
+                        if (namespaces[':global:'] !== node.namespaceURI){
+                            namespaces[':global:'] = node.namespaceURI;
+                        }
+                    }
+                }
+            }
+            var i, l;
+            for (i = 0, l = node.childNodes.length; i < l; ++i){
+                writeNode(node.childNodes[i], namespaces);
+            }
+        }else{
+            writeNode(node, {':global:': null});
+        }
 
         return str;
     }

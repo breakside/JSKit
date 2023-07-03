@@ -14,6 +14,7 @@
 // limitations under the License.
 
 // #import "DOMNode.js"
+/* global XMLSerializer */
 'use strict';
 
 DOM.Element.prototype = Object.create(DOM.Node.prototype, {
@@ -106,6 +107,13 @@ DOM.Element.prototype = Object.create(DOM.Node.prototype, {
                 this.attributes.splice(index, 1);
                 delete this._attributeMap[':global:'][name];
             }
+        }
+    },
+
+    innerHTML: {
+        get: function DOMElement_innerHTML(){
+            var serializer = new XMLSerializer();
+            return serializer._serializeToString(this, true);
         }
     }
 
