@@ -360,7 +360,7 @@ JSClass("JSAttributedString", JSObject, {
         var run = this._runs[runRange.location];
         run.attributes = JSCopy(attributes);
         if (runRange.length > 1){
-            run.range.length = this._runs[runRange.end - 1].end - run.range.location;
+            run.range.length = this._runs[runRange.end - 1].range.end - run.range.location;
             this._runs.splice(runRange.location + 1, runRange.length - 1);
         }
         this._fixRunsInRunRange(JSRange(runRange.location, 1));
