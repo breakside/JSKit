@@ -143,6 +143,7 @@ JSClass("UITokenField", UITextField, {
                 this.attributedText.replaceCharactersInRangeWithAttributedString(JSRange(range.location + indexAdjustment, range.length), attachmentString);
             }
         }
+        this.sendActionsForEvents(UIControl.Event.primaryAction | UIControl.Event.valueChanged);
     },
 
     _convertStringToRepresentedObject: function(string, range){
