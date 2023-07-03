@@ -475,7 +475,7 @@ JSClass("UITextEditor", JSObject, {
         var selections = this._selectionsCopy();
         for (i = 0, l = selections.length; i < l; ++i){
             selection = selections[i];
-            this._setAttributeValueForSelection(name, value, selection);
+            this._setAttributeValueForSelection(name, value, selection, false);
         }
         this._setSelectionsAllowingUndo(selections);
         this.undoManager.endUndoGrouping();
@@ -585,7 +585,7 @@ JSClass("UITextEditor", JSObject, {
         var selections = this._selectionsCopy();
         for (i = 0, l = selections.length; i < l; ++i){
             selection = selections[i];
-            this._setAttributeValueForSelection(name, !currentValue, selection);
+            this._setAttributeValueForSelection(name, !currentValue, selection, true);
         }
         this._setSelectionsAllowingUndo(selections);
         this.undoManager.endUndoGrouping();
@@ -593,17 +593,25 @@ JSClass("UITextEditor", JSObject, {
         this._resetSelectionAffinity();
     },
 
-    _setAttributeValueForSelection: function(name, value, selection){
+    _setAttributeValueForSelection: function(name, value, selection, expandingSelection){
         var textStorage = this.textLayoutManager.textStorage;
+        var str = textStorage.string;
+        var range = selection.range;
+        if (expandingSelection && selection.range.length === 0){
+            range = str.rangeForWordAtIndex(selection.range.location);
+            if (selection.range.location === range.location || selection.range.location === range.end){
+                range = selection.range;
+            }
+        }
         var replacementString;
-        if (selection.range.length > 0){
-            replacementString = textStorage.attributedSubstringInRange(selection.range);
+        if (range.length > 0){
+            replacementString = textStorage.attributedSubstringInRange(range);
             if (value !== null && value !== undefined){
                 replacementString.addAttributeInRange(name, value, JSRange(0, replacementString.string.length));
             }else{
                 replacementString.removeAttributeInRange(name, JSRange(0, replacementString.string.length));
             }
-            this._replaceTextStorageRangeAllowingUndo(textStorage, selection.range, replacementString);
+            this._replaceTextStorageRangeAllowingUndo(textStorage, range, replacementString);
         }else{
             selection.attributes = this._insertAttributesForSelection(selection);
             var currentValue = selection.attributes[name];
@@ -612,7 +620,7 @@ JSClass("UITextEditor", JSObject, {
             }else{
                 delete selection.attributes[name];
             }
-            this.undoManager.registerUndo(this, this._setAttributeValueForSelection, name, currentValue, selection);
+            this.undoManager.registerUndo(this, this._setAttributeValueForSelection, name, currentValue, selection, expandingSelection);
         }
     },
 
