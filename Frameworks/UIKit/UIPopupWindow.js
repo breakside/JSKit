@@ -394,6 +394,7 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
     },
 
     layoutWindow: function(window){
+        UIPopupWindowStyler.$super.layoutWindow.call(this, window);
         var contentInsets = JSInsets(window.contentInsets);
         if (window._showsSourceArrow){
             var popupBacking = window.stylerProperties.popupBacking;
