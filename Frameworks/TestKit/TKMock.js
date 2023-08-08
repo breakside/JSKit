@@ -75,6 +75,10 @@ JSGlobalObject.TKMock = function(methods){
                 }
                 mockMethod.results.push({callback: {args: args, argIndex: argIndex, targeted: true}});
             };
+            mockMethod.reset = function(){
+                mockMethod.calls = [];
+                mockMethod.results = [];
+            };
             return mockMethod;
         };
         for (var name in methods){
