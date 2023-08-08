@@ -1008,10 +1008,12 @@ JSClass("UITextField", UIControl, {
                 this._localEditor.handleTouchesEnded(touches, event);
                 return;
             }
-            var origin = this.convertPointToView(this.bounds.origin, this.window);
-            if (this.containsPoint(location) && this._touchOrigin.distanceToPoint(origin) < 2){
-                this.window.firstResponder = this;
-                this._localEditor.handleTouchesEndedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+            if (this._touchOrigin !== null){
+                var origin = this.convertPointToView(this.bounds.origin, this.window);
+                if (this.containsPoint(location) && this._touchOrigin.distanceToPoint(origin) < 2){
+                    this.window.firstResponder = this;
+                    this._localEditor.handleTouchesEndedAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
+                }
             }
         }
         UITextField.$super.touchesEnded.call(this, touches, event);
