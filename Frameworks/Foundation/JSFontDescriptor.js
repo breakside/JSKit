@@ -113,6 +113,25 @@ JSFontDescriptor.registerDescriptor = function(descriptor){
     }
 };
 
+JSFontDescriptor.registeredDescriptors = function(){
+    var name;
+    var weight;
+    var style;
+    var weights;
+    var styles;
+    var descriptors = [];
+    for (name in JSFontDescriptor.descriptorsByFamily){
+        weights = JSFontDescriptor.descriptorsByFamily[name];
+        for (weight in weights){
+            styles = weights[weight];
+            for (style in styles){
+                descriptors.push(styles[style]);
+            }
+        }
+    }
+    return descriptors;
+};
+
 JSFontDescriptor.descriptorWithFamily = function(family, weight, style){
     var weights = JSFontDescriptor.descriptorsByFamily[family] || {};
     var styles = weights[weight] || {};

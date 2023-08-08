@@ -280,9 +280,23 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
+                try{
+                    if (this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addEvent("leftmousedown");
+                    }
+                }catch (err){
+                    logger.error("capture failure: %{error}", err);
+                }
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.leftMouseDown);
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+                try{
+                    if (this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addEvent("rightmousedown");
+                    }
+                }catch (err){
+                    logger.error("capture failure: %{error}", err);
+                }
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseDown);
                 break;
             default:
@@ -303,9 +317,23 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this._updateMouseLocation(e);
         switch (e.button){
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_LEFT:
+                try{
+                    if (this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addEvent("leftmouseup");
+                    }
+                }catch (err){
+                    logger.error("capture failure: %{error}", err);
+                }
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.leftMouseUp);
                 break;
             case UIHTMLWindowServer.DOM_MOUSE_EVENT_BUTTON_RIGHT:
+                try{
+                    if (this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addEvent("rightmouseup");
+                    }
+                }catch (err){
+                    logger.error("capture failure: %{error}", err);
+                }
                 this._createMouseEventFromDOMEvent(e, UIEvent.Type.rightMouseUp);
                 break;
             default:
@@ -571,6 +599,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         // prevent the default drop behavior so our custom drag and drop can work
         e.preventDefault();
         this._updateMouseLocation(e);
+        try{
+            if (this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addEvent("drop");
+            }
+        }catch (err){
+            logger.error("capture failure: %{error}", err);
+        }
         if (this._dragingSessionStartedOutsideBrowser){
             // The original dataTransfer object from dragenter doesn't have readable files for security reasons
             // so we need to update the pasteboard with the new dataTransfer object, which has readable files
@@ -866,6 +901,13 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     _updateMouseLocation: function(e){
         this.mouseLocation.x = e.clientX - this._screenClientOrigin.x;
         this.mouseLocation.y = e.clientY - this._screenClientOrigin.y;
+        try{
+            if (this.displayServer.captureStream !== null){
+                this.displayServer.requestDisplayFrame();
+            }
+        }catch (err){
+            logger.error("capture failure: %{error}", err);
+        }
     },
 
     // --------------------------------------------------------------------

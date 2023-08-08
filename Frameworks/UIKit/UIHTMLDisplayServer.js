@@ -19,6 +19,7 @@
 // #import "UIHTMLTextFramesetter.js"
 // #import "UITextAttachmentView.js"
 // #import "UIHTMLElementLayer.js"
+// #import "UIHTMLCaptureStream.js"
 // #feature Window.prototype.addEventListener
 // #feature window.getComputedStyle
 // #feature window.requestAnimationFrame
@@ -89,6 +90,14 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
 
     setScreenSize: function(size){
         this.screenContext.setSize(size);
+        try{
+            if (this.captureStream !== null){
+                this.needsScreenSizeCapture = true;
+                this.setUpdateNeeded();
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     // MARK: - Fonts
@@ -165,8 +174,66 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             this.domWindow.cancelAnimationFrame(this.displayFrameID);
             this.displayFrameID = null;
         }
+        var captureKeyFrame = false;
+        try{
+            if (this.needsCaptureStop){
+                this.needsCaptureStop = false;
+                this.captureStream = null;
+            }
+            if (this.captureStream !== null){
+                if (this.captureStream.frameNumber % 100 !== 0){
+                    this.captureStream.startFrame(t, UIHTMLCaptureStream.FrameType.diff, this._windowServer.mouseLocation.x, this._windowServer.mouseLocation.y);
+                    if (this.needsScreenSizeCapture){
+                        this.needsScreenSizeCapture = false;
+                        this.captureStream.addOperation(UIHTMLCaptureStream.Operation.screenSize, this._windowServer.screen.frame.size.width, this._windowServer.screen.frame.size.height);
+                    }
+                }else{
+                    captureKeyFrame = true;
+                }
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         this._flushDOMInsertsAndRemovals();
         UIHTMLDisplayServer.$super.updateDisplay.call(this, t);
+        try{
+            if (this.needsCaptureStart){
+                this.needsCaptureStart = false;
+                this.captureStream = UIHTMLCaptureStream.init();
+                this.captureStream.delegate = this.captureStreamDelegate;
+                captureKeyFrame = true;
+            }
+            if (captureKeyFrame){
+                this.captureStream.startFrame(t, UIHTMLCaptureStream.FrameType.key, this._windowServer.mouseLocation.x, this._windowServer.mouseLocation.y);
+                this.needsScreenSizeCapture = false;
+                this.captureStream.addOperation(UIHTMLCaptureStream.Operation.screenSize, this._windowServer.screen.frame.size.width, this._windowServer.screen.frame.size.height);
+                this.captureStream.importNode(this.screenContext.element, true);
+                var i, l;
+                var layers = [];
+                var window;
+                for (i = 0, l = this._windowServer.windowStack.length; i < l; ++i){
+                    window = this._windowServer.windowStack[i];
+                    layers.push(window.layer);
+                }
+                var layer;
+                var sublayer;
+                while (layers.length > 0){
+                    layer = layers.shift();
+                    if (layer.performsCustomDrawing){
+                        layer.setNeedsDisplay();
+                        layer.display();
+                    }
+                    for (i = 0, l = layer.sublayers.length; i < l; ++i){
+                        layers.push(layer.sublayers[i]);
+                    }
+                }
+            }
+            if (this.captureStream !== null){
+                this.captureStream.endFrame();
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     stop: function(){
@@ -436,6 +503,13 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
         var context = this.contextsByObjectID[layer.objectID];
         if (context){
             if (context.element.isConnected){
+                try{
+                    if (this.captureStream !== null){
+                        this.captureStream.removeNode(context.element);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 context.element.parentNode.removeChild(context.element);
             }
             this._destroyContextForLayer(layer);
@@ -529,7 +603,34 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             this._clientRectElements[i].parentNode.removeChild(this._clientRectElements[i]);
         }
         this._clientRectElements = [];
-    }
+    },
+
+    // -------------------------------------------------------------------------
+    // MARK: - HTML Capture
+
+    captureStream: null,
+    captureStreamDelegate: null,
+    needsCaptureStart: false,
+    needsCaptureStop: false,
+    needsScreenSizeCapture: false,
+
+    startCapture: function(delegate){
+        if (this.needsCaptureStart || this.captureStream !== null){
+            return;
+        }
+        this.needsCaptureStart = true;
+        this.captureStreamDelegate = delegate || null;
+        this.setUpdateNeeded();
+    },
+
+    stopCapture: function(){
+        if (this.needsCaptureStop){
+            return;
+        }
+        this.needsCaptureStop = true;
+        this.needsCaptureStart = false;
+        this.setUpdateNeeded();
+    },
 
 });
 

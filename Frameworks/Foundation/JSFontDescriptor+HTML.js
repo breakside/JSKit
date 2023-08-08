@@ -46,6 +46,16 @@ JSFontDescriptor.definePropertiesFromExtensions({
         }
     },
 
+    htmlCaptureInfo: function(){
+        var url = this.htmlURLString();
+        return {
+            family: this._family,
+            style: this._style,
+            weight: this._weight,
+            url: url
+        };
+    },
+
     cssFontFaceRuleString: function(){
         var url = this.htmlURLString();
         if (url){

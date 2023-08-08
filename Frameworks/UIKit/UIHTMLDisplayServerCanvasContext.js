@@ -15,10 +15,13 @@
 
 // #import Foundation
 // #import "UIHTMLDisplayServerContext.js"
+// #import "UIHTMLCaptureStream.js"
 // jshint browser: true
 'use strict';
 
 (function(){
+
+var logger = JSLog("uikit", "html-display");
 
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
@@ -92,6 +95,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     setOrigin: function(origin){
         this.style.top = origin.y + 'px';
         this.style.left = origin.x + 'px';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.top, this.style.top);
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.left, this.style.left);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     setSize: function(size){
@@ -160,6 +171,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             if (layer.cornerRadius > 0){
                 this.propertiesNeedingUpdate.cornerRadius = true;
             }
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.insertNode(this.borderElement, this.element);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         var methodName;
         for (var property in this.propertiesNeedingUpdate){
@@ -186,6 +204,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var i, l;
         for (i = 0, l = this._canvasElements.length; i < l; ++i){
             this._canvasElements[i].getContext('2d').clearRect(0, 0, this._canvasElements[i].width, this._canvasElements[i].height);
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasElements[i], UIHTMLCaptureStream.Operation.clearRect, 0, 0, this._canvasElements[i].width, this._canvasElements[i].height);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         this._previousExternalElements = this._externalElements;
         this._externalElements = [];
@@ -194,15 +219,36 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     cleanupAfterDisplay: function(){
         var i, l;
         for (i = this._canvasElements.length - 1; i >= this._canvasElementIndex; --i){
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.removeNode(this._canvasElements[i]);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
             this._canvasElements[i].parentNode.removeChild(this._canvasElements[i]);
             this._canvasElements.splice(i, 1);
         }
         for (i = this._imageElements.length - 1; i >= this._imageElementIndex; --i){
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.removeNode(this._imageElements[i]);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
             this._imageElements[i].parentNode.removeChild(this._imageElements[i]);
             this._imageElements.splice(i, 1);
         }
         for (i = this._previousExternalElements.length - 1; i >= 0; --i){
             if (this._externalElements.indexOf(this._previousExternalElements[i]) < 0){
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.removeNode(this._previousExternalElements[i]);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 this._previousExternalElements[i].parentNode.removeChild(this._previousExternalElements[i]);
                 this._previousExternalElements.splice(i, 1);
             }
@@ -231,12 +277,27 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _insertChildElement: function(element){
         // FIXME: added element should inherit current state transform
         if (this._childInsertionIndex < this.element.childNodes.length){
-            if (element !== this.element.childNodes[this._childInsertionIndex]){
-                this.element.insertBefore(element, this.element.childNodes[this._childInsertionIndex]);
+            var sibling = this.element.childNodes[this._childInsertionIndex];
+            if (element !== sibling){
+                this.element.insertBefore(element, sibling);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.insertNode(element, this.element, sibling);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
         }else{
             if (element.parentNode !== this.element){
                 this.element.appendChild(element);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.insertNode(element, this.element);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
         }
         ++this._childInsertionIndex;
@@ -264,10 +325,24 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         for (i = 0, l = this._imageElements.length; i < l; ++i){
             element = this._imageElements[i];
             element.style.transform = cssTransform;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(element, UIHTMLCaptureStream.Operation.elementTransform, cssTransform);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         for (i = 0, l = this._externalElements.length; i < l; ++i){
             element = this._externalElements[i];
             element.style.transform = cssTransform;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(element, UIHTMLCaptureStream.Operation.elementTransform, cssTransform);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -276,6 +351,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var size = layer.presentation.bounds.size;
         this.style.width = size.width + 'px';
         this.style.height = size.height + 'px';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.width, this.style.width);
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.height, this.style.height);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_transform: function(layer){
@@ -289,32 +372,82 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this.style.transform = '';
             this.style.transformOrigin = '';
         }
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.elementTransform, this.style.transform);
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.elementTransformOrigin, this.style.transformOrigin);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_hidden: function(layer){
         this.style.visibility = layer.presentation.hidden ? 'hidden' : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, layer.presentation.hidden ? UIHTMLCaptureStream.Operation.visibilityHidden : UIHTMLCaptureStream.Operation.visibilityVisible);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_clipsToBounds: function(layer){
         this.style.overflow = layer._clipsToBounds ? 'hidden' : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, layer._clipsToBounds ? UIHTMLCaptureStream.Operation.overflowHidden : UIHTMLCaptureStream.Operation.overflowVisible);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_alpha: function(layer){
         this.style.opacity = layer.presentation.alpha != 1.0 ? layer.presentation.alpha : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.opacity, this.style.opacity);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_backgroundColor: function(layer){
         this.style.backgroundColor = layer.presentation.backgroundColor ? layer.presentation.backgroundColor.cssString() : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.backgroundColor, this.style.backgroundColor);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_backgroundGradient: function(layer){
         this.style.backgroundImage = layer.presentation.backgroundGradient ? layer.presentation.backgroundGradient.cssString(this.bounds.size) : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.backgroundImage, this.style.backgroundImage);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_backgroundVisualEffect: function(layer){
         var value = layer.presentation.backgroundVisualEffect ? layer.presentation.backgroundVisualEffect.cssFilterString() : '';
         this.style.backdropFilter = value;
         this.style.webkitBackdropFilter = value;
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.backdropFilter, value);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_borderWidth: function(layer){
@@ -332,8 +465,23 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             }
             this.borderElement.style.borderWidth = css;
             this.borderElement.style.borderStyle = 'solid';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this.borderElement, UIHTMLCaptureStream.Operation.borderWidth, css);
+                    this.displayServer.captureStream.addNodeOperation(this.borderElement, UIHTMLCaptureStream.Operation.borderStyle, "solid");
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }else{
             if (this.borderElement !== null){
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.removeNode(this.borderElement);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 this.borderElement.parentNode.removeChild(this.borderElement);
                 this.borderElement = null;
             }
@@ -343,6 +491,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     updateHTMLProperty_borderColor: function(layer){
         if (this.borderElement !== null){
             this.borderElement.style.borderColor = layer.presentation.borderColor ? layer.presentation.borderColor.cssString() : '';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this.borderElement, UIHTMLCaptureStream.Operation.borderColor, this.borderElement.style.borderColor);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -361,8 +516,22 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             }
         }
         this.style.borderRadius = css;
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.borderRadius, css);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         if (this.borderElement !== null){
             this.borderElement.style.borderRadius = css;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this.borderElement, UIHTMLCaptureStream.Operation.borderRadius, css);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -372,14 +541,35 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.style.boxShadow = '';
         }
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.boxShadow, this.style.boxShadow);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_contentVisualEffect: function(layer){
         this.style.filter = layer.presentation.contentVisualEffect ? layer.presentation.contentVisualEffect.cssFilterString() : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.filter, this.style.filter);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     updateHTMLProperty_zIndex: function(layer){
         this.style.zIndex = layer.zIndex;
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.element, UIHTMLCaptureStream.Operation.zIndex, this.style.zIndex);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     // --------------------------------------------------------------------
@@ -417,16 +607,47 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             var canvas = this._dequeueReusableCanvasElement();
             canvas.width = this.bounds.size.width * scale;
             canvas.height = this.bounds.size.height * scale;
+            try{
+                if (canvas.parentNode !== null){
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.canvasSize, canvas.width, canvas.height);
+                    }
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
             this._canvasContext.save();
             this._canvasContext._restoreCount = 1;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.save);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
             if (scale != 1){
                 this._canvasContext.scale(scale, scale);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.scale, scale, scale);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             this._canvasContext.translate(-this.bounds.origin.x, -this.bounds.origin.y);
             this._canvasContext.save();
             this._canvasContext._restoreCount++;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.translate, -this.bounds.origin.x, -this.bounds.origin.x);
+                    this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.save);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
 
             // Catch up to current state
             // - If this is the first state, some state udpate (like set color) are
@@ -440,6 +661,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this._canvasContextAdoptState(this._canvasContext, this.stack[i], scale);
                 this._canvasContext.save();
                 this._canvasContext._restoreCount++;
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.save);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             this._canvasContextAdoptState(this._canvasContext, this.state, scale);
         }
@@ -463,6 +691,26 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         var transform = state.transform.concatenatedWith(JSAffineTransform.Scaled(scale, scale));
         context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
         context.font = state.font ? state.font.cssString() : '';
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                var canvas = context.canvas;
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.globalAlpha, context.globalAlpha);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.fillStyle, context.fillStyle);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.strokeStyle, context.strokeStyle);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.shadowOffset, context.shadowOffsetX, context.shadowOffsetY);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.shadowBlur, context.shadowBlur);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.shadowColor, context.shadowColor);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.lineWidth, context.lineWidth);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.lineCap, context.lineCap);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.lineJoin, context.lineJoin);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.miterLimit, context.miterLimit);
+                this.displayServer.captureStream.addNodeOperation.apply(this.displayServer.captureStream, [canvas, UIHTMLCaptureStream.Operation.lineDash, state.lineDashPhase, state.lineDashArray.length].concat(state.lineDashArray));
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.setTransform, transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+                this.displayServer.captureStream.addNodeOperation(canvas, UIHTMLCaptureStream.Operation.font, context.font);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         var clip;
         var op;
         for (var i = 0, l = state.clips.length; i < l; ++i){
@@ -473,6 +721,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             }
             context.clip.apply(context, clip.arguments);
             context.beginPath();
+            // TODO: capture
         }
     },
 
@@ -512,14 +761,36 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // we could find the current index with Array.indexOf(), and conditionally add 1 if moving up.
         // I doubt there's a big performance difference.
         if (context.element.parentNode === this.element){
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.removeNode(context.element);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
             this.element.removeChild(context.element);
         }
         if (insertIndex < this.element.childNodes.length){
             if (context.element !== this.element.childNodes[insertIndex]){
-                this.element.insertBefore(context.element, this.element.childNodes[insertIndex]);
+                var sibling = this.element.childNodes[insertIndex];
+                this.element.insertBefore(context.element, sibling);
+                try{
+                    if (this.displayServer && this.displayServer.captureStream){
+                        this.displayServer.captureStream.insertNode(context.element, this.element, sibling);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
         }else{
             this.element.appendChild(context.element);
+            try{
+                if (this.displayServer && this.displayServer.captureStream){
+                    this.displayServer.captureStream.insertNode(context.element, this.element);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -537,20 +808,57 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         switch (drawingMode){
             case JSContext.DrawingMode.fill:
                 this.canvasContext.fill();
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fill);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 break;
             case JSContext.DrawingMode.evenOddFill:
                 this.canvasContext.fill('evenodd');
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillEvenOdd);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 break;
             case JSContext.DrawingMode.stroke:
                 this.canvasContext.stroke();
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.stroke);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 break;
             case JSContext.DrawingMode.fillStroke:
                 this.canvasContext.fill();
                 this.canvasContext.stroke();
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fill);
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.stroke);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 break;
             case JSContext.DrawingMode.evenOddFillStroke:
                 this.canvasContext.fill('evenodd');
                 this.canvasContext.stroke();
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillEvenOdd);
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.stroke);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 break;
         }
         this.beginPath();
@@ -561,11 +869,25 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     clearRect: function(rect){
         this.canvasContext.clearRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.clearRect, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         this.beginPath();
     },
 
     fillRect: function(rect){
         this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillRect, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         this.beginPath();
     },
 
@@ -584,6 +906,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     strokeRect: function(rect){
         this.canvasContext.strokeRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.strokeRect, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         this.beginPath();
     },
 
@@ -624,9 +953,28 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             if (caps !== null){
                 imageElement.style.borderWidth = '%dpx %dpx %dpx %dpx'.sprintf(caps.top, caps.right, caps.bottom, caps.left);
                 imageElement.style.borderImage = cssURL + " %d %d %d %d fill stretch".sprintf(caps.top * image.scale, caps.right * image.scale, caps.bottom * image.scale, caps.left * image.scale);
+                try{
+                    if (imageElement.parentNode !== null){
+                        if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                            this.displayServer.captureStream.addNodeOperation(imageElement, UIHTMLCaptureStream.Operation.borderWidth, imageElement.style.borderWidth);
+                            this.displayServer.captureStream.addNodeOperation(imageElement, UIHTMLCaptureStream.Operation.borderImage, imageElement.style.borderImage);
+                        }
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }else{
                 imageElement.style.backgroundImage = cssURL;
                 imageElement.style.backgroundSize = '100% 100%';
+                try{
+                    if (imageElement.parentNode !== null){
+                        if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                            this.displayServer.captureStream.addNodeOperation(imageElement, UIHTMLCaptureStream.Operation.backgroundImage, imageElement.style.backgroundImage);
+                        }
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             this._insertChildElement(imageElement);
         }
@@ -683,13 +1031,30 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.canvasContext.scale(rect.size.width, rect.size.height);
         var canvasGradient = this.canvasContext.createLinearGradient(gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y);
         var stop;
-        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+        var i, l;
+        for (i = 0, l = gradient.stops.length; i < l; ++i){
             stop = gradient.stops[i];
             canvasGradient.addColorStop(stop.position, stop.color.cssString());
         }
         this.canvasContext.fillStyle = canvasGradient;
         this.canvasContext.fillRect(0, 0, 1, 1);
         this.canvasContext.restore();
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.save);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.translate, rect.origin.x, rect.origin.y);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.scale, rect.size.width, rect.size.height);
+                var args = [this.canvasContext.canvas, UIHTMLCaptureStream.Operation.linearGradient, gradient.start.x, gradient.start.y, gradient.end.x, gradient.end.y, gradient.stops.length];
+                for (i = 0, l = gradient.stops.length; i < l; ++i){
+                    stop = gradient.stops[i];
+                    args.push(stop.position, stop.color.cssString());
+                }
+                this.displayServer.captureStream.addNodeOperation.apply(this.displayServer.captureStream, args);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.restore);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     drawRadialGradient: function(gradient, rect, r0, r1){
@@ -698,13 +1063,30 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this.canvasContext.scale(rect.size.width, rect.size.height);
         var canvasGradient = this.canvasContext.createRadialGradient(gradient.start.x, gradient.start.y, r0, gradient.end.x, gradient.end.y, r1);
         var stop;
-        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+        var i, l;
+        for (i = 0, l = gradient.stops.length; i < l; ++i){
             stop = gradient.stops[i];
             canvasGradient.addColorStop(stop.position, stop.color.cssString());
         }
         this.canvasContext.fillStyle = canvasGradient;
         this.canvasContext.fillRect(0, 0, 1, 1);
         this.canvasContext.restore();
+        try{
+            if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.save);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.translate, rect.origin.x, rect.origin.y);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.scale, rect.size.width, rect.size.height);
+                var args = [this.canvasContext.canvas, UIHTMLCaptureStream.Operation.radialGradient, gradient.start.x, gradient.start.y, r0, gradient.end.x, gradient.end.y, r1, gradient.stops.length];
+                for (i = 0, l = gradient.stops.length; i < l; ++i){
+                    stop = gradient.stops[i];
+                    args.push(stop.position, stop.color.cssString());
+                }
+                this.displayServer.captureStream.addNodeOperation.apply(this.displayServer.captureStream, args);
+                this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.restore);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     // ----------------------------------------------------------------------
@@ -714,6 +1096,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setFont.call(this, font);
         if (this._canvasContext){
             this._canvasContext.font = font ? font.cssString() : '';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.font, this._canvasContext.font);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -731,9 +1120,23 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             text = font.stringForGlyphs([glyph]);
             if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.fillText(text, 0, 0);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillText, text, 0, 0);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.strokeText(text, 0, 0);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.strokeText, text, 0, 0);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             width = font.widthOfGlyph(glyph) + this.state.characterSpacing;
             this.translateBy(width, 0);
@@ -767,9 +1170,23 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
         if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
             this.canvasContext.fillText(text, 0, 0);
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillText, text, 0, 0);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
             this.canvasContext.strokeText(text, 0, 0);
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.strokeText, text, 0, 0);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         // Debugging
         // this.canvasContext.save();
@@ -792,9 +1209,23 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         while (iterator.character !== null){
             if (this.state.textDrawingMode == JSContext.TextDrawingMode.fill || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.fillText(iterator.character.utf16, 0, 0);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.fillText, iterator.character.utf16, 0, 0);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             if (this.state.textDrawingMode == JSContext.TextDrawingMode.stroke || this.state.textDrawingMode == JSContext.TextDrawingMode.fillStroke){
                 this.canvasContext.strokeText(iterator.character.utf16, 0, 0);
+                try{
+                    if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                        this.displayServer.captureStream.addNodeOperation(this.canvasContext.canvas, UIHTMLCaptureStream.Operation.strokeText, iterator.character.utf16, 0, 0);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
             }
             width = font.widthOfCharacter(iterator.character) + this.state.characterSpacing;
             this.translateBy(width, 0);
@@ -809,7 +1240,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     setAlpha: function(alpha){
         UIHTMLDisplayServerCanvasContext.$super.setAlpha.call(this, alpha);
         if (this._canvasContext){
-             this._canvasContext.globalAlpha = alpha;
+            this._canvasContext.globalAlpha = alpha;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.globalAlpha, this._canvasContext.globalAlpha);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -817,6 +1255,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setFillColor.call(this, fillColor);
         if (this._canvasContext){
             this._canvasContext.fillStyle = fillColor ? fillColor.cssString() : '';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.fillStyle, this._canvasContext.fillStyle);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -824,6 +1269,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setStrokeColor.call(this, strokeColor);
         if (this._canvasContext){
             this._canvasContext.strokeStyle = strokeColor ? strokeColor.cssString() : '';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.strokeStyle, this._canvasContext.strokeStyle);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -834,6 +1286,15 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this._canvasContext.shadowOffsetY = offset.y;
             this._canvasContext.shadowBlur = blur * this.deviceScale;
             this._canvasContext.shadowColor = color ? color.cssString() : '';
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.shadowOffset, this._canvasContext.shadowOffsetX, this._canvasContext.shadowOffsetY);
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.shadowBlur, this._canvasContext.shadowBlur);
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.shadowColor, this._canvasContext.shadowColor);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -845,8 +1306,22 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (fillRule == JSContext.FillRule.evenOdd){
             this.canvasContext.clip('evenodd');
             args.push('evenodd');
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.clipEvenOdd);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }else{
             this.canvasContext.clip();
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.clip);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         if (this.path !== null){
             this.state.clips.push({arguments: args, operations: this.path.canvasOperations(this.canvasContext, this.state.transform)});
@@ -862,6 +1337,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.concatenate.call(this, transform);
         if (this._canvasContext){
             this._canvasContext.transform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.transform, transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -872,6 +1354,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setLineWidth.call(this, lineWidth);
         if (this._canvasContext){
             this._canvasContext.lineWidth = lineWidth;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.lineWidth, this._canvasContext.lineWidth);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -879,6 +1368,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setLineCap.call(this, lineCap);
         if (this._canvasContext){
             this._canvasContext.lineCap = lineCap;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.lineCap, this._canvasContext.lineCap);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -886,6 +1382,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setLineJoin.call(this, lineJoin);
         if (this._canvasContext){
             this._canvasContext.lineJoin = lineJoin;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.lineJoin, this._canvasContext.lineJoin);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -893,6 +1396,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         UIHTMLDisplayServerCanvasContext.$super.setMiterLimit.call(this, miterLimit);
         if (this._canvasContext){
             this._canvasContext.miterLimit = miterLimit;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.miterLimit, this._canvasContext.miterLimit);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -901,6 +1411,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.lineDashOffset = phase;
             this._canvasContext.setLineDash(lengths);
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation.apply(this.displayServer.captureStream, [this._canvasContext.canvas, UIHTMLCaptureStream.Operation.lineDash, phase, lengths.length].concat(lengths));
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -1150,6 +1667,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.save();
             this._canvasContext._restoreCount++;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.save);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
         this.state.clips = [];
     },
@@ -1159,6 +1683,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         if (this._canvasContext){
             this._canvasContext.restore();
             this._canvasContext._restoreCount--;
+            try{
+                if (this.displayServer !== null && this.displayServer.captureStream !== null){
+                    this.displayServer.captureStream.addNodeOperation(this._canvasContext.canvas, UIHTMLCaptureStream.Operation.restore);
+                }
+            }catch (e){
+                logger.error("capture failure: %{error}", e);
+            }
         }
     },
 
@@ -1184,26 +1715,61 @@ JSClass("UIHTMLDisplayServerCanvasContextPath", JSPath, {
         UIHTMLDisplayServerCanvasContextPath.$super.init.call(this);
         this.context = context;
         this.context.canvasContext.beginPath();
+        try{
+            if (this.context.displayServer !== null && this.context.displayServer.captureStream !== null){
+                this.context.displayServer.captureStream.addNodeOperation(this.context.canvasContext.canvas, UIHTMLCaptureStream.Operation.beginPath);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     moveToPoint: function(point, transform){
         UIHTMLDisplayServerCanvasContextPath.$super.moveToPoint.call(this, point, transform);
         this.context.canvasContext.moveTo(point.x, point.y);
+        try{
+            if (this.context.displayServer !== null && this.context.displayServer.captureStream !== null){
+                this.context.displayServer.captureStream.addNodeOperation(this.context.canvasContext.canvas, UIHTMLCaptureStream.Operation.moveTo, point.x, point.y);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     addLineToPoint: function(point, transform){
         UIHTMLDisplayServerCanvasContextPath.$super.addLineToPoint.call(this, point, transform);
         this.context.canvasContext.lineTo(point.x, point.y);
+        try{
+            if (this.context.displayServer !== null && this.context.displayServer.captureStream !== null){
+                this.context.displayServer.captureStream.addNodeOperation(this.context.canvasContext.canvas, UIHTMLCaptureStream.Operation.lineTo, point.x, point.y);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     addCurveToPoint: function(point, control1, control2, transform){
         UIHTMLDisplayServerCanvasContextPath.$super.addCurveToPoint.call(this, point, control1, control2, transform);
         this.context.canvasContext.bezierCurveTo(control1.x, control1.y, control2.x, control2.y, point.x, point.y);
+        try{
+            if (this.context.displayServer !== null && this.context.displayServer.captureStream !== null){
+                this.context.displayServer.captureStream.addNodeOperation(this.context.canvasContext.canvas, UIHTMLCaptureStream.Operation.bezierCurveTo, control1.x, control1.y, control2.x, control2.y, point.x, point.y);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     closeSubpath: function(){
         UIHTMLDisplayServerCanvasContextPath.$super.closeSubpath.call(this);
         this.context.canvasContext.closePath();
+        try{
+            if (this.context.displayServer !== null && this.context.displayServer.captureStream !== null){
+                this.context.displayServer.captureStream.addNodeOperation(this.context.canvasContext.canvas, UIHTMLCaptureStream.Operation.closePath);
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
     },
 
     canvasOperations: function(prototype, transform){

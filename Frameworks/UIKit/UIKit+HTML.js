@@ -34,3 +34,7 @@
 // #import "UIHTMLSavePanel.js"
 // #import "UIHTMLElementLayer.js"
 // #import "UIHTMLTextField.js"
+
+// Capture
+// #import "UIHTMLCaptureStream.js"
+// #import "UIHTMLCapturePlayer.js"

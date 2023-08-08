@@ -23,6 +23,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "html-text");
+
 JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
 
     _domDocument: null,
@@ -50,6 +52,17 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
             attachmentsByObjectID[attachment.objectID] = attachment;
         }
         var frame = UIHTMLTextFramesetter.$super.createFrame.call(this, size, range, maximumLines);
+        try{
+            var possibleLineElement;
+            for (i = this._frameElement.childNodes.length - 1; i >= 0; --i){
+                possibleLineElement = this._frameElement.childNodes[i];
+                if (this._htmlDisplayServer !== null && this._htmlDisplayServer.captureStream !== null){
+                    this._htmlDisplayServer.captureStream.insertNode(possibleLineElement, this._frameElement);
+                }
+            }
+        }catch (e){
+            logger.error("capture failure: %{error}", e);
+        }
         this._attachments = [];
         for (i = 0, l = frame.attachmentRuns.length; i < l; ++i){
             attachment = frame.attachmentRuns[i].attachment;
@@ -116,6 +129,13 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
                     }
                 }
             }else{
+                try{
+                    if (this._htmlDisplayServer !== null && this._htmlDisplayServer.captureStream !== null){
+                        this._htmlDisplayServer.captureStream.removeNode(possibleLineElement);
+                    }
+                }catch (e){
+                    logger.error("capture failure: %{error}", e);
+                }
                 this._frameElement.removeChild(possibleLineElement);
             }
         }
