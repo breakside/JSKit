@@ -229,13 +229,21 @@ JSClass('UIApplication', UIResponder, {
         }else{
             this._stopCalled = true;
             logger.info("Stopping application");
+            var closed = false;
             var _close = function(){
+                if (closed){
+                    return;
+                }
+                closed = true;
                 JSUserDefaults.shared.close(function(){
                     completion.call(target);
                 });
             };
             if (this.delegate && this.delegate.applicationWillTerminate){
-                this.delegate.applicationWillTerminate(_close);
+                var promise = this.delegate.applicationWillTerminate(_close);
+                if (promise instanceof Promise){
+                    promise.finally(_close);
+                }
             }else{
                 _close();
             }
