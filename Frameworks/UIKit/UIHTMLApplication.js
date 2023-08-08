@@ -134,6 +134,7 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.domWindow.addEventListener("hashchange", this);
         this.domWindow.addEventListener("popstate", this);
         this.domWindow.addEventListener("pageshow", this);
+        this.domWindow.addEventListener("visibilitychange", this);
     },
 
     removeEventListeners: function(){
@@ -143,6 +144,7 @@ JSClass("UIHTMLApplication", UIApplication, {
         this.domWindow.removeEventListener("hashchange", this);
         this.domWindow.removeEventListener("popstate", this);
         this.domWindow.removeEventListener("pageshow", this);
+        this.domWindow.removeEventListener("visibilitychange", this);
     },
 
     handleEvent: function(e){
@@ -241,6 +243,18 @@ JSClass("UIHTMLApplication", UIApplication, {
     _event_pageshow: function(e){
         if (e.persisted){
             this.domWindow.location.reload();
+        }
+    },
+
+    _event_visibilitychange: function(e){
+        if (this.domWindow.document.visibilityState === "hidden"){
+            if (this.delegate && this.delegate.applicationDidEnterBackground){
+                this.delegate.applicationDidEnterBackground(this);
+            }
+        }else if (this.domWindow.document.visibilityState === "visible"){
+            if (this.delegate && this.delegate.applicationDidEnterForeground){
+                this.delegate.applicationDidEnterForeground(this);
+            }
         }
     },
 
