@@ -1116,7 +1116,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     updateAccessibilityFocus: function(accessibility){
         var ariaRole = ariaRoleForAccessibility(accessibility);
-        this.element.focus();
+        this.element.focus({preventScroll: true});
         // if (focusedAccessibility === null || focusedAccessibility === undefined){
         //     this.element.removeAttribute("aria-activedescendant");
         // }else{

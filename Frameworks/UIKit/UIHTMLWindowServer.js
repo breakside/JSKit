@@ -22,6 +22,7 @@
 // #import "UIHTMLContentEditableTextInputManager.js"
 // #import "UIPlatform.js"
 // #import "UIOpenPanel.js"
+// #import "UIKeyboard.js"
 // #feature Element.prototype.addEventListener
 // #feature 'key' in KeyboardEvent.prototype
 // #feature File
@@ -166,6 +167,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
+        if (this.domWindow.visualViewport !== null){
+            this.domWindow.visualViewport.addEventListener('resize', this, false);
+        }
     },
 
     removeEventListeners: function(){
@@ -200,6 +204,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.removeEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchmove', this, {passive: false, capture: false});
+        if (this.domWindow.visualViewport !== null){
+            this.domWindow.visualViewport.removeEventListener('resize', this, false);
+        }
     },
 
     handleEvent: function(e){
@@ -721,6 +728,10 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // --------------------------------------------------------------------
     // MARK: - Window Events
 
+    virtualKeyboard: JSLazyInitProperty(function(){
+        return UIKeyboard.init();
+    }),
+
     resize: function(e){
         // resize event is not cancelable, so no need for preventDefault
         if (e.currentTarget === this.domWindow){
@@ -728,6 +739,47 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this.screen.frame = JSRect(JSPoint.Zero, this.rootElementSize());
             this.screenDidChangeFrame(oldFrame);
             this.displayServer.setScreenSize(this.screen.frame.size);
+        }else if (e.currentTarget === this.domWindow.visualViewport){
+            // using touch screen as proxy for "has virtual keyboard"
+            // not a perfect match, but good enough for now
+            if (UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
+                var viewportFrame = JSRect(
+                    Math.floor(this.domWindow.visualViewport.offsetLeft),
+                    Math.floor(this.domWindow.visualViewport.offsetTop),
+                    Math.floor(this.domWindow.visualViewport.width),
+                    Math.floor(this.domWindow.visualViewport.height)
+                );
+                if (viewportFrame.origin.x === this.screen.frame.origin.x && viewportFrame.origin.y === this.screen.frame.origin.y && viewportFrame.size.width === this.screen.frame.size.width){
+                    // A keyboard may not be the only thing that obstructs the bottom of the screen, but
+                    // we'll assume that a large-ish obstruction is a keyboard
+                    var obstructedHeight = this.screen.frame.size.height - viewportFrame.size.height;
+                    var obstructedFrame = JSRect(0, this.screen.frame.origin.x + this.screen.frame.size.height - obstructedHeight, this.screen.frame.size.width, obstructedHeight);
+                    if (!this.virtualKeyboard.frame.isEqual(obstructedFrame)){
+                        var wasVisible = this.virtualKeyboard.visible;
+                        this.virtualKeyboard.frame = obstructedFrame;
+                        this.virtualKeyboard.visible = this.virtualKeyboard.frame.size.height > 50;
+                        if (wasVisible){
+                            if (this.virtualKeyboard.visible){
+                                JSNotificationCenter.shared.post("UIKeyboardDidShow", this, {frame: this.virtualKeyboard.frame});
+                            }else{
+                                JSNotificationCenter.shared.post("UIKeyboardDidHide", this);
+                                // This should only come into play on Android, where hiding the keyboard
+                                // does NOT cause a blur event.  We want to go ahead and remove first responder
+                                // status when the keyboard is hidden.
+                                if (this.textInputManager.textInputClient instanceof UIView){
+                                    if (this.textInputManager.textInputClient.window.firstResponder === this.textInputManager.textInputClient){
+                                        this.textInputManager.textInputClient.window.firstResponder = null;
+                                    }
+                                }
+                            }
+                        }else{
+                            if (this.virtualKeyboard.visible){
+                                JSNotificationCenter.shared.post("UIKeyboardDidShow", this, {frame: this.virtualKeyboard.frame});
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
 

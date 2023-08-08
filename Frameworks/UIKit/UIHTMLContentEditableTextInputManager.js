@@ -83,7 +83,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
     setEditableElement: function(editableElement){
         if (editableElement === this._editableElement){
             if (this._editableElement !== null){
-                this._editableElement.focus();
+                this._editableElement.focus({preventScroll: true});
                 this.scheduleDocumentSelectionUpdate();
             }
             return;
@@ -95,7 +95,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         this._editableElement = editableElement;
         if (this._editableElement !== null){
             this.setupEditableElement();
-            this._editableElement.focus();
+            this._editableElement.focus({preventScroll: true});
         }
         this.scheduleDocumentSelectionUpdate();
     },
@@ -749,7 +749,7 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
 
     _ensureCorrectFocus: function(){
         if (this._editableElement !== null){
-            this._editableElement.focus();
+            this._editableElement.focus({preventScroll: true});
             this.updateDocumentSelection();
         }
     },
