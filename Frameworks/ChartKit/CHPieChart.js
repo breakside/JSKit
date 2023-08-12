@@ -107,6 +107,7 @@ JSClass("CHPieChart", CHChart, {
             }
             this.legend.drawInContext(context, legendRect);
         }
+        this.drawPieInContext(context, pieRect);
     },
 
     drawPieInContext: function(context, rect){
