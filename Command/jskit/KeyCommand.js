@@ -36,6 +36,7 @@ JSClass("KeyCommand", Command, {
             var jwk = {
                 kty: SECJSONWebToken.KeyType.symmetric,
                 k: data.base64URLStringRepresentation(),
+                kid: JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation(),
                 alg: {
                     256: SECJSONWebToken.Algorithm.hmacSHA256,
                     384: SECJSONWebToken.Algorithm.hmacSHA384,
