@@ -56,7 +56,7 @@ JSClass("UIScroller", UIControl, {
 
     setValue: function(value){
         if (value !== this._value){
-            this._value = value;
+            this._value = isNaN(value) ? 0 : value;
             this.setNeedsLayout();
             this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
         }
