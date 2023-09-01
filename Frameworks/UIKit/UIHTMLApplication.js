@@ -165,6 +165,9 @@ JSClass("UIHTMLApplication", UIApplication, {
         if (e.filename.startsWith(this._baseURL.encodedString)){
             logger.log("uncaught error");
             e.preventDefault();
+            if (!error){
+                error = new Error(e.message + " at " + e.filename + ":" + e.lineno + ":" + e.colno);
+            }
             this._crash(error);
         }
     },
