@@ -882,9 +882,11 @@ JSClass("UIWindowServer", JSObject, {
                     continue;
                 }
                 window = this.windowForEventAtLocation(descriptor.location);
-                location = window.convertPointFromScreen(descriptor.location);
-                touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, window, location);
-                this.activeTouchEvent.addTouch(touch);
+                if (window !== null){
+                    location = window.convertPointFromScreen(descriptor.location);
+                    touch = UITouch.initWithIdentifier(descriptor.identifier, timestamp, window, location);
+                    this.activeTouchEvent.addTouch(touch);
+                }
             }
         }else{
             for (i = 0, l = changedTouchDescriptors.length; i < l; ++i){
