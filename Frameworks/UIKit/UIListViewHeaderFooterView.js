@@ -63,8 +63,10 @@ JSClass("UIListViewHeaderFooterView", UIView, {
         return label;
     },
 
-    _createDetalLabel: function(){
+    _createDetailLabel: function(){
         var label = UILabel.init();
+        label.accessibilityHidden = false;
+        label.font = label.font.fontWithPointSize(JSFont.Size.detail);
         this.contentView.addSubview(label);
         return label;
     },
