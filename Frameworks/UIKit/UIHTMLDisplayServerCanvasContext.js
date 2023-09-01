@@ -20,6 +20,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "display");
+
 JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
 
     hasDragEvents: true,
@@ -502,6 +504,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     // MARK: - Sublayers
 
     insertSublayerContext: function(sublayer, context){
+        if (this.element === null){
+            logger.warn("skipping insertSublayer on context with null element");
+            return;
+        }
         var insertIndex = this.firstSublayerNodeIndex + sublayer.sublayerIndex;
         // If we're moving within the same node, we need to be careful about the index
         // calculations.  For example, if context.element is currently at index 4, and it's
