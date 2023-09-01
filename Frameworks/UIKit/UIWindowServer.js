@@ -893,7 +893,7 @@ JSClass("UIWindowServer", JSObject, {
                 descriptor = changedTouchDescriptors[i];
                 touch = this.activeTouchEvent.touchForIdentifier(descriptor.identifier);
                 if (touch === null){
-                    logger.warn("no touch found for identifier %{public}", touch.identifier);
+                    logger.warn("no touch found for identifier %{public}", descriptor.identifier);
                     continue;
                 }
                 location = touch.window.convertPointFromScreen(descriptor.location);
