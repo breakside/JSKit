@@ -3389,8 +3389,8 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
             cell._accessoryView.frame = JSRect(cell._contentView.bounds.size.width - cell._accessoryInsets.right - accessorySize.width, (cell._contentView.bounds.size.height - accessorySize.height) / 2, accessorySize.width, accessorySize.height);
             size.width -= accessorySize.width + cell._accessoryInsets.width;
         }
-        if (cell._titleLabel !== null){
-            if (cell._detailLabel !== null){
+        if (cell._titleLabel !== null && !cell._titleLabel.hidden){
+            if (cell._detailLabel !== null && !cell._detailLabel.hidden){
                 size.height = cell._titleLabel.font.displayLineHeight * (cell._titleLabel.maximumNumberOfLines || 1) + cell._detailLabel.font.displayLineHeight * (cell._detailLabel.maximumNumberOfLines || 1);
                 origin.y =  Math.floor((cell._contentView.bounds.size.height - size.height) / 2.0);
                 size.height = cell._titleLabel.font.displayLineHeight * (cell._titleLabel.maximumNumberOfLines || 1);
@@ -3403,7 +3403,7 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
                 origin.y =  Math.floor((cell._contentView.bounds.size.height - size.height) / 2.0);
                 cell._titleLabel.frame = JSRect(origin, size);
             }
-        }else if (cell._detailLabel !== null){
+        }else if (cell._detailLabel !== null && !cell._detailLabel.hidden){
             size.height = cell._detailLabel.font.displayLineHeight * (cell._detailLabel.maximumNumberOfLines || 1);
             cell._detailLabel.frame = JSRect(JSPoint(cell._titleInsets.left, Math.floor((cell._contentView.bounds.size.height - size.height) / 2.0)), size);
         }
