@@ -779,6 +779,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     normalColor: null,
     disabledColor: null,
     activeColor: null,
+    normalBackgroundColor: null,
     activeBackgroundColor: null,
     overBackgroundColor: null,
     cornerRadius: 0,
@@ -794,6 +795,13 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         this._fillInMissingColors();
     },
 
+    initWithBackgroundColor: function(backgroundColor, color){
+        UIPopupButtonCustomStyler.$super.init.call(this);
+        this.normalBackgroundColor = backgroundColor;
+        this.normalColor = color;
+        this._fillInMissingColors();
+    },
+
     initWithSpec: function(spec){
         UIPopupButtonCustomStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey("normalColor")){
@@ -804,6 +812,9 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         }
         if (spec.containsKey("activeColor")){
             this.activeColor = spec.valueForKey("activeColor", JSColor);
+        }
+        if (spec.containsKey('normalBackgroundColor')){
+            this.normalBackgroundColor = spec.valueForKey("normalBackgroundColor", JSColor);
         }
         if (spec.containsKey("activeBackgroundColor")){
             this.activeBackgroundColor = spec.valueForKey("activeBackgroundColor", JSColor);
@@ -831,6 +842,14 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         if (this.titleInsets === null){
             this.titleInsets = JSInsets.Zero;
         }
+        if (this.normalBackgroundColor !== null){
+            if (this.activeBackgroundColor === null){
+                this.activeBackgroundColor = this.normalBackgroundColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBackgroundColor === null){
+                this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+            }
+        }
     },
 
     initializeControl: function(button){
@@ -849,7 +868,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     updateControl: function(button){
         if (!button.enabled){
             button._imageView.templateColor = this.disabledColor;
-            button.backgroundColor = null;
+            button.backgroundColor = this.normalBackgroundColor;
         }else if (button.active){
             button._imageView.templateColor = this.activeColor;
             button.backgroundColor = this.activeBackgroundColor;
@@ -858,7 +877,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
             if (this.showsOverState && button.over){
                 button.backgroundColor = this.overBackgroundColor;
             }else{
-                button.backgroundColor = null;
+                button.backgroundColor = this.normalBackgroundColor;
             }
         }
     },
