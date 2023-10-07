@@ -87,10 +87,11 @@ JSClass("UISlider", UIControl, {
             initialOffset: JSPoint.Zero,
         };
         this.active = true;
+        this.sendActionsForEvents(UIControl.Event.editingDidBegin, event);
         if (!isOnKnob){
             this.value = this.valueForPoint(location);
             this.didChangeValueForBinding('value');
-            this.sendActionsForEvents(UIControl.Event.valueChanged | UIControl.Event.primaryAction, event);
+            this.sendActionsForEvents(UIControl.Event.valueChanged | UIControl.Event.primaryAction | UIControl.Event.editingChanged, event);
         }else{
             var valueLocation = this.pointForValue(this._value);
             this._drag.initialOffset = location.subtracting(valueLocation);
@@ -103,13 +104,14 @@ JSClass("UISlider", UIControl, {
         if (value !== this._value){
             this.value = value;
             this.didChangeValueForBinding('value');
-            this.sendActionsForEvents(UIControl.Event.valueChanged | UIControl.Event.primaryAction, event);
+            this.sendActionsForEvents(UIControl.Event.valueChanged | UIControl.Event.editingChanged | UIControl.Event.primaryAction, event);
         }
     },
 
     _endSlide: function(event){
         if (this.active){
             this.active = false;
+            this.sendActionsForEvents(UIControl.Event.editingDidEnd, event);
         }
         this._drag = null;
     },
