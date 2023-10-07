@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import MediaKit
 // #import "MKVideoView.js"
 'use strict';
 
@@ -25,6 +26,12 @@ MKVideoView.definePropertiesFromExtensions({
     asset: JSDynamicProperty('_asset', null),
 
     setAsset: function(asset){
+        if (this._asset === null && asset === null){
+            return;
+        }
+        if (this._asset !== null && this._asset.isEqual(asset)){
+            return;
+        }
         this._asset = asset;
         this._updateVideoSource();
     },
@@ -72,10 +79,16 @@ MKVideoView.definePropertiesFromExtensions({
         }
         if (this._asset === null){
             this.videoElement.srcObject = null;
+            this.videoElement.src = null;
         }else if (this._asset.isKindOfClass(MKHTMLStream)){
             this.videoElement.srcObject = this._asset.htmlMediaStream;
+            this.videoElement.src = null;
+        }else if (this._asset.isKindOfClass(MKRemoteAsset)){
+            this.videoElement.srcObject = null;
+            this.videoElement.src = this._asset.url.encodedString;
         }else{
             this.videoElement.srcObject = null;
+            this.videoElement.src = null;
         }
     },
 
@@ -94,10 +107,22 @@ MKVideoView.definePropertiesFromExtensions({
                     this._isWaitingForPlay = true;
                     this.videoElement.play().then(function(){
                         view._isWaitingForPlay = false;
+                        if (view.delegate && view.delegate.videoViewPlaybackStarted){
+                            view.delegate.videoViewPlaybackStarted(view);
+                        }
+                        if (view._playbackState === MKVideoView.PlaybackState.paused){
+                            view.videoElement.pause();
+                            if (view.delegate && view.delegate.videoViewPlaybackPaused){
+                                view.delegate.videoViewPlaybackPaused(view);
+                            }
+                        }
                     }, function(error){
                         logger.error("play() failed: %{error}", error);
                         view._isWaitingForPlay = false;
                         view._playbackState = MKVideoView.PlaybackState.notPlaying;
+                        if (view.delegate && view.delegate.videoViewPlaybackFailed){
+                            view.delegate.videoViewPlaybackFailed(view);
+                        }
                     });
                 }else{
                     logger.warn("play() requested while still waiting for an earlier play()");
@@ -106,6 +131,9 @@ MKVideoView.definePropertiesFromExtensions({
             case MKVideoView.PlaybackState.paused:
                 if (!this._isWaitingForPlay){
                     this.videoElement.pause();
+                    if (view.delegate && view.delegate.videoViewPlaybackPaused){
+                        view.delegate.videoViewPlaybackPaused(view);
+                    }
                 }else{
                     logger.warn("pause() requested while still waiting for play()");
                 }
@@ -120,6 +148,30 @@ MKVideoView.definePropertiesFromExtensions({
         this.videoElement.muted = this.muted;
     },
 
+    playbackTime: JSDynamicProperty(),
+    duration: JSReadOnlyProperty(),
+
+    getPlaybackTime: function(){
+        if (this.videoElement !== null){
+            return this.videoElement.currentTime;
+        }
+        return 0;
+    },
+
+    setPlaybackTime: function(playbackTime){
+        if (this.videoElement === null){
+            return;
+        }
+        this.videoElement.currentTime = playbackTime;
+    },
+
+    getDuration: function(){
+        if (this.videoElement !== null){
+            return this.videoElement.duration;
+        }
+        return 0;
+    },
+
     // MARK: - Events
 
     handleEvent: function(e){
@@ -129,11 +181,17 @@ MKVideoView.definePropertiesFromExtensions({
     addEventListeners: function(){
         this.videoElement.addEventListener("loadmetadata", this);
         this.videoElement.addEventListener("resize", this);
+        this.videoElement.addEventListener("canplaythrough", this);
+        this.videoElement.addEventListener("ended", this);
+        this.videoElement.addEventListener("timeupdate", this);
     },
 
     removeEventListeners: function(){
         this.videoElement.removeEventListener("loadmetadata", this);
         this.videoElement.removeEventListener("resize", this);
+        this.videoElement.removeEventListener("canplaythrough", this);
+        this.videoElement.removeEventListener("ended", this);
+        this.videoElement.removeEventListener("timeupdate", this);
     },
 
     _event_loadmetadata: function(){
@@ -147,6 +205,25 @@ MKVideoView.definePropertiesFromExtensions({
         this.videoResolution = JSSize(this.videoElement.videoWidth, this.videoElement.videoHeight);
         if (this.delegate && this.delegate.videoViewDidChangeResolution){
             this.delegate.videoViewDidChangeResolution(this);
+        }
+    },
+
+    _event_canplaythrough: function(e){
+        if (this.delegate && this.delegate.videoViewCanStartPlayback){
+            this.delegate.videoViewCanStartPlayback(this);
+        }
+    },
+
+    _event_ended: function(e){
+        if (this.delegate && this.delegate.videoViewPlaybackPaused){
+            this.delegate.videoViewPlaybackPaused(this);
+        }
+        this._playbackState = MKVideoView.PlaybackState.paused;
+    },
+
+    _event_timeupdate: function(e){
+        if (this.delegate && this.delegate.videoViewPlaybackTimeUpdated){
+            this.delegate.videoViewPlaybackTimeUpdated(this);
         }
     },
 

@@ -15,3 +15,4 @@
 
 // #import "MKHTMLDevice.js"
 // #import "MKHTMLStream.js"
+// #import "MKAsset+HTML.js"

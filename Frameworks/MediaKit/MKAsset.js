@@ -18,4 +18,16 @@
 
 JSClass("MKAsset", JSObject, {
 
+    isEqual: function(other){
+        return false;
+    },
+
+    imageAtPlaybackTime: function(playbackTime, completion, target){
+        if (completion === undefined){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    }
+
 });

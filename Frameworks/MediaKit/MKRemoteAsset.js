@@ -1,4 +1,4 @@
-// Copyright 2020 Breakside Inc.
+// Copyright 2023 Breakside Inc.
 //
 // Licensed under the Breakside Public License, Version 1.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #import "MKDevice.js"
 // #import "MKAsset.js"
-// #import "MKStream.js"
-// #import "MKRemoteAsset.js"
+'use strict';
+
+JSClass("MKRemoteAsset", MKAsset, {
+
+    url: null,
+    contentType: null,
+
+    initWithURL: function(url, contentType){
+        this.url = url;
+        this.contentType = contentType;
+    },
+
+    isEqual: function(other){
+        if (other === null || other === undefined){
+            return false;
+        }
+        if (!other.isKindOfClass(MKRemoteAsset)){
+            return false;
+        }
+        return this.url.isEqual(other.url);
+    }
+
+});

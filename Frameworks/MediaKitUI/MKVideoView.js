@@ -17,12 +17,30 @@
 'use strict';
 
 JSProtocol("MKVideoViewDelegate", JSProtocol, {
-    videoViewDidChangeResolution: function(videoView){}
+    videoViewCanStartPlayback: function(videoView){},
+    videoViewDidChangeResolution: function(videoView){},
+    videoViewPlaybackStarted: function(videoView){},
+    videoViewPlaybackTimeUpdated: function(videoView){},
+    videoViewPlaybackPaused: function(videoView){},
+    videoViewPlaybackFailed: function(videoView){},
 });
 
 JSClass("MKVideoView", UIView, {
 
     playbackState: JSReadOnlyProperty('_playbackState', 0),
+    playbackTime: JSDynamicProperty(),
+    duration: JSReadOnlyProperty(),
+
+    getPlaybackTime: function(){
+        return 0;
+    },
+
+    setPlaybackTime: function(){
+    },
+
+    getDuration: function(){
+        return 0;
+    },
 
     delegate: null,
 
