@@ -68,7 +68,7 @@ JSClass("JSHTMLHTTPClient", JSObject, {
             }
             if (callbacks.uploadProgress){
                 xmlRequest.upload.addEventListener('progress', function(e){
-                    callbacks.progress.call(target, e.loaded, e.lengthComputable ? e.total : undefined);
+                    callbacks.uploadProgress.call(target, e.loaded, e.lengthComputable ? e.total : undefined);
                 });
             }
 
