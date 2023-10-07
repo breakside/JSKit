@@ -40,7 +40,7 @@ topics:
             summary: The hashing algorithm to use
         description: |
           After creating a hasher, you'll need to set a `key` first.  Then call
-          `update()` any number of times and finally call `digest()` to compute
+          `update()` any number of times and finally call `sign()` to compute
           the hash.
   -
     name: Key Management
@@ -176,7 +176,7 @@ topics:
       -
         name: sign
         kind: method
-        summary: Finish the hash and provide the result in a callback
+        summary: Finish the signature and provide the result in a callback
         arguments:
           -
             name: completion
@@ -196,7 +196,7 @@ topics:
           You can call `hexStringRepresentation()` on the result to get the
           signature in string form.
       -
-        name: digest
+        name: sign
         suffix: promise
         kind: method
         type: Promise
