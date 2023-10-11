@@ -502,18 +502,57 @@ JSClass("UIStackViewHorizontalLayoutManager", UIStackViewLayoutManager, {
 
 JSClass("UIStackViewHorizontalNoDistributionLayoutManager", UIStackViewHorizontalLayoutManager, {
 
+    sizeView: function(view, maxSize, shrinkToIntrinsicHeight){
+        if (view.isKindOfClass(UIStackViewFlexibleSpace)){
+            return JSSize(0, 0);
+        }
+        return UIStackViewHorizontalNoDistributionLayoutManager.$super.sizeView.call(this, view, maxSize, shrinkToIntrinsicHeight);
+    },
+
     layoutStackView: function(stackView){
         var origin = JSPoint(stackView._contentInsets.left, stackView._contentInsets.top);
         var size;
         var i, l;
         var view;
         var maxViewSize = JSSize(Number.MAX_VALUE, stackView.bounds.size.height - stackView._contentInsets.height);
+        var numberOfFlexibleViews = 0;
         for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
             view = stackView._arrangedSubviews[i];
             size = this.sizeView(view, maxViewSize, stackView._alignment !== UIStackView.Alignment.full);
             view.frame = JSRect(origin, size);
             if (!view.hidden){
                 origin.x += size.width + stackView._viewSpacing;
+                if (view.isKindOfClass(UIStackViewFlexibleSpace)){
+                    ++numberOfFlexibleViews;
+                }
+            }
+        }
+        if (numberOfFlexibleViews > 0){
+            var flexibleWidth = stackView.bounds.origin.x + stackView.bounds.size.width - stackView._contentInsets.right - origin.x + stackView._viewSpacing;
+            if (flexibleWidth > 0){
+                var flexibleViewWidth = Math.floor(flexibleWidth / numberOfFlexibleViews);
+                var finalFlexibleViewWidth = flexibleWidth - flexibleViewWidth * (numberOfFlexibleViews - 1);
+                var offset = 0;
+                var frame;
+                var flexibleViewIndex = 0;
+                for (i = 0, l = stackView._arrangedSubviews.length; i < l; ++i){
+                    view = stackView._arrangedSubviews[i];
+                    frame = JSRect(view.frame);
+                    frame.origin.x += offset;
+                    if (!view.hidden){
+                        if (view.isKindOfClass(UIStackViewFlexibleSpace)){
+                            ++flexibleViewIndex;
+                            if (flexibleViewIndex === numberOfFlexibleViews){
+                                offset += finalFlexibleViewWidth;
+                                frame.size.width = finalFlexibleViewWidth;
+                            }else{
+                                offset += flexibleViewWidth;
+                                frame.size.width = flexibleViewWidth;
+                            }
+                        }
+                    }
+                    view.frame = frame;
+                }
             }
         }
         this.alignStackView(stackView);
@@ -603,5 +642,9 @@ JSClass("UIStackViewHorizontalEqualDistributionLayoutManager", UIStackViewHorizo
         }
         stackView.bounds = JSRect(JSPoint.Zero, stackSize);
     }
+
+});
+
+JSClass("UIStackViewFlexibleSpace", UIView, {
 
 });
