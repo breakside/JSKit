@@ -350,10 +350,16 @@ UIButton.Styler = Object.create({}, {
     }
 });
 
+UIButton.ImagePlacement = {
+    leading: 0,
+    trailing: 1,
+};
+
 JSClass("UIButtonStyler", UIControlStyler, {
 
     titleInsets: null,
     titleImageSpacing: 4,
+    imagePlacement: UIButton.ImagePlacement.leading,
     font: null,
 
     init: function(){
@@ -368,6 +374,9 @@ JSClass("UIButtonStyler", UIControlStyler, {
         }
         if (spec.containsKey('titleImageSpacing')){
             this.titleImageSpacing = spec.valueForKey("titleImageSpacing", Number);
+        }
+        if (spec.containsKey('imagePlacement')){
+            this.imagePlacement = spec.valueForKey("imagePlacement", UIButton.ImagePlacement);
         }
         if (spec.containsKey('font')){
             this.font = spec.valueForKey("font", JSFont);
@@ -441,19 +450,29 @@ JSClass("UIButtonStyler", UIControlStyler, {
         var contentRect = button.bounds.rectWithInsets(button._titleInsets);
         if (button._titleLabel !== null){
             var titleSize = button._titleLabel.intrinsicSize;
-            var x, y;
+            var titleFrame = JSRect(
+                contentRect.origin.x,
+                contentRect.origin.y + (contentRect.size.height - titleSize.height) / 2,
+                contentRect.size.width,
+                titleSize.height
+            );
             if (image !== null){
                 var imageScale = contentRect.size.height / image.size.height;
-                var imageSize = JSSize(image.size.width * imageScale, contentRect.size.height);
-                button._imageView.frame = JSRect(contentRect.origin, imageSize);
-                x = contentRect.origin.x + imageSize.width + this.titleImageSpacing;
-                y = (contentRect.size.height - titleSize.height) / 2;
-            }else{
-                x = contentRect.origin.x;
-                y = (contentRect.size.height - titleSize.height) / 2;
+                var imageFrame = JSRect(
+                    contentRect.origin.x,
+                    contentRect.origin.y,
+                    image.size.width * imageScale,
+                    contentRect.size.height
+                );
+                titleFrame.size.width = Math.max(0, titleFrame.size.width - imageFrame.size.width - this.titleImageSpacing);
+                if (this.imagePlacement === UIButton.ImagePlacement.leading){
+                    titleFrame.origin.x += imageFrame.size.width + this.titleImageSpacing;
+                }else{
+                    imageFrame.origin.x = Math.max(0, contentRect.origin.x + contentRect.size.width - imageFrame.size.width);
+                }
+                button._imageView.frame = imageFrame;
             }
-            var w = Math.max(0, contentRect.origin.x + contentRect.size.width - x);
-            button._titleLabel.frame = JSRect(x, contentRect.origin.y + y, w, titleSize.height);
+            button._titleLabel.frame = titleFrame;
         }else if (image !== null){
             button._imageView.frame = contentRect;
         }
