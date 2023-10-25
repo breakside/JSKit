@@ -74,6 +74,7 @@ JSClass("UIPopupButton", UIControl, {
         UIPopupButton.$super.commonUIControlInit.call(this);
         this._imageView = UIImageView.init();
         this._imageView.hidden = true;
+        this._imageView.scaleMode = UIImageView.ScaleMode.aspectFit;
         this._titleLabel = UILabel.init();
         this._titleLabel.backgroundColor = JSColor.clear;
         this._titleLabel.font = JSFont.systemFontOfSize(JSFont.Size.normal).fontWithWeight(JSFont.Weight.regular);

@@ -877,6 +877,7 @@ JSClass("UIMenuItemView", UIView, {
 
     _createImageView: function(){
         this._imageView = UIImageView.init();
+        this._imageView.scaleMode = UIImageView.ScaleMode.aspectFit;
         this.insertSubviewBelowSibling(this._imageView, this.titleLabel);
         return this._imageView;
     },
