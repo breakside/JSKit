@@ -953,6 +953,11 @@ JSClass("UIMenuItemView", UIView, {
         this.titleLabel.textColor = textColor;
         if (this._imageView !== null){
             this._imageView.templateColor = textColor;
+            if (!item.enabled && this._imageView.image !== null && this._imageView.image.renderMode === JSImage.RenderMode.original){
+                this._imageView.alpha = 0.4;
+            }else{
+                this._imageView.alpha = 1;
+            }
         }
         if (this._submenuImageView !== null){
             this.submenuImageView.templateColor = textColor;
