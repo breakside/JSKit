@@ -855,7 +855,6 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
 
     initializeControl: function(button){
         button._imageView.automaticRenderMode = JSImage.RenderMode.template;
-        button._imageView.scaleMode = UIImageView.ScaleMode.center;
         button._titleLabel.hidden = true;
         button._indicatorView.hidden = true;
         button._titleLabel.frame = JSRect.Zero;
