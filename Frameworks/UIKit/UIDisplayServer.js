@@ -294,6 +294,9 @@ JSClass("UIDisplayServer", JSObject, {
                 animation = layer.animationsByKey[key];
                 animation.updateForTime(t);
                 if (this.reducedMotionEnabled || animation.isComplete){
+                    if (this.reducedMotionEnabled){
+                        animation.percentComplete = 1;
+                    }
                     completedAnimationKeys.push(key);
                 }else{
                     parts = key.split('.');

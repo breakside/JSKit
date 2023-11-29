@@ -29,6 +29,7 @@ JSProtocol("UIColorPanelDelegate", JSProtocol, {
 JSClass("UIColorPanel", UIPopupWindow, {
 
     escapeClosesWindow: true,
+    modalIndicationClosesWindow: true,
 
     init: function(){
         UIColorPanel.$super.init.call(this);
@@ -74,10 +75,6 @@ JSClass("UIColorPanel", UIPopupWindow, {
     setComponentModel: function(componentModel){
         this.contentViewController.componentModel = componentModel;
     },
-
-    indicateModalStatus: function(){
-        this.close();
-    }
 
 });
 
