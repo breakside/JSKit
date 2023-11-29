@@ -1418,6 +1418,7 @@ JSClass("UITextFieldCustomStyler", UITextFieldStyler, {
     init: function(){
         UITextFieldCustomStyler.$super.init.call(this);
         this.textColor = JSColor.text;
+        this.disabledTextColor = this.textColor;
     },
 
     initWithSpec: function(spec){
