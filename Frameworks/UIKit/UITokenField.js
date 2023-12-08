@@ -103,14 +103,95 @@ JSClass("UITokenField", UITextField, {
         UITokenField.$super.resignFirstResponder.call(this);
         this._tokenize();
     },
-
+    
     copy: function(){
-        // TODO: copy text representation and object array
+        if (this._localEditor.selections.length === 0){
+            return;
+        }
+        var selection = this._localEditor.selections[0];
+        if (selection.length === 0){
+            return;
+        }
+
+        var attributedText = this.attributedText;
+        var strings = [];
+        var content = [];
+        var iterator = this.text.unicodeIterator(selection.range.location);
+        var l = selection.range.end;
+        var fragment = "";
+        var representedObject;
+        var attachment;
+        while (iterator.index < l){
+            if (iterator.character.code === JSAttributedString.SpecialCharacter.attachment){
+                if (fragment.length > 0){
+                    strings.push(fragment);
+                    content.push({text: fragment});
+                    fragment = "";
+                }
+                attachment = attributedText.attributeAtIndex(JSAttributedString.Attribute.attachment, iterator.index);
+                representedObject = attachment.representedObject;
+                strings.push(this._stringForRepresentedObject(representedObject));
+                content.push({representedObject: representedObject});
+            }else{
+                fragment += iterator.character.utf16;
+            }
+            iterator.increment();
+        }
+        if (fragment.length > 0){
+            strings.push(fragment);
+            content.push({text: fragment});
+            fragment = "";
+        }
+
+        if (strings.length > 0){
+            var text = strings.join(',');
+            UIPasteboard.general.setStringForType(text, UIPasteboard.ContentType.plainText);
+        }
+        // FIXME: needs debugging
+        // if (content.length > 0){
+        //     UIPasteboard.general.setObjectForType(content, UITokenField.contentType);
+        // }
     },
 
     paste: function(){
-        // TODO: paste object representation if availble
-        // TODO: parse text if object representation is not available
+        var i, l;
+        if (UIPasteboard.general.containsType(UITokenField.contentType)){
+            var objects = UIPasteboard.general.objectForType(UITokenField.contentType);
+            if (this._localEditor.selections.length > 0){
+                var selection = this._localEditor.selections[0];
+                if (selection.length > 0){
+                    this.deleteBackward();
+                    selection = this._localEditor.selections[0];
+                }
+                var obj;
+                var attachmentString;
+                for (i = 0, l = objects.length; i < l; ++i){
+                    obj = objects[i];
+                    if (obj.text !== undefined){
+                        this.insertText(obj.text);
+                    }else if (obj.representedObject !== undefined){
+                        attachmentString = this._createAttachmentStringForRepresentedObject(obj.representedObject);
+                        selection.attributes = attachmentString.attributesAtIndex(0);
+                        this.insertText(attachmentString.string);
+                        selection.attributes = null;
+                    }
+                }
+            }
+        }else if (UIPasteboard.general.containsType(UIPasteboard.ContentType.plainText)){
+            var text = UIPasteboard.general.stringForType(UIPasteboard.ContentType.plainText);
+            text = text.replace(/[,;]\s+/g, ",");
+            l = text.length;
+            var iterator = text.unicodeIterator();
+            while (iterator.index < l){
+                if (iterator.character.isLineBreak){
+                    this._tokenize();
+                }else{
+                    this.insertText(iterator.character.utf16);
+                }
+                iterator.increment();
+            }
+            this._tokenize();
+        }
     },
 
     _tokenize: function(){
@@ -168,12 +249,15 @@ JSClass("UITokenField", UITextField, {
         if (this.tokenDelegate && this.tokenDelegate.tokenFieldViewForRepresentedObject){
             return this.tokenDelegate.tokenFieldViewForRepresentedObject(this, representedObject);
         }
-        var str;
-        if (this.tokenDelegate && this.tokenDelegate.tokenFieldStringForRepresentedObject){
-            str = this.tokenDelegate.tokenFieldStringForRepresentedObject(this, representedObject);
-        }
-        str = representedObject.toString();
+        var str = this._stringForRepresentedObject(representedObject);
         return UITokenFieldTokenView.initWithString(str, this);
+    },
+
+    _stringForRepresentedObject: function(representedObject){
+        if (this.tokenDelegate && this.tokenDelegate.tokenFieldStringForRepresentedObject){
+            return this.tokenDelegate.tokenFieldStringForRepresentedObject(this, representedObject);
+        }
+        return representedObject.toString();
     }
 
 });
@@ -255,5 +339,7 @@ JSClass("UITokenFieldTokenView", UIView, {
 
 
 });
+
+UITokenField.contentType = "x-jskit/tokenfield-content";
 
 })();
