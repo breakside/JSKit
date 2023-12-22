@@ -100,8 +100,16 @@ JSClass("UIPopupWindow", UIWindow, {
             (safeFrame.origin.x + safeFrame.size.width) - (sourceFrame.origin.x + sourceFrame.size.width)
         );
         if (placement == UIPopupWindow.Placement.below){
-            if (frame.size.height > available.bottom && available.top > available.bottom * 2){
-                placement = UIPopupWindow.Placement.above;
+            if (frame.size.height > available.bottom){
+                if (available.top > available.bottom * 2){
+                    placement = UIPopupWindow.Placement.above;
+                }else if (available.right > frame.size.width){
+                    placement = UIPopupWindow.Placement.right;
+                }else if (available.left > frame.size.width){
+                    placement = UIPopupWindow.Placement.left;
+                }else if (available.top > frame.size.width){
+                    placement = UIPopupWindow.Placement.top;
+                }
             }
         }else if (placement == UIPopupWindow.Placement.above){
             if (frame.size.height > available.top && available.bottom > available.top * 2){
