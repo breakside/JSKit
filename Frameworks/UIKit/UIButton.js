@@ -35,6 +35,10 @@ JSClass("UIButton", UIControl, {
 
     initWithSpec: function(spec){
         UIButton.$super.initWithSpec.call(this, spec);
+        // re-set borderWidth so it can override a styler's borderWidth
+        if (spec.containsKey('borderWidth')){
+            this.borderWidth = spec.valueForKey("borderWidth", Number);
+        }
         if (spec.containsKey('font')){
             this.titleLabel.font = spec.valueForKey("font", JSFont);
         }
@@ -591,6 +595,20 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             }
             if (this.disabledBackgroundColor === null){
                 this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
+            }
+            if (this.overBackgroundColor === null){
+                this.overBackgroundColor = this.normalBackgroundColor;
+            }
+        }
+        if (this.normalBorderColor !== null){
+            if (this.activeBorderColor === null){
+                this.activeBorderColor = this.normalBorderColor;
+            }
+            if (this.disabledBorderColor === null){
+                this.disabledBorderColor = this.normalBorderColor.colorWithAlpha(0.5);
+            }
+            if (this.overBorderColor === null){
+                this.overBorderColor = this.normalBorderColor;
             }
         }
     },
