@@ -65,6 +65,18 @@ JSRect.prototype = {
         return xIntersects && yIntersects;
     },
 
+    intersectingRect: function(other){
+        var origin = JSPoint(
+            Math.max(this.origin.x, other.origin.x),
+            Math.max(this.origin.y, other.origin.y)
+        );
+        var size = JSSize(
+            Math.max(0, Math.min(this.origin.x + this.size.width, other.origin.x + other.size.width) - origin.x),
+            Math.max(0, Math.min(this.origin.y + this.size.height, other.origin.y + other.size.height) - origin.y)
+        );
+        return JSRect(origin, size);
+    },
+
     isEqual: function(other){
         return this.origin.isEqual(other.origin) && this.size.isEqual(other.size);
     },

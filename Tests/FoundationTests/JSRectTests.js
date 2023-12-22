@@ -175,6 +175,180 @@ JSClass('JSRectTests', TKTestSuite, {
         TKAssert(intersects);
         intersects = b.intersectsRect(a);
         TKAssert(intersects);
+    },
+
+    testInterestingRect: function(){
+        var a = JSRect(0, 0, 100, 100);
+
+        // exact overlap
+        var b = JSRect(0, 0, 100, 100);
+        var c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 100);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 100);
+
+        // zero width
+        b = JSRect(0, 0, 0, 100);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 100);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 100);
+
+        // zero height
+        b = JSRect(0, 0, 100, 0);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 0);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 0);
+
+        // fully inside
+        b = JSRect(10, 10, 10, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // up to left edge
+        b = JSRect(-10, 0, 10, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // up to right edge
+        b = JSRect(100, 10, 10, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 100);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 100);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 0);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // up to bottom edge
+        b = JSRect(10, 100, 10, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 100);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 0);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 100);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 0);
+
+        // up to top edge
+        b = JSRect(0, -10, 10, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 0);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 0);
+
+        // overlap left edge
+        b = JSRect(-10, 10, 20, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // overlap right edge
+        b = JSRect(90, 10, 20, 10);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 90);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 90);
+        TKAssertFloatEquals(c.origin.y, 10);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // overlap top edge
+        b = JSRect(10, -10, 10, 20);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // overlap bottom edge
+        b = JSRect(10, 90, 10, 20);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 90);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 10);
+        TKAssertFloatEquals(c.origin.y, 90);
+        TKAssertFloatEquals(c.size.width, 10);
+        TKAssertFloatEquals(c.size.height, 10);
+
+        // larger
+        b = JSRect(-10, -10, 120, 120);
+        c = a.intersectingRect(b);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 100);
+        c = b.intersectingRect(a);
+        TKAssertFloatEquals(c.origin.x, 0);
+        TKAssertFloatEquals(c.origin.y, 0);
+        TKAssertFloatEquals(c.size.width, 100);
+        TKAssertFloatEquals(c.size.height, 100);
+
     }
 
 });
