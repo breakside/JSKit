@@ -499,10 +499,15 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
     disabledBackgroundColor: null,
     overBackgroundColor: null,
     activeBackgroundColor: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    overBorderColor: null,
+    activeBorderColor: null,
     normalTitleColor: null,
     disabledTitleColor: null,
     overTitleColor: null,
     activeTitleColor: null,
+    borderWidth: 0,
     cornerRadius: 0,
 
     initWithBackgroundColor: function(normalBackgroundColor, normalTitleColor){
@@ -522,7 +527,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         UIButtonCustomStyler.$super.init.call(this);
         this.initWithColor(JSColor.text);
     },
-
+    
     initWithSpec: function(spec){
         UIButtonCustomStyler.$super.initWithSpec.call(this, spec);
         if (spec.containsKey('normalBackgroundColor')){
@@ -536,6 +541,18 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         }
         if (spec.containsKey('overBackgroundColor')){
             this.overBackgroundColor = spec.valueForKey("overBackgroundColor", JSColor);
+        }
+        if (spec.containsKey('normalBorderColor')){
+            this.normalBorderColor = spec.valueForKey("normalBorderColor", JSColor);
+        }
+        if (spec.containsKey('activeBorderColor')){
+            this.activeBorderColor = spec.valueForKey("activeBorderColor", JSColor);
+        }
+        if (spec.containsKey('disabledBorderColor')){
+            this.disabledBorderColor = spec.valueForKey("disabledBorderColor", JSColor);
+        }
+        if (spec.containsKey('overBorderColor')){
+            this.overBorderColor = spec.valueForKey("overBorderColor", JSColor);
         }
         if (spec.containsKey('normalTitleColor')){
             this.normalTitleColor = spec.valueForKey("normalTitleColor", JSColor);
@@ -551,6 +568,9 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         }
         if (spec.containsKey('cornerRadius')){
             this.cornerRadius = spec.valueForKey("cornerRadius", Number);
+        }
+        if (spec.containsKey('borderWidth')){
+            this.borderWidth = spec.valueForKey("borderWidth", Number);
         }
         this._commonInit();
     },
@@ -578,6 +598,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
     initializeControl: function(button){
         UIButtonCustomStyler.$super.initializeControl.call(this, button);
         button.cornerRadius = this.cornerRadius;
+        button.borderWidth = this.borderWidth;
         this.updateControl(button);
     },
 
@@ -585,6 +606,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
         UIButtonCustomStyler.$super.updateControl.call(this, button);
         if (!button.enabled){
             button.layer.backgroundColor = this.disabledBackgroundColor;
+            button.layer.borderColor = this.disabledBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.disabledTitleColor;
             }
@@ -593,6 +615,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             }
         }else if (button.active){
             button.layer.backgroundColor = this.activeBackgroundColor;
+            button.layer.borderColor = this.activeBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.activeTitleColor;
             }
@@ -601,6 +624,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             }
         }else if (button.over){
             button.layer.backgroundColor = this.overBackgroundColor;
+            button.layer.borderColor = this.overBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.overTitleColor;
             }
@@ -609,6 +633,7 @@ JSClass("UIButtonCustomStyler", UIButtonStyler, {
             }
         }else{
             button.layer.backgroundColor = this.normalBackgroundColor;
+            button.layer.borderColor = this.normalBorderColor;
             if (button._titleLabel !== null){
                 button._titleLabel.textColor = this.normalTitleColor;
             }
