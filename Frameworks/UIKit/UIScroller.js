@@ -19,6 +19,10 @@
 // #import "JSColor+UIKit.js"
 'use strict';
 
+(function(){
+
+var logger = JSLog("uikit", "scroller");
+
 JSClass("UIScroller", UIControl, {
 
     knob: JSReadOnlyProperty('_knob', null),
@@ -352,13 +356,29 @@ JSClass("UIScrollerDefaultStyler", UIScrollerStyler, {
 
     _getVerticalKnobFrame: function(scroller){
         var trackSize = this._getVerticalTrackSize(scroller);
-        var knobSize = JSSize(trackSize.width, trackSize.height * scroller._knobProportion);
+        var knobSize = JSSize(trackSize.width, Math.round(trackSize.height * scroller._knobProportion));
         if (knobSize.height < this.minimumKnobLength){
             knobSize.height = this.minimumKnobLength;
         }
         var minY = 0;
         var maxY = minY + trackSize.height - knobSize.height;
         var y = minY + (maxY - minY) * scroller._value;
+        if (isNaN(y)){
+            logger.warn(
+                "NaN y: y=%{public}, minY=%{public}, maxY=%{public}, value=%{public}, knobProportion=%{public}, trackSize=%{public}x%{public}, knobSize=%{public}x%{public}, minimumKnobLength=%{public}",
+                y,
+                minY,
+                maxY,
+                scroller._value,
+                scroller._knobProportion,
+                trackSize.width,
+                trackSize.height,
+                knobSize.width,
+                knobSize.height,
+                this.minimumKnobLength
+            );
+            y = 0;
+        }
         return JSRect(
             0,
             y,
@@ -487,3 +507,5 @@ UIScroller.Styler = Object.defineProperties({}, {
         }
     }
 });
+
+})();
