@@ -1124,10 +1124,10 @@ JSClass("UICollectionView", UIScrollView, {
         if (hasSelection){
             if (event.key == UIEvent.Key.up){
                 extend = (this.allowsMultipleSelection && this._selectionAnchorIndexPath && event.hasModifier(UIEvent.Modifier.shift));
-                this._selectPreviousRow(extend, {notifyDelegate: true});
+                // this._selectPreviousRow(extend, {notifyDelegate: true});
             }else if (event.key == UIEvent.Key.down){
                 extend = (this.allowsMultipleSelection && this._selectionAnchorIndexPath && event.hasModifier(UIEvent.Modifier.shift));
-                this._selectNextRow(extend, {notifyDelegate: true});
+                // this._selectNextRow(extend, {notifyDelegate: true});
             }else if (event.key == UIEvent.Key.enter){
                 if (this.delegate && this.delegate.collectionViewDidOpenCellAtIndexPath){
                     var indexPath = this.selectedIndexPath;
@@ -1309,14 +1309,17 @@ JSClass("UICollectionView", UIScrollView, {
         for (var i = 0, l = this._visibleElements.length; i < l; ++i){
             item = this._visibleElements[i];
             if (item.attributes.elementCategory === UICollectionView.ElementCategory.cell){
-                this._updateCellState(item.view);
+                this._updateCellState(item.view, item.attributes.indexPath);
             }
         }
     },
 
-    _updateCellState: function(cell){
-        cell.selected = this._selectionContainsIndexPath(cell.indexPath);
-        cell.contextSelected = this._contextSelectionContainsIndexPath(cell.indexPath);
+    _updateCellState: function(cell, indexPath){
+        if (indexPath === undefined){
+            indexPath = cell.indexPath;
+        }
+        cell.selected = this._selectionContainsIndexPath(indexPath);
+        cell.contextSelected = this._contextSelectionContainsIndexPath(indexPath);
     },
 
     _selectionContainsIndexPath: function(indexPath){
@@ -1617,6 +1620,9 @@ JSClass("UICollectionView", UIScrollView, {
         if (this._touch.cell){
             this._touch.cell.active = false;
             this._setSelectedIndexPaths([this._touch.cell.indexPath], {notifyDelegate: true});
+            if (this.delegate && this.delegate.collectionViewDidFinishSelectingCellAtIndexPath){
+                this.delegate.collectionViewDidFinishSelectingCellAtIndexPath(this, this._touch.cell.indexPath);
+            }
         }
         this._touch = null;
     },
