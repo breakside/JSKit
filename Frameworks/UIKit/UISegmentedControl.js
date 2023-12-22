@@ -102,6 +102,10 @@ JSClass("UISegmentedControl", UIControl, {
         this._insertItemAtIndex(item, index);
     },
 
+    insertSegmentAtIndex: function(item, index){
+        this._insertItemAtIndex(item, index);
+    },
+
     setSegmentTooltipAtIndex: function(tooltip, index){
         this._items[index].tooltip = tooltip;
         this._itemViews[index].update();
