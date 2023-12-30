@@ -145,6 +145,17 @@ JSClass("UIHTMLTextRun", JSTextRun, {
                 }
             }
         }
+        if (this.textNode !== null){
+            var localIndex = min - this.range.location;
+            localIndex *= this._maskFactor;
+            var iterator = this.textNode.nodeValue.userPerceivedCharacterIterator(localIndex);
+            localIndex = iterator.range.location;
+            localIndex /= this._maskFactor;
+            var correctedMin = this.range.location + localIndex;
+            if (correctedMin !== min){
+                min = correctedMin;   
+            } 
+        }
         return min;
     },
 
