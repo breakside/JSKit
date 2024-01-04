@@ -69,8 +69,24 @@ JSClass("JavascriptFile", JSObject, {
                 if (version >= 6){
                     imports.features.push('eval("const x = 1;") === undefined');
                     imports.features.push('eval("let x = 1;") === undefined');
-                    imports.features.push('eval("let x = {x: async function(){}}") === undefined');
                     imports.features.push('eval("x => x")');
+                }
+                if (version >= 8){
+                    imports.features.push('eval("let x = {x: async function(){}}") === undefined');
+                }
+                if (version >= 9){
+                    imports.features.push('eval("let x = {a: 1}; let y = {...x};") === undefined');
+                }
+                if (version >= 11){
+                    imports.features.push('eval("null ?? 12") === 12');
+                    imports.features.push('eval("let x = null; x?.a") === undefined');
+                }
+                if (version >= 12){
+                    imports.features.push('eval("1_000") === 1000');
+                }
+                if (version >= 13){
+                    imports.features.push('eval("class x{ y; }") === undefined');
+                    imports.features.push('eval("class x{ #y; }") === undefined');
                 }
             }
             scan = this.next();
