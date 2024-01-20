@@ -559,26 +559,32 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     dragover: function(e){
         // prevent the default dragover behavior so our custom drag and drop can work
         e.preventDefault();
-        if (this._dragingSessionStartedOutsideBrowser){
-            this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
+        if (this._draggingSession !== null){
+            if (this._dragingSessionStartedOutsideBrowser){
+                this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
+            }
         }
         this._updateMouseLocation(e);
         this.mouseDidMove(e.timeStamp / 1000.0, 0);
-        e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
+        if (this._draggingSession !== null){
+            e.dataTransfer.dropEffect = DragOperationToDropEffect[this._draggingSession.operation] || 'none';
+        }
     },
 
     drop: function(e){
         // prevent the default drop behavior so our custom drag and drop can work
         e.preventDefault();
         this._updateMouseLocation(e);
-        if (this._dragingSessionStartedOutsideBrowser){
-            // The original dataTransfer object from dragenter doesn't have readable files for security reasons
-            // so we need to update the pasteboard with the new dataTransfer object, which has readable files
-            // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
-            // which must have originated from outside the browser, because it cannot contain custom data.
-            this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
+        if (this._draggingSession !== null){
+            if (this._dragingSessionStartedOutsideBrowser){
+                // The original dataTransfer object from dragenter doesn't have readable files for security reasons
+                // so we need to update the pasteboard with the new dataTransfer object, which has readable files
+                // NOTE: It's safe to overwrite the entire pasteboard if we started with an HTMLDataTransferPasteboard,
+                // which must have originated from outside the browser, because it cannot contain custom data.
+                this._draggingSession.pasteboard.dataTransfer = e.dataTransfer;
+            }
+            this.draggingSessionDidPerformOperation();
         }
-        this.draggingSessionDidPerformOperation();
     },
 
     // --------------------------------------------------------------------
