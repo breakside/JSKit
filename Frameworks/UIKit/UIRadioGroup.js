@@ -95,7 +95,7 @@ JSClass("UIRadioGroup", UIControl, {
 
     setEnabled: function(isEnabled){
         if (isEnabled !== this.enabled){
-            this.enabled = isEnabled;
+            UIRadioGroup.$super.setEnabled.call(this, isEnabled);
             for (var i = 0, l = this.buttons.length; i < l; ++i){
                 this.buttons[i].enabled = isEnabled;
             }
@@ -108,6 +108,20 @@ JSClass("UIRadioGroup", UIControl, {
 
     getAccessibilityElements: function(){
         return this.buttons;
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        if (this.buttons.length > 0){
+            return this.buttons[0].firstBaselineOffsetFromTop;
+        }
+        return 0;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        if (this.buttons.length > 0){
+            return this.buttons[this.buttons.length - 1].lastBaselineOffsetFromBottom;
+        }
+        return 0;
     }
 
 });
@@ -317,7 +331,23 @@ JSClass("UIRadioButton", UIControl, {
             return this._titleLabel.text;
         }
         return null;
-    }
+    },
+
+    getFirstBaselineOffsetFromTop: function(){
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.firstBaselineOffsetFromTop), this._titleLabel).y;
+        }
+        return this.bounds.size.height;
+    },
+
+    getLastBaselineOffsetFromBottom: function(){
+        if (this._titleLabel !== null){
+            this.layoutIfNeeded();
+            return this.convertPointFromView(JSPoint(0, this._titleLabel.lastBaselineOffsetFromBottom), this._titleLabel).y;
+        }
+        return 0;
+    },
 
 });
 
