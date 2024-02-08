@@ -450,6 +450,7 @@ UIPopupButton.Styler = Object.create({}, {
 JSClass("UIPopupButtonStyler", UIControlStyler, {
 
     menuStyler: null,
+    font: null,
 
     init: function(){
         this.menuStyler = UIMenu.Styler.default;
@@ -461,6 +462,16 @@ JSClass("UIPopupButtonStyler", UIControlStyler, {
             this.menuStyler = spec.valueForKey("menuStyler", UIMenu.Styler);
         }else{
             this.menuStyler = UIMenu.Styler.default;
+        }
+        if (spec.containsKey("font")){
+            this.font = spec.valueForKey("font", JSFont);
+        }
+    },
+
+    initializeControl: function(button){
+        UIPopupButtonStyler.$super.initializeControl.call(this, button);
+        if (this.font !== null){
+            button._titleLabel.font = this.font;
         }
     }
 
@@ -633,6 +644,7 @@ JSClass("UIPopupButtonCustomStyler", UIPopupButtonStyler, {
     },
 
     initializeControl: function(button){
+        UIPopupButtonCustomStyler.$super.initializeControl.call(this, button);
         button.titleInsets = this.titleInsets;
         button.layer.borderWidth = this.borderWidth;
         button.layer.cornerRadius = this.cornerRadius;
@@ -854,6 +866,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     },
 
     initializeControl: function(button){
+        UIPopupButtonImageStyler.$super.initializeControl.call(this, button);
         button._imageView.automaticRenderMode = JSImage.RenderMode.template;
         button._titleLabel.hidden = true;
         button._indicatorView.hidden = true;
