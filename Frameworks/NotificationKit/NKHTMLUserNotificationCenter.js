@@ -81,6 +81,8 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
                 }, function(error){
                     completion.call(target, null, error);
                 });
+            }, function(error){
+                completion.call(target, null, error);
             });
         }
         return completion.promise;
@@ -115,6 +117,94 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
                 }, function(error){
                     completion.call(target, error);
                 });
+            }, function(error){
+                completion.call(target, error);
+            });
+        }
+        return completion.promise;
+    },
+
+    getRemoteNotificationRegistration: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.rejectNonNullSecondArgument);
+        }
+        var notificationCenter = this;
+        if (this.serviceWorkerContainer === null){
+            JSRunLoop.main.schedule(completion, target, null, null);
+        }else{
+            this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
+                if (!serviceWorkerRegistration){
+                    completion.call(target, null, null);
+                    return;
+                }
+                if (!serviceWorkerRegistration.pushManager){
+                    completion.call(target, null, null);
+                    return;
+                }
+                serviceWorkerRegistration.pushManager.getSubscription().then(function(subscription){
+                    if (subscription){
+                        var registration = {
+                            type: NKUserNotificationCenter.RegistrationType.web,
+                            options: {
+                                applicationServerJWK: notificationCenter.webPushApplicationServerJWK,
+                            },
+                            subscription: {
+                                endpoint: subscription.endpoint,
+                                expirationTime: subscription.expirationTime,
+                                keys: {
+                                    p256dh: JSData.initWithBuffer(subscription.getKey("p256dh")).base64URLStringRepresentation(),
+                                    auth: JSData.initWithBuffer(subscription.getKey("auth")).base64URLStringRepresentation()
+                                },
+                            }
+                        };
+                        completion.call(target, registration, null);
+                    }else{
+                        completion.call(target, null, null);
+                    }
+                }, function(error){
+                    completion.call(target, null, error);
+                });
+            }, function(error){
+                completion.call(target, null, error);
+            });
+        }
+        return completion.promise;
+    },
+
+    getRemoteNotificationAuthorizationStatus: function(completion, target){
+        if (!completion){
+            completion = Promise.completion();
+        }
+        var notificationCenter = this;
+        if (this.serviceWorkerContainer === null){
+            JSRunLoop.main.schedule(completion, target, NKUserNotificationCenter.AuthorizationStatus.unavailable);
+        }else{
+            this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
+                if (!serviceWorkerRegistration){
+                    completion.call(target, NKUserNotificationCenter.AuthorizationStatus.unavailable);
+                    return;
+                }
+                if (!serviceWorkerRegistration.pushManager){
+                    completion.call(target, NKUserNotificationCenter.AuthorizationStatus.unavailable);
+                    return;
+                }
+                var options = {
+                    userVisibleOnly: true
+                };
+                if (notificationCenter.webPushApplicationServerJWK){
+                    options.applicationServerKey = JSData.initWithChunks([
+                        JSData.initWithArray([0x04]),
+                        notificationCenter.webPushApplicationServerJWK.x.dataByDecodingBase64URL(),
+                        notificationCenter.webPushApplicationServerJWK.y.dataByDecodingBase64URL()
+                    ]).base64URLStringRepresentation();
+                }
+                serviceWorkerRegistration.pushManager.permissionState(options).then(function(permissionState){
+                    completion.call(target, statusByPermission[permissionState]);
+                }, function(error){
+                    completion.call(target, NKUserNotificationCenter.AuthorizationStatus.unknown);
+                });
+            }, function(error){
+                completion.call(target, NKUserNotificationCenter.AuthorizationStatus.unknown);
             });
         }
         return completion.promise;
@@ -220,7 +310,7 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
         if (!completion){
             completion = Promise.completion();
         }
-        var status = NKUserNotificationCenter.AuthorizationStatus.denied;
+        var status = NKUserNotificationCenter.AuthorizationStatus.unavailable;
         if (this.supportsHTMLNotifications){
             status = statusByPermission[Notification.permission];
         }
@@ -259,6 +349,7 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
 
 var statusByPermission = {
     "default": NKUserNotificationCenter.AuthorizationStatus.unknown,
+    "prompt": NKUserNotificationCenter.AuthorizationStatus.unknown,
     "granted": NKUserNotificationCenter.AuthorizationStatus.authorized,
     "denied": NKUserNotificationCenter.AuthorizationStatus.denied,
 };

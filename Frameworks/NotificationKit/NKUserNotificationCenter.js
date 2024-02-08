@@ -39,6 +39,12 @@ JSClass("NKUserNotificationCenter", JSObject, {
     unregisterForRemoteNotifications: function(completion, target){
     },
 
+    getRemoteNotificationRegistration: function(completion, target){
+    },
+
+    getRemoteNotificationAuthorizationStatus: function(completion, target){
+    },
+
     addNotification: function(notification, date){
     },
 
@@ -54,7 +60,8 @@ JSClass("NKUserNotificationCenter", JSObject, {
 NKUserNotificationCenter.AuthorizationStatus = {
     unknown: 0,
     authorized: 1,
-    denied: 2 
+    denied: 2,
+    unavailable: 3,
 };
 
 NKUserNotificationCenter.RegistrationType = {
