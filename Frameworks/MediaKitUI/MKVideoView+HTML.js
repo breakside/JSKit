@@ -90,6 +90,7 @@ MKVideoView.definePropertiesFromExtensions({
             this.videoElement.srcObject = null;
             this.videoElement.src = null;
         }
+        this.videoElement.load();
     },
 
     _isWaitingForPlay: false,
