@@ -90,23 +90,23 @@ JSClass("NKHTMLUserNotificationCenter", NKUserNotificationCenter, {
 
     unregisterForRemoteNotifications: function(completion, target){
         if (!completion){
-            completion = Promise.completion(Promise.rejectNonNullFirstArgument);
+            completion = Promise.completion(Promise.resolveNull);
         }
         if (this.serviceWorkerContainer === null){
-            JSRunLoop.main.schedule(completion, target, new Error("Remote notifications not supported on this device (no service workers)"));
+            JSRunLoop.main.schedule(completion, target, null);
         }else{
             this.serviceWorkerContainer.getRegistration().then(function(serviceWorkerRegistration){
                 if (!serviceWorkerRegistration){
-                    completion.call(target, new Error("Missing service worker registration"));
+                    completion.call(target, null);
                     return;
                 }
                 if (!serviceWorkerRegistration.pushManager){
-                    completion.call(target, new Error("Remote notifications not supported on this device (no push manager)"));
+                    completion.call(target, null);
                     return;
                 }
                 serviceWorkerRegistration.pushManager.getSubscription().then(function(subscription){
                     if (subscription){
-                        subscription.unsubscribe(function(){
+                        subscription.unsubscribe().then(function(){
                             completion.call(target, null);
                         }, function(error){
                             completion.call(target, error);
