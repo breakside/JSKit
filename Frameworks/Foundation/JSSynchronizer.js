@@ -45,6 +45,21 @@ JSClass("JSSynchronizer", JSObject, {
         return this._scheduleSync(0, completion, target);
     },
 
+    _isPaused: false,
+    _syncOnResume: false,
+
+    pause: function(){
+        this._isPaused = true;
+    },
+
+    resume: function(){
+        this._isPaused = false;
+        if (this._syncOnResume){
+            this._syncOnResume = true;
+            this._scheduleSync(0, function(){});
+        }
+    },
+
     cancel: function(){
         if (this._pendingTimer !== null){
             this._pendingTimer.invalidate();
@@ -76,6 +91,10 @@ JSClass("JSSynchronizer", JSObject, {
     },
 
     _sync: function(){
+        if (this._isPaused){
+            this._syncOnResume = true;
+            return;
+        }
         this._pendingTimer = null;
         var controller = this;
         var started = false;
