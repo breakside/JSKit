@@ -373,6 +373,10 @@ JSClass("JSLocale", JSObject, {
 
     calendarIdentifier: JSReadOnlyProperty('_calendarIdentifier', JSCalendar.Identifier.gregorian),
 
+    calendar: JSLazyInitProperty(function(){
+        return JSCalendar.initWithIdentifier(this.calendarIdentifier);
+    }),
+
     dateFormatForTemplate: function(template){
         return this._dateFormatsByTemplate[template] || null;
     },

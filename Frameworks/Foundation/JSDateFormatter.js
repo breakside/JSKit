@@ -80,17 +80,15 @@ JSClass("JSDateFormatter", JSObject, {
 
     setLocale: function(locale){
         this._locale = locale;
-        this._localeCalendar = JSCalendar.initWithIdentifier(locale.calendarIdentifier);
     },
 
     calendar: JSDynamicProperty('_calendar', null),
-    _localeCalendar: null,
 
     getCalendar: function(){
         if (this._calendar !== null){
             return this._calendar;
         }
-        return this._localeCalendar;
+        return this._locale.calendar;
     },
 
     timezone: JSDynamicProperty('_timezone', null),
