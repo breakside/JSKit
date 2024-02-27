@@ -16,6 +16,8 @@
 // #import "JSObject.js"
 // #import "JSDate.js"
 // #import "JSBinarySearcher.js"
+// #import "JSTimer.js"
+// #import "JSTimeInterval.js"
 // #feature Intl
 /* global JSGregorianCalendar, Intl, DataView */
 'use strict';
@@ -533,10 +535,76 @@ JSClass("JSTimeZone", JSObject, {
 
 });
 
-JSTimeZone.changeLocalTimeZone = function(identifier){
-    localIdentifier = identifier;
-    Object.defineProperty(JSTimeZone, 'local', defaultLocalProperty);
+JSTimeZone.changeLocalTimeZoneToSystem = function(){
+    if (JSTimeZone.localFollowsSystem){
+        return;
+    }
+    JSTimeZone.localFollowsSystem = true;
+    JSTimeZone._changeLocalTimeZone(JSTimeZone.systemTimeZoneIdentifier);
+    if (JSTimeZone.notificationCenters.length > 0){
+        JSTimeZone.scheduleSystemIdentifierWatchTimer();
+    }
 };
+
+JSTimeZone.changeLocalTimeZone = function(identifier){
+    JSTimeZone.cancelSystemIdentifierWatchTimer();
+    JSTimeZone.localFollowsSystem = false;
+    JSTimeZone._changeLocalTimeZone(identifier);
+};
+
+JSTimeZone._changeLocalTimeZone = function(identifier){
+    if (identifier !== localIdentifier){
+        localIdentifier = identifier;
+        Object.defineProperty(JSTimeZone, 'local', defaultLocalProperty);
+        var i, l;
+        for (i = 0, l = JSTimeZone.notificationCenters.length; i < l; ++i){
+            JSTimeZone.notificationCenters[i].post("JSLocalTimeZoneChanged", null);
+        }
+    }
+};
+
+JSTimeZone.startSendingNotifications = function(notificationCenter){
+    var i = JSTimeZone.notificationCenters.indexOf(notificationCenter);
+    if (i < 0){
+        JSTimeZone.notificationCenters.push(notificationCenter);
+    }
+    if (JSTimeZone.localFollowsSystem){
+        JSTimeZone.scheduleSystemIdentifierWatchTimer();
+    }
+};
+
+JSTimeZone.scheduleSystemIdentifierWatchTimer = function(){
+    if (JSTimeZone.systemIdentifierWatchTimer === null){
+        var previousSystemTimeZoneIdentifier = JSTimeZone.systemTimeZoneIdentifier;
+        JSTimeZone.systemIdentifierWatchTimer = JSTimer.scheduledRepeatingTimerWithInterval(JSTimeInterval.minutes(1), function(){
+            if (JSTimeZone.systemTimeZoneIdentifier !== previousSystemTimeZoneIdentifier){
+                previousSystemTimeZoneIdentifier = JSTimeZone.systemTimeZoneIdentifier;
+                JSTimeZone._changeLocalTimeZone(JSTimeZone.systemTimeZoneIdentifier);
+            }
+        });
+    }
+};
+
+JSTimeZone.cancelSystemIdentifierWatchTimer = function(){
+    if (JSTimeZone.systemIdentifierWatchTimer !== null){
+        JSTimeZone.systemIdentifierWatchTimer.invalidate();
+        JSTimeZone.systemIdentifierWatchTimer = null;
+    }
+};
+
+JSTimeZone.stopSendingNotifications = function(notificationCenter){
+    var i = JSTimeZone.notificationCenters.indexOf(notificationCenter);
+    if (i >= 0){
+        JSTimeZone.notificationCenters.splice(i, 1);
+    }
+    if (JSTimeZone.notificationCenters.length === 0){
+        JSTimeZone.cancelSystemIdentifierWatchTimer();
+    }
+};
+
+JSTimeZone.localFollowsSystem = true;
+JSTimeZone.systemIdentifierWatchTimer = null;
+JSTimeZone.notificationCenters = [];
 
 var defaultLocalProperty = {
     configurable: true,
@@ -578,6 +646,7 @@ Object.defineProperties(JSTimeZone, {
         configurable: true,
         get: function JSTimeZone_getUTC(){
             var timezone = JSTimeZone.initWithTimeIntervalFromUTC(0, 'UTC');
+            timezone._identifier = "UTC";
             Object.defineProperty(JSTimeZone, 'utc', {configurable: false, value: timezone});
             return timezone;
         }
@@ -601,7 +670,7 @@ JSTimeZone.importZoneInfo = function(info){
 JSTimeZone.clearZoneInfo = function(info){
     zoneinfo = emptyZoneInfo;
     Object.defineProperty(JSTimeZone, 'knownTimeZoneIdentifiers', defaultKnownIdentifiersProperty);
-    JSTimeZone.changeLocalTimeZone(JSTimeZone.systemTimeZoneIdentifier);
+    JSTimeZone.changeLocalTimeZoneToSystem();
 };
 
 JSTimeZone.rulesFromPOSIXString = function(str){

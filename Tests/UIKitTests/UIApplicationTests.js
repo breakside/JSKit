@@ -82,6 +82,7 @@ JSClass("UIApplicationTests", TKTestSuite, {
                 UIApplicationRequiresFileManager: false
             }
         });
+        app.postsSystemNotifications = false;
         expectation.call(app.run, app, function(error){
             TKAssertNull(error);
             TKAssert(launched);

@@ -42,6 +42,8 @@ JSClass("UIMockApplication", UIApplication, {
     setupDelegate: function(){
     },
 
+    postsSystemNotifications: false,
+
     stop: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNull);

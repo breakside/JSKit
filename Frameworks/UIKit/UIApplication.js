@@ -73,6 +73,7 @@ JSClass('UIApplication', UIResponder, {
                         }catch (e){
                             error = e;
                         }
+                        this.startSystemNotifications();
                     }
                     completion.call(target, error);
                 }, this);
@@ -87,6 +88,20 @@ JSClass('UIApplication', UIResponder, {
         if (!logging){
             return;
         }
+    },
+
+    postsSystemNotifications: true,
+
+    startSystemNotifications: function(){
+        if (this.postsSystemNotifications){
+            JSTimeZone.startSendingNotifications(JSNotificationCenter.shared);
+            JSLocale.current.calendar.startSendingNotifications(JSNotificationCenter.shared);
+        }
+    },
+
+    stopSystemNotifications: function(){
+        JSLocale.current.calendar.stopSendingNotifications(JSNotificationCenter.shared);
+        JSTimeZone.stopSendingNotifications(JSNotificationCenter.shared);
     },
 
     setupTimeZones: function(completion, target){
@@ -229,6 +244,7 @@ JSClass('UIApplication', UIResponder, {
         }else{
             this._stopCalled = true;
             logger.info("Stopping application");
+            this.stopSystemNotifications();
             var closed = false;
             var _close = function(){
                 if (closed){

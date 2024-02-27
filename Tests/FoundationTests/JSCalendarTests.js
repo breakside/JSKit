@@ -1220,7 +1220,35 @@ JSClass("JSCalendarTests", TKTestSuite, {
 
         components = calendar.componentsFromISO8601String(undefined);
         TKAssertNull(components);
-    }
+    },
+
+    testNotifications: function(){
+        var calendar = JSCalendar.gregorian;
+        var notificationCenter = JSNotificationCenter.init();
+        var changes = [];
+        var components = calendar.componentsFromDate(JSCalendar.Unit.date | JSCalendar.Unit.hour, JSDate.now);
+        var canTest = components.hour >= 5;
+        notificationCenter.addObserver("JSCalendarDayChanged", null, function(notification){
+            changes.push(notification.userInfo.dayComponents);
+        });
+        calendar.timezone = JSTimeZone.initWithIdentifier("Australia/Sydney");
+        calendar.timezone = JSTimeZone.initWithIdentifier("America/Los_Angeles");
+        TKAssertExactEquals(changes.length, 0);
+        calendar.startSendingNotifications(notificationCenter);
+        calendar.timezone = JSTimeZone.initWithIdentifier("Australia/Sydney");
+        if (canTest){
+            TKAssertExactEquals(changes.length, 1);
+        }
+        calendar.timezone = JSTimeZone.initWithIdentifier("America/Los_Angeles");
+        if (canTest){
+            TKAssertExactEquals(changes.length, 2);
+        }
+        calendar.stopSendingNotifications(notificationCenter);
+        calendar.timezone = JSTimeZone.initWithIdentifier("Australia/Sydney");
+        if (canTest){
+            TKAssertExactEquals(changes.length, 2);
+        }
+    },
 
 });
 

@@ -40,6 +40,11 @@ JSClass("JSCalendar", JSObject, {
         return JSTimeZone.local;
     },
 
+    setTimezone: function(timezone){
+        this._timezone = timezone;
+        this.timeZoneChanged();
+    },
+
     componentsFromDate: function(units, date, timezone){
     },
 
@@ -50,6 +55,93 @@ JSClass("JSCalendar", JSObject, {
     },
 
     dateByAddingComponents: function(addedComponents, toDate){
+    },
+
+    dateChangeTimer: null,
+    notificationCenters: null,
+    notificationObservers: null,
+
+    stopSendingNotifications: function(notificationCenter){
+        if (this.notificationCenters === null){
+            return;
+        }
+        var i = this.notificationCenters.indexOf(notificationCenter);
+        if (i >= 0){
+            var observers = this.notificationObservers[i];
+            for (var name in observers){
+                notificationCenter.removeObserver(name, observers[name]);
+            }
+            this.notificationCenters.splice(i, 1);
+            this.notificationObservers.splice(i, 1);
+        }
+        if (this.notificationCenters.length === 0){
+            this.cancelDayChangeTimer();
+        }
+    },
+
+    startSendingNotifications: function(notificationCenter){
+        if (this.notificationCenters === null){
+            this.notificationCenters = [];
+            this.notificationObservers = [];
+        }
+        var i = this.notificationCenters.indexOf(notificationCenter);
+        if (i < 0){
+            this.notificationCenters.push(notificationCenter);
+            this.notificationObservers.push({
+                JSLocalTimeZoneChanged: notificationCenter.addObserver("JSLocalTimeZoneChanged", null, this.timeZoneChanged, this)
+            });
+            if (this.notificationCenters.length === 1){
+                this.scheduleDayChangeTimer();
+            }
+        }
+    },
+
+    dayChangeTimer: null,
+    lastKnownDayComponents: null, 
+
+    cancelDayChangeTimer: function(){
+        if (this.dayChangeTimer !== null){
+            this.dayChangeTimer.invalidate();
+            this.dayChangeTimer = null;
+        }
+    },
+
+    scheduleDayChangeTimer: function(){
+        this.cancelDayChangeTimer();
+        var now = JSDate.now;
+        var todayComponents = this.componentsFromDate(JSCalendar.Unit.date, now);
+        if (this.lastKnownDayComponents !== null){
+            if (todayComponents.year !== this.lastKnownDayComponents.year || todayComponents.month !== this.lastKnownDayComponents.month || todayComponents.day !== this.lastKnownDayComponents.day){
+                if (this.notificationCenters !== null){
+                    var i, l;
+                    for (i = 0, l = this.notificationCenters.length; i < l; ++i){
+                        this.notificationCenters[i].post("JSCalendarDayChanged", null, {calendar: this, dayComponents: JSCopy(todayComponents)});       
+                    }
+                }
+            }
+        }
+        var tomorrowComponents = this.componentsFromDate(JSCalendar.Unit.date, this.dateByAddingComponents({day: 1}, now));
+        var tomorrow = this.dateFromComponents(tomorrowComponents);
+        var interval = now.timeIntervalUntilDate(tomorrow);
+        this.lastKnownDayComponents = todayComponents;
+        this.dateChangeTimer = JSTimer.scheduledTimerWithInterval(interval + 1, this.scheduleDayChangeTimer, this);
+    },
+
+    timeZoneChanged: function(){
+        if (this.notificationCenters !== null && this.notificationCenters.length > 0){
+            this.scheduleDayChangeTimer();
+        }
+    },
+
+    componentsFromComponents: function(units, otherComponents){
+        var otherCalendar = otherComponents.calendar || this;
+        if (otherCalendar.identifier === this.identifier){
+            if (otherCalendar.timezone.identifier === this.identifier){
+                return otherComponents;
+            }
+        }
+        var date = otherCalendar.dateFromComponents(otherComponents);
+        return this.componentsFromDate(units, date);
     }
 
 });
@@ -709,6 +801,7 @@ JSCalendar.Unit.difference =
     JSCalendar.Unit.second |
     JSCalendar.Unit.millisecond;
 
+JSCalendar.Unit.date = JSCalendar.Unit.year | JSCalendar.Unit.month | JSCalendar.Unit.day;
 
 var monthsPerYear = 12;
 var minutesPerHour = 60;

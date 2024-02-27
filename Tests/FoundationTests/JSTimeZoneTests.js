@@ -1074,6 +1074,30 @@ JSClass("JSTimeZoneTests", TKTestSuite, {
         TKAssertExactEquals(zone._futureRules.toStandard.time, 7200);
     },
 
+    testNotifications: function(){
+        var notificationCenter = JSNotificationCenter.init();
+        var changes = [];
+        notificationCenter.addObserver("JSLocalTimeZoneChanged", null, function(){
+            changes.push(JSTimeZone.local.identifier);
+        });
+        JSTimeZone.changeLocalTimeZone("America/Los_Angeles");
+        JSTimeZone.changeLocalTimeZone("UTC");
+        TKAssertExactEquals(changes.length, 0);
+        JSTimeZone.startSendingNotifications(notificationCenter);
+        TKAssertExactEquals(changes.length, 0);
+        JSTimeZone.changeLocalTimeZone("UTC");
+        TKAssertExactEquals(changes.length, 0);
+        JSTimeZone.changeLocalTimeZone("America/Los_Angeles");
+        TKAssertExactEquals(changes.length, 1);
+        TKAssertExactEquals(changes[0], "America/Los_Angeles");
+        JSTimeZone.changeLocalTimeZone("UTC");
+        TKAssertExactEquals(changes.length, 2);
+        TKAssertExactEquals(changes[1], "UTC");
+        JSTimeZone.stopSendingNotifications(notificationCenter);
+        JSTimeZone.changeLocalTimeZone("America/Los_Angeles");
+        TKAssertExactEquals(changes.length, 2);
+    },
+
 });
 
 var zoneinfo = {
