@@ -414,6 +414,7 @@ JSClass("JSLocale", JSObject, {
             this._dateFormatsByTemplate.MMMMd = "MMMM d";
             this._dateFormatsByTemplate.hms = "h:mm:ss a";
             this._dateFormatsByTemplate.hm = "h:mm a";
+            this._dateFormatsByTemplate.hmz = "h:mm a z";
             this._dateFormatsByTemplate.Hms = "HH:mm:ss";
             this._dateFormatsByTemplate.Hm = "HH:mm";
             return;
@@ -560,7 +561,13 @@ JSClass("JSLocale", JSObject, {
                 }else if (part.type === "dayPeriod"){
                     format += "a";
                 }else if (part.type === "timeZoneName"){
-                    if (part.value.length > 4){
+                    if (part.value.startsWith("GMT-") || part.value.startsWith("GMT+")){
+                        if (part.value.indexOf(":") >= 0){
+                            format += "OOOO";
+                        }else{
+                            format += "O";
+                        }
+                    }else if (part.value.length > 4){
                         format += "zzzz";
                     }else{
                         format += "z";
@@ -610,6 +617,7 @@ JSClass("JSLocale", JSObject, {
                 "MMMMd": unicodeFormatForOptions({month: "long", day: "numeric"}),
                 "hms": unicodeFormatForOptions({hour: "numeric", minute: "numeric", second: "numeric"}),
                 "hm": unicodeFormatForOptions({hour: "numeric", minute: "numeric"}),
+                "hmz": unicodeFormatForOptions({hour: "numeric", minute: "numeric", timeZoneName: "short"}),
                 "Hms": unicodeFormatForOptions({hour: "numeric", minute: "numeric", second: "numeric", hour12: false}),
                 "Hm": unicodeFormatForOptions({hour: "numeric", minute: "numeric", hour12: false}),
             };
