@@ -28,6 +28,9 @@ JSClass("UISplitViewController", UIViewController, {
     leadingViewOpen: JSReadOnlyProperty(null, null, 'isLeadingViewOpen'),
     trailingViewOpen: JSReadOnlyProperty(null, null, 'isTrailingViewOpen'),
 
+    leadingViewVisible: JSReadOnlyProperty(null, null, 'isLeadingViewVisible'),
+    trailingViewVisible: JSReadOnlyProperty(null, null, 'isTrailingViewVisible'),
+
     splitView: JSReadOnlyProperty(),
     _defaultViewClass: UISplitView,
 
@@ -72,52 +75,52 @@ JSClass("UISplitViewController", UIViewController, {
         if (this.view.mainHidden){
             this._moveMainViewControllerToLeading();
         }
-        if (this._leadingViewController !== null && this.leadingViewOpen){
+        if (this._leadingViewController !== null && this.leadingViewVisible){
             this._leadingViewController.viewWillAppear(animated);
         }
         if (this._mainViewController !== null && !this._view.mainHidden){
             this._mainViewController.viewWillAppear(animated);
         }
-        if (this._trailingViewController !== null && this.trailingViewOpen){
+        if (this._trailingViewController !== null && this.trailingViewVisible){
             this._trailingViewController.viewWillAppear(animated);
         }
     },
 
     viewDidAppear: function(animated){
         UISplitViewController.$super.viewDidAppear.call(this, animated);
-        if (this._leadingViewController !== null && this.leadingViewOpen){
+        if (this._leadingViewController !== null && this.leadingViewVisible){
             this._leadingViewController.viewDidAppear(animated);
         }
         if (this._mainViewController !== null && !this._view.mainHidden){
             this._mainViewController.viewDidAppear(animated);
         }
-        if (this._trailingViewController !== null && this.trailingViewOpen){
+        if (this._trailingViewController !== null && this.trailingViewVisible){
             this._trailingViewController.viewDidAppear(animated);
         }
     },
 
     viewWillDisappear: function(animated){
         UISplitViewController.$super.viewWillDisappear.call(this, animated);
-        if (this._leadingViewController !== null && this.leadingViewOpen){
+        if (this._leadingViewController !== null && this.leadingViewVisible){
             this._leadingViewController.viewWillDisappear(animated);
         }
         if (this._mainViewController !== null && !this._view.mainHidden){
             this._mainViewController.viewWillDisappear(animated);
         }
-        if (this._trailingViewController !== null && this.trailingViewOpen){
+        if (this._trailingViewController !== null && this.trailingViewVisible){
             this._trailingViewController.viewWillDisappear(animated);
         }
     },
 
     viewDidDisappear: function(animated){
         UISplitViewController.$super.viewDidDisappear.call(this, animated);
-        if (this._leadingViewController !== null && this.leadingViewOpen){
+        if (this._leadingViewController !== null && this.leadingViewVisible){
             this._leadingViewController.viewDidDisappear(animated);
         }
         if (this._mainViewController !== null && !this._view.mainHidden){
             this._mainViewController.viewDidDisappear(animated);
         }
-        if (this._trailingViewController !== null && this.trailingViewOpen){
+        if (this._trailingViewController !== null && this.trailingViewVisible){
             this._trailingViewController.viewDidDisappear(animated);
         }
     },
@@ -417,8 +420,28 @@ JSClass("UISplitViewController", UIViewController, {
         return this.splitView.leadingViewOpen;
     },
 
+    isLeadingViewVisible: function(){
+        if (this.splitView.leadingViewOpen){
+            return true;
+        }
+        if (this.splitView.leadingCollapses){
+            return this.splitView.leadingCollapsedSize > 0;
+        }
+        return false;
+    },
+
     isTrailingViewOpen: function(){
         return this.splitView.trailingViewOpen;
+    },
+
+    isTrailingViewVisible: function(){
+        if (this.splitView.trailingViewOpen){
+            return true;
+        }
+        if (this.splitView.trailingCollapses){
+            return this.splitView.trailingCollapsedSize > 0;
+        }
+        return false;
     },
 
     hideTrailingView: function(animated){
