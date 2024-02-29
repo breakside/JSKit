@@ -88,7 +88,8 @@ JSClass("JSCalendar", JSObject, {
         if (i < 0){
             this.notificationCenters.push(notificationCenter);
             this.notificationObservers.push({
-                JSLocalTimeZoneChanged: notificationCenter.addObserver("JSLocalTimeZoneChanged", null, this.timeZoneChanged, this)
+                JSLocalTimeZoneChanged: notificationCenter.addObserver("JSLocalTimeZoneChanged", null, this.timeZoneChanged, this),
+                ApplicationDidEnterForeground: notificationCenter.addObserver("ApplicationDidEnterForeground", null, this.handleApplicationDidEnterForeground, this)
             });
             if (this.notificationCenters.length === 1){
                 this.scheduleDayChangeTimer();
@@ -131,6 +132,10 @@ JSClass("JSCalendar", JSObject, {
         if (this.notificationCenters !== null && this.notificationCenters.length > 0){
             this.scheduleDayChangeTimer();
         }
+    },
+
+    handleApplicationDidEnterForeground: function(){
+        this.scheduleDayChangeTimer();
     },
 
     componentsFromComponents: function(units, otherComponents){

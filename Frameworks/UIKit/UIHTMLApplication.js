@@ -251,10 +251,12 @@ JSClass("UIHTMLApplication", UIApplication, {
 
     _event_visibilitychange: function(e){
         if (this.domWindow.document.visibilityState === "hidden"){
+            JSNotificationCenter.shared.post("ApplicationDidEnterBackground", this);
             if (this.delegate && this.delegate.applicationDidEnterBackground){
                 this.delegate.applicationDidEnterBackground(this);
             }
         }else if (this.domWindow.document.visibilityState === "visible"){
+            JSNotificationCenter.shared.post("ApplicationDidEnterForeground", this);
             if (this.delegate && this.delegate.applicationDidEnterForeground){
                 this.delegate.applicationDidEnterForeground(this);
             }
