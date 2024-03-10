@@ -397,7 +397,7 @@ JSClass("UIButtonStyler", UIControlStyler, {
     },
 
     intrinsicSizeOfControl: function(button){
-        return this._intrinsicSizeOfControlGivenHeight(button, Number.MAX_VALUE);
+        return this._intrinsicSizeOfControlGivenHeight(button, Infinity);
     },
 
     _intrinsicSizeOfControlGivenHeight: function(button, height){

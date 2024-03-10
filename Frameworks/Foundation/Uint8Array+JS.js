@@ -163,7 +163,7 @@ Object.defineProperties(Uint8Array.prototype, {
         enumerable: false,
         value: function Uint8Array__base64StringRepresentation(map, maxLineWidth, omitPadding){
             if (maxLineWidth === undefined){
-                maxLineWidth = Number.MAX_VALUE;
+                maxLineWidth = Infinity;
             }
             if (omitPadding === undefined){
                 omitPadding = false;
@@ -219,7 +219,7 @@ Object.defineProperties(Uint8Array.prototype, {
         enumerable: false,
         value: function Uint8Array__base32StringRepresentation(map, maxLineWidth, omitPadding){
             if (maxLineWidth === undefined){
-                maxLineWidth = Number.MAX_VALUE;
+                maxLineWidth = Infinity;
             }
             if (omitPadding === undefined){
                 omitPadding = false;

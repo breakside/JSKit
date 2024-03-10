@@ -32,7 +32,7 @@ JSClass("SKHTTPRequest", JSObject, {
     tag: null,
     logger: null,
     receivedAt: null,
-    maximumContentLength: Number.MAX_VALUE,
+    maximumContentLength: Infinity,
 
     initWithMethodAndURL: function(method, url, headerMap){
         this._method = method;

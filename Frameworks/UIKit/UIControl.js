@@ -109,7 +109,7 @@ JSClass("UIControl", UIView, {
     },
 
     sizeToFit: function(){
-        this.sizeToFitSize(JSSize(Number.MAX_VALUE, Number.MAX_VALUE));
+        this.sizeToFitSize(JSSize(Infinity, Infinity));
     },
 
     sizeToFitSize: function(size){

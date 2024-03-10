@@ -53,10 +53,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             }
         }
 
-        if (size.width === 0 || size.width === Number.MAX_VALUE){
+        if (size.width === 0 || size.width >= Number.MAX_VALUE){
             this._widthMatchesUsedWidth = true;
         }
-        if (size.height === 0 || size.height === Number.MAX_VALUE){
+        if (size.height === 0 || size.height >= Number.MAX_VALUE){
             this._heightMatchesUsedHeight = true;
         }
 

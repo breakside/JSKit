@@ -309,7 +309,7 @@ JSClass("UITokenFieldTokenView", UIView, {
 
     sizeToFitSize: function(maxSize){
         var availableWidth = maxSize.width - this._tokenInsets.left - this.tokenInsets.right;
-        this.tokenLabel.sizeToFitSize(JSSize(availableWidth, Number.MAX_VALUE));
+        this.tokenLabel.sizeToFitSize(JSSize(availableWidth, Infinity));
         this.bounds = JSRect(JSPoint.Zero, JSSize(this.tokenLabel.frame.size.width + this._tokenInsets.left + this._tokenInsets.right, this.tokenLabel.frame.size.height));
     },
 

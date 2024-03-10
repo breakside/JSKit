@@ -30,7 +30,7 @@ JSClass("UITextAttachmentView", JSTextAttachment, {
     },
 
     layout: function(font, lineWidth){
-        this.view.sizeToFitSize(JSSize(lineWidth, Number.MAX_VALUE));
+        this.view.sizeToFitSize(JSSize(lineWidth, Infinity));
         this.baselineAdjustment = this.view.lastBaselineOffsetFromBottom;
     },
 

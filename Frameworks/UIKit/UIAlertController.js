@@ -155,7 +155,7 @@ JSClass("UIAlertController", UIViewController, {
             }
             maxWidth = Math.max(minWidth, buttonWidth);
         }
-        this._primaryStackView.sizeToFitSize(JSSize(maxWidth, Number.MAX_VALUE));
+        this._primaryStackView.sizeToFitSize(JSSize(maxWidth, Infinity));
         return JSSize(maxWidth, this._primaryStackView.frame.size.height);
     },
 

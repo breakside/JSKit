@@ -747,7 +747,7 @@ JSClass("UILayer", JSObject, {
     },
 
     sizeToFit: function(){
-        this.sizeToFitSize(JSSize(Number.MAX_VALUE, Number.MAX_VALUE));
+        this.sizeToFitSize(JSSize(Infinity, Infinity));
     },
 
     sizeToFitSize: function(maxSize){

@@ -639,7 +639,7 @@ JSClass("QRCodeDrawing", JSObject, {
 
     applyOptimalMask: function(){
         var lowScoreMask = -1;
-        var lowScore = Number.MAX_VALUE;
+        var lowScore = Infinity;
         var lowScoreDrawing = this;
         var score;
         var drawing;

@@ -824,7 +824,7 @@ topics:
 
             viewDidLayoutSubviews: function(){
               // 4. During layout, size the text field to fit its conents
-              this.nameField.sizeToFitText(JSSize(this.view.bounds.width, Number.MAX_VALUE));
+              this.nameField.sizeToFitText(JSSize(this.view.bounds.width, Infinity));
             }
 
           })

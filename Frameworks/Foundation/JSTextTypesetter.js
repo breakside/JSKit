@@ -55,7 +55,7 @@ JSClass("JSTextTypesetter", JSObject, {
         }
         var layout = this._suggestedLineLayout;
         if (layout === null || !range.isEqual(layout.range)){
-            layout = this._layoutLine(Number.MAX_VALUE, range, JSLineBreakMode.characterWrap);
+            layout = this._layoutLine(Infinity, range, JSLineBreakMode.characterWrap);
         }
         return this._createLineFromLayout(layout);
     },
@@ -65,7 +65,7 @@ JSClass("JSTextTypesetter", JSObject, {
             return JSRange(range);
         }
         if (width <= 0){
-            width = Number.MAX_VALUE;
+            width = Infinity;
         }
         this._suggestedLineLayout = this._layoutLine(width, range, lineBreakMode);
         return this._suggestedLineLayout.range;

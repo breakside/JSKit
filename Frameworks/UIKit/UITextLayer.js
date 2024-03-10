@@ -187,10 +187,10 @@ JSClass("UITextLayer", UILayer, {
         var width = this.bounds.size.width - this._textInsets.left - this._textInsets.right;
         var height = this.bounds.size.height - this._textInsets.top - this._textInsets.bottom;
         if (this._widthTracksText){
-            width = Number.MAX_VALUE;
+            width = Infinity;
         }
         if (this._heightTracksText){
-            height = Number.MAX_VALUE;
+            height = Infinity;
         }
         return JSSize(width, height);
     },

@@ -61,9 +61,9 @@ JSClass("JSTextFramesetter", JSObject, {
         if (size.width < 0 || size.height < 0){
             size = JSSize(size.width < 0 ? 0 : size.width, size.height < 0 ? 0 : size.height);
         }
-        var widthLimit = size.width || Number.MAX_VALUE;
-        var heightLimit = size.height || Number.MAX_VALUE;
-        var lineLimit = maximumLines || Number.MAX_VALUE;
+        var widthLimit = size.width || Infinity;
+        var heightLimit = size.height || Infinity;
+        var lineLimit = maximumLines || Infinity;
         var lineWidthLimit;
         var attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remianingRange.location));
         var paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);

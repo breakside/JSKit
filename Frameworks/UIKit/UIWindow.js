@@ -258,7 +258,7 @@ JSClass('UIWindow', UIView, {
 
     sizeToFit: function(){
         if (this._widthTracksContent || this._heightTracksContent){
-            var size = JSSize(Number.MAX_VALUE, Number.MAX_VALUE);
+            var size = JSSize(Infinity, Infinity);
             if (!this._widthTracksContent){
                 size.width = this.bounds.size.width - this._contentInsets.left - this._contentInsets.right;
             }

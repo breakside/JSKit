@@ -103,7 +103,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
         var layout = this._suggestedHTMLLineLayout;
         if (layout === null || !range.isEqual(layout.range)){
-            layout = this._layoutHTMLLine(Number.MAX_VALUE, range, JSLineBreakMode.characterWrap);
+            layout = this._layoutHTMLLine(Infinity, range, JSLineBreakMode.characterWrap);
         }
         return this._createLineFromHTMLLayout(layout);
     },
@@ -113,7 +113,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
             return JSRange(range);
         }
         if (width <= 0){
-            width = Number.MAX_VALUE;
+            width = Infinity;
         }
         this._suggestedHTMLLineLayout = this._layoutHTMLLine(width, range, lineBreakMode);
         return this._suggestedHTMLLineLayout.range;

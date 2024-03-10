@@ -100,8 +100,8 @@ JSClass("UIContainerView", UIView, {
             UIContainerView.$super.sizeToFitSize.call(this, maxSize);
         }else{
             var maxContentSize = JSSize(
-                maxSize.width < Number.MAX_VALUE ? maxSize.width - this._contentInsets.width : Number.MAX_VALUE,
-                maxSize.height < Number.MAX_VALUE ? maxSize.height - this._contentInsets.height : Number.MAX_VALUE
+                maxSize.width < Number.MAX_VALUE ? maxSize.width - this._contentInsets.width : Infinity,
+                maxSize.height < Number.MAX_VALUE ? maxSize.height - this._contentInsets.height : Infinity
             );
             this._contentView.sizeToFitSize(maxContentSize);
             this.bounds = JSRect(0, 0, this._contentView.bounds.size.width + this._contentInsets.width, this._contentView.bounds.size.height + this._contentInsets.height);

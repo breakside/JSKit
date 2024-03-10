@@ -32,8 +32,8 @@ JSClass("CHValueAxis", CHAxis, {
         this.valueFormatter.format = "#,##0";
     },
 
-    _minimumSeenValue: Number.MAX_VALUE,
-    _maximumSeenValue: -Number.MAX_VALUE,
+    _minimumSeenValue: Infinity,
+    _maximumSeenValue: -Infinity,
 
     updateRangeForValues: function(values){
         if (values.length === 0){

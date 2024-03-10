@@ -45,10 +45,10 @@ JSClass("JSTextFrame", JSObject, {
         }
         this._size = JSSize(size);
         this._usedSize = JSSize(width, y);
-        if (this._size.width === 0 || this._size.width === Number.MAX_VALUE){
+        if (this._size.width === 0 || this._size.width >= Number.MAX_VALUE){
             this._size.width = width;
         }
-        if (this._size.height === 0 || this._size.height === Number.MAX_VALUE){
+        if (this._size.height === 0 || this._size.height >= Number.MAX_VALUE){
             this._size.height = y;
         }
     },

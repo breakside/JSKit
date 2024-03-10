@@ -656,7 +656,7 @@ JSClass("UIListView", UIScrollView, {
     layoutSubviews: function(){
         UIListView.$super.layoutSubviews.call(this);
         var origin = JSPoint.Zero;
-        var fitSize = JSSize(this.bounds.size.width, Number.MAX_VALUE);
+        var fitSize = JSSize(this.bounds.size.width, Infinity);
         // We have to size the header and footer first, so a reloadDuringLayout
         // call, if necessary, will have the proper heights for each for calculating
         // the total content size
