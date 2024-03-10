@@ -398,7 +398,7 @@ HTMLAppBootstrapper.prototype = {
         var d = Math.round(e.data.total / 10);
         if (worker === this.serviceWorker){
             if (e.data.type == 'progress'){
-                if (e.data.loaded % d === 0){
+                if ((e.data.loaded % d === 0) || (e.data.loaded === e.data.total)){
                     this.log_debug("serviceWorker", "Progress " + e.data.loaded + '/' + e.data.total);
                 }
                 this.onprogress(e.data.loaded, e.data.total);
@@ -414,10 +414,9 @@ HTMLAppBootstrapper.prototype = {
             }
         }else{
             if (e.data.type == 'progress'){
-                if (e.data.loaded % d === 0){
+                if ((e.data.loaded % d === 0) || (e.data.loaded === e.data.total)){
                     this.log_debug("serviceWorker", "Progress from new worker " + e.data.loaded + '/' + e.data.total);
                 }
-                this.onprogress(e.data.loaded, e.data.total);
             }
         }
     },
