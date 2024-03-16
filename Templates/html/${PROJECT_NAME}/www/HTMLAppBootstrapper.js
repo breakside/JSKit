@@ -314,12 +314,15 @@ HTMLAppBootstrapper.prototype = {
 
     // MARK: - Service Worker
 
+    serviceWorkerRegistration: null,
+
     _installUsingServiceWorker: function(container){
         var bootstrapper = this;
         bootstrapper.log_debug("serviceWorker", "Getting registration");
         container.addEventListener('message', bootstrapper);
         container.getRegistration().then(function(registration){
             if (registration){
+                bootstrapper.serviceWorkerRegistration = registration;
                 bootstrapper.log_debug("serviceWorker", "Found registration");
                 bootstrapper.log_debug("serviceWorker", "Checking for update");
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
@@ -331,6 +334,7 @@ HTMLAppBootstrapper.prototype = {
             bootstrapper.log_debug("serviceWorker", "Registering");
             return container.register(bootstrapper.serviceWorkerSrc);
         }).then(function(registration){
+            bootstrapper.serviceWorkerRegistration = registration;
             if (registration.installing){
                 if (bootstrapper.status === HTMLAppBootstrapper.STATUS.checkingForUpdate){
                     bootstrapper.log_debug("serviceWorker", "Installing Update");
@@ -383,10 +387,8 @@ HTMLAppBootstrapper.prototype = {
             if (worker.state == "installed"){
                 this.log_debug("serviceWorker", "Update Installed");
                 if (this.application !== null){
-                    if (this.application.delegate && this.application.delegate.applicationUpdateAvailable){
-                        this.log_debug("serviceWorker", "Notifying application delegate");
-                        this.application.delegate.applicationUpdateAvailable(this.application);
-                    }
+                    this.log_debug("serviceWorker", "Notifying application");
+                    this.application.notifyUpdateAvailable();
                 }
             }
         }

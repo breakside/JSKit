@@ -31,6 +31,8 @@ JSClass("UIHTMLApplication", UIApplication, {
         UIHTMLApplication.$super.initWithBundle.call(this, bundle, windowServer);
         this.domWindow = this.windowServer.domWindow;
         this.rememberStateInPath = this.bundle.info.UIHTMLUseURLPathForState === true;
+        this.previousUpdateCheckDate = JSDate.distantPast;
+        this.minimumUpdateCheckTimeInterval = JSTimeInterval.hours(1);
     },
 
     setup: function(completion, target){
@@ -260,6 +262,7 @@ JSClass("UIHTMLApplication", UIApplication, {
             if (this.delegate && this.delegate.applicationDidEnterForeground){
                 this.delegate.applicationDidEnterForeground(this);
             }
+            this.checkForUpdateIfNeeded();
         }
     },
 
@@ -313,6 +316,36 @@ JSClass("UIHTMLApplication", UIApplication, {
             label.style.textAlign = 'center';
             label.style.whiteSpace = 'pre-wrap';
         }
+    },
+
+    previousUpdateCheckDate: null,
+    minimumUpdateCheckTimeInterval: null,
+
+    checkForUpdateIfNeeded: function(){
+        if (JSDate.now.timeIntervalSinceDate(this.previousUpdateCheckDate) > this.minimumUpdateCheckTimeInterval){
+            this.checkForUpdate();
+        }
+    },
+
+    checkForUpdate: function(){
+        logger.info("checking for update");
+        this.previousUpdateCheckDate = JSDate.now;
+        var bootstrapper = this.bootstrapper;
+        if (bootstrapper.serviceWorkerRegistration){
+            return bootstrapper.serviceWorkerRegistration.update().catch(function(e){
+                logger.warn("update check failed: %{error}", e);
+            });
+        }
+    },
+
+    updateAvailable: false,
+
+    notifyUpdateAvailable: function(bootstrapper){
+        this.updateAvailable = true;
+        if (this.delegate && this.delegate.applicationUpdateAvailable){
+            this.delegate.applicationUpdateAvailable(this);
+        }
+        JSNotificationCenter.shared.post("ApplicationUpdateAvailable", this);
     }
 
 });
