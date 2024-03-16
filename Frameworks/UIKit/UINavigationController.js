@@ -372,7 +372,7 @@ JSClass("UINavigationController", UIViewController, {
                         navigationBar.hidden = item.hidesNavigationBar;
                         if (isHidingNavigationBar){
                             navigationBar.transform = JSAffineTransform.Identity;
-                            navigationBar.setItem(item, false);
+                            navigationBar.popToItem(item, false);
                         }
                         fromView.removeFromSuperview();
                         fromView.shadowColor = null;
