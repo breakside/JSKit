@@ -215,12 +215,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     stop: function(graceful){
-        UIHTMLWindowServer.$super.stop.call(this, graceful);
+        if (this.stopped){
+            return;
+        }
         this.removeEventListeners();
         this.removeMediaListeners();
         this.stopObservingAccessibilityNotifications();
+        UIHTMLWindowServer.$super.stop.call(this, graceful);
     },
-
 
     // --------------------------------------------------------------------
     // MARK: - Media Queries

@@ -64,20 +64,29 @@ JSClass("UIWindowServer", JSObject, {
         this.accessibilityNotificationCenter = JSNotificationCenter.init();
     },
 
+    stopped: false,
+
     stop: function(graceful){
-        this.displayServer.stop();
-        if (graceful){
-            var window;
-            for (var i = this.windowStack.length - 1; i >= 0; --i){
-                window = this.windowStack[i];
-                if (window.viewController){
-                    window.viewController.viewWillDisappear(false);
-                    window.viewController.viewDidDisappear(false);
-                }else if (window._contentViewController !== null){
-                    window._contentViewController.viewWillDisappear(false);
-                    window._contentViewController.viewDidDisappear(false);
+        if (this.stopped){
+            return;
+        }
+        try{
+            this.displayServer.stop();
+            if (graceful){
+                var window;
+                for (var i = this.windowStack.length - 1; i >= 0; --i){
+                    window = this.windowStack[i];
+                    if (window.viewController){
+                        window.viewController.viewWillDisappear(false);
+                        window.viewController.viewDidDisappear(false);
+                    }else if (window._contentViewController !== null){
+                        window._contentViewController.viewWillDisappear(false);
+                        window._contentViewController.viewDidDisappear(false);
+                    }
                 }
             }
+        }finally{
+            this.stopped = true;
         }
     },
 

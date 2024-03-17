@@ -245,6 +245,7 @@ JSClass('UIApplication', UIResponder, {
             this._stopCalled = true;
             logger.info("Stopping application");
             this.stopSystemNotifications();
+            this.windowServer.stop(true);
             var closed = false;
             var _close = function(){
                 if (closed){
