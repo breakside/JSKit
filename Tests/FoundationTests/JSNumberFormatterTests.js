@@ -232,6 +232,18 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
         str = formatter.stringFromNumber(-1.56);
         TKAssertExactEquals(str, "-1.56");
+
+        formatter.format ="0.00";
+        str = formatter.stringFromNumber(1);
+        TKAssertExactEquals(str, "1.00");
+        str = formatter.stringFromNumber(1.00501); // float-math issue with 1.005
+        TKAssertExactEquals(str, "1.01");
+        str = formatter.stringFromNumber(1.009);
+        TKAssertExactEquals(str, "1.01");
+        str = formatter.stringFromNumber(1.995);
+        TKAssertExactEquals(str, "2.00");
+        str = formatter.stringFromNumber(1.999);
+        TKAssertExactEquals(str, "2.00");
     },
 
     testPercent: function(){
@@ -295,6 +307,19 @@ JSClass("JSNumberFormatterTests", TKTestSuite, {
 
         str = formatter.stringFromNumber(12345.6789);
         TKAssertExactEquals(str, "1,234,567.9%");
+
+        formatter.maximumFractionDigits = 1;
+        formatter.minimumFractionDigits = 1;
+        str = formatter.stringFromNumber(0.1);
+        TKAssertExactEquals(str, "10.0%");
+        str = formatter.stringFromNumber(0.1005);
+        TKAssertExactEquals(str, "10.1%");
+        str = formatter.stringFromNumber(0.1009);
+        TKAssertExactEquals(str, "10.1%");
+        str = formatter.stringFromNumber(0.1995);
+        TKAssertExactEquals(str, "20.0%");
+        str = formatter.stringFromNumber(0.1999);
+        TKAssertExactEquals(str, "20.0%");
     },
 
     testCurrency: function(){

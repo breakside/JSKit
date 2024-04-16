@@ -493,8 +493,11 @@ JSClass("JSNumberFormatter", JSObject, {
         // Integer
         var integer = Math.floor(n);
         var fraction = n - integer;
-        if (fraction >= 0.5 && this._maximumFractionDigits === 0){
+        var maximumFraction = Math.pow(10, this._maximumFractionDigits);
+        fraction = Math.round(fraction * maximumFraction);
+        if (fraction >= maximumFraction){
             integer += 1;
+            fraction = 0;
         }
         var str = integer.toString();
         var zeroFillCount = this._minimumIntegerDigits - str.length;
@@ -524,8 +527,6 @@ JSClass("JSNumberFormatter", JSObject, {
         // Decimal
         if (this._maximumFractionDigits > 0){
             if (this._minimumFractionDigits > 0 || fraction !== 0){
-                fraction *= Math.pow(10, this._maximumFractionDigits);
-                fraction = Math.round(fraction);
                 if (this._minimumFractionDigits > 0 || fraction !== 0){
                     str += ".";
                     var fractionString = fraction.toString();
