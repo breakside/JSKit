@@ -85,8 +85,10 @@ JSClass("UINavigationController", UIViewController, {
         var topView = this.topViewController.view;
         if (this.topViewController.navigationItem.hidesNavigationBar){
             this.view.addSubview(topView);
+            this.navigationBar.hidden = true;
         }else{
             this.view.insertSubviewBelowSibling(topView, this._navigationBar);
+            this.navigationBar.hidden = false;
         }
         this.view.setNeedsLayout();
     },
