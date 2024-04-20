@@ -181,7 +181,9 @@ UIAccessibility.Subrole = {
     tooltip: "tooltip",
     alert: "alert",
     menuItemRadio: "menuItemRadio",
-    menuItemCheckbox: "menuItemCheckbox"
+    menuItemCheckbox: "menuItemCheckbox",
+    navigation: "navigation",
+    region: "region"
 };
 
 UIAccessibility.Orientation = {
@@ -234,6 +236,7 @@ UIAccessibility.Notification = {
     rowCollapsed: "UIAccessibility.Notification.rowCollapsed",
     selectedChildrenChanged: "UIAccessibility.Notification.selectedChildrenChanged",
     selectedTextChanged: "UIAccessibility.Notification.selectedTextChanged",
+    identifierChanged: "UIAccessibility.Notification.identifierChanged",
     labelChanged: "UIAccessibility.Notification.labelChanged",
     titleChanged: "UIAccessibility.Notification.labelChanged",
     valueChanged: "UIAccessibility.Notification.valueChanged",

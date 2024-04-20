@@ -483,6 +483,12 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
         }
     },
+
+    // MARK: - Accessibility
+
+    elementIDForAccessibility: function(accessibility){
+        return accessibility.accessibilityIdentifier || "accessibility-%d".sprintf(accessibility.objectID);
+    },
     
     // MARK: - Debugging
 

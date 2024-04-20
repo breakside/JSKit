@@ -1040,6 +1040,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.accessibilityObservers = {};
         this.accessibilityObservers.elementCreated = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementCreated, null, this.handleAccessibilityElementCreated, this);
         this.accessibilityObservers.elementChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.elementChanged, null, this.handleAccessibilityElementChanged, this);
+        this.accessibilityObservers.identifierChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.identifierChanged, null, this.handleAccessibilityIdentifierChanged, this);
         this.accessibilityObservers.labelChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.labelChanged, null, this.handleAccessibilityLabelChanged, this);
         this.accessibilityObservers.valueChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.valueChanged, null, this.handleAccessibilityValueChanged, this);
         this.accessibilityObservers.visibilityChanged = this.accessibilityNotificationCenter.addObserver(UIAccessibility.Notification.visibilityChanged, null, this.handleAccessibilityVisibilityChanged, this);
@@ -1082,7 +1083,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             if (element.accessibilityRole === UIAccessibility.Role.scrollBar){
                 var parent = element.accessibilityParent;
                 if (parent !== null && parent.accessibilityRole === UIAccessibility.Role.scrollArea){
-                    context.element.setAttribute("aria-controls", "accessibility-%d" + parent.objectID);
+                    context.element.setAttribute("aria-controls", this.displayServer.elementIDForAccessibility(parent));
                 }
             }
         }
@@ -1093,6 +1094,14 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.setAccessibility(element);
+        }
+    },
+
+    handleAccessibilityIdentifierChanged: function(notification){
+        var element = notification.sender;
+        var context = this.contextForAccessibilityElement(element);
+        if (context !== null){
+            context.updateAccessibilityIdentifier(element);
         }
     },
 

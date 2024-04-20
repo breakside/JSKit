@@ -502,7 +502,7 @@ JSClass('UIApplication', UIResponder, {
     accessibilitySubrole: null,
 
     // Label
-    accessibilityIdentifier: null,
+    accessibilityIdentifier: JSDynamicProperty("_accessibilityIdentifier"),
     accessibilityLabel: JSReadOnlyProperty(),
     accessibilityHint: null,
 
@@ -523,6 +523,15 @@ JSClass('UIApplication', UIResponder, {
     // Children
     accessibilityParent: null,
     accessibilityElements: JSReadOnlyProperty(),
+
+    getAccessibilityIdentifier: function(){
+        return this._accessibilityIdentifier;
+    },
+
+    setAccessibilityIdentifier: function(accessibilityIdentifier){
+        this._accessibilityIdentifier = accessibilityIdentifier;
+        this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.identifierChanged, this);
+    },
 
     getAccessibilityFrame: function(){
         return this.windowServer.screen.frame;

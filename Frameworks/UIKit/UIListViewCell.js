@@ -63,7 +63,7 @@ JSClass("UIListViewCell", UIView, {
 
     _createTitleLabel: function(){
         var label = UILabel.init();
-        label.accessibilityHidden = false;
+        // label.accessibilityHidden = false;
         this.contentView.addSubview(label);
         return label;
     },
