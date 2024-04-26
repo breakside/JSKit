@@ -917,7 +917,7 @@ JSClass("UIListView", UIScrollView, {
         }
         this._listHeaderView = listHeaderView;
         if (this._listHeaderView){
-            this.contentView.addSubview(this._listHeaderView);
+            this.contentView.insertSubviewAtIndex(this._listHeaderView, 0);
         }
         this.setNeedsLayout();
     },
@@ -2713,7 +2713,7 @@ JSClass("UIListView", UIScrollView, {
     showsFocusRing: false,
 
     getFocusRingPath: function(){
-        if (this.showsFocusRing){
+        if (this.showsFocusRing || this.fullKeyboardAccessEnabled){
             return UIListView.$super.getFocusRingPath.call(this);
         }
         return null;

@@ -126,14 +126,25 @@ JSClass('UIView', UIResponder, {
         if (spec.containsKey("transform")){
             this.transform = spec.valueForKey("transform", JSAffineTransform);
         }
+        if (spec.containsKey("accessibilityRole")){
+            this.accessibilityRole = spec.valueForKey("accessibilityRole");
+            this.isAccessibilityElement = this.accessibilityRole !== null;
+        }
+        if (spec.containsKey("accessibilitySubrole")){
+            this.accessibilitySubrole = spec.valueForKey("accessibilitySubrole");
+            this.isAccessibilityElement = this.accessibilitySubrole !== null;
+        }
         if (spec.containsKey("accessibilityIdentifier")){
-            this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
+            this._accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");
         }
         if (spec.containsKey("accessibilityLabel")){
             this._accessibilityLabel = spec.valueForKey("accessibilityLabel");
         }
         if (spec.containsKey("accessibilityHint")){
             this.accessibilityHint = spec.valueForKey("accessibilityHint");
+        }
+        if (spec.containsKey("accessibilityHidden")){
+            this.accessibilityHidden = spec.valueForKey("accessibilityHidden");
         }
         if (spec.containsKey("tag")){
             this.tag = spec.valueForKey("tag");
@@ -1104,7 +1115,7 @@ JSClass('UIView', UIResponder, {
     accessibilityResponder: JSReadOnlyProperty(),
 
     // Label
-    accessibilityIdentifier: null,
+    accessibilityIdentifier: JSDynamicProperty("_accessibilityIdentifier", null),
     accessibilityLabel: JSDynamicProperty("_accessibilityLabel", null),
     accessibilityHint: null,
 
@@ -1128,7 +1139,7 @@ JSClass('UIView', UIResponder, {
     accessibilityMultiline: null,
 
     // Children
-    accessibilityParent: null,
+    accessibilityParent: JSReadOnlyProperty(),
     accessibilityElements: JSReadOnlyProperty(),
 
     getAccessibilityParent: function(){
@@ -1155,16 +1166,34 @@ JSClass('UIView', UIResponder, {
         return this;
     },
 
+    getAccessibilityIdentifier: function(){
+        return this._accessibilityIdentifier;
+    },
+
+    setAccessibilityIdentifier: function(accessibilityIdentifier){
+        if (accessibilityIdentifier === this._accessibilityIdentifier){
+            return;
+        }
+        this._accessibilityIdentifier = accessibilityIdentifier;
+        this.postAccessibilityNotification(UIAccessibility.Notification.identifierChanged);
+    },
+
     getAccessibilityLabel: function(){
         return this._accessibilityLabel;
     },
 
     setAccessibilityLabel: function(accessibilityLabel){
+        if (accessibilityLabel === this._accessibilityLabel){
+            return;
+        }
         this._accessibilityLabel = accessibilityLabel;
         this.postAccessibilityNotification(UIAccessibility.Notification.labelChanged);
     },
 
     setAccessibilityHidden: function(accessibilityHidden){
+        if (accessibilityHidden === this._accessibilityHidden){
+            return;
+        }
         this._accessibilityHidden = accessibilityHidden;
         this.postAccessibilityNotification(UIAccessibility.Notification.visibilityChanged);
     },
@@ -1175,6 +1204,9 @@ JSClass('UIView', UIResponder, {
 
     postAccessibilityNotification: function(notificationName){
         if (this._windowServer === null){
+            return;
+        }
+        if (!this.isAccessibilityElement){
             return;
         }
         this._windowServer.postNotificationForAccessibilityElement(notificationName, this);

@@ -171,6 +171,22 @@ JSClass("JSTextLayoutManager", JSObject, {
         this.setNeedsLayout();
     },
 
+    temporaryAttributesAtIndex: function(index){
+        return this._temporaryAttributedString.attributesAtIndex(index);
+    },
+
+    temporaryAttributeAtIndex: function(attributeName, index){
+        return this._temporaryAttributedString.attributeAtIndex(attributeName, index);
+    },
+
+    longestRangeOfTemporaryAttributeAtIndex: function(attributeName, index){
+        return this._temporaryAttributedString.longestRangeOfAttributeAtIndex(attributeName, index);
+    },
+
+    longestRangeOfTemporaryAttributesAtIndex: function(attributeNames, index){
+        return this._temporaryAttributedString.longestRangeOfAttributesAtIndex(attributeNames, index);
+    },
+
     // MARK: - Layout
 
     setNeedsLayout: function(){

@@ -928,7 +928,6 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }else{
             this.element.removeAttribute("aria-roledescription");
         }
-        this.element.id = "accessibility-%d".sprintf(accessibility.objectID);
         switch (ariaRole){
             case "button":
             case "tab":
@@ -961,6 +960,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 this.element.addEventListener("mousedown", this.accessibilityMousedownListener);
                 break;
         }
+        this.updateAccessibilityIdentifier(accessibility);
         this.updateAccessibilityLabel(accessibility);
         this.updateAccessibilityValue(accessibility);
         this.updateAccessibilitySelected(accessibility);
@@ -1000,6 +1000,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         }
         this.updateAccessibilityRowCount(accessibility);
         this.updateAccessibilityColumnCount(accessibility);
+    },
+
+    updateAccessibilityIdentifier: function(accessibility){
+        this.element.id = this.displayServer.elementIDForAccessibility(accessibility);
     },
 
     updateAccessibilityLabel: function(accessibility){
@@ -1126,7 +1130,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         // if (focusedAccessibility === null || focusedAccessibility === undefined){
         //     this.element.removeAttribute("aria-activedescendant");
         // }else{
-        //     this.element.setAttribute("aria-activedescendant", "accessibility-%d".sprintf(focusedAccessibility.objectID));
+        //     this.element.setAttribute("aria-activedescendant", this.displayServer.elementIDForAccessibility(focusedAccessibility));
         // }
     },
 
@@ -1283,6 +1287,12 @@ var ariaRoleForAccessibility = function(accessibility){
         case UIAccessibility.Role.outline:
             return "treegrid";
         case UIAccessibility.Role.group:
+            switch (accessibility.accessibilitySubrole){
+                case UIAccessibility.Subrole.navigation:
+                    return "navigation";
+                case UIAccessibility.Subrole.region:
+                    return "region";
+            }
             return "group";
         case UIAccessibility.Role.window:
             switch (accessibility.accessibilitySubrole){

@@ -284,7 +284,9 @@ JSClass("UIWindowServer", JSObject, {
     },
 
     layoutWindow: function(window){
-        if (window instanceof UIRootWindow){
+        if (window === this._accessibilityHighlightWindow){
+            window.frame = window._screen.frame;
+        }else if (window instanceof UIRootWindow){
             window.frame = window._screen.frame;
             var insets = JSInsets.Zero;
             if (this._menuBar !== null && this._menuBar.isOpaque){
@@ -455,6 +457,20 @@ JSClass("UIWindowServer", JSObject, {
     // MARK: - Keyboard Events
 
     createKeyEvent: function(type, timestamp, key, keyCode, modifiers){
+        if (this._accessibilityHighlightWindow !== null){
+            if (type === UIEvent.Type.keyDown){
+                if (key === UIEvent.Key.up){
+                    this._accessibilityHighlightWindow.contentView.level += 1;
+                    return;
+                }
+                if (key === UIEvent.Key.down){
+                    if (this._accessibilityHighlightWindow.contentView.level > 0){
+                        this._accessibilityHighlightWindow.contentView.level -= 1;
+                    }
+                    return;
+                }
+            }
+        }
         var keyWindow = this.windowForKeyEvent();
         if (keyWindow !== null){
             var event = UIEvent.initKeyEventWithType(type, timestamp, keyWindow, key, keyCode, modifiers);
@@ -701,6 +717,10 @@ JSClass("UIWindowServer", JSObject, {
                     this.createMouseEvent(UIEvent.Type.rightMouseDragged, timestamp, this.mouseLocation, modifiers);
                 }
             }
+        }
+        if (this._accessibilityHighlightWindow !== null){
+            this._accessibilityHighlightWindow.contentView.level = 0;
+            this._accessibilityHighlightWindow.contentView.setNeedsDisplay();
         }
     },
 
@@ -980,6 +1000,30 @@ JSClass("UIWindowServer", JSObject, {
         }
     },
 
+    accessibilityHighlightEnabled: JSDynamicProperty("_accessibilityHighlightEnabled", false),
+
+    setAccessibilityHighlightEnabled: function(enabled){
+        this._accessibilityHighlightEnabled = enabled;
+        if (enabled){
+            if (this._accessibilityHighlightWindow === null){
+                this._accessibilityHighlightWindow = UIWindow.initWithStyler(UIWindow.Styler.custom);
+                this._accessibilityHighlightWindow.backgroundColor = null;
+                this._accessibilityHighlightWindow.contentView = UIWindowServerAccessibilityHighlightView.init();
+                this._accessibilityHighlightWindow.userInteractionEnabled = false;
+                this._accessibilityHighlightWindow.level = UIWindow.Level.front;
+                this._accessibilityHighlightWindow.frame = this.screen.frame;
+                this._accessibilityHighlightWindow.orderFront();
+            }
+        }else{
+            if (this._accessibilityHighlightWindow !== null){
+                this._accessibilityHighlightWindow.close();
+                this._accessibilityHighlightWindow = null;
+            }
+        }
+    },
+
+    _accessibilityHighlightWindow: null,
+
     // -----------------------------------------------------------------------
     // MARK: - Traits
 
@@ -1030,6 +1074,79 @@ JSClass("UIWindowServer", JSObject, {
         this.displayServer.schedule(function(){
             this._needsRedisplay = false;
         }, this);
+    },
+
+});
+
+JSClass("UIWindowServerAccessibilityHighlightView", UIView, {
+
+    framesetter: JSLazyInitProperty(function(){
+        var framesetter = JSTextFramesetter.init();
+        return framesetter;
+    }),
+
+    font: JSLazyInitProperty(function(){
+        return JSFont.systemFontOfSize(JSFont.Size.detail);
+    }),
+
+    level: JSDynamicProperty("_level", 0),
+
+    setLevel: function(level){
+        this._level = level;
+        this.setNeedsDisplay();
+    },
+
+    drawLayerInContext: function(layer, context){
+        if (this._windowServer === null){
+            return;
+        }
+        var location = this._windowServer.mouseLocation;
+        var window = this._windowServer.windowForEventAtLocation(location);
+        if (window === null){
+            return;
+        }
+        var view = window.hitTest(location);
+        while (view !== null && (!view.isAccessibilityElement || view.accessibilityHidden)){
+            view = view.superview;
+        }
+        var level = 0;
+        while (view !== null && level < this._level){
+            view = view.superview;
+            while (view !== null && (!view.isAccessibilityElement || view.accessibilityHidden)){
+                view = view.superview;
+            }
+            ++level;
+        }
+        if (view === null){
+            return;
+        }
+        var color = JSColor.highlight;
+        var textColor = JSColor.highlightedText;
+        var width = 2;
+        var halfWidth = width / 2;
+        var rect = view.convertRectToScreen(view.bounds);
+        var maxRect = this.bounds.rectWithInsets(halfWidth);
+        var outlineRect = rect.rectWithInsets(-halfWidth).intersectingRect(maxRect);
+        var text = view.accessibilityIdentifier;
+        context.save();
+        context.setStrokeColor(color);
+        context.setLineWidth(width);
+        context.setLineJoin(JSContext.LineJoin.round);
+        context.beginPath();
+        context.addRect(outlineRect);
+        context.strokePath();
+        context.restore();
+        if (text){
+            this.framesetter.attributedString = JSAttributedString.initWithString("#" + text, {font: this.font});
+            var textFrame = this.framesetter.createFrame(JSSize(0, 0), JSRange(0, this.framesetter.attributedString.string.length), 1);
+            var textRect = JSRect(rect.origin, textFrame.size);
+            context.save();
+            context.setFillColor(color);
+            context.fillRect(textRect);
+            context.setFillColor(textColor);
+            textFrame.drawInContextAtPoint(context, textRect.origin);
+            context.restore();
+        }
     },
 
 });
