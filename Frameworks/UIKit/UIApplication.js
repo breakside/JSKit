@@ -423,6 +423,10 @@ JSClass('UIApplication', UIResponder, {
         return null;
     },
 
+    keyDown: function(event){
+        this.windowServer.textInputManager.sendActionsForEvent(event);
+    },
+
     // MARK: - Touch Event Conversion
 
     convertsTouchesToMouseEvents: false,

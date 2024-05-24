@@ -477,7 +477,6 @@ JSClass("UIWindowServer", JSObject, {
             if (this.shouldDraggingSessionHandleKey(event)){
                 this.handleDraggingKeyEvent(event);
             }else{
-                this.textInputManager.sendActionsForEvent(event);
                 this._sendEventToApplication(event, keyWindow.application);
             }
         }
