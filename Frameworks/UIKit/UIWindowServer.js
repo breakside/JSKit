@@ -491,9 +491,11 @@ JSClass("UIWindowServer", JSObject, {
         var locationInWindow;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             _window = this.windowStack[i];
-            locationInWindow = _window.convertPointFromScreen(location);
-            if (_window.containsPoint(locationInWindow)){
-                return _window;
+            if (!_window.hidden){
+                locationInWindow = _window.convertPointFromScreen(location);
+                if (_window.containsPoint(locationInWindow)){
+                    return _window;
+                }
             }
         }
         return null;
@@ -504,12 +506,14 @@ JSClass("UIWindowServer", JSObject, {
         var window;
         for (var i = this.windowStack.length - 1; i >= 0; --i){
             window = this.windowStack[i];
-            if (window.receivesAllEvents){
-                return window;
-            }
-            locationInWindow = window.convertPointFromScreen(location);
-            if (window.userInteractionEnabled && window.containsPoint(locationInWindow)){
-                return window;
+            if (!window.hidden){
+                if (window.receivesAllEvents){
+                    return window;
+                }
+                locationInWindow = window.convertPointFromScreen(location);
+                if (window.userInteractionEnabled && window.containsPoint(locationInWindow)){
+                    return window;
+                }
             }
         }
         return null;
