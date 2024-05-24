@@ -464,7 +464,10 @@ JSClass('UIWindow', UIView, {
     _isVisible: false,
 
     didBecomeVisible: function(){
-        this._application._windows.push(this);
+        var index = this._application._windows.indexOf(this);
+        if (index < 0){
+            this._application._windows.push(this);
+        }
         this._isVisible = true;
         if (this._shouldCallDidAppear){
             this._shouldCallDidAppear = false;
