@@ -320,7 +320,8 @@ JSClass('UIWindow', UIView, {
     // -------------------------------------------------------------------------
     // MARK: Traits
 
-    layerDidChangeSize: function(){
+    layerDidChangeSize: function(layer){
+        UIWindow.$super.layerDidChangeSize.call(this, layer);
         if (this._traitCollection !== null){
             var traits = this._traitCollection.traitsWithSize(this.bounds.size);
             this._setTraitCollection(traits);
