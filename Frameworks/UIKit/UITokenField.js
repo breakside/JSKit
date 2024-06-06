@@ -273,7 +273,7 @@ JSClass("UITokenFieldTokenView", UIView, {
     initWithString: function(str, textField){
         UITokenFieldTokenView.$super.init.call(this);
         this.tokenLabel = UILabel.initWithFrame(this.bounds);
-        this.tokenLabel.textInsets = JSInsets(1, 5);
+        this.tokenLabel.textInsets = JSInsets(0, 4);
         this.tokenLabel.lineBreakMode = JSLineBreakMode.truncateTail;
         this.tokenLabel.maximumNumberOfLines = 1;
         this.textField = textField;
