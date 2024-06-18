@@ -18,6 +18,7 @@
 // #import "JSTextAttachment.js"
 // #import "JSFont.js"
 // #import "JSColor.js"
+// #import "JSHTMLTextParser.js"
 'use strict';
 
 (function(){
@@ -195,6 +196,37 @@ JSClass("JSAttributedString", JSObject, {
     initWithImageAttachmentName: function(name, size){
         var attachment = JSTextAttachment.initWithImageName(name, size);
         this.initWithAttachment(attachment);
+    },
+
+    initWithHTML: function(html, options){
+        if (options === undefined){
+            options = {};
+        }
+        var string = "";
+        var run = JSAttributedStringRun(JSRange.Zero, {});
+        var runs = [run];
+        if (html !== null && html !== undefined){
+            var parser = JSHTMLTextParser.initWithHTML(html);
+            parser.delegate = {
+                htmlTextParserDidFindAttributedText: function(parser, text, attributes){
+                    if (run.range.length === 0){
+                        run.attributes = JSCopy(attributes);
+                        run.range.length += text.length;
+                    }else if (run.onlyContainsEqualAttributes(attributes)){
+                        run.range.length += text.length;
+                    }else{
+                        run = JSAttributedStringRun(JSRange(run.range.end, text.length), attributes);
+                        runs.push(run);
+                    }
+                    string += text;
+                }
+            };
+            parser.state.preserveWhitespace = options.preserveWhitespace === true;
+            parser.state.baseURL = options.baseURL || null;
+            parser.parse();
+        }
+        this._string = string;
+        this._runs = runs;
     },
 
     // MARK: - Getting the unattributed string value

@@ -84,6 +84,228 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(attributes.test, 123);
     },
 
+    testInitWithHTML: function(){
+        var string = JSAttributedString.initWithHTML(null);
+        TKAssertExactEquals(string.string, "");
+        var range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 0);
+
+        string = JSAttributedString.initWithHTML(undefined);
+        TKAssertExactEquals(string.string, "");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 0);
+
+        string = JSAttributedString.initWithHTML('');
+        TKAssertExactEquals(string.string, '');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 0);
+
+        string = JSAttributedString.initWithHTML('testing');
+        TKAssertExactEquals(string.string, 'testing');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 7);
+
+        string = JSAttributedString.initWithHTML('testing & test');
+        TKAssertExactEquals(string.string, 'testing & test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 14);
+
+        string = JSAttributedString.initWithHTML('testing &amp; test');
+        TKAssertExactEquals(string.string, 'testing & test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 14);
+
+        string = JSAttributedString.initWithHTML('testing < test');
+        TKAssertExactEquals(string.string, 'testing < test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 14);
+
+        string = JSAttributedString.initWithHTML('testing &lt; test');
+        TKAssertExactEquals(string.string, 'testing < test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 14);
+
+        string = JSAttributedString.initWithHTML('<b>testing</b>');
+        TKAssertExactEquals(string.string, 'testing');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 7);
+        var attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.bold, true);
+        attrs = string.attributesAtIndex(3);
+        TKAssertExactEquals(attrs.bold, true);
+        attrs = string.attributesAtIndex(4);
+        TKAssertExactEquals(attrs.bold, true);
+
+        string = JSAttributedString.initWithHTML('<i>testing</i>');
+        TKAssertExactEquals(string.string, 'testing');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 7);
+        attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(3);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(4);
+        TKAssertExactEquals(attrs.italic, true);
+
+        string = JSAttributedString.initWithHTML('<b>test</b>ing');
+        TKAssertExactEquals(string.string, 'testing');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+        range = string.rangeOfRunAtIndex(4);
+        TKAssertExactEquals(range.location, 4);
+        TKAssertExactEquals(range.length, 3);
+        attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.bold, true);
+        attrs = string.attributesAtIndex(3);
+        TKAssertExactEquals(attrs.bold, true);
+        attrs = string.attributesAtIndex(4);
+        TKAssertExactEquals(attrs.bold, undefined);
+
+        string = JSAttributedString.initWithHTML('<b><i>test</i></b>ing');
+        TKAssertExactEquals(string.string, "testing");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+        range = string.rangeOfRunAtIndex(4);
+        TKAssertExactEquals(range.location, 4);
+        TKAssertExactEquals(range.length, 3);
+        attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.bold, true);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(3);
+        TKAssertExactEquals(attrs.bold, true);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(4);
+        TKAssertExactEquals(attrs.bold, undefined);
+        TKAssertExactEquals(attrs.italic, undefined);
+
+        string = JSAttributedString.initWithHTML('<i><b>test</i></b>ing');
+        TKAssertExactEquals(string.string, "testing");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+        range = string.rangeOfRunAtIndex(4);
+        TKAssertExactEquals(range.location, 4);
+        TKAssertExactEquals(range.length, 3);
+        attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.bold, true);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(3);
+        TKAssertExactEquals(attrs.bold, true);
+        TKAssertExactEquals(attrs.italic, true);
+        attrs = string.attributesAtIndex(4);
+        TKAssertExactEquals(attrs.bold, undefined);
+        TKAssertExactEquals(attrs.italic, true);
+
+        string = JSAttributedString.initWithHTML('test<br>one<br><br>two');
+        TKAssertExactEquals(string.string, 'test\none\n\ntwo');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 13);
+
+        string = JSAttributedString.initWithHTML('<div>test<br></div><div>one<br></div><div><br></div><div>two</div>');
+        TKAssertExactEquals(string.string, 'test\none\n\ntwo');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 13);
+
+        string = JSAttributedString.initWithHTML('<div>test</div><div>one</div><div></div><div>two</div>');
+        TKAssertExactEquals(string.string, 'test\none\n\ntwo');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 13);
+
+        string = JSAttributedString.initWithHTML('<p>test<br></p><p>one<br></p><p><br></p><p>two</p>');
+        TKAssertExactEquals(string.string, 'test\none\n\ntwo');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 13);
+
+        string = JSAttributedString.initWithHTML('<p>test</p><p>one</p><p></p><p>two</p>');
+        TKAssertExactEquals(string.string, 'test\none\n\ntwo');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 13);
+
+        string = JSAttributedString.initWithHTML('list:<li>one</li><li>two</li><li>three</li>');
+        TKAssertExactEquals(string.string, 'list:\n• one\n• two\n• three');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 6);
+        range = string.rangeOfRunAtIndex(6);
+        TKAssertExactEquals(range.location, 6);
+        TKAssertExactEquals(range.length, 19);
+        attrs = string.attributesAtIndex(0);
+        TKAssertExactEquals(attrs.headIndent, undefined);
+        attrs = string.attributesAtIndex(6);
+        TKAssertExactEquals(attrs.headIndent, 10);
+
+        string = JSAttributedString.initWithHTML('testing <42></42> tags');
+        TKAssertExactEquals(string.string, 'testing <42> tags');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 17);
+
+        string = JSAttributedString.initWithHTML('<><><><><><>');
+        TKAssertExactEquals(string.string, '<><><><><><>');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 12);
+
+        string = JSAttributedString.initWithHTML('<<<="">>>');
+        TKAssertExactEquals(string.string, '<<<="">>>');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 9);
+
+        string = JSAttributedString.initWithHTML('<div style=>test');
+        TKAssertExactEquals(string.string, 'test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+
+        string = JSAttributedString.initWithHTML('<div style=/>test</div>');
+        TKAssertExactEquals(string.string, 'test');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+
+        string = JSAttributedString.initWithHTML('<div style=">test</div>');
+        TKAssertExactEquals(string.string, '');
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 0);
+
+        string = JSAttributedString.initWithHTML('<style type="text/css">&ignore; <this></style>test');
+        TKAssertExactEquals(string.string, "test");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+
+        string = JSAttributedString.initWithHTML('<script type="text/javascript">&ignore; <this></script>test');
+        TKAssertExactEquals(string.string, "test");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+
+        string = JSAttributedString.initWithHTML('<template>&ignore; <this></template>test');
+        TKAssertExactEquals(string.string, "test");
+        range = string.rangeOfRunAtIndex(0);
+        TKAssertExactEquals(range.location, 0);
+        TKAssertExactEquals(range.length, 4);
+    },
+
     testString: function(){
         var string = JSAttributedString.initWithString("Hello, world!");
         TKAssertNotNull(string);
@@ -1150,7 +1372,7 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(range.location, 0);
         TKAssertExactEquals(range.length, 8);
         TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
-    }
+    },
     
 });
 
