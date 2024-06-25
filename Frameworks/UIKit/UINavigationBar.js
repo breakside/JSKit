@@ -309,6 +309,7 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
     disabledItemColor: null,
     itemInsets: null,
     itemTitleInsets: null,
+    itemSpacing: 0,
     backButtonTitleInsets: null,
     backButtonImage: null,
     backButtonColor: null,
@@ -738,6 +739,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             xLeft = this.titleInsets.left;
         }
         for (i = 0, l = props.leftBarItemViews.length; i < l; ++i){
+            if (i > 0){
+                xLeft += this.itemSpacing;
+            }
             barItemView = props.leftBarItemViews[i];
             barItemView.sizeToFitSize(JSSize(xRight - xLeft, itemHeight));
             barItemView.untransformedFrame = JSRect(JSPoint(xLeft, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
@@ -749,6 +753,9 @@ JSClass("UINavigationBarDefaultStyler", UINavigationBarStyler, {
             xRight -= barItemView.bounds.size.width;
             barItemView.untransformedFrame = JSRect(JSPoint(xRight, y + (itemHeight - barItemView.bounds.size.height) / 2), barItemView.bounds.size);
             barItemView.hidden = xRight < xLeft;
+            if (i > 0){
+                xRight -= this.itemSpacing;
+            }
         }
 
         var availableTitleWidth = xRight - xLeft;

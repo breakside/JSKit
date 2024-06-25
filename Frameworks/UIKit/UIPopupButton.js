@@ -797,6 +797,11 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
     overBackgroundColor: null,
     cornerRadius: 0,
     titleInsets: null,
+    normalBorderColor: null,
+    disabledBorderColor: null,
+    overBorderColor: null,
+    activeBorderColor: null,
+    borderWidth: 0,
 
     init: function(){
         this.initWithColor(JSColor.text);
@@ -863,6 +868,14 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
                 this.disabledBackgroundColor = this.normalBackgroundColor.colorWithAlpha(0.5);
             }
         }
+        if (this.normalBorderColor !== null){
+            if (this.activeBorderColor === null){
+                this.activeBorderColor = this.normalBorderColor.colorDarkenedByPercentage(0.2);
+            }
+            if (this.disabledBorderColor === null){
+                this.disabledBorderColor = this.normalBorderColor.colorWithAlpha(0.5);
+            }
+        }
     },
 
     initializeControl: function(button){
@@ -875,6 +888,7 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         button._imageView.hidden = false;
         button.cornerRadius = this.cornerRadius;
         button.titleInsets = this.titleInsets;
+        button.borderWidth = this.borderWidth;
         this.updateControl(button);
     },
 
@@ -882,15 +896,19 @@ JSClass("UIPopupButtonImageStyler", UIPopupButtonStyler, {
         if (!button.enabled){
             button._imageView.templateColor = this.disabledColor;
             button.backgroundColor = this.normalBackgroundColor;
+            button.borderColor = this.normalBorderColor;
         }else if (button.active){
             button._imageView.templateColor = this.activeColor;
             button.backgroundColor = this.activeBackgroundColor;
+            button.borderColor = this.activeBorderColor;
         }else{
             button._imageView.templateColor = this.normalColor;
             if (this.showsOverState && button.over){
                 button.backgroundColor = this.overBackgroundColor;
+                button.borderColor = this.overBorderColor;
             }else{
                 button.backgroundColor = this.normalBackgroundColor;
+                button.borderColor = this.normalBorderColor;
             }
         }
     },
