@@ -1458,6 +1458,8 @@ JSClass("UIWindowDefaultStyler", UIWindowStyler, {
         window.shadowRadius = this.shadowRadius;
         window.cornerRadius = this.cornerRadius;
         window.backgroundColor = this.backgroundColor;
+        window.borderWidth = 1;
+        window.borderColor = JSColor.windowBorder;
 
         this.updateWindow(window);
     },
@@ -1677,6 +1679,8 @@ JSClass("UIWindowTitlelessStyler", UIWindowStyler, {
         window.shadowRadius = this.shadowRadius;
         window.cornerRadius = this.cornerRadius;
         window.backgroundColor = this.backgroundColor;
+        window.borderWidth = 1;
+        window.borderColor = JSColor.windowBorder;
 
         this.updateWindow(window);
     },
