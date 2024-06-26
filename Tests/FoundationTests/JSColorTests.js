@@ -326,5 +326,76 @@ JSClass('JSColorTests', TKTestSuite, {
         TKAssertFloatEquals(color2.components[2], 0.6, 0.001);
         TKAssertFloatEquals(color2.components[3], 0.9);
 
+    },
+
+    testLuminance: function(){
+        var color = JSColor.initWithRGBA(0, 0, 0, 1);
+        TKAssertFloatEquals(color.luminance, 0.0000, 0.0001);
+
+        color = JSColor.initWithRGBA(0.2, 0.2, 0.2, 1);
+        TKAssertFloatEquals(color.luminance, 0.0331, 0.0001);
+
+        color = JSColor.initWithRGBA(0.5, 0.5, 0.5, 1);
+        TKAssertFloatEquals(color.luminance, 0.2140, 0.0001);
+
+        color = JSColor.initWithRGBA(0.8, 0.8, 0.8, 1);
+        TKAssertFloatEquals(color.luminance, 0.6038, 0.0001);
+
+        color = JSColor.initWithRGBA(1, 1, 1, 1);
+        TKAssertFloatEquals(color.luminance, 1.0000, 0.0001);
+
+        color = JSColor.initWithRGBA(1, 0, 0, 1);
+        TKAssertFloatEquals(color.luminance, 0.2225, 0.0001);
+
+        color = JSColor.initWithRGBA(0, 1, 0, 1);
+        TKAssertFloatEquals(color.luminance, 0.7169, 0.0001);
+
+        color = JSColor.initWithRGBA(0, 0, 1, 1);
+        TKAssertFloatEquals(color.luminance, 0.0606, 0.0001);
+
+        color = JSColor.initWithWhite(0, 1);
+        TKAssertFloatEquals(color.luminance, 0.0000, 0.0001);
+
+        color = JSColor.initWithWhite(0.2, 1);
+        TKAssertFloatEquals(color.luminance, 0.0331, 0.0001);
+
+        color = JSColor.initWithWhite(0.5, 1);
+        TKAssertFloatEquals(color.luminance, 0.2140, 0.0001);
+
+        color = JSColor.initWithWhite(0.8, 1);
+        TKAssertFloatEquals(color.luminance, 0.6038, 0.0001);
+
+        color = JSColor.initWithWhite(1, 1);
+        TKAssertFloatEquals(color.luminance, 1.0000, 0.0001);
+    },
+
+    testContrastRatioWithColor: function(){
+        var color1 = JSColor.initWithRGBA(1, 1, 1, 1);
+        var color2 = JSColor.initWithRGBA(0, 0, 0, 1);
+        var ratio = color1.contrastRatioWithColor(color2);
+        TKAssertFloatEquals(ratio, 21.0000, 0.0001);
+        ratio = color2.contrastRatioWithColor(color1);
+        TKAssertFloatEquals(ratio, 21.0000, 0.0001);
+
+        color1 = JSColor.initWithRGBA(1, 0, 0, 1);
+        color2 = JSColor.initWithRGBA(1, 0, 0, 1);
+        ratio = color1.contrastRatioWithColor(color2);
+        TKAssertFloatEquals(ratio, 1.0000, 0.0001);
+        ratio = color2.contrastRatioWithColor(color1);
+        TKAssertFloatEquals(ratio, 1.0000, 0.0001);
+
+        color1 = JSColor.initWithRGBA(1, 0, 0, 1);
+        color2 = JSColor.initWithRGBA(0, 1, 0, 1);
+        ratio = color1.contrastRatioWithColor(color2);
+        TKAssertFloatEquals(ratio, 2.8143, 0.0001);
+        ratio = color2.contrastRatioWithColor(color1);
+        TKAssertFloatEquals(ratio, 2.8143, 0.0001);
+
+        color1 = JSColor.initWithRGBA(1, 0, 0, 1);
+        color2 = JSColor.initWithRGBA(0, 0, 1, 1);
+        ratio = color1.contrastRatioWithColor(color2);
+        TKAssertFloatEquals(ratio, 2.4638, 0.0001);
+        ratio = color2.contrastRatioWithColor(color1);
+        TKAssertFloatEquals(ratio, 2.4638, 0.0001);
     }
 });

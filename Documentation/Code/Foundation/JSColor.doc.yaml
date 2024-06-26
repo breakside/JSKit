@@ -517,6 +517,50 @@ topics:
         note: |
           This is a dynamic color that changes automatically when the user interface
           style changes between light and dark.
+      - name: shadedBackground
+        introduced: 2024.25.0
+        type: JSColor
+        static: true
+        summary: The color used to distinguish areas from the normal background
+        description: |
+          Corresponds to the `"shadedBackground"` name in the `JSColorSpace.ui` color space.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark. Shaded backgrounds will remain
+          shaded in high contrast mode.
+      - name: secondaryShadedBackground
+        introduced: 2024.25.0
+        type: JSColor
+        static: true
+        summary: The color used to subtly distinguish areas from the normal background
+        description: |
+          Corresponds to the `"secondaryShadedBackground"` name in the `JSColorSpace.ui` color space.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark. Secondary shaded backgrounds are not
+          distinguishable from the normal background in high contrast mode.
+      - name: separator
+        introduced: 2024.25.0
+        type: JSColor
+        static: true
+        summary: The color used for lines that separate content
+        description: |
+          Corresponds to the `"separator"` name in the `JSColorSpace.ui` color space.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark. Separators will remain
+          visible in high contrast mode.
+      - name: secondarySeparator
+        introduced: 2024.25.0
+        type: JSColor
+        static: true
+        summary: The color used to subtly distinguish areas from the normal background
+        description: |
+          Corresponds to the `"secondarySeparator"` name in the `JSColorSpace.ui` color space.
+        note: |
+          This is a dynamic color that changes automatically when the user interface
+          style changes between light and dark. Secondary separators will remain
+          visible in high contrast mode.
       - name: text
         introduced: 2021.40.0
         type: JSColor
@@ -988,6 +1032,33 @@ topics:
         return: A color that matches this one, but is converted to the `graya`
           color space
         note: Converting to grayscale loses information
+  - 
+    name: Calculations
+    members:
+      -
+        name: luminance
+        introduced: 2024.25.1
+        type: Number
+        summary: The relative luminance of the color, between `0.0` and `1.0`
+        description:
+          The relative luminance of a color can be useful when comparing the
+          contrast of colors, such as in `contrastRatioWithColor()`
+      -
+        name: contrastRatioWithColor
+        introduced: 2024.25.1
+        kind: method
+        summary: Returns a ratio representing the contrast between two colors,
+          always as a number between `1.0` and `21.0`
+        type: Number
+        arguments:
+          -
+            name: otherColor
+            type: JSColor
+            summary: The other color to compare to
+        description:
+          The contrast ratio will always be represented as a ratio of
+          the lighter color to the darker color, regardless of which color
+          is `this`() and which is `otherColor`().
   -
     name: Variations
     members:

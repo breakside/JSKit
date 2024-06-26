@@ -237,6 +237,11 @@ topics:
                         type: JSInsets
                         summary: The title insets for buttons that are created
                           for bar items
+                      -
+                        introduced: 2024.25.0
+                        name: itemSpacing
+                        type: Number
+                        summary: The spacing between items
                   -
                     name: Back Button
                     members:
@@ -320,6 +325,11 @@ topics:
                 type: JSInsets
                 summary: The title insets for buttons that are created
                   for bar items
+              -
+                introduced: 2024.24.0
+                name: itemSpacing
+                type: JSInsets
+                summary: The spacing between items
           -
             name: Back Button
             members:

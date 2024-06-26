@@ -87,6 +87,7 @@ JSClass("JSColorSpace", JSObject, {
 JSClass("JSXYZColorSpace", JSColorSpace, {
 
     name: "xyz",
+    numberOfComponents: 3,
 
     initWithWhitepoint: function(mediaWhitepoint){
         if (mediaWhitepoint === JSColorSpace.Whitepoint.profileConnection){
@@ -163,6 +164,7 @@ JSClass("JSXYZScaledColorSpace", JSXYZColorSpace, {
 JSClass("JSLabColorSpace", JSColorSpace, {
 
     name: "lab",
+    numberOfComponents: 3,
 
     init: function(){
     },

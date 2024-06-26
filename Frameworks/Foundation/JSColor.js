@@ -309,6 +309,22 @@ JSClass('JSColor', JSObject, {
         return JSColor.initWithSpaceAndComponents(space, components);
     },
 
+    luminance: JSReadOnlyProperty(),
+
+    getLuminance: function(){
+        var xyzColor = this.colorInSpace(JSColorSpace.xyz);
+        return xyzColor.components[1];
+    },
+
+    contrastRatioWithColor: function(other){
+        var l1 = this.luminance;
+        var l2 = other.luminance;
+        if (l1 > l2){
+            return (l1 + 0.05) / (l2 + 0.05);
+        }
+        return (l2 + 0.05) / (l1 + 0.05);
+    },
+
     rgbaHexStringRepresentation: function(){
         var color = this.rgbaColor();
         var r = Math.round(color.red * 255);
