@@ -39,6 +39,8 @@ JSClass('UIApplication', UIResponder, {
         this.windowServer = windowServer;
         if (this.bundle.info.UIUserInterfaceStyle === "light"){
             this.windowServer.darkModeEnabled = false;
+        }else if (this.bundle.info.UIUserInterfaceStyle === "dark"){
+            this.windowServer.lightModeEnabled = false;
         }
         this._windows = [];
         this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
@@ -102,6 +104,16 @@ JSClass('UIApplication', UIResponder, {
     stopSystemNotifications: function(){
         JSLocale.current.calendar.stopSendingNotifications(JSNotificationCenter.shared);
         JSTimeZone.stopSendingNotifications(JSNotificationCenter.shared);
+    },
+
+    observeValueForKeyPath: function(keyPath, ofObject, change, context){
+        if (ofObject === JSUserDefaults.shared){
+            if (keyPath === "UIUserInterfaceStyle"){
+                this.windowServer.userInterfaceStyle = JSUserDefaults.shared.UIUserInterfaceStyle;
+            }else if (keyPath === "UIUserInterfaceContrast"){
+                this.windowServer.accessibilityContrast = JSUserDefaults.shared.UIUserInterfaceContrast;
+            }
+        }
     },
 
     setupTimeZones: function(completion, target){
@@ -201,6 +213,14 @@ JSClass('UIApplication', UIResponder, {
                                 logger.info("Need user defaults");
                                 JSUserDefaults.shared.open(function UIApplication_userDefaultsDidOpen(){
                                     logger.info("User defaults opened");
+                                    JSUserDefaults.shared.registerDefaults({
+                                        UIUserInterfaceStyle: 0,
+                                        UIUserInterfaceContrast: 0
+                                    });
+                                    JSUserDefaults.shared.addObserverForKeyPath(this, "UIUserInterfaceStyle");
+                                    JSUserDefaults.shared.addObserverForKeyPath(this, "UIUserInterfaceContrast");
+                                    this.windowServer.userInterfaceStyle = JSUserDefaults.shared.UIUserInterfaceStyle;
+                                    this.windowServer.accessibilityContrast = JSUserDefaults.shared.UIUserInterfaceContrast;
                                     try{
                                         this._launch(completion, target);
                                     }catch (e){
@@ -245,6 +265,8 @@ JSClass('UIApplication', UIResponder, {
             this._stopCalled = true;
             logger.info("Stopping application");
             this.stopSystemNotifications();
+            JSUserDefaults.shared.removeObserverForKeyPath(this, "UIUserInterfaceStyle");
+            JSUserDefaults.shared.removeObserverForKeyPath(this, "UIUserInterfaceContrast");
             this.windowServer.stop(true);
             var closed = false;
             var _close = function(){

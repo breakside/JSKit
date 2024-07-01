@@ -228,6 +228,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     // --------------------------------------------------------------------
     // MARK: - Media Queries
 
+    darkColorSchemeQuery: null,
+    highContrastQuery: null,
+    reducedMotionQuery: null,
     darkColorSchemeListener: null,
     highContrastListener: null,
     reducedMotionListener: null,
@@ -253,19 +256,25 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     handleDarkColorSchemeChanged: function(query){
-        var style = query.matches ? UIUserInterface.Style.dark : UIUserInterface.Style.light;
-        this.traitCollection = this._traitCollection.traitsWithUserInterfaceStyle(style);
+        this.traitCollection = this._traitCollection.traitsWithUserInterfaceStyle(this.effectiveUserInterfaceStyle);
         this.updateThemeColorElement();
     },
 
     handleHighContrastChanged: function(query){
-        var contrast = query.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
-        this.traitCollection = this._traitCollection.traitsWithContrast(contrast);
+        this.traitCollection = this._traitCollection.traitsWithContrast(this.effectiveAccessibilityContrast);
         this.updateThemeColorElement();
     },
 
     handleReducedMotionChanged: function(query){
         this.displayServer.reducedMotionEnabled = query.matches;
+    },
+
+    getSystemUserInterfaceStyle: function(){
+        return this.darkColorSchemeQuery.matches ? UIUserInterface.Style.dark : UIUserInterface.Style.light;
+    },
+
+    getSystemAccessibilityContrast: function(){
+        return this.highContrastQuery.matches ? UIUserInterface.Contrast.high : UIUserInterface.Contrast.normal;
     },
 
     // --------------------------------------------------------------------

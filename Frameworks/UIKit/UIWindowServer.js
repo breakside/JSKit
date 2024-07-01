@@ -40,6 +40,7 @@ JSClass("UIWindowServer", JSObject, {
     mouseLocation: null,
     fullKeyboardAccessEnabled: false,
     darkModeEnabled: true,
+    lightModeEnabled: true,
     _windowsById: null,
     _mouseIdleTimer: null,
     _tooltipWindow: null,
@@ -1033,9 +1034,6 @@ JSClass("UIWindowServer", JSObject, {
     traitCollection: JSDynamicProperty("_traitCollection", null),
 
     setTraitCollection: function(traitCollection){
-        if (!this.darkModeEnabled && traitCollection.userInterfaceStyle === UIUserInterface.Style.dark){
-            traitCollection = traitCollection.traitsWithUserInterfaceStyle(UIUserInterface.Style.light);
-        }
         if (this._traitCollection.isEqual(traitCollection)){
             return;
         }
@@ -1049,6 +1047,56 @@ JSClass("UIWindowServer", JSObject, {
             }
             this.setNeedsRedisplay();
         }
+    },
+
+    userInterfaceStyle: JSDynamicProperty("_userInterfaceStyle", UIUserInterface.Style.unspecified),
+
+    setUserInterfaceStyle: function(userInterfaceStyle){
+        this._userInterfaceStyle = userInterfaceStyle;
+        this.traitCollection = this._traitCollection.traitsWithUserInterfaceStyle(this.effectiveUserInterfaceStyle);
+    },
+
+    effectiveUserInterfaceStyle: JSReadOnlyProperty(),
+
+    getEffectiveUserInterfaceStyle: function(){
+        if (!this.darkModeEnabled){
+            return UIUserInterface.Style.light;
+        }
+        if (!this.lightModeEnabled){
+            return UIUserInterface.Style.dark;
+        }
+        if (this._userInterfaceStyle !== UIUserInterface.Style.unspecified){
+            return this._userInterfaceStyle;
+        }
+        return this.systemUserInterfaceStyle;
+    },
+
+    systemUserInterfaceStyle: JSReadOnlyProperty(),
+
+    getSystemUserInterfaceStyle: function(){
+        return UIUserInterface.Style.light;
+    },
+
+    accessibilityContrast: JSDynamicProperty("_accessibilityContrast", UIUserInterface.Contrast.unspecified),
+
+    setAccessibilityContrast: function(accessibilityContrast){
+        this._accessibilityContrast = accessibilityContrast;
+        this.traitCollection = this._traitCollection.traitsWithContrast(this.effectiveAccessibilityContrast);
+    },
+
+    effectiveAccessibilityContrast: JSReadOnlyProperty(),
+
+    getEffectiveAccessibilityContrast: function(){
+        if (this._accessibilityContrast !== UIUserInterface.Contrast.unspecified){
+            return this._accessibilityContrast;
+        }
+        return this.systemAccessibilityContrast;
+    },
+
+    systemAccessibilityContrast: JSReadOnlyProperty(),
+
+    getSystemAccessibilityContrast: function(){
+        return UIUserInterface.Contrast.normal;
     },
 
     _needsRedisplay: false,
