@@ -110,6 +110,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.style.userSelect = 'none';
         this.rootElement.style.mozUserSelect = 'none';
         this.rootElement.style.webkitUserSelect = 'none';
+        this.rootElement.style.forcedColorAdjust = 'none';
     },
 
     // --------------------------------------------------------------------
