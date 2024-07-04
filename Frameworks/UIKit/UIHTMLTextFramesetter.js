@@ -153,6 +153,11 @@ JSClass("UIHTMLTextFramesetter", UITextFramesetter, {
         // position the lines
         for (i = 0, l = frame.lines.length; i < l; ++i){
             line = frame.lines[i];
+            if (line.markerRun !== null){
+                line.markerRun.element.style.height = '%dpx'.sprintf(line.markerRun.size.height);
+                line.markerRun.element.style.left = '%dpx'.sprintf(line.markerRun.origin.x);
+                line.markerRun.element.style.top = '%dpx'.sprintf(line.markerRun.origin.y);
+            }
             line.element.style.height = '%dpx'.sprintf(line.size.height);
             line.element.style.left = '%dpx'.sprintf(line.origin.x);
             line.element.style.top = '%dpx'.sprintf(line.origin.y);

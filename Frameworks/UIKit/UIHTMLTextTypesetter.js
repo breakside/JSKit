@@ -389,6 +389,17 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         }
     },
 
+    _createMarkerRun: function(markerText, location){
+        var range = JSRange(location, 0);
+        var attributes = this._markerAttributesAtLocation(location);
+        var font = attributes.font || null;
+        var span = this._createRunElement();
+        span.appendChild(span.ownerDocument.createTextNode(markerText));
+        this._styleTextElementWithAttributes(span, attributes, font);
+        var run = UIHTMLTextRun.initWithElement(span, font, attributes, range);
+        return run;
+    }
+
 });
 
 var UIHTMLTextTypesetterRunDescriptor = function(location, attributes){

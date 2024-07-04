@@ -40,6 +40,10 @@ JSClass("UIHTMLTextFrame", JSTextFrame, {
             line = lines[i];
             if (line.element.parentNode !== this.element){
                 line.element.style.position = 'absolute';
+                if (line.markerRun !== null){
+                    line.markerRun.element.style.position = 'absolute';
+                    this.element.appendChild(line.markerRun.element);
+                }
                 this.element.appendChild(line.element);
             }
         }

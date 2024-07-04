@@ -28,6 +28,7 @@ JSClass("JSTextLine", JSObject, {
     range: JSReadOnlyProperty('_range', null),
     runs: JSReadOnlyProperty('_runs', null),
     baseline: JSReadOnlyProperty('_baseline', 0),
+    markerRun: null,
 
     _init: function(range, trailingWhitespaceWidth){
         this._origin = JSPoint.Zero;
@@ -88,6 +89,9 @@ JSClass("JSTextLine", JSObject, {
     drawInContextAtPoint: function(context, point){
         context.save();
         context.translateBy(point.x, point.y);
+        if (this.markerRun !== null){
+            this.markerRun.drawInContextAtPoint(context, this.markerRun.origin);
+        }
         for (var i = 0, l = this._runs.length; i < l; ++i){
             this._runs[i].drawInContextAtPoint(context, this._runs[i].origin);
         }
@@ -185,6 +189,9 @@ JSClass("JSTextLine", JSObject, {
         line._trailingWhitespaceWidth = this._trailingWhitespaceWidth;
         line._range = JSRange(this._range);
         line._runs = [];
+        if (this.markerRun !== null){
+            line.markerRun = this.markerRun.copy();
+        }
         for (var i = 0, l = this._runs.length; i < l; ++i){
             line._runs.push(this._runs[i].copy());
         }

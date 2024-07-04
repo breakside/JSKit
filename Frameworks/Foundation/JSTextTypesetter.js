@@ -102,6 +102,27 @@ JSClass("JSTextTypesetter", JSObject, {
         return JSTextLine.initWithRuns(runs, layout.trailingWhitespaceWidth);
     },
 
+    _markerAttributesAtLocation: function(location){
+        var locationAttributes = this._attributedString.attributesAtIndex(location);
+        return this.resolveAttributes({
+            font: locationAttributes.font,
+            textColor: locationAttributes.textColor,
+            bold: locationAttributes.bold,
+            italic: locationAttributes.italic,
+            paragraphStyleName: locationAttributes.paragraphStyleName,
+        });
+    },
+
+    _createMarkerRun: function(markerText, location){
+        var attributes = this._markerAttributesAtLocation(location);
+        var font = attributes.font || null;
+        var glyphs = [];
+        var characterLengths = [];
+        // TODO:
+        var run = JSTextRun.initWithGlyphs(glyphs, characterLengths, font, attributes, JSRange(location, 0));
+        return run;
+    },
+
     // MARK: - Private Helpers for Line Break Suggestion
 
     fallbackFontsForFont: function(font){

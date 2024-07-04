@@ -53,7 +53,7 @@ JSClass("JSTextFramesetter", JSObject, {
     },
 
     createFrame: function(size, range, maximumLines){
-        var remianingRange = JSRange(range);
+        var remainingRange = JSRange(range);
         var y = 0;
         var lines = [];
         var line;
@@ -65,9 +65,12 @@ JSClass("JSTextFramesetter", JSObject, {
         var heightLimit = size.height || Number.MAX_VALUE;
         var lineLimit = maximumLines || Number.MAX_VALUE;
         var lineWidthLimit;
-        var attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remianingRange.location));
+        var attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remainingRange.location));
         var paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
-        var characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remianingRange.location);
+        var characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remainingRange.location);
+        var listNumberStack = [];
+        var markerText = "";
+        var markerRun;
         characterIterator.decrement();
         do{
             lineWidthLimit = widthLimit;
@@ -78,39 +81,67 @@ JSClass("JSTextFramesetter", JSObject, {
                     lineWidthLimit -= paragraphStyle.headIndent;
                 }
                 lineWidthLimit -= paragraphStyle.tailIndent;
+                if (paragraphStyle.listLevel > 0){
+                    lineWidthLimit -= paragraphStyle.listIndent + paragraphStyle.listMarkerWidth;
+                }
             }
-            lineRange = this._typesetter.suggestLineBreak(lineWidthLimit, remianingRange, this.effectiveLineBreakMode(paragraphStyle.lineBreakMode, lines.length + 1, lineLimit));
+            while (paragraphStyle.listLevel < listNumberStack.length){
+                listNumberStack.pop();
+            }
+            if (paragraphStyle.listLevel > 0 && characterIterator.isParagraphBreak){
+                if (paragraphStyle.listLevel > listNumberStack.length){
+                    while (paragraphStyle.listLevel > listNumberStack.length){
+                        listNumberStack.push(1);
+                    }
+                    listNumberStack[paragraphStyle.listLevel - 1] = this._typesetter.attributedString.listItemNumberAtIndex(remainingRange.location);
+                }
+                markerText = paragraphStyle.markerTextForListItemNumber(listNumberStack[paragraphStyle.listLevel - 1]);
+                ++listNumberStack[paragraphStyle.listLevel - 1];
+                markerRun = this._typesetter._createMarkerRun(markerText, remainingRange.location);
+                if (markerRun.size.width > paragraphStyle.listMarkerWidth){
+                    lineWidthLimit -= markerRun.size.width;
+                }else{
+                    lineWidthLimit -= paragraphStyle.listMarkerWidth;
+                }
+            }else{
+                markerRun = null;
+            }
+            lineRange = this._typesetter.suggestLineBreak(lineWidthLimit, remainingRange, this.effectiveLineBreakMode(paragraphStyle.lineBreakMode, lines.length + 1, lineLimit));
             line = this._typesetter.createLine(lineRange);
             line.origin.y = y;
+            line.markerRun = markerRun;
             if (paragraphStyle.lineHeightMultiple > 0){
                 line.size.height *= paragraphStyle.lineHeightMultiple;
             }
             if (line.size.height < paragraphStyle.minimumLineHeight){
                 line.size.height = paragraphStyle.minimumLineHeight;
             }
+            if (line.markerRun !== null){
+                line.markerRun.origin.y = line.origin.y + line.size.height - line.baseline - markerRun.size.height + markerRun.baseline;
+            }
             y += line.size.height;
             if (y <= heightLimit){
-                remianingRange.advance(line.range.length);
-                characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remianingRange.location);
+                remainingRange.advance(line.range.length);
+                characterIterator = this._typesetter.attributedString.string.userPerceivedCharacterIterator(remainingRange.location);
                 characterIterator.decrement();
                 if (characterIterator.isParagraphBreak){
                     y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.paragraphSpacing));
-                    attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remianingRange.location));
+                    attributes = this._typesetter.resolveAttributes(this._typesetter.attributedString.attributesAtIndex(remainingRange.location));
                     paragraphStyle = this._defaultParagraphStyle.styleWithAttributes(attributes);
                     y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.beforeParagraphSpacing));
                 }
                 y += Math.max(0, Math.min(heightLimit - y, paragraphStyle.lineSpacing));
                 lines.push(line);
             }
-        } while (lineRange.length > 0 && remianingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
+        } while (lineRange.length > 0 && remainingRange.length > 0 && y < heightLimit && lines.length < lineLimit);
 
         if (paragraphStyle.lineBreakMode == JSLineBreakMode.truncateTail && lines.length > 0){
             line = lines.pop();
-            if (remianingRange.length > 0 && lineLimit > lines.length + 1){
+            if (remainingRange.length > 0 && lineLimit > lines.length + 1){
                 // we got truncated because of height.  Re-run the last line so it
                 // gets broken according to truncation rules rather than word break
                 y = line.origin.y;
-                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remianingRange.length), paragraphStyle.lineBreakMode);
+                lineRange = this._typesetter.suggestLineBreak(widthLimit, JSRange(line.range.location, line.range.length + remainingRange.length), paragraphStyle.lineBreakMode);
                 line = this._typesetter.createLine(lineRange);
                 line.origin.y = y;
                 line = line.truncatedLine(widthLimit, undefined, true);
@@ -151,12 +182,18 @@ JSClass("JSTextFramesetter", JSObject, {
             }else{
                 headIndent = paragraphStyle.headIndent;
             }
+            if (paragraphStyle.listLevel > 0){
+                headIndent += paragraphStyle.listIndent + paragraphStyle.listMarkerWidth;
+            }
             if (paragraphStyle.textAlignment === JSTextAlignment.left){
                 line.origin.x = headIndent;
             }else if (paragraphStyle.textAlignment === JSTextAlignment.center){
                 line.origin.x = headIndent + (frame._size.width - headIndent - paragraphStyle.tailIndent - line.size.width + line.trailingWhitespaceWidth) / 2.0;
             }else if (paragraphStyle.textAlignment === JSTextAlignment.right){
                 line.origin.x = (frame._size.width - line.size.width + line.trailingWhitespaceWidth) - paragraphStyle.tailIndent;
+            }
+            if (line.markerRun !== null){
+                line.markerRun.origin.x = headIndent - paragraphStyle.listMarkerWidth;
             }
         }
     },
