@@ -207,9 +207,17 @@ JSClass("JSHTMLTextParser", JSObject, {
             this.pushState(elementName, elementAttributes);
 
             if (elementName === "ol"){
-                this.state.counter = {count: 1};
-            }else{
-                this.state.counter = null;
+                if (this.state.textAttributes.listMarker === "1."){
+                    this.state.textAttributes.listMarker = "a.";
+                }else{
+                    this.state.textAttributes.listMarker = "1.";
+                }
+            }else if (elementName === "ul"){
+                if (this.state.textAttributes.listMarker === "•"){
+                    this.state.textAttributes.listMarker = "◦";
+                }else{
+                    this.state.textAttributes.listMarker = "•";
+                }
             }
 
             if (elementName === "script" || elementName === "style" || elementName === "template"){
@@ -239,17 +247,16 @@ JSClass("JSHTMLTextParser", JSObject, {
                     this.state.textAttributes.link = JSURL.initWithString(elementAttributes.href, this.state.baseURL);
                 }
             }else if (elementName === "li"){
-                var level = 0;
-                var stackIndex;
-                for (stackIndex = this.stack.length - 1; stackIndex >= 0; --stackIndex){
-                    if (this.stack[stackIndex].elementName === "ol" || this.stack[stackIndex].elementName === "ul"){
-                        ++level;
-                    }
+                if (!this.state.textAttributes.listMarker){
+                    this.state.textAttributes.listMarker = "•";
                 }
-                if (level === 0){
-                    level = 1;
+                if (!this.state.textAttributes.listLevel){
+                    this.state.textAttributes.listLevel = 1;
+                    this.state.textAttributes.listIndent = 0;
+                }else{
+                    this.state.textAttributes.listLevel += 1;
+                    this.state.textAttributes.listIndent += this.state.indentationSize;
                 }
-                this.state.textAttributes.headIndent = 10 * level;
             }else if (elementName === "pre"){
                 this.state.preserveWhitespace = true;
             }
@@ -257,15 +264,7 @@ JSClass("JSHTMLTextParser", JSObject, {
                 // TODO: CSS styles from element's style attr
             }
         }
-        if (elementName === "li"){
-            var parentState = this.stack[this.stack.length - 2];
-            if (parentState.counter !== null){
-                this.handleText("%d. ".sprintf(parentState.counter.count));
-                ++parentState.counter.count;
-            }else{
-                this.handleText("• ");
-            }
-        }else if (elementName === "br"){
+        if (elementName === "br"){
             this.flushTrailingWhitespace();
             this.handleTrailingWhitespace("\n");
         }else if (elementName === "hr"){
@@ -355,12 +354,12 @@ JSHTMLTextParser.State = {
     // html elements
     elementName: null,
     elementAttributes: null,
-    counter: null,
     baseURL: null,
 
     // options
     preserveWhitespace: false,
     ignoringUntilEndTag: false,
+    indentationSize: 18,
 
     // text attributes
     textAttributes: null,
