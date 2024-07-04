@@ -1373,6 +1373,86 @@ JSClass('JSAttributedStringTests', TKTestSuite, {
         TKAssertExactEquals(range.length, 8);
         TKAssertExactEquals(attributes.textAlignment, JSTextAlignment.center);
     },
+
+    testListItemNumberAtIndex: function(){
+        var str = JSAttributedString.init();
+        var n = str.listItemNumberAtIndex(0);
+        TKAssertExactEquals(n, 0);
+
+        str.appendAttributedString(JSAttributedString.initWithString("Testing\n", {}));
+        str.appendAttributedString(JSAttributedString.initWithString("one\n", {listLevel: 1}));
+        str.appendAttributedString(JSAttributedString.initWithString("two\n", {listLevel: 1}));
+        str.appendAttributedString(JSAttributedString.initWithString("three\n", {listLevel: 2}));
+        str.appendAttributedString(JSAttributedString.initWithString("four\n", {listLevel: 2}));
+        str.appendAttributedString(JSAttributedString.initWithString("five\n", {listLevel: 1}));
+        str.appendAttributedString(JSAttributedString.initWithString("six\n", {listLevel: 2}));
+        str.appendAttributedString(JSAttributedString.initWithString("seven\n", {listLevel: 3}));
+        str.appendAttributedString(JSAttributedString.initWithString("eight\n", {listLevel: 2}));
+        str.appendAttributedString(JSAttributedString.initWithString("nine\n", {listLevel: 1}));
+        str.appendAttributedString(JSAttributedString.initWithString("ten\n", {}));
+        n = str.listItemNumberAtIndex(0);
+        TKAssertExactEquals(n, 0);
+        n = str.listItemNumberAtIndex(7);
+        TKAssertExactEquals(n, 0);
+        n = str.listItemNumberAtIndex(8);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(9);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(11);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(12);
+        TKAssertExactEquals(n, 2);
+        n = str.listItemNumberAtIndex(16);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(22);
+        TKAssertExactEquals(n, 2);
+        n = str.listItemNumberAtIndex(27);
+        TKAssertExactEquals(n, 3);
+        n = str.listItemNumberAtIndex(32);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(36);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(42);
+        TKAssertExactEquals(n, 2);
+        n = str.listItemNumberAtIndex(48);
+        TKAssertExactEquals(n, 4);
+        n = str.listItemNumberAtIndex(53);
+        TKAssertExactEquals(n, 0);
+
+        str.addAttributesInRange({listStartingNumber: 5}, JSRange(8, 4));
+        n = str.listItemNumberAtIndex(0);
+        TKAssertExactEquals(n, 0);
+        n = str.listItemNumberAtIndex(7);
+        TKAssertExactEquals(n, 0);
+        n = str.listItemNumberAtIndex(8);
+        TKAssertExactEquals(n, 5);
+        n = str.listItemNumberAtIndex(9);
+        TKAssertExactEquals(n, 5);
+        n = str.listItemNumberAtIndex(11);
+        TKAssertExactEquals(n, 5);
+        n = str.listItemNumberAtIndex(12);
+        TKAssertExactEquals(n, 6);
+        n = str.listItemNumberAtIndex(16);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(22);
+        TKAssertExactEquals(n, 2);
+        n = str.listItemNumberAtIndex(27);
+        TKAssertExactEquals(n, 7);
+        n = str.listItemNumberAtIndex(32);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(36);
+        TKAssertExactEquals(n, 1);
+        n = str.listItemNumberAtIndex(42);
+        TKAssertExactEquals(n, 2);
+        n = str.listItemNumberAtIndex(48);
+        TKAssertExactEquals(n, 8);
+        n = str.listItemNumberAtIndex(53);
+        TKAssertExactEquals(n, 0);
+
+        str.deleteCharactersInRange(JSRange(0, 8));
+        n = str.listItemNumberAtIndex(0);
+        TKAssertExactEquals(n, 5);
+    }
     
 });
 

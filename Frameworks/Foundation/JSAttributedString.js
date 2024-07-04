@@ -73,6 +73,7 @@ JSClass("JSAttributedString", JSObject, {
                     return JSAttributedString.AttributeDecoder.skip(value);
                 case JSAttributedString.Attribute.maskCharacter:
                 case JSAttributedString.Attribute.paragraphStyleName:
+                case JSAttributedString.Attribute.listMarker:
                     return JSAttributedString.AttributeDecoder.string(value);
                 case JSAttributedString.Attribute.bold:
                 case JSAttributedString.Attribute.italic:
@@ -87,6 +88,9 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.headIndent:
                 case JSAttributedString.Attribute.tailIndent:
                 case JSAttributedString.Attribute.minimumLineHeight:
+                case JSAttributedString.Attribute.listLevel:
+                case JSAttributedString.Attribute.listIndent:
+                case JSAttributedString.Attribute.listStartingNumber:
                     return JSAttributedString.AttributeDecoder.number(value);
                 case JSAttributedString.Attribute.textAlignment:
                     return JSAttributedString.AttributeDecoder.enumValue(JSTextAlignment)(value);
@@ -159,6 +163,10 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.lineBreakMode:
                 case JSAttributedString.Attribute.maskCharacter:
                 case JSAttributedString.Attribute.paragraphStyleName:
+                case JSAttributedString.Attribute.listLevel:
+                case JSAttributedString.Attribute.listIndent:
+                case JSAttributedString.Attribute.listMarker:
+                case JSAttributedString.Attribute.listStartingNumber:
                 default:
                     return value;
             }
@@ -502,6 +510,32 @@ JSClass("JSAttributedString", JSObject, {
         return range;
     },
 
+    // MARK: - Lists
+
+    listItemNumberAtIndex: function(index){
+        var paragraphRange = this._string.rangeForParagraphAtIndex(index);
+        var attributes = this.attributesAtIndex(paragraphRange.location);
+        var n = 0;
+        var listLevel = attributes.listLevel || 0;
+        var minimumListLevel = listLevel;
+        var startingNumber = attributes.listStartingNumber || 1;
+        if (listLevel > 0){
+            while (paragraphRange.location > 0 && listLevel >= minimumListLevel){
+                paragraphRange = this._string.rangeForParagraphAtIndex(paragraphRange.location - 1);
+                attributes = this.attributesAtIndex(paragraphRange.location);
+                listLevel = attributes.listLevel || 0;
+                if (listLevel === minimumListLevel){
+                    if (attributes.listStartingNumber){
+                        startingNumber = attributes.listStartingNumber;
+                    }
+                    ++n;
+                }
+            }
+            return startingNumber + n;
+        }
+        return n;
+    },
+
     // MARK: - Formatting
 
     replaceFormat: function(){
@@ -696,6 +730,10 @@ JSAttributedString.Attribute = {
     firstLineHeadIndent: "firstLineHeadIndent",
     headIndent: "headIndent",
     tailIndent: "tailIndent",
+    listLevel: "listLevel",
+    listIndent: "listIndent",
+    listMarker: "listMarker",
+    listStartingNumber: "listStartingNumber",
 };
 
 JSAttributedString.paragraphAttributes = [
@@ -709,7 +747,11 @@ JSAttributedString.paragraphAttributes = [
     JSAttributedString.Attribute.beforeParagraphSpacing,
     JSAttributedString.Attribute.firstLineHeadIndent,
     JSAttributedString.Attribute.headIndent,
-    JSAttributedString.Attribute.tailIndent
+    JSAttributedString.Attribute.tailIndent,
+    JSAttributedString.Attribute.listLevel,
+    JSAttributedString.Attribute.listIndent,
+    JSAttributedString.Attribute.listMarker,
+    JSAttributedString.Attribute.listStartingNumber
 ];
 
 JSAttributedString.AttributeEncoder = {
