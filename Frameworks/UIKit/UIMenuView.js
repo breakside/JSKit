@@ -369,7 +369,7 @@ JSClass("UIMenuWindow", UIWindow, {
     },
 
     mouseUp: function(event){
-        if (event.timestamp - this._itemDownTimestamp < 0.2){
+        if (event.timestamp - this._itemDownTimestamp < 0.6){
             return;
         }
         if (this._isClosing){
