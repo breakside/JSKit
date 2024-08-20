@@ -808,6 +808,17 @@ JSCalendar.Unit.difference =
 
 JSCalendar.Unit.date = JSCalendar.Unit.year | JSCalendar.Unit.month | JSCalendar.Unit.day;
 
+JSCalendar.Weekday = {
+    none: 0,
+    sunday: 1,
+    monday: 2,
+    tuesday: 3,
+    wednesday: 4,
+    thursday: 5,
+    friday: 6,
+    saturday: 7
+};
+
 var monthsPerYear = 12;
 var minutesPerHour = 60;
 var hoursPerDay = 24;

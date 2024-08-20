@@ -118,6 +118,7 @@ JSClass("JSCalendarTests", TKTestSuite, {
         TKAssertExactEquals(components.second, 0);
         TKAssertExactEquals(components.millisecond, 0);
         TKAssertExactEquals(components.weekday, 5);
+        TKAssertExactEquals(components.weekday, JSCalendar.Weekday.thursday);
 
         // Check custom tz
         tz = JSTimeZone.initWithTimeIntervalFromUTC(3600);
