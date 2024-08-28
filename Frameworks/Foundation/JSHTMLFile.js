@@ -31,6 +31,10 @@ JSClass("JSHTMLFile", JSFile, {
     initWithFile: function(file){
         this.initWithBlob(file);
         this._name = file.name;
+        var contentType = JSFile.contentTypeForFileExtension(this._name.fileExtension);
+        if (contentType !== null){
+            this._contentType = JSMediaType(contentType);
+        }
     },
 
     initWithBlob: function(blob){

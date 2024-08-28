@@ -21,6 +21,14 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
 
     requiredEnvironment: 'html',
 
+    setup: function(){
+        JSFile.registerContentTypeForFileExtension(JSMediaType("application/x-jskit-test"), ".jskittest")
+    },
+
+    teardown: function(){
+        JSFile.unregisterContentTypeForFileExtension(JSMediaType("application/x-jskit-test"), ".jskittest")
+    },
+
     testHTMLFile: function(){
         var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
         var blob = new File([bytes], "test.dat", {type: "application/octet-stream"});
@@ -30,6 +38,15 @@ JSClass("JSHTMLFileTests", TKTestSuite, {
         TKAssertEquals(file.name, "test.dat");
         TKAssertNotNull(file.contentType);
         TKAssertEquals(file.contentType.mime, "application/octet-stream");
+
+        var bytes = JSData.initWithArray([0x01, 0x02, 0x03, 0x04]);
+        var blob = new File([bytes], "test.jskittest", {type: "application/octet-stream"});
+        var file = JSHTMLFile.initWithFile(blob);
+        TKAssertNotNull(file);
+        TKAssertEquals(file.size, 4);
+        TKAssertEquals(file.name, "test.jskittest");
+        TKAssertNotNull(file.contentType);
+        TKAssertEquals(file.contentType.mime, "application/x-jskit-test");
     },
 
     testReadHTMLFile: function(){

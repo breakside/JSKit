@@ -21,8 +21,8 @@
 JSClass("JSFile", JSObject, {
 
     url: JSReadOnlyProperty(null, null, 'getURL'),
-    name: JSReadOnlyProperty('_name', null),
-    contentType: JSReadOnlyProperty('_contentType', null),
+    name: JSDynamicProperty('_name', null),
+    contentType: JSDynamicProperty('_contentType', null),
     size: JSReadOnlyProperty('_size', 0),
 
     initWithData: function(data, name, contentType){
@@ -54,6 +54,27 @@ JSClass("JSFile", JSObject, {
     },
 
 });
+
+JSFile.contentTypesByFileExtension = {};
+
+JSFile.registerContentTypeForFileExtension = function(contentType, fileExtension){
+    fileExtension = fileExtension.toLowerCase();
+    JSFile.contentTypesByFileExtension[fileExtension] = contentType;
+};
+
+JSFile.unregisterContentTypeForFileExtension = function(contentType, fileExtension){
+    fileExtension = fileExtension.toLowerCase();
+    var registeredContentType = JSFile.contentTypesByFileExtension[fileExtension];
+    if (registeredContentType !== undefined){
+        if (registeredContentType.mime === contentType.mime){
+            delete JSFile.contentTypesByFileExtension[fileExtension];
+        }
+    }
+};
+
+JSFile.contentTypeForFileExtension = function(fileExtension){
+    return JSFile.contentTypesByFileExtension[fileExtension] || null;
+};
 
 JSClass("JSDataFile", JSFile, {
 
