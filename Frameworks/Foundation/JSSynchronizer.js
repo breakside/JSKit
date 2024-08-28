@@ -45,18 +45,22 @@ JSClass("JSSynchronizer", JSObject, {
         return this._scheduleSync(0, completion, target);
     },
 
-    _isPaused: false,
+    _pauseCount: 0,
     _syncOnResume: false,
 
     pause: function(){
-        this._isPaused = true;
+        ++this._pauseCount;
     },
 
     resume: function(){
-        this._isPaused = false;
-        if (this._syncOnResume){
-            this._syncOnResume = true;
-            this._scheduleSync(0, function(){});
+        if (this._pauseCount > 0){
+            --this._pauseCount;
+            if (this._pauseCount === 0){
+                if (this._syncOnResume){
+                    this._syncOnResume = false;
+                    this._scheduleSync(0, function(){});
+                }
+            }
         }
     },
 
@@ -91,7 +95,7 @@ JSClass("JSSynchronizer", JSObject, {
     },
 
     _sync: function(){
-        if (this._isPaused){
+        if (this._pauseCount > 0){
             this._syncOnResume = true;
             return;
         }
