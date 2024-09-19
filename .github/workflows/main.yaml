@@ -41,6 +41,9 @@ jobs:
         
       - name: Install Webkit Depedencies
         run: sudo npx playwright install-deps
+        
+      - name: Install Webkit Depedencies
+        run: npx playwright install
 
       # Tests
 
