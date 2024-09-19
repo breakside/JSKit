@@ -124,6 +124,39 @@ JSClass("SECCipherTests", TKTestSuite, {
         this._testEncryptDecrypt(cipher);
     },
 
+    testAESGaloisCounterModeEncryptDecrypt128AdditionalData: function(){
+        var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode, {keyBitLength: 128, additionalData: "testing".utf8()});
+        TKAssertEquals(cipher.keyBitLength, 128);
+        var expectation = TKExpectation.init();
+        expectation.call(cipher.createKey, cipher, function(key){
+            TKAssertNotNull(key);
+            expectation.call(key.getData, key, function(data){
+                TKAssertNotNull(data);
+                TKAssertEquals(data.length * 8, cipher.keyBitLength);
+                expectation.call(cipher.encryptString, cipher, "Hello, World!", key, function(encrypted){
+                    TKAssertNotNull(encrypted);
+                    TKAssertObjectNotEquals(encrypted, "Hello, World!".utf8());
+                    expectation.call(cipher.decryptString, cipher, encrypted, key, function(decrypted){
+                        TKAssertNotNull(decrypted);
+                        TKAssertEquals(decrypted, "Hello, World!");
+                        var cipher2 = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode, {keyBitLength: 128, additionalData: "wrong".utf8()});
+                        expectation.call(cipher2.decryptString, cipher2, encrypted, key, function(decrypted){
+                            TKAssertNull(decrypted);
+                            var cipher3 = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode, {keyBitLength: 128, additionalData: "testing".utf8()});
+                            expectation.call(cipher3.decryptString, cipher3, encrypted, key, function(decrypted){
+                                TKAssertNotNull(decrypted);
+                                TKAssertEquals(decrypted, "Hello, World!");
+                            });
+                        });
+                    });
+                    expectation.setTimeout(5.0);
+                });
+            });
+            expectation.setTimeout(5.0);
+        });
+        this.wait(expectation, 5.0);
+    },
+
     testAESGaloisCounterModeEncryptDecryptPromise128: function(){
         var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGaloisCounterMode, 128);
         TKAssertEquals(cipher.keyBitLength, 128);
