@@ -265,7 +265,7 @@ JSClass("SECCipherRC4", SECCipher, {
         var j = 0;
         var tmp;
         for (i = 0; i < 256; ++i){
-            j = (j + S[i] + key.keyData[i % key.keyData.length]) & 0xFF;
+            j = (j + S[i] + key.data[i % key.data.length]) & 0xFF;
             tmp = S[i];
             S[i] = S[j];
             S[j] = tmp;

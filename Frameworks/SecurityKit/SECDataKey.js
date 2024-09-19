@@ -18,22 +18,22 @@
 
 JSClass("SECDataKey", SECKey, {
 
-    keyData: null,
+    data: null,
 
     initWithData: function(data){
-        this.keyData = JSData.initWithCopyOfData(data);
+        this.data = JSData.initWithCopyOfData(data);
     },
 
     getData: function(completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        JSRunLoop.main.schedule(completion, target, this.keyData);
+        JSRunLoop.main.schedule(completion, target, this.data);
         return completion.promise;
     },
 
     destroy: function(){
-        this.keyData.zero();
+        this.data.zero();
     }
 
 });

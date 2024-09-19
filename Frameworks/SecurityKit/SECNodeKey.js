@@ -14,8 +14,49 @@
 // limitations under the License.
 
 // #import "SECDataKey.js"
+/* jshint node: true */
 'use strict';
 
-JSClass("SECNodeKey", SECDataKey, {
+var crypto = require('crypto');
+
+JSClass("SECNodeKey", SECKey, {
+
+    nodeKeyObject: null,
+
+    initWithData: function(data){
+        this.nodeKeyObject = crypto.createSecretKey(data.nodeBuffer());
+    },
+
+    initWithNodeKeyObject: function(nodeKeyObject){
+        this.nodeKeyObject = nodeKeyObject;
+    },
+
+    getNodeKeyObject: function(completion, target){
+        completion.call(target, this.nodeKeyObject);
+    },
+
+    getData: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var buffer = this.nodeKeyObject.export({format: "buffer"});
+        JSRunLoop.main.schedule(completion, target, JSData.initWithNodeBuffer(buffer));
+        return completion.promise;
+    },
+
+    destroy: function(){
+        this.nodeKeyObject = null;
+    }
+
+});
+
+SECKey.definePropertiesFromExtensions({
+
+    getNodeKeyObject: function(completion, target){
+        this.getData(function(data){
+            let keyObject = crypto.createSecretKey(data.nodeBuffer());
+            completion.call(target, null);
+        }, this);
+    }
 
 });

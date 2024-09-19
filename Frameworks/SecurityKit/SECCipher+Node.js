@@ -27,7 +27,9 @@ SECCipher.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        this.encrypt(key.keyData, wrappingKey, completion, target);
+        key.getData(function(keyData){
+            this.encrypt(keyData, wrappingKey, completion, target);
+        }, this);
         return completion.promise;
     },
 
@@ -49,11 +51,11 @@ SECCipher.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.randomBytes(this.keyByteLength, function(error, keyBytes){
+        crypto.generateKey("aes", {length: this.keyBitLength}, function(error, key){
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(keyBytes)));
+                completion.call(target, SECNodeKey.initWithNodeKeyObject(key));
             }
         });
         return completion.promise;
@@ -71,8 +73,8 @@ SECCipher.definePropertiesFromExtensions({
 
 SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
 
-    _cipherNameForKey: function(key){
-        switch (key.keyData.length){
+    _cipherNameForKey: function(nodeKey){
+        switch (nodeKey.symmetricKeySize){
             case 16:
                 return 'AES-128-CBC';
             case 24:
@@ -87,7 +89,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var name = this._cipherNameForKey(key);
+        var name = this._cipherNameForKey(key.nodeKeyObject);
         crypto.randomBytes(16, function(error, iv){
             if (error){
                 completion.call(target, null);
@@ -97,7 +99,7 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
                 completion.call(target, null);
                 return;
             }
-            var cipher = crypto.createCipheriv(name, key.keyData, iv);
+            var cipher = crypto.createCipheriv(name, key.nodeKeyObject, iv);
             var chunks = [iv, cipher.update(data), cipher.final()];
             completion.call(target, JSData.initWithChunks(chunks));
         });
@@ -109,13 +111,13 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         try{
-            var name = this._cipherNameForKey(key);
+            var name = this._cipherNameForKey(key.nodeKeyObject);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
                 return completion.promise;
             }
             var iv = data.subdataInRange(JSRange(0, 16));
-            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var cipher = crypto.createDecipheriv(name, key.nodeKeyObject, iv);
             var chunks = [cipher.update(data.subdataInRange(JSRange(16, data.length - 16))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
@@ -128,8 +130,8 @@ SECCipherAESCipherBlockChaining.definePropertiesFromExtensions({
 
 SECCipherAESCounter.definePropertiesFromExtensions({
 
-    _cipherNameForKey: function(key){
-        switch (key.keyData.length){
+    _cipherNameForKey: function(nodeKey){
+        switch (nodeKey.symmetricKeySize){
             case 16:
                 return 'AES-128-CTR';
             case 24:
@@ -148,7 +150,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
         }
-        var name = this._cipherNameForKey(key);
+        var name = this._cipherNameForKey(key.nodeKeyObject);
         if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
@@ -165,7 +167,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
         ]);
         var iv = JSData.initWithLength(16);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv(name, key.keyData, iv);
+        var cipher = crypto.createCipheriv(name, key.nodeKeyObject, iv);
         var chunks = [nonce, cipher.update(data), cipher.final()];
         JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         return completion.promise;
@@ -176,7 +178,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         try{
-            var name = this._cipherNameForKey(key);
+            var name = this._cipherNameForKey(key.nodeKeyObject);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
                 return completion.promise;
@@ -184,7 +186,7 @@ SECCipherAESCounter.definePropertiesFromExtensions({
             var nonce = data.subdataInRange(JSRange(0, 8));
             var iv = JSData.initWithLength(16);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var cipher = crypto.createDecipheriv(name, key.nodeKeyObject, iv);
             var chunks = [cipher.update(data.subdataInRange(JSRange(8, data.length - 8))), cipher.final()];
             JSRunLoop.main.schedule(completion, target, JSData.initWithChunks(chunks));
         }catch (e){
@@ -197,8 +199,8 @@ SECCipherAESCounter.definePropertiesFromExtensions({
 
 SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
 
-    _cipherNameForKey: function(key){
-        switch (key.keyData.length){
+    _cipherNameForKey: function(nodeKey){
+        switch (nodeKey.symmetricKeySize){
             case 16:
                 return 'id-aes128-GCM';
             case 24:
@@ -213,7 +215,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var name = this._cipherNameForKey(key);
+        var name = this._cipherNameForKey(key.nodeKeyObject);
         if (name === null){
             JSRunLoop.main.schedule(completion, target, null);
             return completion.promise;
@@ -223,7 +225,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }
         var iv = JSData.initWithLength(_ivLength);
         nonce.copyTo(iv, 0);
-        var cipher = crypto.createCipheriv(name, key.keyData, iv);
+        var cipher = crypto.createCipheriv(name, key.nodeKeyObject, iv);
         var chunks = [nonce, cipher.update(data), cipher.final()];
         var tagLength = 16;
         var tag = JSData.initWithLength(tagLength);
@@ -238,7 +240,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         try{
-            var name = this._cipherNameForKey(key);
+            var name = this._cipherNameForKey(key.nodeKeyObject);
             if (name === null){
                 JSRunLoop.main.schedule(completion, target, null);
                 return completion.promise;
@@ -249,7 +251,7 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
             }
             var iv = JSData.initWithLength(_ivLength);
             nonce.copyTo(iv, 0);
-            var cipher = crypto.createDecipheriv(name, key.keyData, iv);
+            var cipher = crypto.createDecipheriv(name, key.nodeKeyObject, iv);
             var tagLength = 16;
             var tag = data.subdataInRange(JSRange(data.length - tagLength, tagLength));
             cipher.setAuthTag(tag);
