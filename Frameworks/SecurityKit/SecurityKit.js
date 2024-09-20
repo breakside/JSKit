@@ -21,6 +21,7 @@
 // #import "SECKeychain.js"
 // #import "SECJSONWebAlgorithms.js"
 // #import "SECJSONWebToken.js"
+// #import "SECJSONWebEncryption.js"
 // #import "SECPassword.js"
 // #import "SECASN1.js"
 // #import "SECASN1Parser.js"
