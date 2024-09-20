@@ -30,7 +30,14 @@ JSClass("KeyCommand", Command, {
 
     run: async function(){
         var workspaceURL = this.workingDirectoryURL;
-        var data = SECCipher.getRandomData(this.arguments.bits >> 3);
+        var hmacAlgorithm = {
+            256: SECHMAC.Algorithm.sha256,
+            384: SECHMAC.Algorithm.sha384,
+            512: SECHMAC.Algorithm.sha512
+        }[this.arguments.bits];
+        var hmac = SECHMAC.initWithAlgorithm(hmacAlgorithm);
+        var key = await hmac.createKey();
+        var data = key.getData();
         var printer = Printer.initWithLabel('key');
         if (this.arguments.format === "jwk"){
             var jwk = {

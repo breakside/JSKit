@@ -38,11 +38,7 @@ SECHMAC.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var algorithm = {
-            name: this.htmlAlgorithm.name,
-            hash: this.htmlAlgorithm.hash,
-            length: 256
-        };
+        var algorithm = this.htmlAlgorithm;
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["sign"]).then(function(htmlKey){
             completion.call(target, SECHTMLKey.initWithKey(htmlKey));
@@ -57,7 +53,10 @@ SECHMAC.definePropertiesFromExtensions({
             completion = Promise.completion(Promise.resolveNonNull);
         }
         var extractable = true;
-        var algorithm = this.htmlAlgorithm;
+        var algorithm = {
+            name: this.htmlAlgorithm.name,
+            hash: this.htmlAlgorithm.hash
+        };
         crypto.subtle.importKey("raw", data, algorithm, extractable, ["sign"]).then(function(htmlKey){
             completion.call(target, SECHTMLKey.initWithKey(htmlKey));
         }, function(e){
@@ -77,7 +76,10 @@ SECHMAC.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        var algorithm = this.htmlAlgorithm;
+        var algorithm = {
+            name: this.htmlAlgorithm.name,
+            hash: this.htmlAlgorithm.hash
+        };
         var data = JSData.initWithChunks(this.chunks);
         crypto.subtle.sign(algorithm, this.key.htmlKey, data).then(function(computed){
             completion.call(target, JSData.initWithBuffer(computed));
@@ -91,9 +93,9 @@ SECHMAC.definePropertiesFromExtensions({
 
 var htmlAlgorithms = {};
 htmlAlgorithms[SECHMAC.Algorithm.sha1] = { name: 'HMAC', hash: 'SHA-1'};
-htmlAlgorithms[SECHMAC.Algorithm.sha256] = { name: 'HMAC', hash: 'SHA-256'};
-htmlAlgorithms[SECHMAC.Algorithm.sha384] = { name: 'HMAC', hash: 'SHA-384'};
-htmlAlgorithms[SECHMAC.Algorithm.sha512] = { name: 'HMAC', hash: 'SHA-512'};
+htmlAlgorithms[SECHMAC.Algorithm.sha256] = { name: 'HMAC', hash: 'SHA-256', length: 256};
+htmlAlgorithms[SECHMAC.Algorithm.sha384] = { name: 'HMAC', hash: 'SHA-384', length: 384};
+htmlAlgorithms[SECHMAC.Algorithm.sha512] = { name: 'HMAC', hash: 'SHA-512', length: 512};
 
 
 })();

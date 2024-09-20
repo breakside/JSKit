@@ -36,7 +36,19 @@ SECHMAC.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.generateKey("hmac", {length: 256}, function(error, key){
+        var length;
+        switch (this.nodeAlgorithm){
+            case "sha512":
+                length = 512;
+                break;
+            case "sha384":
+                length = 384;
+                break;
+            default:
+                length = 256;
+                break;
+        }
+        crypto.generateKey("hmac", {length: length}, function(error, key){
             if (error){
                 completion.call(target, null);
             }else{
