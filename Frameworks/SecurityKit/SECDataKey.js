@@ -19,6 +19,7 @@
 JSClass("SECDataKey", SECKey, {
 
     data: null,
+    type: SECKey.KeyType.secret,
 
     initWithData: function(data){
         this.data = JSData.initWithCopyOfData(data);

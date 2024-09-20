@@ -22,13 +22,22 @@ var crypto = require('crypto');
 JSClass("SECNodeKey", SECKey, {
 
     nodeKeyObject: null,
+    jwkProperties: null,
 
     initWithData: function(data){
+        if (data === null || data === undefined){
+            return null;
+        }
         this.nodeKeyObject = crypto.createSecretKey(data.nodeBuffer());
+        this.type = this.nodeKeyObject.type;
     },
 
-    initWithNodeKeyObject: function(nodeKeyObject){
+    initWithNodeKeyObject: function(nodeKeyObject, jwkProperties){
+        if (nodeKeyObject === null || nodeKeyObject === undefined){
+            return null;
+        }
         this.nodeKeyObject = nodeKeyObject;
+        this.jwkProperties = jwkProperties || {};
     },
 
     getNodeKeyObject: function(completion, target){
@@ -44,6 +53,18 @@ JSClass("SECNodeKey", SECKey, {
         return completion.promise;
     },
 
+    getJWK: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var jwk = this.nodeKeyObject.export({format: "jwk"});
+        for (var k in this.jwkProperties){
+            jwk[k] = this.jwkProperties[k];
+        }
+        JSRunLoop.main.schedule(completion, target, jwk);
+        return completion.promise;
+    },
+
     destroy: function(){
         this.nodeKeyObject = null;
     }
@@ -54,7 +75,7 @@ SECKey.definePropertiesFromExtensions({
 
     getNodeKeyObject: function(completion, target){
         this.getData(function(data){
-            let keyObject = crypto.createSecretKey(data.nodeBuffer());
+            var keyObject = crypto.createSecretKey(data.nodeBuffer());
             completion.call(target, null);
         }, this);
     }

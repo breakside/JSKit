@@ -18,10 +18,22 @@
 
 JSClass("SECKey", JSObject, {
 
+    type: null,
+    publicKey: null,
+
     getData: function(completion, target){
+    },
+
+    getJWK: function(completion, target){
     },
 
     destroy: function(){
     }
 
 });
+
+SECKey.KeyType = {
+    secret: "secret",
+    private: "private",
+    public: "public"
+};

@@ -16,6 +16,8 @@
 // #import Foundation
 // #import "SECCipher.js"
 // #import "SECNodeKey.js"
+// #import "SECASN1Parser.js"
+// #import "SECJSONWebAlgorithms.js"
 // jshint node: true
 'use strict';
 
@@ -46,6 +48,10 @@ SECCipher.definePropertiesFromExtensions({
         }, this);
         return completion.promise;
     },
+
+});
+
+SECCipherAES.definePropertiesFromExtensions({
 
     createKey: function(completion, target){
         if (!completion){
@@ -248,6 +254,103 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
         }
         return completion.promise;
     }
+
+});
+
+SECCipherRSAOAEP.definePropertiesFromExtensions({
+
+    encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var options = {
+            key: key.nodeKeyObject,
+            oaepHash: this.hash
+        };
+        if (this.label !== null){
+            options.oaepLabel = this.label;
+        }
+        var encryptedBuffer = crypto.publicEncrypt(options, data);
+        JSRunLoop.main.schedule(completion, target, JSData.initWithNodeBuffer(encryptedBuffer));
+        return completion.promise;
+    },
+
+    decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var options = {
+            key: key.nodeKeyObject,
+            oaepHash: this.hash
+        };
+        if (this.label !== null){
+            options.oaepLabel = this.label;
+        }
+        var decryptedBuffer = crypto.privateDecrypt(options, data);
+        JSRunLoop.main.schedule(completion, target, JSData.initWithNodeBuffer(decryptedBuffer));
+        return completion.promise;
+    },
+
+    createKey: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var options = {
+            modulusLength: this.modulusLength,
+            publicExponent: this.publicExponent
+        };
+        crypto.generateKeyPair("rsa", options, function(err, publicNodeKey, privateNodeKey){
+            if (err){
+                completion.call(target, null);
+                return;
+            }
+            var privateKey = SECNodeKey.initWithNodeKeyObject(privateNodeKey, {alg: SECJSONWebAlgorithms.Algorithm.rsaOAEP});
+            privateKey.publicKey = SECNodeKey.initWithNodeKeyObject(publicNodeKey, {alg: SECJSONWebAlgorithms.Algorithm.rsaOAEP});
+            completion.call(target, privateKey);
+        });
+        return completion.promise;
+    },
+
+    createKeyWithData: function(data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var parser;
+        var key;
+        try{
+            parser = SECASN1Parser.initWithPEM(data, "RSA PRIVATE KEY");
+            key = crypto.createPrivateKey({key: parser.der, format: "der"});
+        }catch (e){
+            try {
+                parser = SECASN1Parser.initWithPEM(data, "RSA PUBLIC KEY");
+                key = crypto.createPublicKey({key: parser.der, format: "der"});
+            }catch (e){
+                parser = SECASN1Parser.initWithDER(data);
+                var sequence = parser.parse();
+                if (sequence.length > 2){
+                    key = crypto.createPrivateKey({key: parser.der, format: "der"});
+                }else{
+                    key = crypto.createPublicKey({key: parser.der, format: "der"});
+                }
+            }
+        }
+        JSRunLoop.main.schedule(completion, target, SECNodeKey.initWithNodeKeyObject(key));
+        return completion.promise;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var key = null;
+        if (jwk.d){
+            key = crypto.createPrivateKey({key: jwk, format: "jwk"});
+        }else{
+            key = crypto.createPublicKey({key: jwk, format: "jwk"});
+        }
+        JSRunLoop.main.schedule(completion, target, SECNodeKey.initWithNodeKeyObject(key));
+        return completion.promise;
+    },
 
 });
 

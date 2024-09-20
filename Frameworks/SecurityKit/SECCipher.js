@@ -43,6 +43,8 @@ JSClass("SECCipher", JSObject, {
                 return SECCipherAESGaloisCounterMode.initWithOptions(options);
             case SECCipher.Algorithm.rivestCipher4:
                 return SECCipherRC4.init();
+            case SECCipher.Algorithm.rsaOAEP:
+                return SECCipherRSAOAEP.initWithOptions(options);
         }
         return null;
     },
@@ -124,6 +126,53 @@ JSClass("SECCipher", JSObject, {
     },
 
     createKeyFromJWK: function(jwk, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+    createKeyFromKeystore: function(keystore, kid, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+    createKeyWithPassphrase: function(passphrase, salt, iterations, hash, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+});
+
+SECCipher.Algorithm = {
+    aesCipherBlockChaining: 'aes_cbc',
+    aesCounter: 'aes_ctr',
+    aesGaloisCounterMode: 'aes_gcm',
+    rivestCipher4: 'rc4',
+    rsaOAEP: "rsa_oaep"
+};
+
+JSClass("SECCipherAES", SECCipher, {
+
+    keyBitLength: null,
+    keyByteLength: null,
+
+    initWithOptions: function(options){
+        this.keyBitLength = options.keyBitLength || 256;
+        this.keyByteLength = this.keyBitLength >> 3;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
@@ -181,27 +230,6 @@ JSClass("SECCipher", JSObject, {
             this.createKeyWithData(data, completion, target);
         }, this);
         return completion.promise;
-    },
-
-});
-
-SECCipher.Algorithm = {
-    aesCipherBlockChaining: 'aes_cbc',
-    aesCounter: 'aes_ctr',
-    aesGaloisCounterMode: 'aes_gcm',
-    rivestCipher4: 'rc4',
-    rsaOAEP: "rsa_oaep",
-    ecdhES: "ecdh_es"
-};
-
-JSClass("SECCipherAES", SECCipher, {
-
-    keyBitLength: null,
-    keyByteLength: null,
-
-    initWithOptions: function(options){
-        this.keyBitLength = options.keyBitLength || 256;
-        this.keyByteLength = this.keyBitLength >> 3;
     },
 
 });
@@ -274,6 +302,24 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipherAES, {
 
     decrypt: function(data, key, completion, target){
     },
+
+});
+
+JSClass("SECCipherRSAOAEP", SECCipher, {
+
+    hash: null,
+    label: null,
+    modulusLength: null,
+    publicExponent: null,
+
+    initWithOptions: function(options){
+        if (options.label){
+            this.label = options.label;
+        }
+        this.hash = options.hash || SECHash.Algorithm.sha1;
+        this.modulusLength = options.modulusLength || 2048;
+        this.publicExponent = options.publicExponent || 0x10001;
+    }
 
 });
 

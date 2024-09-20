@@ -17,6 +17,7 @@
 // #import "SECCipher.js"
 // #import "SECHTMLKey.js"
 // #import "SECHash.js"
+// #import "SECASN1Parser.js"
 // #feature window.crypto.subtle
 // jshint browser: true
 /* global crypto */
@@ -43,6 +44,12 @@ var HTMLCryptoAlgorithmNames = {
         return null;
     }
 };
+
+var HTMLHashAlgorithms = {};
+HTMLHashAlgorithms[SECHash.Algorithm.sha1] = 'SHA-1';
+HTMLHashAlgorithms[SECHash.Algorithm.sha256] = 'SHA-256';
+HTMLHashAlgorithms[SECHash.Algorithm.sha384] = 'SHA-384';
+HTMLHashAlgorithms[SECHash.Algorithm.sha512] = 'SHA-512';
 
 SECCipherAES.definePropertiesFromExtensions({
 
@@ -361,8 +368,174 @@ SECCipherAESGaloisCounterMode.definePropertiesFromExtensions({
     }
 });
 
+SECCipherRSAOAEP.definePropertiesFromExtensions({
+
+    createKey: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP",
+            modulusLength: this.modulusLength,
+            publicExponent: bigIntegerFromNumber(this.publicExponent),
+            hash: HTMLHashAlgorithms[this.hash]
+        };
+        crypto.subtle.generateKey(algorithm, true, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlPair){
+            var privateKey = SECHTMLKey.initWithKey(htmlPair.privateKey);
+            privateKey.publicKey = SECHTMLKey.initWithKey(htmlPair.publicKey);
+            completion.call(target, privateKey);
+        }, function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP",
+            hash: HTMLHashAlgorithms[this.hash]
+        };
+        var usages = jwk.d ? ["decrypt", "unwrapKey"] : ["encrypt", "wrapKey"];
+        crypto.subtle.importKey("jwk", jwk, algorithm, true, usages).then(function(htmlKey){
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            completion.call(target, key);
+        }, function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    createKeyWithData: function(data, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP",
+            hash: HTMLHashAlgorithms[this.hash]
+        };
+        var usages;
+        var parser;
+        try{
+            parser = SECASN1Parser.initWithPEM(data, "RSA PRIVATE KEY");
+            data = parser.der;
+            usages = ["decrypt", "unwrapKey"];
+        }catch (e){
+            try {
+                parser = SECASN1Parser.initWithPEM(data, "RSA PUBLIC KEY");
+                data = parser.der;
+                usages = ["encrypt", "wrapKey"];
+            }catch (e){
+                // assume data was already DER
+                parser = SECASN1Parser.initWithDER(data);
+                var sequence = parser.parse;
+                if (sequence.length > 2){
+                    usages = ["decrypt", "unwrapKey"];
+                }else{
+                    usages = ["encrypt", "wrapKey"];
+                }
+            }
+        }
+        crypto.subtle.importKey("pkcs8", data, algorithm, true, usages).then(function(htmlKey){
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            completion.call(target, key);
+        }, function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    encrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP"
+        };
+        if (this.label !== null){
+            algorithm.label = this.label;
+        }
+        crypto.subtle.encrypt(algorithm, key.htmlKey, data).then(function(encrypted){
+            var encryptedData = JSData.initWithBuffer(encrypted);
+            completion.call(target, encryptedData);
+        },function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    decrypt: function(data, key, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP"
+        };
+        if (this.label !== null){
+            algorithm.label = this.label;
+        }
+        crypto.subtle.decrypt(algorithm, key.htmlKey, data).then(function(decrypted){
+            var decryptedData = JSData.initWithBuffer(decrypted);
+            completion.call(target, decryptedData);
+        }, function(error){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    wrapKey: function(key, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP"
+        };
+        if (this.label !== null){
+            algorithm.label = this.label;
+        }
+        crypto.subtle.wrapKey("raw", key.htmlKey, wrappingKey.htmlKey, algorithm).then(function(bytes){
+            var wrapped = JSData.initWithBuffer(bytes);
+            completion.call(target, wrapped);
+        }, function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    unwrapKey: function(wrappedKeyData, unwrappedKeyAlgorithm, wrappingKey, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var algorithm = {
+            name: "RSA-OAEP"
+        };
+        if (this.label !== null){
+            algorithm.label = this.label;
+        }
+        var unwrappedKeyHTMLAlgorithm = HTMLCryptoAlgorithmNames.fromAlgorithm(unwrappedKeyAlgorithm);
+        crypto.subtle.unwrapKey("raw", wrappedKeyData, wrappingKey.htmlKey, algorithm, unwrappedKeyHTMLAlgorithm, true, ["encrypt", "decrypt"]).then(function(key){
+            completion.call(target, SECHTMLKey.initWithKey(key));
+        }, function(e){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    }    
+
+});
+
 SECCipher.getRandomData = function(length){
     return crypto.getRandomValues(JSData.initWithLength(length));
+};
+
+var bigIntegerFromNumber = function(n){
+    var elements = [];
+    while (n > 0){
+        elements.unshift(n & 0xFF);
+        n >>>= 8;
+    }
+    return JSData.initWithArray(elements);
 };
 
 })();
