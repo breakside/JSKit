@@ -43,7 +43,11 @@ JSClass("SECHTMLKey", SECKey, {
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
+        var kid = this.id;
         crypto.subtle.exportKey("jwk", this.htmlKey).then(function(jwk){
+            if (kid !== null){
+                jwk.kid = kid;
+            }
             completion.call(target, jwk);
         }, function(){
             completion.call(target, null);

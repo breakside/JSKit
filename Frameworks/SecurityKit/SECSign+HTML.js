@@ -55,37 +55,11 @@ SECSign.definePropertiesFromExtensions({
                 public: SECHTMLKey.initWithKey(htmlPair.publicKey),
                 private: SECHTMLKey.initWithKey(htmlPair.privateKey)
             };
+            pair.public.id = pair.private.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
             completion.call(target, pair);
         }, function(e){
             completion.call(target, null);
         });
-        return completion.promise;
-    },
-
-    createJWKPair: function(options, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        this.createKeyPair(options, function(pair){
-            if (pair === null){
-                completion.call(target, null);
-                return;
-            }
-            crypto.subtle.exportKey("jwk", pair.public.htmlKey).then(function(publicJWK){
-                crypto.subtle.exportKey("jwk", pair.private.htmlKey).then(function(privateJWK){
-                    publicJWK.kid = privateJWK.kid = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
-                    var pair = {
-                        public: publicJWK,
-                        private: privateJWK
-                    };
-                    completion.call(target, pair);
-                }, function(){
-                    completion.call(target, null);
-                });
-            }, function(){
-                completion.call(target, null);
-            });
-        }, this);
         return completion.promise;
     },
 
@@ -95,6 +69,7 @@ SECSign.definePropertiesFromExtensions({
         }
         crypto.subtle.importKey("jwk", jwk, this.htmlAlgorithm, true, ["sign"]).then(function(htmlKey){
             var key = SECHTMLKey.initWithKey(htmlKey);
+            key.id = jwk.kid || null;
             completion.call(target, key);
         }, function(error){
             completion.call(target, null);

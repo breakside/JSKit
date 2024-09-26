@@ -57,11 +57,13 @@ SECCipherAES.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.generateKey("aes", {length: this.keyBitLength}, function(error, key){
+        crypto.generateKey("aes", {length: this.keyBitLength}, function(error, nodeKeyObject){
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithNodeKeyObject(key));
+                var key = SECNodeKey.initWithNodeKeyObject(nodeKeyObject);
+                key.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+                completion.call(target, key);
             }
         });
         return completion.promise;
@@ -306,6 +308,7 @@ SECCipherRSAOAEP.definePropertiesFromExtensions({
             }
             var privateKey = SECNodeKey.initWithNodeKeyObject(privateNodeKey, {alg: SECJSONWebAlgorithms.Algorithm.rsaOAEP});
             privateKey.publicKey = SECNodeKey.initWithNodeKeyObject(publicNodeKey, {alg: SECJSONWebAlgorithms.Algorithm.rsaOAEP});
+            privateKey.id = privateKey.publicKey.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
             completion.call(target, privateKey);
         });
         return completion.promise;
@@ -348,6 +351,7 @@ SECCipherRSAOAEP.definePropertiesFromExtensions({
         }else{
             key = crypto.createPublicKey({key: jwk, format: "jwk"});
         }
+        key.id = jwk.kid || null;
         JSRunLoop.main.schedule(completion, target, SECNodeKey.initWithNodeKeyObject(key));
         return completion.promise;
     },

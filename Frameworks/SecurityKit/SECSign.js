@@ -38,6 +38,33 @@ JSClass("SECSign", JSObject, {
     },
 
     createJWKPair: function(options, completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        this.createKeyPair(options, function(pair){
+            if (pair === null){
+                completion.call(target, null);
+                return;
+            }
+            pair.private.getJWK(function(privateJWK){
+                if (privateJWK === null){
+                    completion.call(target, null);
+                    return;
+                }
+                pair.public.getJWK(function(publicJWK){
+                    if (publicJWK === null){
+                        completion.call(target, null);
+                        return;
+                    }
+                    var pair = {
+                        public: publicJWK,
+                        private: privateJWK
+                    };
+                    completion.call(target, pair);
+                }, this);
+            }, this);
+        }, this);
+        return completion.promise;
     },
 
     createKeyFromJWK: function(jwk, completion, target){        

@@ -18,6 +18,7 @@
 
 JSClass("SECKey", JSObject, {
 
+    id: null,
     type: null,
     publicKey: null,
 

@@ -41,7 +41,9 @@ SECHMAC.definePropertiesFromExtensions({
         var algorithm = this.htmlAlgorithm;
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["sign"]).then(function(htmlKey){
-            completion.call(target, SECHTMLKey.initWithKey(htmlKey));
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            key.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+            completion.call(target, key);
         }, function(e){
             completion.call(target, null);
         });

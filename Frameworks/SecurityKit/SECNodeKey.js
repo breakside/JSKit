@@ -61,6 +61,9 @@ JSClass("SECNodeKey", SECKey, {
         for (var k in this.jwkProperties){
             jwk[k] = this.jwkProperties[k];
         }
+        if (this.id !== null){
+            jwk.kid = this.id;
+        }
         JSRunLoop.main.schedule(completion, target, jwk);
         return completion.promise;
     },

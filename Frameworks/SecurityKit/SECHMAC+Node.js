@@ -48,11 +48,13 @@ SECHMAC.definePropertiesFromExtensions({
                 length = 256;
                 break;
         }
-        crypto.generateKey("hmac", {length: length}, function(error, key){
+        crypto.generateKey("hmac", {length: length}, function(error, nodeKeyObject){
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithNodeKeyObject(key));
+                var key = SECNodeKey.initWithNodeKeyObject(nodeKeyObject);
+                key.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+                completion.call(target, key);
             }
         });
         return completion.promise;

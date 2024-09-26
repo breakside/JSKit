@@ -62,179 +62,9 @@ SECSign.definePropertiesFromExtensions({
                 public: SECNodeKey.initWithNodeKeyObject(publicKey),
                 private: SECNodeKey.initWithNodeKeyObject(privateKey),
             };
+            pair.public.id = pair.private.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
             completion.call(target, pair);
         });
-        return completion.promise;
-    },
-
-    createJWKPair: function(options, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        this.createKeyPair(options, function(pair){
-            if (pair === null){
-                completion.call(target, null);
-                return;
-            }
-            var jwkPair = null;
-            try{
-                var kid = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
-                var publicJWK = pair.public.nodeKeyObject.export({format: "jwk"});
-                var privateJWK = pair.private.nodeKeyObject.export({format: "jwk"});
-                publicJWK.kid = kid;
-                privateJWK.kid = kid;
-                // var alg = null;
-                // var kty = null;
-                // switch (this.algorithm){
-                //     case SECSign.Algorithm.rsaSHA256:
-                //         alg = SECJSONWebAlgorithms.Algorithm.rsaSHA256;
-                //         kty = SECJSONWebAlgorithms.KeyType.rsa;
-                //         break;
-                //     case SECSign.Algorithm.rsaSHA384:
-                //         alg = SECJSONWebAlgorithms.Algorithm.rsaSHA384;
-                //         kty = SECJSONWebAlgorithms.KeyType.rsa;
-                //         break;
-                //     case SECSign.Algorithm.rsaSHA512:
-                //         alg = SECJSONWebAlgorithms.Algorithm.rsaSHA512;
-                //         kty = SECJSONWebAlgorithms.KeyType.rsa;
-                //         break;
-                //     case SECSign.Algorithm.ellipticCurveSHA256:
-                //         alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA256;
-                //         kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                //         break;
-                //     case SECSign.Algorithm.ellipticCurveSHA384:
-                //         alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA384;
-                //         kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                //         break;
-                //     case SECSign.Algorithm.ellipticCurveSHA512:
-                //         alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA512;
-                //         kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                //         break;
-                //     default:
-                //         throw new Error("Unable to map SECSign algorithm to JWK");
-                // }
-                // var publicJWK = {
-                //     kid: kid,
-                //     kty: kty,
-                //     alg: alg,
-                //     key_ops: ["verify"]
-                // };
-                // var privateJWK = {
-                //     kid: kid,
-                //     kty: kty,
-                //     alg: alg,
-                //     key_ops: ["sign"]
-                // };
-                // var pem;
-                // var parser;
-                // var sequence;
-                // if (kty == SECJSONWebAlgorithms.KeyType.rsa){
-                //     pem = pair.public.keyData;
-                //     parser = SECASN1Parser.initWithPEM(pem, "RSA PUBLIC KEY");
-                //     sequence = parser.parse();
-                //     publicJWK.n = sequence.values[0].data.base64URLStringRepresentation();
-                //     publicJWK.e = sequence.values[1].data.base64URLStringRepresentation();
-
-                //     pem = pair.private.keyData;
-                //     parser = SECASN1Parser.initWithPEM(pem, "RSA PRIVATE KEY");
-                //     sequence = parser.parse();
-                //     privateJWK.n = sequence.values[1].data.base64URLStringRepresentation();
-                //     privateJWK.e = sequence.values[2].data.base64URLStringRepresentation();
-                //     privateJWK.d = sequence.values[3].data.base64URLStringRepresentation();
-                //     if (sequence.values.length >= 9){
-                //         privateJWK.p = sequence.values[4].data.base64URLStringRepresentation();
-                //         privateJWK.q = sequence.values[5].data.base64URLStringRepresentation();
-                //         privateJWK.dp = sequence.values[6].data.base64URLStringRepresentation();
-                //         privateJWK.dq = sequence.values[7].data.base64URLStringRepresentation();
-                //         privateJWK.qi = sequence.values[8].data.base64URLStringRepresentation();
-                //     }
-                // }else if (kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
-                //     pem = pair.public.keyData;
-                //     parser = SECASN1Parser.initWithPEM(pem, "PUBLIC KEY");
-                //     sequence = parser.parse();
-                //     if (sequence.values[0].values[0].stringValue != "1.2.840.10045.2.1"){
-                //         throw new Error("Expecting id-ecPublicKey");
-                //     }
-                //     var derCurve = sequence.values[0].values[1].stringValue;
-                //     var pointLength;
-                //     switch (derCurve){
-                //         case derNamedCurves[SECSign.EllipticCurve.p256]:
-                //             publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
-                //             pointLength = 32;
-                //             break;
-                //         case derNamedCurves[SECSign.EllipticCurve.p384]:
-                //             publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
-                //             pointLength = 48;
-                //             break;
-                //         case derNamedCurves[SECSign.EllipticCurve.p521]:
-                //             publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
-                //             pointLength = 66;
-                //             break;
-                //         default:
-                //             throw new Error("Unknown elliptic curve");
-                //     }
-                //     var points = sequence.values[1].data;
-                //     if (points[0] != 0x4){
-                //         throw new Error("Compressed points not implemented");
-                //     }
-                //     if (points.length != pointLength + pointLength + 1){
-                //         throw new Error("Unexpected point length");
-                //     }
-                //     publicJWK.x = points.subdataInRange(JSRange(1, pointLength)).base64URLStringRepresentation();
-                //     publicJWK.y = points.subdataInRange(JSRange(1 + pointLength, pointLength)).base64URLStringRepresentation();
-
-
-                //     pem = pair.private.keyData;
-                //     parser = SECASN1Parser.initWithPEM(pem, "EC PRIVATE KEY");
-                //     sequence = parser.parse();
-                //     var version = sequence.values[0].data[0];
-                //     if (version != 1){
-                //         throw new Error("Unexpected EC private key version");
-                //     }
-                //     privateJWK.d = sequence.values[1].data.base64URLStringRepresentation();
-                //     var optional = sequence.values[2];
-                //     if (optional.classNumber !== 0){
-                //         throw new Error("Expecting EC named curve");
-                //     }
-                //     derCurve = optional.value.stringValue;
-                //     switch (derCurve){
-                //         case derNamedCurves[SECSign.EllipticCurve.p256]:
-                //             privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
-                //             pointLength = 32;
-                //             break;
-                //         case derNamedCurves[SECSign.EllipticCurve.p384]:
-                //             privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
-                //             pointLength = 48;
-                //             break;
-                //         case derNamedCurves[SECSign.EllipticCurve.p521]:
-                //             privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
-                //             pointLength = 66;
-                //             break;
-                //         default:
-                //             throw new Error("Unknown elliptic curve");
-                //     }
-                //     optional = sequence.values[3];
-                //     if (optional.classNumber !== 1){
-                //         throw new Error("Expecting EC point");
-                //     }
-                //     points = optional.value.data;
-                //     if (points[0] != 0x4){
-                //         throw new Error("Compressed points not implemented");
-                //     }
-                //     if (points.length != pointLength + pointLength + 1){
-                //         throw new Error("Unexpected point length");
-                //     }
-                //     privateJWK.x = points.subdataInRange(JSRange(1, pointLength)).base64URLStringRepresentation();
-                //     privateJWK.y = points.subdataInRange(JSRange(1 + pointLength, pointLength)).base64URLStringRepresentation();
-                // }
-                jwkPair = {
-                    public: publicJWK,
-                    private: privateJWK
-                };
-            }catch (e){
-            }
-            completion.call(target, jwkPair);
-        }, this);
         return completion.promise;
     },
 
@@ -242,10 +72,14 @@ SECSign.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
-        var der, base64, pem, key;
+        var der, base64, pem, nodeKeyObject, key;
         if (jwk.kty === SECJSONWebAlgorithms.KeyType.rsa || jwk.kty === SECJSONWebAlgorithms.KeyType.ellipticCurve){
-            key = crypto.createPrivateKey({key: jwk, format: "jwk"});
-            JSRunLoop.main.schedule(completion, target, SECNodeKey.initWithNodeKeyObject(key));
+            nodeKeyObject = crypto.createPrivateKey({key: jwk, format: "jwk"});
+            key = SECNodeKey.initWithNodeKeyObject(nodeKeyObject);
+            if (key !== null){
+                key.id = jwk.kid || null;
+            }
+            JSRunLoop.main.schedule(completion, target, key);
         // if (jwk.kty == SECJSONWebAlgorithms.KeyType.rsa){
         //     // RSA private key ASN.1 syntax:
         //     // RSAPrivateKey ::= SEQUENCE {

@@ -65,7 +65,9 @@ SECCipherAES.definePropertiesFromExtensions({
         };
         var extractable = true;
         crypto.subtle.generateKey(algorithm, extractable, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlKey){
-            completion.call(target, SECHTMLKey.initWithKey(htmlKey));
+            var key = SECHTMLKey.initWithKey(htmlKey);
+            key.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+            completion.call(target, key);
         }, function(e){
             completion.call(target, null);
         });
@@ -383,6 +385,7 @@ SECCipherRSAOAEP.definePropertiesFromExtensions({
         crypto.subtle.generateKey(algorithm, true, ["encrypt", "decrypt", "wrapKey", "unwrapKey"]).then(function(htmlPair){
             var privateKey = SECHTMLKey.initWithKey(htmlPair.privateKey);
             privateKey.publicKey = SECHTMLKey.initWithKey(htmlPair.publicKey);
+            privateKey.id = privateKey.publicKey.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
             completion.call(target, privateKey);
         }, function(e){
             completion.call(target, null);
@@ -401,6 +404,7 @@ SECCipherRSAOAEP.definePropertiesFromExtensions({
         var usages = jwk.d ? ["decrypt", "unwrapKey"] : ["encrypt", "wrapKey"];
         crypto.subtle.importKey("jwk", jwk, algorithm, true, usages).then(function(htmlKey){
             var key = SECHTMLKey.initWithKey(htmlKey);
+            key.id = jwk.kid || null;
             completion.call(target, key);
         }, function(e){
             completion.call(target, null);
