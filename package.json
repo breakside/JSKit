@@ -5,7 +5,7 @@
     "preinstall": "node Command/bootstrap.js"
   },
   "dependencies": {
-    "jskit": "./builds/io.breakside.jskit/debug/jskit"
+    "@breakside/jskit": "./builds/io.breakside.jskit/debug/jskit"
   },
   "private": true,
   "devDependencies": {
