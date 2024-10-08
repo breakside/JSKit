@@ -264,7 +264,8 @@ JSClass("JSLocaleTests", TKTestSuite, {
             // Inconsistent implementations across browsers
             // TKAssertEquals(locale.dateFormatForTemplate("yMMMd"), "d. MMM y");
             TKAssertEquals(locale.dateFormatForTemplate("yMMMMd"), "d. MMMM y");
-            TKAssertEquals(locale.dateFormatForTemplate("yM"), "M.y");
+            // Inconsistent implementations across browsers
+            // TKAssertEquals(locale.dateFormatForTemplate("yM"), "M.y");
             // Inconsistent implementations across browsers
             // TKAssertEquals(locale.dateFormatForTemplate("yMMM"), "MMM y");
             TKAssertEquals(locale.dateFormatForTemplate("yMMMM"), "MMMM y");

@@ -90,7 +90,7 @@ JSClass("SECJSONWebToken", JSObject, {
         var jwk = null;
         if (jwkOrSet instanceof JSData){
             jwk = {
-                kty: "oct",
+                kty: SECJSONWebAlgorithms.KeyType.symmetric,
                 k: jwkOrSet.base64URLStringRepresentation()
             };
         }else if (jwkOrSet instanceof Array){

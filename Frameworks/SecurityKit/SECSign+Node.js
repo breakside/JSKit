@@ -46,207 +46,25 @@ SECSign.definePropertiesFromExtensions({
         if (this.nodeAlgorithm.name == "rsa"){
             nodeOptions.modulusLength = options.modulusLength || 2048;
             nodeOptions.publicExponent = options.publicExponent || 0x10001;
-            nodeOptions.publicKeyEncoding = {
-                type: 'pkcs1',
-                format: 'pem'
-            };
-            nodeOptions.privateKeyEncoding = {
-                type: 'pkcs1',
-                format: 'pem'
-            };
         }else if (this.nodeAlgorithm.name == "ec"){
             if (options.namedCurve){
                 nodeOptions.namedCurve = nodeNamedCurves[options.namedCurve];
             }else{
                 nodeOptions.namedCurve = this.nodeAlgorithm.namedCurve;
             }
-            nodeOptions.publicKeyEncoding = {
-                type: "spki",
-                format: "pem"
-            };
-            nodeOptions.privateKeyEncoding = {
-                type: "sec1",
-                format: "pem"
-            };
         }
-        crypto.generateKeyPair(this.nodeAlgorithm.name, nodeOptions, function(err, publicKeyPem, privateKeyPem){
+        crypto.generateKeyPair(this.nodeAlgorithm.name, nodeOptions, function(err, publicKey, privateKey){
             if (err){
                 completion.call(target, null);
                 return;
             }
             var pair = {
-                public: SECNodeKey.initWithData(publicKeyPem.utf8()),
-                private: SECNodeKey.initWithData(privateKeyPem.utf8()),
+                public: SECNodeKey.initWithNodeKeyObject(publicKey),
+                private: SECNodeKey.initWithNodeKeyObject(privateKey),
             };
+            pair.public.id = pair.private.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
             completion.call(target, pair);
         });
-        return completion.promise;
-    },
-
-    createJWKPair: function(options, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        this.createKeyPair(options, function(pair){
-            if (pair === null){
-                completion.call(target, null);
-                return;
-            }
-            var jwkPair = null;
-            try{
-                var kid = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
-                var alg = null;
-                var kty = null;
-                switch (this.algorithm){
-                    case SECSign.Algorithm.rsaSHA256:
-                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA256;
-                        kty = SECJSONWebAlgorithms.KeyType.rsa;
-                        break;
-                    case SECSign.Algorithm.rsaSHA384:
-                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA384;
-                        kty = SECJSONWebAlgorithms.KeyType.rsa;
-                        break;
-                    case SECSign.Algorithm.rsaSHA512:
-                        alg = SECJSONWebAlgorithms.Algorithm.rsaSHA512;
-                        kty = SECJSONWebAlgorithms.KeyType.rsa;
-                        break;
-                    case SECSign.Algorithm.ellipticCurveSHA256:
-                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA256;
-                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                        break;
-                    case SECSign.Algorithm.ellipticCurveSHA384:
-                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA384;
-                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                        break;
-                    case SECSign.Algorithm.ellipticCurveSHA512:
-                        alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA512;
-                        kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-                        break;
-                    default:
-                        throw new Error("Unable to map SECSign algorithm to JWK");
-                }
-                var publicJWK = {
-                    kid: kid,
-                    kty: kty,
-                    alg: alg,
-                    key_ops: ["verify"]
-                };
-                var privateJWK = {
-                    kid: kid,
-                    kty: kty,
-                    alg: alg,
-                    key_ops: ["sign"]
-                };
-                var pem;
-                var parser;
-                var sequence;
-                if (kty == SECJSONWebAlgorithms.KeyType.rsa){
-                    pem = pair.public.keyData;
-                    parser = SECASN1Parser.initWithPEM(pem, "RSA PUBLIC KEY");
-                    sequence = parser.parse();
-                    publicJWK.n = sequence.values[0].data.base64URLStringRepresentation();
-                    publicJWK.e = sequence.values[1].data.base64URLStringRepresentation();
-
-                    pem = pair.private.keyData;
-                    parser = SECASN1Parser.initWithPEM(pem, "RSA PRIVATE KEY");
-                    sequence = parser.parse();
-                    privateJWK.n = sequence.values[1].data.base64URLStringRepresentation();
-                    privateJWK.e = sequence.values[2].data.base64URLStringRepresentation();
-                    privateJWK.d = sequence.values[3].data.base64URLStringRepresentation();
-                    if (sequence.values.length >= 9){
-                        privateJWK.p = sequence.values[4].data.base64URLStringRepresentation();
-                        privateJWK.q = sequence.values[5].data.base64URLStringRepresentation();
-                        privateJWK.dp = sequence.values[6].data.base64URLStringRepresentation();
-                        privateJWK.dq = sequence.values[7].data.base64URLStringRepresentation();
-                        privateJWK.qi = sequence.values[8].data.base64URLStringRepresentation();
-                    }
-                }else if (kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
-                    pem = pair.public.keyData;
-                    parser = SECASN1Parser.initWithPEM(pem, "PUBLIC KEY");
-                    sequence = parser.parse();
-                    if (sequence.values[0].values[0].stringValue != "1.2.840.10045.2.1"){
-                        throw new Error("Expecting id-ecPublicKey");
-                    }
-                    var derCurve = sequence.values[0].values[1].stringValue;
-                    var pointLength;
-                    switch (derCurve){
-                        case derNamedCurves[SECSign.EllipticCurve.p256]:
-                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
-                            pointLength = 32;
-                            break;
-                        case derNamedCurves[SECSign.EllipticCurve.p384]:
-                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
-                            pointLength = 48;
-                            break;
-                        case derNamedCurves[SECSign.EllipticCurve.p521]:
-                            publicJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
-                            pointLength = 66;
-                            break;
-                        default:
-                            throw new Error("Unknown elliptic curve");
-                    }
-                    var points = sequence.values[1].data;
-                    if (points[0] != 0x4){
-                        throw new Error("Compressed points not implemented");
-                    }
-                    if (points.length != pointLength + pointLength + 1){
-                        throw new Error("Unexpected point length");
-                    }
-                    publicJWK.x = points.subdataInRange(JSRange(1, pointLength)).base64URLStringRepresentation();
-                    publicJWK.y = points.subdataInRange(JSRange(1 + pointLength, pointLength)).base64URLStringRepresentation();
-
-
-                    pem = pair.private.keyData;
-                    parser = SECASN1Parser.initWithPEM(pem, "EC PRIVATE KEY");
-                    sequence = parser.parse();
-                    var version = sequence.values[0].data[0];
-                    if (version != 1){
-                        throw new Error("Unexpected EC private key version");
-                    }
-                    privateJWK.d = sequence.values[1].data.base64URLStringRepresentation();
-                    var optional = sequence.values[2];
-                    if (optional.classNumber !== 0){
-                        throw new Error("Expecting EC named curve");
-                    }
-                    derCurve = optional.value.stringValue;
-                    switch (derCurve){
-                        case derNamedCurves[SECSign.EllipticCurve.p256]:
-                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p256;
-                            pointLength = 32;
-                            break;
-                        case derNamedCurves[SECSign.EllipticCurve.p384]:
-                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p384;
-                            pointLength = 48;
-                            break;
-                        case derNamedCurves[SECSign.EllipticCurve.p521]:
-                            privateJWK.crv = SECJSONWebAlgorithms.EllipticCurve.p521;
-                            pointLength = 66;
-                            break;
-                        default:
-                            throw new Error("Unknown elliptic curve");
-                    }
-                    optional = sequence.values[3];
-                    if (optional.classNumber !== 1){
-                        throw new Error("Expecting EC point");
-                    }
-                    points = optional.value.data;
-                    if (points[0] != 0x4){
-                        throw new Error("Compressed points not implemented");
-                    }
-                    if (points.length != pointLength + pointLength + 1){
-                        throw new Error("Unexpected point length");
-                    }
-                    privateJWK.x = points.subdataInRange(JSRange(1, pointLength)).base64URLStringRepresentation();
-                    privateJWK.y = points.subdataInRange(JSRange(1 + pointLength, pointLength)).base64URLStringRepresentation();
-                }
-                jwkPair = {
-                    public: publicJWK,
-                    private: privateJWK
-                };
-            }catch (e){
-            }
-            completion.call(target, jwkPair);
-        }, this);
         return completion.promise;
     },
 
@@ -254,98 +72,105 @@ SECSign.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion();
         }
-        var der, base64, pem, key;
-        if (jwk.kty == SECJSONWebAlgorithms.KeyType.rsa){
-            // RSA private key ASN.1 syntax:
-            // RSAPrivateKey ::= SEQUENCE {
-            //     version           Version,
-            //     modulus           INTEGER,  -- n
-            //     publicExponent    INTEGER,  -- e
-            //     privateExponent   INTEGER,  -- d
-            //     prime1            INTEGER,  -- p
-            //     prime2            INTEGER,  -- q
-            //     exponent1         INTEGER,  -- d mod (p-1)
-            //     exponent2         INTEGER,  -- d mod (q-1)
-            //     coefficient       INTEGER,  -- (inverse of q) mod p
-            //     otherPrimeInfos   OtherPrimeInfos OPTIONAL
-            // }
-            // 
-            if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string" && typeof(jwk.d) == "string"){
-                try{
-                    var values = [
-                        SECASN1Integer.initWithData(JSData.initWithArray([0])),
-                        SECASN1Integer.initWithData(jwk.n.dataByDecodingBase64URL()),
-                        SECASN1Integer.initWithData(jwk.e.dataByDecodingBase64URL()),
-                        SECASN1Integer.initWithData(jwk.d.dataByDecodingBase64URL()),
-                    ];
-
-                    if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.qi) == "string"){
-                        values.push(SECASN1Integer.initWithData(jwk.p.dataByDecodingBase64URL()));
-                        values.push(SECASN1Integer.initWithData(jwk.q.dataByDecodingBase64URL()));
-                        values.push(SECASN1Integer.initWithData(jwk.dp.dataByDecodingBase64URL()));
-                        values.push(SECASN1Integer.initWithData(jwk.dq.dataByDecodingBase64URL()));
-                        values.push(SECASN1Integer.initWithData(jwk.qi.dataByDecodingBase64URL()));
-                    }
-
-                    if (jwk.oth){
-                        JSRunLoop.main.schedule(completion, target, null);
-                        return completion.promise;
-                    }
-
-                    var rsaPrivateKey = SECASN1Sequence.initWithValues(values);
-                    pem = rsaPrivateKey.pemRepresentation("RSA PRIVATE KEY");
-                    key = SECNodeKey.initWithData(pem.utf8());
-                    JSRunLoop.main.schedule(completion, target, key);
-                }catch (e){
-                    JSRunLoop.main.schedule(completion, target, null);
-                }
-            }else{
-                JSRunLoop.main.schedule(completion, target, null);
+        var der, base64, pem, nodeKeyObject, key;
+        if (jwk.kty === SECJSONWebAlgorithms.KeyType.rsa || jwk.kty === SECJSONWebAlgorithms.KeyType.ellipticCurve){
+            nodeKeyObject = crypto.createPrivateKey({key: jwk, format: "jwk"});
+            key = SECNodeKey.initWithNodeKeyObject(nodeKeyObject);
+            if (key !== null){
+                key.id = jwk.kid || null;
             }
-        }else if (jwk.kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
-            // ECPrivateKey ::= SEQUENCE {
-            //   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-            //   privateKey     OCTET STRING,
-            //   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-            //   publicKey  [1] BIT STRING OPTIONAL
-            // }
-            try{
-                var namedCurve;
-                switch (jwk.crv){
-                    case SECJSONWebAlgorithms.EllipticCurve.p256:
-                        namedCurve = derNamedCurves[SECSign.EllipticCurve.p256];
-                        break;
-                    case SECJSONWebAlgorithms.EllipticCurve.p384:
-                        namedCurve = derNamedCurves[SECSign.EllipticCurve.p384];
-                        break;
-                    case SECJSONWebAlgorithms.EllipticCurve.p521:
-                        namedCurve = derNamedCurves[SECSign.EllipticCurve.p521];
-                        break;
-                    default:
-                        throw new Error("Unsupported curve name");
-                }
-                var privateKey = SECASN1Sequence.initWithValues([
-                    SECASN1Integer.initWithData(JSData.initWithArray([1])),
-                    SECASN1OctetString.initWithData(jwk.d.dataByDecodingBase64URL()),
-                    SECASN1Optional.initWithValue(
-                        SECASN1ObjectIdentifier.initWithString(namedCurve),
-                        0
-                    ),
-                    SECASN1Optional.initWithValue(
-                        SECASN1BitString.initWithData(JSData.initWithChunks([
-                            JSData.initWithArray([0x04]), // uncompressed
-                            jwk.x.dataByDecodingBase64URL(),
-                            jwk.y.dataByDecodingBase64URL()
-                        ]), 0),
-                        1
-                    )
-                ]);
-                pem = privateKey.pemRepresentation("EC PRIVATE KEY");
-                key = SECNodeKey.initWithData(pem.utf8());
-                JSRunLoop.main.schedule(completion, target, key);
-            }catch (e){
-                JSRunLoop.main.schedule(completion, target, null);
-            }
+            JSRunLoop.main.schedule(completion, target, key);
+        // if (jwk.kty == SECJSONWebAlgorithms.KeyType.rsa){
+        //     // RSA private key ASN.1 syntax:
+        //     // RSAPrivateKey ::= SEQUENCE {
+        //     //     version           Version,
+        //     //     modulus           INTEGER,  -- n
+        //     //     publicExponent    INTEGER,  -- e
+        //     //     privateExponent   INTEGER,  -- d
+        //     //     prime1            INTEGER,  -- p
+        //     //     prime2            INTEGER,  -- q
+        //     //     exponent1         INTEGER,  -- d mod (p-1)
+        //     //     exponent2         INTEGER,  -- d mod (q-1)
+        //     //     coefficient       INTEGER,  -- (inverse of q) mod p
+        //     //     otherPrimeInfos   OtherPrimeInfos OPTIONAL
+        //     // }
+        //     // 
+        //     if (typeof(jwk.n) == "string" && typeof(jwk.e) == "string" && typeof(jwk.d) == "string"){
+        //         try{
+        //             var values = [
+        //                 SECASN1Integer.initWithData(JSData.initWithArray([0])),
+        //                 SECASN1Integer.initWithData(jwk.n.dataByDecodingBase64URL()),
+        //                 SECASN1Integer.initWithData(jwk.e.dataByDecodingBase64URL()),
+        //                 SECASN1Integer.initWithData(jwk.d.dataByDecodingBase64URL()),
+        //             ];
+
+        //             if (typeof(jwk.p) == "string" && typeof(jwk.q) == "string" && typeof(jwk.dp) == "string" && typeof(jwk.dq) == "string" && typeof(jwk.qi) == "string"){
+        //                 values.push(SECASN1Integer.initWithData(jwk.p.dataByDecodingBase64URL()));
+        //                 values.push(SECASN1Integer.initWithData(jwk.q.dataByDecodingBase64URL()));
+        //                 values.push(SECASN1Integer.initWithData(jwk.dp.dataByDecodingBase64URL()));
+        //                 values.push(SECASN1Integer.initWithData(jwk.dq.dataByDecodingBase64URL()));
+        //                 values.push(SECASN1Integer.initWithData(jwk.qi.dataByDecodingBase64URL()));
+        //             }
+
+        //             if (jwk.oth){
+        //                 JSRunLoop.main.schedule(completion, target, null);
+        //                 return completion.promise;
+        //             }
+
+        //             var rsaPrivateKey = SECASN1Sequence.initWithValues(values);
+        //             pem = rsaPrivateKey.pemRepresentation("RSA PRIVATE KEY");
+        //             key = SECNodeKey.initWithData(pem.utf8());
+        //             JSRunLoop.main.schedule(completion, target, key);
+        //         }catch (e){
+        //             JSRunLoop.main.schedule(completion, target, null);
+        //         }
+        //     }else{
+        //         JSRunLoop.main.schedule(completion, target, null);
+        //     }
+        // }else if (jwk.kty == SECJSONWebAlgorithms.KeyType.ellipticCurve){
+        //     // ECPrivateKey ::= SEQUENCE {
+        //     //   version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+        //     //   privateKey     OCTET STRING,
+        //     //   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+        //     //   publicKey  [1] BIT STRING OPTIONAL
+        //     // }
+        //     try{
+        //         var namedCurve;
+        //         switch (jwk.crv){
+        //             case SECJSONWebAlgorithms.EllipticCurve.p256:
+        //                 namedCurve = derNamedCurves[SECSign.EllipticCurve.p256];
+        //                 break;
+        //             case SECJSONWebAlgorithms.EllipticCurve.p384:
+        //                 namedCurve = derNamedCurves[SECSign.EllipticCurve.p384];
+        //                 break;
+        //             case SECJSONWebAlgorithms.EllipticCurve.p521:
+        //                 namedCurve = derNamedCurves[SECSign.EllipticCurve.p521];
+        //                 break;
+        //             default:
+        //                 throw new Error("Unsupported curve name");
+        //         }
+        //         var privateKey = SECASN1Sequence.initWithValues([
+        //             SECASN1Integer.initWithData(JSData.initWithArray([1])),
+        //             SECASN1OctetString.initWithData(jwk.d.dataByDecodingBase64URL()),
+        //             SECASN1Optional.initWithValue(
+        //                 SECASN1ObjectIdentifier.initWithString(namedCurve),
+        //                 0
+        //             ),
+        //             SECASN1Optional.initWithValue(
+        //                 SECASN1BitString.initWithData(JSData.initWithChunks([
+        //                     JSData.initWithArray([0x04]), // uncompressed
+        //                     jwk.x.dataByDecodingBase64URL(),
+        //                     jwk.y.dataByDecodingBase64URL()
+        //                 ]), 0),
+        //                 1
+        //             )
+        //         ]);
+        //         pem = privateKey.pemRepresentation("EC PRIVATE KEY");
+        //         key = SECNodeKey.initWithData(pem.utf8());
+        //         JSRunLoop.main.schedule(completion, target, key);
+        //     }catch (e){
+        //         JSRunLoop.main.schedule(completion, target, null);
+        //     }
         }else{
             JSRunLoop.main.schedule(completion, target, null);
         }
@@ -361,7 +186,7 @@ SECSign.definePropertiesFromExtensions({
             completion = Promise.completion();
         }
         this.nodeSign.end();
-        var signature = this.nodeSign.sign(key.keyData);
+        var signature = this.nodeSign.sign(key.nodeKeyObject);
         completion.call(target, JSData.initWithNodeBuffer(signature));
         return completion.promise;
     }

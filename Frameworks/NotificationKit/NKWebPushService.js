@@ -162,12 +162,12 @@ JSClass("NKWebPushService", JSObject, {
             }).then(function(keyAndNonce){
                 var keyData = keyAndNonce[0].subdataInRange(JSRange(0, 16));
                 var nonceData = keyAndNonce[1].subdataInRange(JSRange(0, 12));
-                var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGCM, 128);
+                var cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.aesGCM, {keyBitLength: 128, iv: nonceData});
                 return cipher.createKeyWithData(keyData).then(function(key){
                     if (key === null){
                         return;
                     }
-                    return cipher.encryptWithNonce(nonceData, JSData.initWithChunks([plaintext, JSData.initWithArray([0x02])]), key);
+                    return cipher.encrypt(JSData.initWithChunks([plaintext, JSData.initWithArray([0x02])]), key);
                 });
             }).then(function(encrypted){
                 var ciphertext = encrypted.subdataInRange(JSRange(12, encrypted.length - 12));

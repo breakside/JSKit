@@ -23,6 +23,7 @@ JSClass("SECJSONWebAlgorithms", JSObject, {
 SECJSONWebAlgorithms.Algorithm = {
 
     none: 'none',
+    direct: "dir",
     hmacSHA256: "HS256",
     hmacSHA384: "HS384",
     hmacSHA512: "HS512",
@@ -32,7 +33,14 @@ SECJSONWebAlgorithms.Algorithm = {
     ellipticCurveSHA256: "ES256",
     ellipticCurveSHA384: "ES384",
     ellipticCurveSHA512: "ES512",
-
+    aesGCM128: "A128GCM",
+    aesGCM192: "A192GCM",
+    aesGCM256: "A256GCM",
+    aesCBC128HS256: "A128CBC-HS256",
+    aesCBC192HS384: "A192CBC-HS384",
+    aesCBC256HS512: "A256CBC-HS512",
+    rsaOAEP: "RSA-OAEP",
+    ecdhES: "ECDH-ES"
 };
 
 SECJSONWebAlgorithms.KeyType = {

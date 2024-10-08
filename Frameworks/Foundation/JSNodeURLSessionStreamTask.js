@@ -92,7 +92,7 @@ JSClass("JSNodeURLSessionStreamTask", JSURLSessionStreamTask, {
     },
 
     write: function(data){
-        this.socket.write(data.nodeBuffer);
+        this.socket.write(data.nodeBuffer());
     },
 
     // ----------------------------------------------------------------------

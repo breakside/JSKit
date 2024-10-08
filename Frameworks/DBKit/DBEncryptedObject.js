@@ -65,7 +65,7 @@ JSClass("DBEncryptedObject", JSObject, {
         if (!completion){
             completion = Promise.completion(Promise.resolveTrue);
         }
-        var cipher = SECCipher.initWithAlgorithm(algorithm, keyBitLength);
+        var cipher = SECCipher.initWithAlgorithm(algorithm, {keyBitLength: keyBitLength});
         var key = cipher.createKeyFromKeystore(this.keystore, keyIdentifier, function(key){
             if (key === null){
                 completion.call(target, false);
@@ -101,7 +101,7 @@ JSClass("DBEncryptedObject", JSObject, {
             completion = Promise.completion(Promise.resolveNonNull);
         }
         if (this.object === null && this.encrypted !== null && this.keystore !== null){
-            var cipher = SECCipher.initWithAlgorithm(this.algorithm, this.keyBitLength);
+            var cipher = SECCipher.initWithAlgorithm(this.algorithm, {keyBitLength: this.keyBitLength});
             cipher.createKeyFromKeystore(this.keystore, this.keyIdentifier, function(key){
                 if (key === null){
                     completion.call(target, null);

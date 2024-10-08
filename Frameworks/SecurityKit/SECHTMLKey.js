@@ -24,6 +24,7 @@ JSClass("SECHTMLKey", SECKey, {
 
     initWithKey: function(htmlKey){
         this.htmlKey = htmlKey;
+        this.type = htmlKey.type;
     },
 
     getData: function(completion, target){
@@ -32,6 +33,22 @@ JSClass("SECHTMLKey", SECKey, {
         }
         crypto.subtle.exportKey("raw", this.htmlKey).then(function(rawBuffer){
             completion.call(target, JSData.initWithBuffer(rawBuffer));
+        }, function(){
+            completion.call(target, null);
+        });
+        return completion.promise;
+    },
+
+    getJWK: function(completion, target){
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        var kid = this.id;
+        crypto.subtle.exportKey("jwk", this.htmlKey).then(function(jwk){
+            if (kid !== null){
+                jwk.kid = kid;
+            }
+            completion.call(target, jwk);
         }, function(){
             completion.call(target, null);
         });

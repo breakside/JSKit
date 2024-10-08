@@ -25,22 +25,28 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Download & install nodes
 
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: '14'
+          node-version: '20'
 
       # Install project dev dependencies
 
       - name: Bootstrap Install
         run: npm install
+
+      - name: Bootstrap Install (again)
+        run: npm install
         
       - name: Install Webkit Depedencies
         run: sudo npx playwright install-deps
+        
+      - name: Install Webkit Depedencies
+        run: npx playwright install
 
       # Tests
 

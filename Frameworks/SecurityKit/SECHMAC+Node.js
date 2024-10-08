@@ -36,11 +36,25 @@ SECHMAC.definePropertiesFromExtensions({
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
-        crypto.randomBytes(32, function(error, keyBytes){
+        var length;
+        switch (this.nodeAlgorithm){
+            case "sha512":
+                length = 512;
+                break;
+            case "sha384":
+                length = 384;
+                break;
+            default:
+                length = 256;
+                break;
+        }
+        crypto.generateKey("hmac", {length: length}, function(error, nodeKeyObject){
             if (error){
                 completion.call(target, null);
             }else{
-                completion.call(target, SECNodeKey.initWithData(JSData.initWithNodeBuffer(keyBytes)));
+                var key = SECNodeKey.initWithNodeKeyObject(nodeKeyObject);
+                key.id = JSSHA1Hash(UUID.init().bytes).base64URLStringRepresentation();
+                completion.call(target, key);
             }
         });
         return completion.promise;
@@ -60,7 +74,7 @@ SECHMAC.definePropertiesFromExtensions({
             throw new Error("SECHMAC must have a key before calling update()");
         }
         if (this.nodeHash === null){
-            this.nodeHash = crypto.createHmac(this.nodeAlgorithm, this.key.keyData);
+            this.nodeHash = crypto.createHmac(this.nodeAlgorithm, this.key.nodeKeyObject);
         }
         this.nodeHash.update(data);
     },

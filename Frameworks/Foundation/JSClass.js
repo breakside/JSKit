@@ -177,7 +177,10 @@ JSClass.prototype = {
                 }
                 if (result instanceof Promise){
                     return result.then(function(promiseResult){
-                        return promiseResult || obj;
+                        if (promiseResult === undefined){
+                            return obj;
+                        }
+                        return promiseResult;
                     });
                 }
                 return result;

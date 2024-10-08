@@ -21,29 +21,32 @@
 
 JSClass("SECCipher", JSObject, {
 
-    initWithAlgorithm: function(algorithm, keyBitLength){
-        if (keyBitLength === undefined){
-            keyBitLength = 256;
+    algorithm: null,
+
+    initWithAlgorithm: function(algorithm, options){
+        if (options === undefined){
+            options = {};
+        }else if (typeof(options) === "number"){
+            options = {
+                keyBitLength: options
+            };
         }
-        if (keyBitLength % 8 !== 0){
+        if (options.keyBitLength !== undefined && (options.keyBitLength % 8 !== 0)){
             throw new Error("Invalid keyBitLength, must be a multiple of 8");
         }
         switch (algorithm){
             case SECCipher.Algorithm.aesCipherBlockChaining:
-                return SECCipherAESCipherBlockChaining.initWithKeyBitLength(keyBitLength);
+                return SECCipherAESCipherBlockChaining.initWithOptions(options);
             case SECCipher.Algorithm.aesCounter:
-                return SECCipherAESCounter.initWithKeyBitLength(keyBitLength);
+                return SECCipherAESCounter.initWithOptions(options);
             case SECCipher.Algorithm.aesGaloisCounterMode:
-                return SECCipherAESGaloisCounterMode.initWithKeyBitLength(keyBitLength);
+                return SECCipherAESGaloisCounterMode.initWithOptions(options);
             case SECCipher.Algorithm.rivestCipher4:
-                return SECCipherRC4.initWithKeyBitLength(keyBitLength);
+                return SECCipherRC4.init();
+            case SECCipher.Algorithm.rsaOAEP:
+                return SECCipherRSAOAEP.initWithOptions(options);
         }
         return null;
-    },
-
-    initWithKeyBitLength: function(keyBitLength){
-        this.keyBitLength = keyBitLength;
-        this.keyByteLength = keyBitLength >> 3;
     },
 
     encrypt: function(data, key, completion, target){
@@ -123,6 +126,53 @@ JSClass("SECCipher", JSObject, {
     },
 
     createKeyFromJWK: function(jwk, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+    createKeyFromKeystore: function(keystore, kid, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+    createKeyWithPassphrase: function(passphrase, salt, iterations, hash, completion, target){
+        // Implemented in subclasses
+        if (!completion){
+            completion = Promise.completion(Promise.resolveNonNull);
+        }
+        JSRunLoop.main.schedule(completion, target, null);
+        return completion.promise;
+    },
+
+});
+
+SECCipher.Algorithm = {
+    aesCipherBlockChaining: 'aes_cbc',
+    aesCounter: 'aes_ctr',
+    aesGaloisCounterMode: 'aes_gcm',
+    rivestCipher4: 'rc4',
+    rsaOAEP: "rsa_oaep"
+};
+
+JSClass("SECCipherAES", SECCipher, {
+
+    keyBitLength: null,
+    keyByteLength: null,
+
+    initWithOptions: function(options){
+        this.keyBitLength = options.keyBitLength || 256;
+        this.keyByteLength = this.keyBitLength >> 3;
+    },
+
+    createKeyFromJWK: function(jwk, completion, target){
         if (!completion){
             completion = Promise.completion(Promise.resolveNonNull);
         }
@@ -184,11 +234,29 @@ JSClass("SECCipher", JSObject, {
 
 });
 
-JSClass("SECCipherAESCipherBlockChaining", SECCipher, {
+JSClass("SECCipherAESCipherBlockChaining", SECCipherAES, {
+
+    algorithm: SECCipher.Algorithm.aesCipherBlockChaining,
+    ivByteLength: 16,
+    iv: null,
+
+    initWithOptions: function(options){
+        SECCipherAESCipherBlockChaining.$super.initWithOptions.call(this, options);
+        if (options.iv){
+            this.iv = options.iv;
+            this.ivByteLength = this.iv.length;
+        }
+    },
+
+    randomIV: function(){
+        return SECCipher.getRandomData(this.ivByteLength);
+    },
+
 });
 
-JSClass("SECCipherAESCounter", SECCipher, {
+JSClass("SECCipherAESCounter", SECCipherAES, {
 
+    algorithm: SECCipher.Algorithm.aesCounter,
     encryptedMessageId: 0,
 
     ensureUniqueMessageID: function(){
@@ -201,49 +269,57 @@ JSClass("SECCipherAESCounter", SECCipher, {
 
 });
 
-JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
+JSClass("SECCipherAESGaloisCounterMode", SECCipherAES, {
 
-    encryptedMessageId: 0,
+    algorithm: SECCipher.Algorithm.aesGaloisCounterMode,
+    iv: null,
+    ivByteLength: 16,
+    tagByteLength: 16,
+    additionalData: null,
 
-    ensureUniqueMessageID: function(){
-        if (this.encryptedMessageId == 9007199254740991){
-            return false;
+    initWithOptions: function(options){
+        SECCipherAESGaloisCounterMode.$super.initWithOptions.call(this, options);
+        if (options.tagByteLength){
+            this.tagByteLength = options.tagByteLength;
         }
-        ++this.encryptedMessageId;
-        return true;
+        if (options.additionalData){
+            this.additionalData = options.additionalData;
+        }
+        if (options.iv){
+            this.iv = options.iv;
+            this.ivByteLength = this.iv.length;
+        }else if (options.ivByteLength){
+            this.ivByteLength = options.ivByteLength;
+        }
+    },
+
+    randomIV: function(){
+        return SECCipher.getRandomData(this.ivByteLength);
     },
 
     encrypt: function(data, key, completion, target){
-        if (!completion){
-            completion = Promise.completion(Promise.resolveNonNull);
-        }
-        if (!this.ensureUniqueMessageID()){
-            JSRunLoop.main.schedule(completion, target, null);
-            return completion.promise;
-        }
-        var nonce = JSData.initWithArray([
-            1,
-            ((this.encryptedMessageId / 0x100000000) >> 16) & 0xFF,
-            ((this.encryptedMessageId / 0x100000000) >> 8) & 0xFF,
-            (this.encryptedMessageId / 0x100000000) & 0xFF,
-            (this.encryptedMessageId >> 24) & 0xFF,
-            (this.encryptedMessageId >> 16) & 0xFF,
-            (this.encryptedMessageId >> 8) & 0xFF,
-            this.encryptedMessageId & 0xF
-        ]);
-        this.encryptWithNonce(nonce, data, key, completion, target, 16);
-        return completion.promise;
     },
 
     decrypt: function(data, key, completion, target){
-        return this.decryptWithNonceLength(8, data, key, completion, target, 16);
     },
 
-    encryptWithNonce: function(nonce, data, key, completion, target){
-    },
+});
 
-    decryptWithNonceLength: function(nonceLength, data, key, completion, target){
-    },
+JSClass("SECCipherRSAOAEP", SECCipher, {
+
+    hash: null,
+    label: null,
+    modulusLength: null,
+    publicExponent: null,
+
+    initWithOptions: function(options){
+        if (options.label){
+            this.label = options.label;
+        }
+        this.hash = options.hash || SECHash.Algorithm.sha1;
+        this.modulusLength = options.modulusLength || 2048;
+        this.publicExponent = options.publicExponent || 0x10001;
+    }
 
 });
 
@@ -251,6 +327,8 @@ JSClass("SECCipherAESGaloisCounterMode", SECCipher, {
 // RC4 is used by some PDFs, but is insecure and should not be used other than
 // to read the PDFs that already use it.
 JSClass("SECCipherRC4", SECCipher, {
+
+    algorithm: SECCipher.Algorithm.rivestCipher4,
 
     encrypt: function(data, key, completion, target){
         if (!completion){
@@ -265,7 +343,7 @@ JSClass("SECCipherRC4", SECCipher, {
         var j = 0;
         var tmp;
         for (i = 0; i < 256; ++i){
-            j = (j + S[i] + key.keyData[i % key.keyData.length]) & 0xFF;
+            j = (j + S[i] + key.data[i % key.data.length]) & 0xFF;
             tmp = S[i];
             S[i] = S[j];
             S[j] = tmp;
@@ -301,13 +379,6 @@ JSClass("SECCipherRC4", SECCipher, {
     }
 
 });
-
-SECCipher.Algorithm = {
-    aesCipherBlockChaining: 'aes_cbc',
-    aesCounter: 'aes_ctr',
-    aesGaloisCounterMode: 'aes_gcm',
-    rivestCipher4: 'rc4'
-};
 
 SECCipher.getRandomData = function(length){
     // Implemented in environment extensions
