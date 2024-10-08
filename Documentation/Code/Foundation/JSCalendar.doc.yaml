@@ -153,7 +153,41 @@ topics:
                 name: timezone
                 type: JSTimeZone
                 summary: The timezone
-
+      -
+        name: Weekday
+        introduced: 2024.33.0
+        kind: enum
+        summary: The days of the week
+        description: |
+          Values from this enum can be used anywhere a weekday is required
+          in calendar units or methods.
+        note:
+          The `JSCalendar` weekday model starts with `sunday = 1`()
+        topics:
+          -
+            name: Options
+            members:
+              -
+                name: sunday
+                value: 1
+              -
+                name: monday
+                value: 2
+              -
+                name: tuesday
+                value: 3
+              -
+                name: wednesday
+                value: 4
+              -
+                name: thursday
+                value: 5
+              -
+                name: friday
+                value: 6
+              -
+                name: saturday
+                value: 7
   -
     name: Creating a Calendar
     members:

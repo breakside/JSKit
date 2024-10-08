@@ -128,7 +128,7 @@ topics:
       # - JSTextLayoutManager
       - JSTextLine
       - JSTextRun
-      # - JSTextStorage
+      - JSTextStorage
       - JSTextTypesetter
       - JSParagraphStyle
       -

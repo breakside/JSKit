@@ -1,0 +1,33 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSAttributedString
+introduced: 2020.1.0
+summary: A `JSAttributedString` that notifies associated `JSTextLayoutManagers`,
+  when the underlying string or attributes change
+description: |
+  Useful when displaying editable text in a UI. Edits to a base
+  `JSTextStroage`() result in notifications to related layout managers, which
+  in turn notify UI elements to update
+topics:
+  - name: Layout Managers
+    members:
+      - name: layoutManagers
+        type: JSTextLayoutManager[]
+        summary: The list of associated layout managers
+      - name: addLayoutManager
+        kind: method
+        arguments:
+          - name: layoutManager
+            type: JSTextLayoutManager
+            summary: The layout manager to add
+        summary: Add a given layout manager to the list of associated layout managers
+      - name: removeLayoutManagerAtIndex
+        kind: method
+        arguments:
+          - name: index
+            type: Number
+            summary: The index in `layoutManagers` to remove
+        summary: Remove a single layout manager at the given index in `layoutManagers`
+      - name: removeAllLayoutManagers
+        kind: method
+        summary: Remove all associated layout managers
