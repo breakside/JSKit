@@ -70,6 +70,8 @@ topics:
             summary: The object to use as `this` when calling the completion
               function
         description: |
+          The key with a `kid` matching the JWT will be used for decryption.
+
           See `JSONWebKey` for a description of how to obtain public keys for
           well known services.
       -
@@ -89,6 +91,8 @@ topics:
             type: JSONWebKey[]
             summary: The public JSON Web Keys for this token
         description: |
+          The key with a `kid` matching the JWT will be used for decryption.
+
           See `JSONWebKey` for a description of how to obtain public keys for
           well known services.
       -

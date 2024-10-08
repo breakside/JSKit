@@ -20,6 +20,10 @@ topics:
             name: Options
             members:
               -
+                name: sha1
+                introduced: 2024.40.0
+                summary: The SHA1 hash
+              -
                 name: sha256
                 summary: The SHA256 hash
               -
@@ -28,6 +32,10 @@ topics:
               -
                 name: sha512
                 summary: The SHA512 hash
+        note: |
+          `sha1` was added for use in `SECCipher.CipherOptions`, but is
+          not otherwise intended to be used with `SECHash`.  `JSSHA1Hash`
+          already exists for simple and synchronous SHA-1 hashing.
   -
     name: Creating a Hasher
     members:

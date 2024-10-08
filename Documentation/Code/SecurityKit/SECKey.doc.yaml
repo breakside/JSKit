@@ -8,31 +8,84 @@ description: |
 
   See `SECCipher.createKey()` for documenation about how to create keys
 topics:
-  -
-    name: Key Data
+  - name: Key Info
     members:
-      -
-        name: getData
+      - name: id
+        introduced: 2024.40.0
+        type: String?
+        summary: The key's unique identifier
+      - name: type
+        introduced: 2024.40.0
+        type: KeyType
+        summary: The key's general type
+      - name: KeyType
+        introduced: 2024.40.0
+        kind: enum
+        summary: The possible general key types
+        topics:
+          - name: Options
+            members:
+              - name: secret
+                summary: For secret keys typically used in symmetric encryption
+              - name: private
+                summary: For private keys used in asymmetric encryption
+              - name: public
+                summary: For public keys used in asymmetric encryption
+  - name: JWK Representation
+    members:
+      - name: getJWK
+        introduced: 2024.40.0
         kind: method
-        summary: Get the key's raw data in a callback
+        summary: Get the key's JWK representation
         arguments:
-          - 
-            name: completion
+          - name: completion
             type:
               arguments:
-                -
-                  name: data
-                  type: JSData
+                - name: data
+                  type: JSONWebKey
                   nullable: true
-                  summary: The key's raw data, or `null` if an error occurred
-          -
-            name: target
+                  summary: The JWK, or `null` if an error occurred
+          - name: target
             type: object
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
-      -
-        name: getData
+      - name: getJWK
+        introduced: 2024.40.0
+        suffix: promise
+        kind: method
+        summary: Get the key's JWKRepresenation in a promise
+        type: Promise
+        promise:
+          resolve:
+            type: JSONWebKey
+            summary: The JWK
+  - name: Asymmetric Key Pairs
+    members:
+      - name: publicKey
+        type: SECKey?
+        summary: The public key paired with this key, if this key is a private key
+  - name: Deprecated
+    members:
+      - name: getData
+        deprecated: 2024.40.0
+        kind: method
+        summary: Get the key's raw data in a callback
+        arguments:
+          - name: completion
+            type:
+              arguments:
+                - name: data
+                  type: JSData
+                  nullable: true
+                  summary: The key's raw data, or `null` if an error occurred
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+      - name: getData
+        deprecated: 2024.40.0
         suffix: promise
         kind: method
         summary: Get the key's raw data in a promise

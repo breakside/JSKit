@@ -116,9 +116,26 @@ topics:
             name: html
             type: string
             summary: The HTML source code
+        description:
+          Offsers minimal support for basic HTML formatting tags like bold,
+          italic, underline, strikethrough.
+        note:
+            Does not attempt to parse CSS styling.
+      -
+        name: initWithHTML
+        kind: init
+        suffix: options
+        introduced: 2024.24.0
+        beta: true
+        summary: Create an attributed string from an HTML string
+        arguments:
+          -
+            name: html
+            type: string
+            summary: The HTML source code
           -
             name: options
-            type: HTMLParseOptions?
+            type: HTMLParseOptions
             summary: Options for how to handle HTML parsing
         description:
           Offsers minimal support for basic HTML formatting tags like bold,

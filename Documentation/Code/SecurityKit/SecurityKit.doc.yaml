@@ -49,8 +49,9 @@ topics:
       - SECPassword
   - name: JSON Web Tokens
     members:
-      - SECJSONWebToken
       - SECJSONWebAlgorithms
+      - SECJSONWebToken
+      - SECJSONWebEncryption
   - name: Authentication
     members:
       - SECOneTimePassword

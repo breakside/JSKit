@@ -22,22 +22,25 @@ topics:
             members:
               -
                 name: aesCipherBlockChaining
-                summary: AES Cipher Block Chaining (AES-CBC)
+                summary: AES Cipher Block Chaining (AES-CBC) symmetric encryption
               -
                 name: aesCBC
                 summary: An alias for `aesCipherBlockChaining`
               -
                 name: aesCounter
-                summary: AES Counter (AES-CTR)
+                summary: AES Counter (AES-CTR) symmetric encryption
               -
                 name: aesCTR
-                summary: An alias for `aesCounter`
+                summary: An alias for `aesCounter` symmetric encryption
               -
                 name: aesGaloisCounterMode
-                summary: AES Galois Counter Mode (AES-GCM)
+                summary: AES Galois Counter Mode (AES-GCM) symmetric encryption
               -
                 name: aesGCM
                 summary: An alias for `aesGaloisCounterMode`
+              -
+                name: rsaOAEP
+                summary: For RSA-OAEP asymmetric encryption
               -
                 name: rivestCipher4
                 summary: Rivest Cipher 4 (RC4).  Implemented to decrypt PDF
@@ -58,12 +61,12 @@ topics:
             name: algorithm
             type: Algorithm
             summary: The encryption algorithm to use for this cipher
-        note: Defaults to a key length of 256 bits
+        note: Uses default options
       -
-        introduced: 2020.28.0
         name: initWithAlgorithm
+        introduced: 2020.40.0
         kind: init
-        suffix: keysize
+        suffix: options
         summary: Create a cipher for the given algorithm and key size
         arguments:
           -
@@ -71,9 +74,75 @@ topics:
             type: Algorithm
             summary: The encryption algorithm to use for this cipher
           -
-            name: keyBitLength
-            type: Number
-            summary: The length in bits of the key size for this cipher
+            name: options
+            type: CipherOptions
+            summary: The options for the given cipher algorithm, such as key
+              bit length, initialization vector, additional authenticated data, etc.
+        note: As of October 2020, Chrome does not support 192-bit AES keys, so
+          we do not recommend using that algorithm/size combination if you need
+          Chrome compatibility.
+      -
+        name: CipherOptions
+        introduced: 2024.40.0
+        kind: class
+        anonymous: true
+        summary: The possible options for cipher creation
+        topics:
+          - name: Options for AES-CBC
+            members:
+              - name: keyBitLength
+                suffix: aes-cbc
+                type: Number?
+                summary: The key length in bits (must be 128, 192, or 256),
+                  defaults to 256.
+              - name: iv
+                suffix: aes-cbc
+                type: JSData?
+                summary: The "initialization vector" data. Will be used for all
+                  calls to `encrypt()`. If not provied, a random `iv` will be
+                  generated during `encrypt()`
+          - name: Options for AES-GCM
+            members:
+              - name: keyBitLength
+                suffix: aes-gcm
+                type: Number?
+                summary: The key length in bits (must be 128, 192, or 256),
+                  defaults to 256.
+              - name: tagByteLength
+                type: Number?
+                summary: The length in bytes of the authentication tag/signature.
+                  Defaults to 16 bytes.
+              - name: ivByteLength
+                type: Number?
+                summary: The length in bytes of the "initialization vector",
+                  which will be randomly generated during `encrypt()` unless
+                  a specific `iv` is specied, in which case `ivByteLength`() is
+                  ignored. Defaults to 16 bytes.
+              - name: iv
+                suffix: aes-gcm
+                type: JSData?
+                summary: The "initialization vector" data. Will be used for all
+                  calls to `encrypt()`. If not provied, a random `iv`() of
+                  `ivByteLength` will be generated during `encrypt()`
+              - name: additionalData
+                type: JSData?
+                summary: The additional data that should be authenticated with
+                  a signature, used for all calls to `encrypt()` and `decrypt()`
+          - name: Options for RSA-OAEP
+            members:
+              - name: modulusLength
+                type: Number?
+                summary: The RSA modululs length, defaults to 2048
+              - name: publicExponent
+                type: Number?
+                summary: The RSA public exponent, defaults to 0x10001
+              - name: label
+                type: JSData?
+                summary: The optional label for RSA-OAEP
+              - name: hash
+                type: SECHash.Algorithm
+                summary: The hash algorithm to use for RSA-OAEP, defaults to
+                  `sha1`(SECHash.Algorithm.sha1)
         note: As of October 2020, Chrome does not support 192-bit AES keys, so
           we do not recommend using that algorithm/size combination if you need
           Chrome compatibility.
@@ -108,6 +177,9 @@ topics:
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
+        note: Encryption options such as the initialization vector or additional
+          authenticated data can be provided during cipher construction via
+          `CipherOptions`
       -
         name: encrypt
         suffix: promise
@@ -127,6 +199,9 @@ topics:
             name: key
             type: SECKey
             summary: The key to use for encryption
+        note: Encryption options such as the initialization vector or additional
+          authenticated data can be provided during cipher construction via
+          `CipherOptions`
       -
         name: encryptString
         kind: method
@@ -209,6 +284,9 @@ topics:
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
+        note: Decryption options such as the initialization vector or additional
+          authenticated data can be provided during cipher construction via
+          `CipherOptions`
       -
         name: decrypt
         suffix: promise
@@ -228,6 +306,9 @@ topics:
             name: key
             type: SECKey
             summary: The key to use for decryption
+        note: Decryption options such as the initialization vector or additional
+          authenticated data can be provided during cipher construction via
+          `CipherOptions`
       -
         name: decryptString
         kind: method
@@ -302,6 +383,9 @@ topics:
             default: "undefined"
             summary: The object to use as `this` when calling the completion
               function
+        note: For asymmetric ciphers, the resulting key will be a private key.
+          The corresponding public key can be obtained from the resulting key's
+          `publicKey`(SECKey.publicKey) property.
       -
         name: createKey
         suffix: promise
@@ -312,6 +396,9 @@ topics:
             type: SECKey
             summary: The new key
         summary: Create a new random key and provide the result with a promise
+        note: For asymmetric ciphers, the resulting key will be a private key.
+          The corresponding public key can be obtained from the resulting key's
+          `publicKey`(SECKey.publicKey) property.
       -
         name: createKeyWithData
         kind: method
@@ -636,3 +723,28 @@ topics:
             name: length
             type: Number
             summary: The number of random bytes to generate
+  -
+    name: Deprecated
+    members:
+      -
+        name: initWithAlgorithm
+        introduced: 2020.28.0
+        deprecated: 2024.40.0
+        kind: init
+        suffix: keysize
+        summary: Create a cipher for the given algorithm and key size
+        arguments:
+          -
+            name: algorithm
+            type: Algorithm
+            summary: The encryption algorithm to use for this cipher
+          -
+            name: keyBitLength
+            type: Number
+            summary: The length in bits of the key size for this cipher
+        description: |
+          Instead of passing a sigle key bit length option, you can now pass
+          a `CipherOptions` dictionary containing multiple options.
+        note: As of October 2020, Chrome does not support 192-bit AES keys, so
+          we do not recommend using that algorithm/size combination if you need
+          Chrome compatibility.

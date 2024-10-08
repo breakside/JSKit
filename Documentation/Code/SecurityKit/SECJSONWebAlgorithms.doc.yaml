@@ -10,7 +10,7 @@ topics:
         kind: enum
         summary: The supported signature algorithms
         description: |
-          Corresponds to the `alg` property within a JWT header
+          Corresponds to the `alg` property within a JWT or the `alg`/`enc` properties in a JWE header
         topics:
           - name: Options
             members:
@@ -34,6 +34,33 @@ topics:
                 summary: The JWT is signed with a RSA using SHA384
               - name: ellipticCurveSHA512
                 summary: The JWT is signed with a RSA using SHA512
+              - name: direct
+                introduced: 2024.40.0
+                summary: The JWE is encrypted directly with the given key
+              - name: rsaOAEP
+                introduced: 2024.40.0
+                summary: The JWE's keydata is wrapped using RSA-OAEP
+              - name: ecdhES
+                introduced: 2024.40.0
+                summary: The JWE's keydata is derived using ECDH-ES
+              - name: aesGCM128
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 128 bit AES-GCM
+              - name: aesGCM192
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 192 bit AES-GCM
+              - name: aesGCM256
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 256 bit AES-GCM
+              - name: aesCBC128HS256
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 128 bit AES-CBC and verified with HMAC-SHA256
+              - name: aesCBC192HS384
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 192 bit AES-CBC and verified with HMAC-SHA384
+              - name: aesCBC256HS512
+                introduced: 2024.40.0
+                summary: The JWE's content is encrypted with 256 bit AES-CBC and verified with HMAC-SHA512
       - name: KeyType
         kind: enum
         summary: The types of `JSONWebKey`s

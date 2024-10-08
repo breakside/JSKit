@@ -1,0 +1,277 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2024.40.0
+summary: Parse and decrypt, or encrypt and serialized, JSON Web Encryption (JWE) strings 
+topics:
+  - name: Create a JWE
+    members:
+      - name: initWithString
+        kind: init
+        summary: Create a JSON Web Encryption object for decryption from a compact serialized string
+        arguments:
+          - name: string
+            type: String
+            summary: The string representing a JSON web encryption
+        description: |
+          JSON Web Encryption uses base64 (URL variant) to encode 5 chunks of data,
+          and then combines the three parts into one string using a `"."` in
+          between each part.
+
+          This combined string is what is expected here.
+      - name: init
+        kind: init
+        summary: Create a JSON Web Encryption object ready for `encrypt()`
+        description: |
+          Used when you would like to encrypt using a JSON Web Encryption
+  - name: Getting Decrypted Content
+    members:
+      - name: decrypt
+        kind: method
+        summary: Returns the plaintext content that is encrypted in the JWE, using a callback
+        arguments:
+          - name: privateKeys
+            type: JSONWebKey[]
+            summary: The private JSON Web Keys to match against for decryption
+          - name: completion
+            type:
+              arguments:
+                - name: plaintext
+                  type: JSData
+                  nullable: true
+                  summary: The decrypted "plaintext" data, or `null` if decryption
+                    failed
+            summary: The function to call the the result
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          The key with a `kid` matching the JWE will be used for decryption.
+      - name: decrypt
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: JSData
+            summary: The decrypted "plaintext" data
+        summary: Returns the decrypted content via a promise, but only
+          if decryption succeeds
+        arguments:
+          - name: privateKeys
+            type: JSONWebKey[]
+            summary: The private JSON Web Keys for decryption
+        description: |
+          The key with a `kid` matching the JWE will be used for decryption.
+      - name: decrypt
+        suffix: single-key
+        kind: method
+        summary: Returns the plaintext content that is encrypted in the JWE, using a callback
+        arguments:
+          - name: key
+            type: JSONWebKey
+            summary: The private JSON Web Key for decryption
+          - name: completion
+            type:
+              arguments:
+                - name: plaintext
+                  type: JSData
+                  nullable: true
+                  summary: The "plaintext" data contents, or `null` if decryption
+                    failed
+            summary: The function to call the the result
+          - name: target
+            type: object
+            default: "undefined"
+            summary: The object to use as `this` when calling the completion
+              function
+        description: |
+          If you know the single key used for decryption, you can pass it by
+          itself rather than as part of a list.
+
+          If you have a single shared key as raw data, the `JSONWebKey` for it
+          would look like:
+
+          ````
+          var jwk = {
+            kty: "oct",
+            k: "abcde..." // base64-url of the raw key data
+          };
+          ````
+      - name: decrypt
+        suffix: single-key-promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: dictionary
+            summary: The "plaintext" data contents
+        summary: Returns the plaintext content that is encrypted in the JWE,
+          using a promise, but only if the signature is valid
+        arguments:
+          - name: key
+            type: JSONWebKey
+            summary: The private JSON Web Key for decryption
+        description: |
+          If you know the single key used for decryption, you can pass it by
+          itself rather than as part of a list.
+
+          If you have a single shared key as raw data, the `JSONWebKey` for it
+          would look like:
+
+          ````
+          var jwk = {
+            kty: "oct",
+            k: "abcde..." // base64-url of the raw key data
+          };
+          ````
+  - name: Encryption
+    members:
+      - name: encrypt
+        kind: method
+        summary: Encrypt the given "plaintext" data with the given key
+        arguments:
+          - name: plaintext
+            type: JSData
+            summary: The content to encrypt
+          - name: key
+            type: JSONWebKey
+            summary: The key to use for encryption
+          - name: completion
+            type:
+              arguments:
+                - name: jwe
+                  type: String
+                  summary: The compact string representation of the JWE
+          - name: target
+            type: any
+            default: "undefined"
+            summary: The object to use as `this` when calling `completion`
+        description: |
+          Used in conjunction with `init()` to create and encrypt
+          your own JWE to send to someone else.
+          
+          For asymmetric encryption, the JWK used should be a public key with
+          the `rsaOAEP` `alg`.  This kind of key can be created with:
+
+          ````
+          let cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rsaOAEP)
+          let privateKey = await cipher.createKey()
+          let jwe = SECJSONWebEncryption.init();
+          let jweString = await jwe.encrypt("this is a test".utf8(), privateKey.publicKey)
+          ````
+
+          For direct symmetric encryption, the JWK used should be one created
+          by a `SECHMAC` object.
+
+          ````
+          let hmac = SECHMAC.initWithAlgorithm(SECHMAC.Algorithm.sha256)
+          let secretKey = await hmac.createKey()
+          let jwe = SECJSONWebEncryption.init();
+          let jweString = await jwe.encrypt("this is a test".utf8(), secretKey)
+          ````
+        see:
+          - SECHMAC.createKey()
+          - SECCipher.createKey()
+      - name: encrypt
+        suffix: promise
+        kind: method
+        type: Promise
+        promise:
+          resolve:
+            type: String
+            summary: The compact string representation of the JWE
+        summary: Encrypt the given "plaintext" data with the given key, using a promise
+        arguments:
+          - name: plaintext
+            type: JSData
+            summary: The content to encrypt
+          - name: key
+            type: JSONWebKey
+            summary: The key to use for encryption
+        description: |
+          Used in conjunction with `init()` to create and encrypt
+          your own JWE to send to someone else.
+
+          For asymmetric encryption, the JWK used should be a public key with
+          the `rsaOAEP` `alg`.  This kind of key can be created with:
+
+          ````
+          let cipher = SECCipher.initWithAlgorithm(SECCipher.Algorithm.rsaOAEP)
+          let privateKey = await cipher.createKey()
+          let jwe = SECJSONWebEncryption.init();
+          let jweString = await jwe.encrypt("this is a test".utf8(), privateKey.publicKey)
+          ````
+
+          For direct symmetric encryption, the JWK used should be one created
+          by a `SECHMAC` object.
+
+          ````
+          let hmac = SECHMAC.initWithAlgorithm(SECHMAC.Algorithm.sha256)
+          let secretKey = await hmac.createKey()
+          let jwe = SECJSONWebEncryption.init();
+          let jweString = await jwe.encrypt("this is a test".utf8(), secretKey)
+          ````
+        see:
+          - SECHMAC.createKey()
+          - SECCipher.createKey()
+      - name: stringRepresentation
+        kind: method
+        summary: Get the base64-url encoded JSON Web Encryption to send
+  - name: Constants
+    members:
+      - name: Algorithm
+        kind: enum
+        summary: The supported signature algorithms
+        description: |
+          Corresponds to the `alg` or `enc` property within a JWE header
+        topics:
+          - name: Options
+            members:
+              - name: direct
+                summary: The JWE is encrypted directly with the given key
+              - name: rsaOAEP
+                summary: The JWE's keydata is wrapped using RSA-OAEP
+              - name: ecdhES
+                summary: The JWE's keydata is derived using ECDH-ES
+              - name: aesGCM128
+                summary: The JWE's content is encrypted with 128 bit AES-GCM
+              - name: aesGCM192
+                summary: The JWE's content is encrypted with 192 bit AES-GCM
+              - name: aesGCM256
+                summary: The JWE's content is encrypted with 256 bit AES-GCM
+              - name: aesCBC128HS256
+                summary: The JWE's content is encrypted with 128 bit AES-CBC and verified with HMAC-SHA256
+              - name: aesCBC192HS384
+                summary: The JWE's content is encrypted with 192 bit AES-CBC and verified with HMAC-SHA384
+              - name: aesCBC256HS512
+                summary: The JWE's content is encrypted with 256 bit AES-CBC and verified with HMAC-SHA512
+      - name: KeyType
+        kind: enum
+        summary: The types of `JSONWebKey`s
+        description: |
+          Corresponds to the `kty` property within a `JSONWebKey`
+        topics:
+          - name: Options
+            members:
+              - name: symmetric
+                summary: The key uses a symmetric algorithm
+              - name: rsa
+                summary: The key uses the RSA algorithm
+              - name: ellipticCurve
+                summary: The key uses the Elliptic Curve algorithm
+      - kind: enum
+        name: EllipticCurve
+        summary: The supported named curves
+        topics:
+          -
+            name: Options
+            members:
+              - name: p256
+                summary: The `P-256`() curve, also known as `secp256r1`()
+              - name: p384
+                summary: The `P-384`() curve, also known as `secp384r1`()
+              - name: p521
+                summary: The `P-521`() curve, also known as `secp521r1`()
