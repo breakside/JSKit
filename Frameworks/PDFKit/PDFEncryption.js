@@ -226,7 +226,7 @@ JSClass("PDFEncryption", JSObject, {
         }
 
         var keyData = this._generateObjectKeyData(stream.indirect.objectID, stream.indirect.generation, cipherAlgorithm);
-        var cipher = SECCipher.initWithAlgorithm(cipherAlgorithm);
+        var cipher = SECCipher.initWithAlgorithm(cipherAlgorithm, {keyBitLength: 128});
         cipher.createKeyWithData(keyData, function(key){
             if (key === null){
                 completion.call(target, null);
