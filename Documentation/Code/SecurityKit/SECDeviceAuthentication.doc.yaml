@@ -237,42 +237,61 @@ topics:
         name: RegistrationWebAuthn
         kind: class
         anonymous: true
-        summary: The extra properties for a WebAuthn signature
+        summary: The extra properties for a WebAuthn signature, matching the
+          output of `PublicKeyCredential.toJSON`()
         topics:
           -
             name: Properties
             members:
               -
-                name: attestation
-                type: RegistrationWebAuthnAttestation
-                summary: The webauthn attestation result
-              -
-                name: clientData
+                name: id
                 type: String
-                summary: The base64-url encoded client data used in the signature calculation
-      -
-        name: RegistrationWebAuthnAttestation
-        kind: class
-        anonymous: true
-        summary: The structure of a WebAuthn registration attestation
-        description: |
-          The format is fully defined in the Web Authentication specification
-        topics:
+                summary: The `PublicKeyCredential.id`, which should match the
+                  `kid`() from the result JWK
+              -
+                name: rawId
+                type: String
+                summary: The `PublicKeyCredential.id`, which should match the
+                  `kid`() from the result JWK
+              -
+                name: authenticatorAttachment
+                type: String
+                summary: The `PublicKeyCredential.authenticatorAttachment`
+              -
+                name: type
+                type: String
+                summary: The `PublicKeyCredential.type`, which should be `"public-key"`
+              -
+                name: response
+                type: AttestationResponse
+                summary: An object with details of the WebAuthn attestation
           -
-            name: Properties
+            name: Response Details
             members:
               -
-                name: fmt
-                type: String
-                summary: The attestation statement format
-              -
-                name: attStmt
-                type: object
-                summary: The attestation statement
-              -
-                name: authData
-                type: String
-                summary: The base64-encoded authentication data used in the attestation statement
+                name: AttestationResponse
+                kind: class
+                anonymous: true
+                summary: The WebAuthn response attributes for key registration,
+                  including attesation data
+                topics:
+                  -
+                    name: Properties
+                    members:
+                      -
+                        name: clientDataJSON
+                        type: String
+                        summary: base64-url encoded JSON object, which should include
+                          a `challenge` property.
+                      -
+                        name: authenticatorData
+                        type: String
+                        summary: base64-url encoded data, extracted from `attestationObject`
+                          for convinence
+                      -
+                        name: attestationObject
+                        type: String
+                        summary: base64-url encoded CBOR object
       -
         name: PublicKeyAuthentication
         kind: class
@@ -361,16 +380,58 @@ topics:
         name: SignatureWebAuthn
         kind: class
         anonymous: true
-        summary: The extra properties for a WebAuthn signature
+        summary: The extra properties for a WebAuthn signature, matching the
+          output of `PublicKeyCredential.toJSON()`
         topics:
           -
             name: Properties
             members:
               -
-                name: authData
+                name: id
                 type: String
-                summary: The base64-url encoded auth data used in the signature calculation
+                summary: The `PublicKeyCredential.id`, which should match the
+                  `kid`() from the result JWK
               -
-                name: clientData
+                name: rawId
                 type: String
-                summary: The base64-url encoded client data used in the signature calculation
+                summary: The `PublicKeyCredential.id`, which should match the
+                  `kid`() from the result JWK
+              -
+                name: authenticatorAttachment
+                type: String
+                summary: The `PublicKeyCredential.authenticatorAttachment`
+              -
+                name: type
+                type: String
+                summary: The `PublicKeyCredential.type`, which should be `"public-key"`
+              -
+                name: response
+                type: AuthenticationResponse
+                summary: An object with details of the WebAuthn response
+          -
+            name: Response Details
+            members:
+              -
+                name: AuthenticationResponse
+                kind: class
+                anonymous: true
+                summary: The WebAuthn response attributes for key registration,
+                  including attesation data
+                topics:
+                  -
+                    name: Properties
+                    members:
+                      -
+                        name: clientDataJSON
+                        type: String
+                        summary: base64-url encoded JSON object, which should include
+                          a `challenge` property.
+                      -
+                        name: authenticatorData
+                        type: String
+                        summary: base64-url encoded data, extracted from `attestationObject`
+                          for convinence
+                      -
+                        name: signature
+                        type: String
+                        summary: base64-url encoded data of the signature to check

@@ -18,7 +18,7 @@
 // #import "SECSign.js"
 // #import "SECCBOR.js"
 // #import "SECHash.js"
-// #import "SECJSONWebAlgorithms.js"
+// #import "SECCOSE.js"
 // jshint browser: true
 /* global AuthenticatorAttestationResponse */
 'use strict';
@@ -66,12 +66,13 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         // challengeData
         // supportedAlgorithms
         // platform
+        // conditional
         if (!completion){
             completion = Promise.completion();
         }
         if (this.credentialStore === null){
             JSRunLoop.main.schedule(completion, target, null);
-            return;
+            return completion.promise;
         }
         registration = JSCopy(registration);
         if (!registration.providerName){
@@ -108,7 +109,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 // the client before authenticating
                 requireResidentKey: false,
                 residentKey: "discouraged",
-                userVerification: registration.platform ? "required" : "discouraged",
+                userVerification: registration.platform && !registration.conditional ? "required" : "discouraged",
                 authenticatorAttachment: registration.platform ? "platform" : "cross-platform"
             },
             attestation: "none",
@@ -132,34 +133,42 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             ];
         }
         var credentials = this.credentialStore;
-        this.credentialStore.create({publicKey: info}).then(function(credential){
+        var handleCredential = function(credential){
             if (!credential || credential.type != "public-key"){
                 completion.call(target, null);
                 return;
             }
-            var clientData = JSData.initWithBuffer(credential.response.clientDataJSON);
-            var attestationCBOR = JSData.initWithBuffer(credential.response.attestationObject);
-            var attestationParser = SECCBORParser.initWithData(attestationCBOR);
-            attestationParser.encodeDataAsBase64URL = true;
-            var attestation = attestationParser.parse();
-            var authData = attestation.authData.dataByDecodingBase64URL();
-            var length = (authData[53] << 8) | authData[54];
-            var keyParser = SECCBORParser.initWithData(authData);
-            keyParser.offset = 55 + length;
-            var coseKey = keyParser.readNext();
-            var jwk = jwkForCoseKey(coseKey, credential.id);
+            var jwk = credential.response.getPublicJWK();
+            var webauthn = credential.toJSON();
             var result = {
                 jwk: jwk,
-                webauthn: {
-                    attestation: attestation,
-                    clientData: clientData.base64URLStringRepresentation()
-                },
-                challenge: registration.challengeData
+                challenge: registration.challengeData,
+                webauthn: webauthn
             };
             completion.call(target, result);
-        }, function(error){
-            completion.call(target, null);
-        });
+        };
+        if (registration.conditional){
+            if (!window.PublicKeyCredential || !window.PublicKeyCredential.getClientCapabilities){
+                JSRunLoop.main.schedule(completion, target, null);
+                return completion.promise;
+            }
+            window.PublicKeyCredential.getClientCapabilities().then(function(capabilities){
+                if (!capabilities || !capabilities.conditionalCreate){
+                    completion.call(target, null);
+                    return;
+                }
+                credentials.create({publicKey: info, mediation: "conditional"}).then(handleCredential,function(error){
+                    completion.call(target, null);
+                });
+            }, function(e){
+                logger.error("failed to getClientCapabilities(): %{error}", e);
+                completion.call(target, null);
+            });
+        }else{
+            credentials.create({publicKey: info}).then(handleCredential, function(error){
+                completion.call(target, null);
+            });
+        }
         return completion.promise;
     },
 
@@ -212,15 +221,10 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 completion.call(target, null);
                 return;
             }
-            var clientData = JSData.initWithBuffer(credential.response.clientDataJSON);
-            var authData = JSData.initWithBuffer(credential.response.authenticatorData);
-            var hash = SECHash.initWithAlgorithm(SECHash.Algorithm.sha256);
+            var webauthn = credential.toJSON();
             var result = {
                 kid: credential.id,
-                webauthn: {
-                    authData: authData.base64URLStringRepresentation(),
-                    clientData: clientData.base64URLStringRepresentation()
-                },
+                webauthn: webauthn,
                 challenge: request.challengeData,
                 signature: JSData.initWithBuffer(credential.response.signature)
             };
@@ -245,86 +249,115 @@ Object.defineProperties(SECDeviceAuthentication, {
 });
 
 var coseAlgorithmsBySignAlgorithm = {};
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256] = -257;
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384] = -258;
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512] = -259;
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA256] = -7;
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA384] = -35;
-coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA512] = -36;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA256] = SECCOSE.Algorithm.rsaSHA256;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA384] = SECCOSE.Algorithm.rsaSHA384;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.rsaSHA512] = SECCOSE.Algorithm.rsaSHA512;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA256] = SECCOSE.Algorithm.ellipticCurveSHA256;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA384] = SECCOSE.Algorithm.ellipticCurveSHA384;
+coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA512] = SECCOSE.Algorithm.ellipticCurveSHA512;
 
-var remap = function(dictionary, keyMap){
-    var copy = {};
-    for (var k in dictionary){
-        copy[keyMap[k] || k] = dictionary[k];
-    }
-    return copy;
-};
+if (window.PublicKeyCredential){
 
-var jwkForCoseKey = function(coseKey, kid){
-    coseKey = remap(coseKey, {
-        "1": "kty",
-        "2": "kid",
-        "3": "alg",
-        "-1": "crv",
-        "-2": "x",
-        "-3": "y",
-        "-4": "d"
-    });
-    var jwk = {
-        kid: kid,
-        key_ops: ["verify"]
-    };
-    if (coseKey.kty == 2){
-        jwk.kty = SECJSONWebAlgorithms.KeyType.ellipticCurve;
-        switch (coseKey.alg){
-            case -7:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA256;
-                break;
-            case -35:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA384;
-                break;
-            case -36:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.ellipticCurveSHA512;
-                break;
-            default:
-                return null;
-        }
-        switch (coseKey.crv){
-            case 1:
-                jwk.crv = "P-256";
-                break;
-            case 2:
-                jwk.crv = "P-384";
-                break;
-            case 3:
-                jwk.crv = "P-512";
-                break;
-            default:
-                return null;
-        }
-        jwk.x = coseKey.x.base64URLStringRepresentation();
-        jwk.y = coseKey.y.base64URLStringRepresentation();
-        return jwk;
+    if (!window.PublicKeyCredential.prototype.toJSON){
+        window.PublicKeyCredential.prototype.toJSON = function PublicKeyCredential_toJSON(){
+            var dictionary = {};
+            dictionary.id = this.id;
+            dictionary.rawId = JSData.initWithBuffer(this.rawId).base64URLStringRepresentation();
+            dictionary.authenticatorAttachment = this.authenticatorAttachment || "";
+            dictionary.type = this.type || "public-key";
+            dictionary.clientExtensionResults = this.getClientExtensionResults ? this.getClientExtensionResults() : {};
+            dictionary.response = this.response.toJSON ? this.response.toJSON() : {};
+            return dictionary;
+        };
     }
-    if (coseKey.kty == 0){ // RSA
-        jwk.kty = SECJSONWebAlgorithms.KeyType.rsa;
-        switch (coseKey.alg){
-            case -257:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA256;
-                break;
-            case -258:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA384;
-                break;
-            case -259:
-                jwk.alg = SECJSONWebAlgorithms.Algorithm.rsaSHA512;
-                break;
-            default:
-                return null;
-        }
-        // TODO: jwk.n, jwk.e
-        return jwk;
+
+}
+
+if (window.AuthenticatorAttestationResponse){
+
+    if (!window.AuthenticatorAttestationResponse.prototype.getAuthenticatorData){
+        window.AuthenticatorAttestationResponse.prototype.getAuthenticatorData = function AuthenticatorAttestationResponse_getAuthenticatorData(){
+            if (this._jskitAuthDataBuffer === undefined){
+                var attestationCBOR = JSData.initWithBuffer(this.attestationObject);
+                var attestationParser = SECCBORParser.initWithData(attestationCBOR);
+                var attestation = attestationParser.parse();
+                var data = attestation.authData;
+                this._authDataBuffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.length);
+            }
+            return this._authDataBuffer;
+        };
     }
-    return null;
-};
+
+    if (!window.AuthenticatorAttestationResponse.prototype.jskitGetCOSE){
+        window.AuthenticatorAttestationResponse.prototype.jskitGetCOSE = function jskitGuthenticatorAttestationResponse_getCOSEDictionary(){
+            if (this._jskitCOSE === undefined){
+                var authData = JSData.initWithBuffer(this.getAuthenticatorData());
+                var idLength = (authData[53] << 8) | authData[54];
+                var offset = 55 + idLength;
+                this._jskitCOSE = SECCOSE.initWithData(authData.subdataInRange(JSRange(offset, authData.length - offset)));
+            }
+            return this._jskitCOSE;
+        };
+    }
+
+    if (!window.AuthenticatorAttestationResponse.prototype.getPublicKeyAlgorithm){
+        window.AuthenticatorAttestationResponse.prototype.getPublicKeyAlgorithm = function AuthenticatorAttestationResponse_getPublicKeyAlgorithm(){
+            var cose = this.jskitGetCOSE();
+            return cose[SECCOSE.Attribute.alg];
+        };
+    }
+
+    if (!window.AuthenticatorAttestationResponse.prototype.getPublicKey){
+        window.AuthenticatorAttestationResponse.prototype.getPublicKey = function AuthenticatorAttestationResponse_getPublicKey(){
+            var cose = this.jskitGetCOSE();
+            var derData = cose.derRepresentation();
+            return derData.buffer.slice(derData.byteOffset, derData.byteOffset + derData.length);
+        };
+    }
+
+    if (!window.AuthenticatorAttestationResponse.prototype.getPublicJWK){
+        window.AuthenticatorAttestationResponse.prototype.getPublicJWK = function AuthenticatorAttestationResponse_getPublicJWK(){
+            var cose = this.jskitGetCOSE();
+            var jwk = cose.jwkRepresentation();
+            var authData = JSData.initWithBuffer(this.getAuthenticatorData());
+            var idLength = (authData[53] << 8) | authData[54];
+            var idData = authData.subdataInRange(JSRange(55, idLength));
+            jwk.kid = idData.base64URLStringRepresentation();
+            jwk.key_ops = ["verify"];
+            return jwk;
+        };
+    }
+
+    if (!window.AuthenticatorAttestationResponse.prototype.toJSON){
+        window.AuthenticatorAttestationResponse.prototype.toJSON = function AuthenticatorAttestationResponse_toJSON(){
+            var attestationObjectData = JSData.initWithBuffer(this.attestationObject);
+            var authData = JSData.initWithBuffer(this.getAuthenticatorData());
+            var dictionary = {};
+            dictionary.clientDataJSON = JSData.initWithBuffer(this.clientDataJSON).base64URLStringRepresentation();
+            dictionary.authenticatorData = authData.base64URLStringRepresentation();
+            dictionary.transports = this.getTransports ? this.getTransports() : [];
+            dictionary.publicKey = JSData.initWithBuffer(this.getPublicKey()).base64URLStringRepresentation();
+            dictionary.publicKeyAlgorithm = this.getPublicKeyAlgorithm();
+            dictionary.attestationObject = attestationObjectData.base64URLStringRepresentation();
+            return dictionary;
+        };
+    }
+
+}
+
+if (window.AuthenticatorAssertionResponse){
+
+    if (!window.AuthenticatorAssertionResponse.prototype.toJSON){
+        window.AuthenticatorAssertionResponse.prototype.toJSON = function AuthenticatorAssertionResponse_toJSON(){
+            var dictionary = {};
+            dictionary.clientDataJSON = JSData.initWithBuffer(this.clientDataJSON).base64URLStringRepresentation();
+            dictionary.authenticatorData = JSData.initWithBuffer(this.authenticatorData).base64URLStringRepresentation();
+            dictionary.signature = JSData.initWithBuffer(this.signature).base64URLStringRepresentation();
+            dictionary.userHandle = this.userHandle ? JSData.initWithBuffer(this.userHandle).base64URLStringRepresentation() : null;
+            return dictionary;
+        };
+    }
+
+}
 
 })();
