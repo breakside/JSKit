@@ -99,21 +99,16 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             challenge: registration.challengeData,
             pubKeyCredParams: [],
             authenticatorSelection: {
-                // Browser support for resident keys is spotty:
-                // - Chrome works, requiring the user to set a PIN, but can't share with others
-                // - Safari works, no PIN required, but can't share with others
-                // - Safari will get PIN support in Safari 14
-                // - Firefox doesn't work on macOS, but supposedly works on windows with a PIN
-                // Without a resident key, we need something like a username that the user can
-                // provide so we can lookup allowed key IDs on a server and send them back to
-                // the client before authenticating
-                requireResidentKey: false,
-                residentKey: "discouraged",
+                // requiring a resident key is necessary for Android to
+                // actually save a passkey.  Apple OSes will save a passkey
+                // regardless of resident key settings
+                requireResidentKey: registration.platform ? true : false,
+                residentKey: registration.platform ? "required" : "discouraged",
                 userVerification: registration.platform && !registration.conditional ? "required" : "discouraged",
                 authenticatorAttachment: registration.platform ? "platform" : "cross-platform"
             },
             attestation: "none",
-            timeout: 10000
+            timeout: 60000
         };
         if (registration.domain !== undefined){
             info.rp.id = registration.domain;
@@ -187,9 +182,9 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
         }
         var info = {
             challenge: request.challengeData,
-            userVerification: "discouraged",
-            timeout: 10000,
-            allowCredentials: []
+            userVerification: request.platform ? "required" : "discouraged",
+            timeout: 60000,
+            allowCredentials: [],
         };
         if (request.domain){
             info.rpId = request.domain;
