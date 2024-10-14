@@ -35,3 +35,5 @@
 // Subclasses
 // #import "JSHTMLFile.js"
 // #import "JSHTMLFileEnumerator.js"
+
+// #import "JSHTMLUserAgent.js"
