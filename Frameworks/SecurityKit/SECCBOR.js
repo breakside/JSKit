@@ -44,6 +44,9 @@ JSClass("SECCBORParser", JSObject, {
     },
 
     readNext: function(){
+        if (this.offset >= this.data.length){
+            return null;
+        }
         var b = this.data[this.offset++];
         var info = b & 0x1F;
         var majorType = (b & 0xE0) >> 5;
@@ -65,6 +68,7 @@ JSClass("SECCBORParser", JSObject, {
             case SECCBOR.MajorType.other:
                 return this.readOther(info);
         }
+        return null;
     },
 
     readUnsignedInteger: function(info){
