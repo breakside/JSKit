@@ -13,6 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// #import Foundation
 // #import "SECDeviceAuthentication.js"
 // #import "SECCipher.js"
 // #import "SECSign.js"
@@ -108,7 +109,10 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                 authenticatorAttachment: registration.platform ? "platform" : "cross-platform"
             },
             attestation: "none",
-            timeout: 60000
+            timeout: 60000,
+            extensions: {
+                credProps: true
+            }
         };
         if (registration.domain !== undefined){
             info.rp.id = registration.domain;
@@ -136,6 +140,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
             var jwk = credential.response.getPublicJWK();
             var webauthn = credential.toJSON();
             var result = {
+                name: credential.jskitName,
                 jwk: jwk,
                 challenge: registration.challengeData,
                 webauthn: webauthn
@@ -202,7 +207,7 @@ JSClass("SECHTMLDeviceAuthentication", JSObject, {
                         id: request.allowedKeyIDs[i].dataByDecodingBase64URL()
                     };
                     if (request.platform){
-                        allowedCredential.transports = ["internal"];
+                        allowedCredential.transports = ["internal", "hybrid"];
                     }
                     info.allowCredentials.push(allowedCredential);
                 }catch (e){
@@ -260,11 +265,64 @@ if (window.PublicKeyCredential){
             dictionary.rawId = JSData.initWithBuffer(this.rawId).base64URLStringRepresentation();
             dictionary.authenticatorAttachment = this.authenticatorAttachment || "";
             dictionary.type = this.type || "public-key";
-            dictionary.clientExtensionResults = this.getClientExtensionResults ? this.getClientExtensionResults() : {};
+            dictionary.clientExtensionResults = this.getClientExtensionResults();
             dictionary.response = this.response.toJSON ? this.response.toJSON() : {};
             return dictionary;
         };
     }
+
+    if (!window.PublicKeyCredential.prototype.getClientExtensionResults){
+        window.PublicKeyCredential.prototype.getClientExtensionResults = function PublicKeyCredential_getClientExtensionResults(){
+            if (this._clientExtensionResults === undefined){
+                var authData = JSData.initWithBuffer(this.getAuthenticatorData());
+                var idLength = (authData[53] << 8) | authData[54];
+                var offset = 55 + idLength;
+                var cbor = SECCBORParser.initWithData(authData.subdataInRange(JSRange(offset, authData.length - offset)));
+                var coseKey = cbor.readNext(); // ingored, only reading to arrive at the extensions start location
+                this._clientExtensionResults = cbor.readNext() || {};
+            }
+            return this._clientExtensionResults;
+        };
+    }
+
+    Object.defineProperties(window.PublicKeyCredential.prototype, {
+        jskitName: {
+            enumerable: false,
+            configurable: false,
+            get: function PublicKeyCredential_getJSKitName(){
+                var extensions = this.getClientExtensionResults();
+                if (extensions.credProps){
+                    if (extensions.credProps.authenticatorDisplayName){
+                        return extensions.credProps.authenticatorDisplayName;
+                    }
+                }
+                var ua = JSHTMLUserAgent.initWithString(navigator.userAgent);
+                var apple = ua.containsComment("Macintosh") || ua.containsComment("iPhone") || ua.containsComment("iPad");
+                var windows = ua.containsComment("Win64") || ua.containsComment("Windows NT 10.0");
+                var linux = ua.containsComment("Linux");
+                var android = false;
+                if (linux){
+                    var i, l;
+                    for (i = 0, l = ua.comments.length; i < l; ++i){
+                        if (ua.comments[i].startsWith("Android")){
+                            android = true;
+                            break;
+                        }
+                    }
+                }
+                if (apple){
+                    return "iCloud Keychain";
+                }
+                if (android){
+                    return "Google Password Manager";
+                }
+                if (windows){
+                    return "Windows Hello";
+                }
+                return "";
+            }
+        }
+    });
 
 }
 

@@ -210,6 +210,16 @@ topics:
             name: Properties
             members:
               -
+                name: name
+                introduced: 2024.41.0
+                type: String
+                summary: A suggested display name for the public key
+                description: |
+                  If the authenticator doesn't provide a name, we'll try to
+                  generate a name based on the platform.
+
+                  May return an empty string.
+              -
                 name: jwk
                 type: SECJSONWebToken.JSONWebKey
                 summary: The public key that was created
