@@ -37,7 +37,7 @@ JSClass("KeyCommand", Command, {
         }[this.arguments.bits];
         var hmac = SECHMAC.initWithAlgorithm(hmacAlgorithm);
         var key = await hmac.createKey();
-        var data = key.getData();
+        var data = await key.getData();
         var printer = Printer.initWithLabel('key');
         if (this.arguments.format === "jwk"){
             var jwk = {
