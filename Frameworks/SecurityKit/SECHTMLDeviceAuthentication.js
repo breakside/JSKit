@@ -256,7 +256,7 @@ coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA256] = SECCOSE.A
 coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA384] = SECCOSE.Algorithm.ellipticCurveSHA384;
 coseAlgorithmsBySignAlgorithm[SECSign.Algorithm.ellipticCurveSHA512] = SECCOSE.Algorithm.ellipticCurveSHA512;
 
-if (window.PublicKeyCredential){
+if (window.PublicKeyCredential && window.PublicKeyCredential.prototype){
 
     if (!window.PublicKeyCredential.prototype.toJSON){
         window.PublicKeyCredential.prototype.toJSON = function PublicKeyCredential_toJSON(){
@@ -326,7 +326,7 @@ if (window.PublicKeyCredential){
 
 }
 
-if (window.AuthenticatorAttestationResponse){
+if (window.AuthenticatorAttestationResponse && window.AuthenticatorAttestationResponse.prototype){
 
     if (!window.AuthenticatorAttestationResponse.prototype.getAuthenticatorData){
         window.AuthenticatorAttestationResponse.prototype.getAuthenticatorData = function AuthenticatorAttestationResponse_getAuthenticatorData(){
@@ -398,7 +398,7 @@ if (window.AuthenticatorAttestationResponse){
 
 }
 
-if (window.AuthenticatorAssertionResponse){
+if (window.AuthenticatorAssertionResponse && window.AuthenticatorAssertionResponse.prototype){
 
     if (!window.AuthenticatorAssertionResponse.prototype.toJSON){
         window.AuthenticatorAssertionResponse.prototype.toJSON = function AuthenticatorAssertionResponse_toJSON(){
