@@ -992,7 +992,7 @@ JSClass('UIView', UIResponder, {
         return this.layer.containsPoint(point);
     },
 
-    hitTest: function(locationInView){
+    hitTest: function(locationInView, event){
         var subview;
         var locationInSubview;
         var hit = null;
@@ -1008,7 +1008,7 @@ JSClass('UIView', UIResponder, {
             subview = subviews[i];
             locationInSubview = this.layer.convertPointToLayer(locationInView, subview.layer);
             if (!subview.hidden && subview.layer.presentation.alpha > 0 && (!subview.clipsToBounds || subview.containsPoint(locationInSubview))){
-                hit = subview.hitTest(locationInSubview);
+                hit = subview.hitTest(locationInSubview, event);
             }
         }
         if (hit === null && this.userInteractionEnabled && this.containsPoint(locationInView)){

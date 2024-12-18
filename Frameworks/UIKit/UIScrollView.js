@@ -467,8 +467,8 @@ JSClass('UIScrollView', UIView, {
     // --------------------------------------------------------------------
     // MARK: - Scroll Events
 
-    hitTest: function(locationInView){
-        return UIScrollView.$super.hitTest.call(this, locationInView);
+    hitTest: function(locationInView, event){
+        return UIScrollView.$super.hitTest.call(this, locationInView, event);
     },
 
     _didScroll: function(){

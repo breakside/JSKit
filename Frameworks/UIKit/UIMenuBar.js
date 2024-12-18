@@ -448,7 +448,7 @@ JSClass("UIMenuBar", UIWindow, {
         }
     },
 
-    hitTest: function(location){
+    hitTest: function(location, event){
         // The menu bar has special consideration for the left and right edges in order
         // to make it easier for users to hit the items even if there is visible padding.
         // - a hit to the left of the leftmost item is still considered to hit the item
@@ -474,7 +474,7 @@ JSClass("UIMenuBar", UIWindow, {
         if (edgeItemView !== null && location.x > edgeItemView.convertPointToView(JSPoint(edgeItemView.bounds.size.width,0), this).x){
             return edgeItemView;
         }
-        return UIMenuBar.$super.hitTest.call(this, location);
+        return UIMenuBar.$super.hitTest.call(this, location, event);
     },
 
     _itemDownTimestamp: UIEvent.minimumTimestamp,

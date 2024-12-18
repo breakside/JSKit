@@ -321,8 +321,8 @@ JSClass("UITokenFieldTokenView", UIView, {
         return this.tokenLabel.containsPoint(this.convertPointToView(locationInView, this.tokenLabel));
     },
 
-    hitTest: function(locationInView){
-        return this.tokenLabel.hitTest(this.convertPointToView(locationInView, this.tokenLabel));
+    hitTest: function(locationInView, event){
+        return this.tokenLabel.hitTest(this.convertPointToView(locationInView, this.tokenLabel), event);
     },
 
     mouseDown: function(event){

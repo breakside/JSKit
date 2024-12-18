@@ -932,7 +932,7 @@ JSClass('UIWindow', UIView, {
             }
         }
         if (this.mouseEventView === null && event.type == UIEvent.Type.leftMouseDown || event.type == UIEvent.Type.rightMouseDown){
-            this.mouseEventView = this.hitTest(event.locationInWindow) || this;
+            this.mouseEventView = this.hitTest(event.locationInWindow, event) || this;
             this.mouseDownType = event.type;
         }
         var eventTarget = event.trackingView || this.mouseEventView;
@@ -1005,7 +1005,7 @@ JSClass('UIWindow', UIView, {
     },
 
     _sendScrollEvent: function(event){
-        var view = this.hitTest(event.locationInWindow);
+        var view = this.hitTest(event.locationInWindow, event);
         if (view){
             switch (event.type){
                 case UIEvent.Type.scrollWheel:
@@ -1019,7 +1019,7 @@ JSClass('UIWindow', UIView, {
         if (this._modal !== null){
             return;
         }
-        var view = this.hitTest(event.locationInWindow);
+        var view = this.hitTest(event.locationInWindow, event);
         if (view){
             switch (event.type){
                 case UIEvent.Type.magnify:
@@ -1091,7 +1091,7 @@ JSClass('UIWindow', UIView, {
                     logger.warn("beginning touch that already has a view");
                     continue;
                 }
-                view = this.hitTest(touch.locationInWindow) || this;
+                view = this.hitTest(touch.locationInWindow, event) || this;
                 // For views that don't support multiple touch, only the first
                 // seen touch will be associated with the view.  If a touch isn't
                 // associated with a view here on touchesBegan, the touch will

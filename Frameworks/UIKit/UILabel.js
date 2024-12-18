@@ -131,8 +131,8 @@ JSClass('UILabel', UIView, {
     _selectionAnchorIndex: 0,
     _selectionRange: null,
 
-    hitTest: function(location){
-        var hit = UILabel.$super.hitTest.call(this, location);
+    hitTest: function(location, event){
+        var hit = UILabel.$super.hitTest.call(this, location, event);
         var index, attachment, attributes, rect, attachmentLocation;
         var attachmentHit = null;
         if (hit === this){
@@ -144,7 +144,7 @@ JSClass('UILabel', UIView, {
                     UITextAttachmentView)){
                     rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
                     attachmentLocation = location.subtracting(rect.origin);
-                    attachmentHit = attachment.view.hitTest(attachmentLocation);
+                    attachmentHit = attachment.view.hitTest(attachmentLocation, event);
                     if (attachmentHit !== null){
                         return attachmentHit;
                     }
@@ -158,7 +158,7 @@ JSClass('UILabel', UIView, {
             if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                 rect = this.layer.textLayoutManager.rectForCharacterAtIndex(index);
                 attachmentLocation = location.subtracting(rect.origin);
-                attachmentHit = attachment.view.hitTest(attachmentLocation);
+                attachmentHit = attachment.view.hitTest(attachmentLocation, event);
                 if (attachmentHit !== null){
                     return attachmentHit;
                 }

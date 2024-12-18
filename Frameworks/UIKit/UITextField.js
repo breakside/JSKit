@@ -381,8 +381,8 @@ JSClass("UITextField", UIControl, {
         return this.layer.convertPointFromLayer(JSPoint(0, this._textLayer.firstBaselineOffsetFromTop), this._textLayer).y;
     },
 
-    hitTest: function(location){
-        var hit = UITextField.$super.hitTest.call(this, location);
+    hitTest: function(location, event){
+        var hit = UITextField.$super.hitTest.call(this, location, event);
         var index, attachment, attributes, rect, attachmentLocation;
         var attachmentHit = null;
         if (hit === this){
@@ -394,7 +394,7 @@ JSClass("UITextField", UIControl, {
                 if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                     rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
                     attachmentLocation = locationInText.subtracting(rect.origin);
-                    attachmentHit = attachment.view.hitTest(attachmentLocation);
+                    attachmentHit = attachment.view.hitTest(attachmentLocation, event);
                     if (attachmentHit !== null){
                         return attachmentHit;
                     }
@@ -408,7 +408,7 @@ JSClass("UITextField", UIControl, {
             if (attachment && attachment.isKindOfClass(UITextAttachmentView)){
                 rect = this._textLayer.textLayoutManager.rectForCharacterAtIndex(index);
                 attachmentLocation = locationInText.subtracting(rect.origin);
-                attachmentHit = attachment.view.hitTest(attachmentLocation);
+                attachmentHit = attachment.view.hitTest(attachmentLocation, event);
                 if (attachmentHit !== null){
                     return attachmentHit;
                 }

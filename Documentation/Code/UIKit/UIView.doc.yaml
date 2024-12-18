@@ -1240,6 +1240,15 @@ topics:
             name: point
             type: JSPoint
             summary: A point in the view's coordinate space
+          -
+            name: event
+            type: UIEvent?
+            default: "undefined"
+            summary: The event, if any, that resulted in this `hitTest()` call
+        notes: |
+          The optional `event`() argument was added in 2024.50.0.  When not
+          specified at all, it will have the value of `undefined`().  When
+          specified, the `event`() may still be `null`().
   -
     name: Events
     members:
