@@ -139,6 +139,9 @@ JSClass("CHStackedAreaChart", CHAreaChart, {
             }
             for (valueIndex = 0, valueCount = this.categoryAxis.categories.length; valueIndex < valueCount; ++valueIndex){
                 v = series.values[valueIndex];
+                if (!CHChart.isValidNumericValue(v)){
+                    v = 0;
+                }
                 stacks[valueIndex] -= v;
             }
         }
