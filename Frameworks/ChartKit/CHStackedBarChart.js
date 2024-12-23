@@ -109,6 +109,9 @@ JSClass("CHStackedBarChart", CHBarChart, {
                     context.setStrokeColor(series.style.borderColor);
                 }
                 v = series.values[valueIndex];
+                if (!CHChart.isValidNumericValue(v)){
+                    v = 0;
+                }
                 h = v * scale;
                 if (v >= 0){
                     barRect = JSRect(x + (dx - barWidth) / 2, y[1], barWidth, h);
