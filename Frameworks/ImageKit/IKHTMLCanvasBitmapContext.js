@@ -450,6 +450,7 @@ JSPath.definePropertiesFromExtensions({
 
 var drawableElementForImage = function(image, domDocument, completion, target){
     var imgElement = domDocument.createElement("img");
+    imgElement.setAttribute("crossorigin", "anonymous");
     imgElement.src = image.htmlURLString();
     if (imgElement.decode){
         imgElement.decode().finally(function(){
