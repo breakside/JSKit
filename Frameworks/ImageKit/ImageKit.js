@@ -24,3 +24,4 @@
 // #import "IKColorProfile.js"
 // #import "IKMatrix.js"
 // #import "JSImage+IKBitmap.js"
+// #import "IKBitmapContext.js"
