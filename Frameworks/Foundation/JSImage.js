@@ -481,13 +481,44 @@ JSClass("_JSURLImage", JSImage, {
 
 });
 
-JSImage.resourceCache = function(names, bundle){
+JSImage.resourceCache = function(names, bundleIdentifier, renderMode){
     var cache = {};
+    var bundle;
+    if (renderMode === undefined || renderMode === null){
+        if (typeof(bundleIdentifier) === "number"){
+            renderMode = bundleIdentifier;
+            bundleIdentifier = null;
+        }else{
+            renderMode = JSImage.RenderMode.original;
+        }
+    }
     var definePropertyFromName = function(name){
         Object.defineProperty(cache, name, {
             configurable: true,
             get: function(){
+                // one-time lazy init of `bundle`
+                if (bundle === undefined){
+                    if (bundleIdentifier instanceof JSBundle){
+                        // Original API passed a JSBundle object, but that
+                        // wasn't workable for frameworks that wanted to
+                        // use resourceCache during framework initialization,
+                        // because the framework's bundle wasn't ready yet.
+                        // 
+                        // So we changed the API to take a bundle identifier
+                        // instead, but are leaving this check here to preserve
+                        // backwards functionality with any code that passed a
+                        // bundle object.
+                        bundle = bundleIdentifier;
+                    }else if (typeof(bundleIdentifier) === "string"){
+                        bundle = JSBundle.initWithIdentifier(bundleIdentifier);
+                    }else{
+                        bundle = null;
+                    }
+                }
                 var img = JSImage.initWithResourceName(name, bundle);
+                if (renderMode !== JSImage.RenderMode.original){
+                    img = img.imageWithRenderMode(renderMode);
+                }
                 Object.defineProperty(this, name, {value: img});
                 return img;
             }
