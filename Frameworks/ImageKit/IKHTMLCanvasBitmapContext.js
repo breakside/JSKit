@@ -79,7 +79,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                     completion.call(target, image);
                 });
                 reader.readAsArrayBuffer(blob);
-            }, type);
+            }, type, this.lossyCompressionQuality);
         });
         return completion.promise;
     },

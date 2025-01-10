@@ -44,11 +44,12 @@ JSClass('IKBitmap', JSObject, {
         return decoder.getBitmap();
     },
 
-    encodedData: function(format){
+    encodedData: function(format, lossyCompressionQuality){
         var encoder = IKEncoder.initWithFormat(format, this);
         if (encoder === null){
             return null;
         }
+        encoder.lossyCompressionQuality = lossyCompressionQuality;
         var encoded = encoder.getData();
         return encoded;
     },

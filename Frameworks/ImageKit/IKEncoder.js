@@ -32,6 +32,8 @@ JSClass("IKEncoder", JSObject, {
 
     bitmap: null,
 
+    lossyCompressionQuality: 0.92,
+
     getData: function(){
     }
 
@@ -43,4 +45,12 @@ IKEncoder.$extend = function(extensions, name){
     var subclass = JSClass.prototype.$extend.call(this, extensions, name);
     this.EncoderClassesByFormat[extensions.format] = subclass;
     return subclass;
+};
+
+IKEncoder.LossyCompressionQuality = {
+    best: 1,
+    better: 0.95,
+    standard: 0.92,
+    low: 0.5,
+    platformDefault: -1
 };

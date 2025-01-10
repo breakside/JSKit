@@ -20,6 +20,7 @@
 JSClass("IKBitmapContext", JSContext, {
 
     size: null,
+    lossyCompressionQuality: 0.92,
 
     bitmap: function(completion, target){
         if (!completion){
@@ -41,7 +42,7 @@ JSClass("IKBitmapContext", JSContext, {
                 completion.call(target, null);
                 return;
             }
-            var encoded = bitmap.encodedData(encoding);
+            var encoded = bitmap.encodedData(encoding, this.lossyCompressionQuality);
             var image = JSImage.initWithData(encoded, bitmap.size);
             return completion.call(target, image);
         }, this);
@@ -49,3 +50,11 @@ JSClass("IKBitmapContext", JSContext, {
     },
 
 });
+
+IKBitmapContext.LossyCompressionQuality = {
+    best: 1,
+    better: 0.95,
+    standard: 0.92,
+    low: 0.5,
+    platformDefault: -1
+};
