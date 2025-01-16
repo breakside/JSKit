@@ -25,6 +25,7 @@
 var shared = null;
 
 var logger = JSLog("uikit", "application");
+var actionLogger = JSLog("uikit", "actions");
 
 JSClass('UIApplication', UIResponder, {
 
@@ -42,6 +43,7 @@ JSClass('UIApplication', UIResponder, {
         }else if (this.bundle.info.UIUserInterfaceStyle === "dark"){
             this.windowServer.lightModeEnabled = false;
         }
+        JSLog.configure({enabled: false, print: false, suppressDuplicates: true}, JSLog.Level.debug, "uikit", "actions");
         this._windows = [];
         this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },
@@ -422,6 +424,11 @@ JSClass('UIApplication', UIResponder, {
             if (target === null){
                 target = undefined;
             }
+            if (target instanceof JSObject){
+                actionLogger.debug("sendAction " + (action.name || ("anonymousfn")) + " to %{public}#%d from %{public}#%d", target.$class.className, target.objetID, sender.$class.className, sender.objectID);
+            }else{
+                actionLogger.debug("sendAction " + (action.name || ("anonymousfn")) + " from %{public}#%d", sender.$class.className, sender.objectID);
+            }
             action.call(target, sender, event);
         }else{
             if (target === undefined){
@@ -429,6 +436,7 @@ JSClass('UIApplication', UIResponder, {
             }
             target = this.firstTargetForAction(action, target, sender);
             if (target !== null){
+                actionLogger.debug("sendAction " + action + " to %{public}#%d from %{public}#%d", target.$class.className, target.objectID, sender.$class.className, sender.objectID);
                 target[action](sender, event);
             }
         }
