@@ -44,6 +44,7 @@ JSClass('UIApplication', UIResponder, {
             this.windowServer.lightModeEnabled = false;
         }
         JSLog.configure({enabled: false, print: false, suppressDuplicates: true}, JSLog.Level.debug, "uikit", "actions");
+        JSLog.configure({enabled: true, print: false}, JSLog.Level.debug, "uikit", "vclife");
         this._windows = [];
         this.windowServer.postNotificationForAccessibilityElement(UIAccessibility.Notification.elementCreated, this);
     },

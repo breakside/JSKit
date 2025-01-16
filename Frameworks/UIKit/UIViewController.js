@@ -19,6 +19,11 @@
 /* global UINavigationItem, UINavigationController, UIApplication */
 'use strict';
 
+(function(){
+
+var logger = JSLog("uikit", "vc");
+var lifecycleLogger = JSLog("uikit", "vclife");
+
 JSClass("UIViewController", UIResponder, {
 
     // -------------------------------------------------------------------------
@@ -110,16 +115,19 @@ JSClass("UIViewController", UIResponder, {
 
     viewWillAppear: function(animated){
         this._lifecycleState = UIViewController.LifecycleState.appearing;
+        lifecycleLogger.debug("viewWillAppear %{public}#%d animated:%b", this.$class.className, this.objectID, animated);
         this._loadViewIfNeeded();
     },
 
     viewDidAppear: function(animated){
         this._lifecycleState = UIViewController.LifecycleState.appeared;
+        lifecycleLogger.debug("viewDidAppear %{public}#%d animated:%b", this.$class.className, this.objectID, animated);
         this._isViewVisible = true;
     },
 
     viewWillDisappear: function(animated){
         this._lifecycleState = UIViewController.LifecycleState.disappearing;
+        lifecycleLogger.debug("viewWillDisappear %{public}#%d animated:%b", this.$class.className, this.objectID, animated);
         if (this.isViewLoaded){
             var window = this.view.window;
             if (window !== null){
@@ -139,6 +147,7 @@ JSClass("UIViewController", UIResponder, {
 
     viewDidDisappear: function(animated){
         this._lifecycleState = UIViewController.LifecycleState.disappeared;
+        lifecycleLogger.debug("viewDidDisappear %{public}#%d animated:%b", this.$class.className, this.objectID, animated);
         this._isViewVisible = false;
     },
 
@@ -425,3 +434,5 @@ UIViewController.LifecycleState = {
     appeared: 2,
     disappearing: 3
 };
+
+})();
