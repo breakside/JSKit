@@ -31,6 +31,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[1], 2);
         TKAssertEquals(records[2], 3);
         TKAssertEquals(records[3], 4);
+        TKAssertEquals(buffer.read(0), 1);
+        TKAssertEquals(buffer.read(1), 2);
+        TKAssertEquals(buffer.read(-1), 4);
+        TKAssertEquals(buffer.read(-2), 3);
 
         buffer.write(5);
         records = buffer.readAll();
@@ -40,6 +44,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[2], 3);
         TKAssertEquals(records[3], 4);
         TKAssertEquals(records[4], 5);
+        TKAssertEquals(buffer.read(0), 1);
+        TKAssertEquals(buffer.read(1), 2);
+        TKAssertEquals(buffer.read(-1), 5);
+        TKAssertEquals(buffer.read(-2), 4);
 
         buffer.write(6);
         records = buffer.readAll();
@@ -49,6 +57,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[2], 4);
         TKAssertEquals(records[3], 5);
         TKAssertEquals(records[4], 6);
+        TKAssertEquals(buffer.read(0), 2);
+        TKAssertEquals(buffer.read(1), 3);
+        TKAssertEquals(buffer.read(-1), 6);
+        TKAssertEquals(buffer.read(-2), 5);
 
         buffer.write(7);
         buffer.write(8);
@@ -60,6 +72,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[2], 7);
         TKAssertEquals(records[3], 8);
         TKAssertEquals(records[4], 9);
+        TKAssertEquals(buffer.read(0), 5);
+        TKAssertEquals(buffer.read(1), 6);
+        TKAssertEquals(buffer.read(-1), 9);
+        TKAssertEquals(buffer.read(-2), 8);
 
         buffer.write(10);
         records = buffer.readAll();
@@ -69,6 +85,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[2], 8);
         TKAssertEquals(records[3], 9);
         TKAssertEquals(records[4], 10);
+        TKAssertEquals(buffer.read(0), 6);
+        TKAssertEquals(buffer.read(1), 7);
+        TKAssertEquals(buffer.read(-1), 10);
+        TKAssertEquals(buffer.read(-2), 9);
 
         buffer.write(11);
         records = buffer.readAll();
@@ -78,6 +98,10 @@ JSClass("JSLogTests", TKTestSuite, {
         TKAssertEquals(records[2], 9);
         TKAssertEquals(records[3], 10);
         TKAssertEquals(records[4], 11);
+        TKAssertEquals(buffer.read(0), 7);
+        TKAssertEquals(buffer.read(1), 8);
+        TKAssertEquals(buffer.read(-1), 11);
+        TKAssertEquals(buffer.read(-2), 10);
     }
 
 });

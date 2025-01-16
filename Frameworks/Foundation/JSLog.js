@@ -50,6 +50,23 @@ JSLogBuffer.prototype = {
             return this.array.slice(0, this.length);
         }
         return this.array.slice(this.writeIndex).concat(this.array.slice(0, this.writeIndex));
+    },
+
+    read: function(recordIndex){
+        if (recordIndex < 0){
+            recordIndex = this.length + recordIndex;
+        }
+        if (recordIndex < 0){
+            return null;
+        }
+        if (recordIndex >= this.length){
+            return null;
+        }
+        if (this.length < this.capacity){
+            return this.array[recordIndex];
+        }
+        var index = (this.writeIndex + this.capacity + recordIndex) % this.capacity;
+        return this.array[index];
     }
 };
 
@@ -81,7 +98,8 @@ var defaultConfiguration = {
     print: true,
     console: console,
     handlers: null,
-    parent: null
+    parent: null,
+    suppressDuplicates: false,
 };
 
 var createConfiguration = function(parent){
@@ -131,7 +149,7 @@ JSLog.getOrCreateConfig = function(subsystem, category){
 JSLog.configure = function(configuration, level, subsystem, category){
     var config = JSLog.getOrCreateConfig(subsystem, category);
     for (var property in configuration){
-        if (property === 'enabled' || property === 'print' || property === 'console'){
+        if (property === 'enabled' || property === 'print' || property === 'console' || property === "suppressDuplicates"){
             config[level][property] = configuration[property];
         }
     }
@@ -187,6 +205,10 @@ var isCallingHandlers = false;
 
 JSLog.write = function(record){
     JSLog.buffer.write(record);
+};
+
+JSLog.recordsAreEqual = function(a, b){
+    return a.subsystem === b.subsystem && a.category === b.category && a.level === b.level && a.message === b.message;
 };
 
 JSLog.getRecords = function(){
@@ -305,6 +327,14 @@ JSLog.prototype = {
             for (i = 0, l = record.args.length; i < l && record.error === null; ++i){
                 if (record.args[i] instanceof Error){
                     record.error = record.args[i];
+                }
+            }
+        }
+        if (config.suppressDuplicates){
+            var previous = JSLog.buffer.read(-1);
+            if (previous !== null && JSLog.recordsAreEqual(previous, record)){
+                if (record.timestamp - previous.timestamp < 5){
+                    return;
                 }
             }
         }
