@@ -17,6 +17,8 @@
 // #import "JSURL.js"
 // #import "JSMIMEHeaderMap.js"
 // #import "JSMediaType.js"
+// #import "UUID.js"
+// #import "JSSHA1Hash.js"
 'use strict';
 
 JSClass("JSURLRequest", JSObject, {
@@ -132,7 +134,11 @@ JSClass("JSURLRequest", JSObject, {
             return;
         }
         this.headerMap.add("Authorization", "Bearer " + token);
-    }
+    },
+
+    uniqueIdentifier: JSLazyInitProperty(function(){
+        return JSSHA1Hash(UUID.init().bytes).hexStringRepresentation();
+    })
 
 });
 
