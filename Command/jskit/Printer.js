@@ -36,33 +36,42 @@ JSClass("Printer", JSObject, {
         if (this.quiet && !always){
             return;
         }
-        if (this.statusMessage !== null){
-            this._erase(this.statusMessage.length);
-        }
         var prefix = "[%s] ".sprintf(this.label);
         var line = prefix + message;
-        this.statusMessage = line.utf8();
-        this._printRawData(this.statusMessage);
+        if (this.stream.isTTY){
+            if (this.statusMessage !== null){
+                this._erase(this.statusMessage.length);
+            }
+            this.statusMessage = line.utf8();
+            this._printRawData(this.statusMessage);
+        }else{
+            line += "\n";
+            this._printRawData(line.utf8());
+        }
     },
 
     print: function(message, reprintStatus=false, overwriteStatus=false){
         // if (overwriteStatus){
         //     reprintStatus = true;
         // }
-        if (!overwriteStatus && this.statusMessage.length > 0){
-            this._printRawData("\n".utf8());
-        }
-        if (overwriteStatus){
-            this._erase(this.statusMessage.length);
-        }
-        this._printRawData(message.utf8());
-        if (reprintStatus){
-            if (message.length > 0 && !message.endsWith("\n")){
+        if (this.stream.isTTY){
+            if (!overwriteStatus && this.statusMessage.length > 0){
                 this._printRawData("\n".utf8());
             }
-            this._printRawData(this.statusMessage);
-        }else{
-            this.statusMessage = JSData.initWithLength(0);
+            if (overwriteStatus){
+                this._erase(this.statusMessage.length);
+            }
+        }
+        this._printRawData(message.utf8());
+        if (this.stream.isTTY){
+            if (reprintStatus){
+                if (message.length > 0 && !message.endsWith("\n")){
+                    this._printRawData("\n".utf8());
+                }
+                this._printRawData(this.statusMessage);
+            }else{
+                this.statusMessage = JSData.initWithLength(0);
+            }
         }
     },
 
