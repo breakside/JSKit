@@ -208,6 +208,10 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     fillMaskedRect: function(rect, maskImage){
         this.enqueueOperation(function(state, completion, target){
             drawableElementForImage(maskImage, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                if (imgElement === null){
+                    completion.call(target);
+                    return;
+                }
                 var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
                 var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
                 maskCanvas.width = maskImage.size.width * scale;
@@ -228,6 +232,10 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawImage: function(image, rect){
         this.enqueueOperation(function(state, completion, target){
             drawableElementForImage(image, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                if (imgElement === null){
+                    completion.call(target);
+                    return;
+                }
                 var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
                 this.canvasContext.drawImage(imgElement, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
@@ -452,21 +460,34 @@ var drawableElementForImage = function(image, domDocument, completion, target){
     var imgElement = domDocument.createElement("img");
     imgElement.setAttribute("crossorigin", "anonymous");
     imgElement.src = image.htmlURLString();
-    if (imgElement.decode){
-        imgElement.decode().finally(function(){
-            completion.call(target, imgElement);
-        });
-    }else{
+    // Chrome sometimes throws an EncodingError for perfectly valid images,
+    // because it apparently has limited memory for .decode().
+    // The workaround is to stop using .decode() and just use the old events
+    // if (imgElement.decode){
+    //     imgElement.decode().then(function(){
+    //         completion.call(target, imgElement);
+    //     }, function(e){
+    //         logger.debug("image: %{public} %dx%d @ %{public}", image.$class.className, image.size.width, image.size.height, imgElement.src);
+    //         logger.error("failed to decode image: %{error}", e);
+    //         completion.call(target, null);
+    //     });
+    // }else{
         var listener = {
             handleEvent: function(event){
                 imgElement.removeEventListener("load", listener);
                 imgElement.removeEventListener("error", listener);
-                completion.call(target, imgElement);
+                if (event.type === "error"){
+                    logger.debug("image: %{public} %dx%d @ %{public}", image.$class.className, image.size.width, image.size.height, imgElement.src);
+                    logger.error("failed to load image, will skip drawing");
+                    completion.call(target, null);
+                }else{
+                    completion.call(target, imgElement);
+                }
             }
         };
         imgElement.addEventListener("load", listener);
         imgElement.addEventListener("error", listener);
-    }
+    // }
 };
 
 IKBitmapContext.definePropertiesFromExtensions({
