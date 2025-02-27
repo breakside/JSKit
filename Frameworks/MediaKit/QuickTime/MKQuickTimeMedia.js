@@ -70,18 +70,18 @@ JSClass("MKQuickTimeMedia", MKQuickTimeAtom, {
     getAverageVideoFrameRate: function(){
         var handler = this.mediaHandler;
         if (handler === null){
-            return [];
+            return null;
         }
         if (handler.componentSubtype !== MKQuickTimeMediaHandler.ComponentSubtype.vide){
-            return [];
+            return null;
         }
         var info = this.mediaInformation;
         if (info === null){
-            return [];
+            return null;
         }
         var header = this.mediaHeader;
         if (header === null){
-            return [];
+            return null;
         }
         var counts = info.sampleCounts;
         var durations = info.sampleDurations;
@@ -120,6 +120,41 @@ JSClass("MKQuickTimeMedia", MKQuickTimeAtom, {
             return [];
         }
         return info.sampleFormats;
+    },
+
+    bitrate: JSReadOnlyProperty(),
+
+    getBitrate: function(){
+        var info = this.mediaInformation;
+        if (info === null){
+            return null;
+        }
+        var header = this.mediaHeader;
+        if (header === null){
+            return null;
+        }
+        var sampleTable = info.sampleTable;
+        if (sampleTable === null){
+            return null;
+        }
+        var sizeTable = sampleTable.sampleSize;
+        if (sizeTable === null){
+            return null;
+        }
+        var counts = info.sampleCounts;
+        var durations = info.sampleDurations;
+        var totalSeconds = 0;
+        var totalBytes = 0;
+        var i, l;
+        var j;
+        var s = 0;
+        for (i = 0, l = durations.length; i < l; ++i){
+            for (j = 0; j < counts[i]; ++j, ++s){
+                totalBytes += sizeTable.sizeAtIndex(s);
+            }
+            totalSeconds += (durations[i] * counts[i]) / header.timeScale;
+        }
+        return (totalBytes * 8) / totalSeconds;
     }
 
 });

@@ -131,6 +131,7 @@ MKQuickTimeAtom.Type = {
     stbl: 0x7374626c,
     stts: 0x73747473,
     stsd: 0x73747364,
+    stsz: 0x7374737a,
     udta: 0x75647461,
     meta: 0x6d657461
 };

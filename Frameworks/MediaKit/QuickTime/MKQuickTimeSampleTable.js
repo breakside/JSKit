@@ -1,6 +1,7 @@
 // #import "MKQuickTimeAtom.js"
 // #import "MKQuickTimeTimeToSample.js"
 // #import "MKQuickTimeSampleDescription.js"
+// #import "MKQuickTimeSampleSize.js"
 "use strict";
 
 (function(){
@@ -16,6 +17,7 @@ JSClass("MKQuickTimeSampleTable", MKQuickTimeAtom, {
         MKQuickTimeSampleTable.$super.initWithData.call(this, data);
         this.registerAtomClass(MKQuickTimeTimeToSample);
         this.registerAtomClass(MKQuickTimeSampleDescription);
+        this.registerAtomClass(MKQuickTimeSampleSize);
         this.readAtoms(8);
     },
 
@@ -29,6 +31,12 @@ JSClass("MKQuickTimeSampleTable", MKQuickTimeAtom, {
 
     getSampleDescription: function(){
         return this.atomOfType(MKQuickTimeAtom.Type.stsd);
+    },
+
+    sampleSize: JSReadOnlyProperty(),
+
+    getSampleSize: function(){
+        return this.atomOfType(MKQuickTimeAtom.Type.stsz);
     },
 
     sampleDurations: JSReadOnlyProperty(),

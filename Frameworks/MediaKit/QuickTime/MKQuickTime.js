@@ -194,14 +194,16 @@ JSClass("MKQuickTime", MKQuickTimeAtom, {
                             height: track.videoResolution.height,
                             formats: MKQuickTimeAtom.stringsForTypes(track.sampleFormats),
                             frameRates: track.videoFrameRates,
-                            averageFrameRate: track.averageVideoFrameRate
+                            averageFrameRate: track.averageVideoFrameRate,
+                            bitrate: track.bitrate
                         });
                         metadata.video = true;
                     }else if (track.isAudio){
                         metadata.tracks.push({
                             type: "audio",
                             formats: MKQuickTimeAtom.stringsForTypes(track.sampleFormats),
-                            sampleRates: track.audioSampleRates
+                            sampleRates: track.audioSampleRates,
+                            bitrate: track.bitrate
                         });
                         metadata.audio = true;
                     }

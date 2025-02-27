@@ -126,6 +126,16 @@ JSClass("MKQuickTimeTrack", MKQuickTimeAtom, {
             return [];
         }
         return media.sampleFormats;
+    },
+
+    bitrate: JSReadOnlyProperty(),
+
+    getBitrate: function(){
+        var media = this.media;
+        if (media === null){
+            return null;
+        }
+        return media.bitrate;
     }
 
 });
