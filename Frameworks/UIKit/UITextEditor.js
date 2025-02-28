@@ -169,6 +169,12 @@ JSClass("UITextEditor", JSObject, {
 
     handleMouseDraggedAtLocation: function(location, event){
         if (this._handledSelectOnMouseDown){
+            if (this.selections.length === 0){
+                return;
+            }
+            if (this._draggingSelectionIndex < 0 || this._draggingSelectionIndex >= this.selections.length){
+                this._draggingSelectionIndex = 0;
+            }
             var draggingSelection = this.selections[this._draggingSelectionIndex];
             this.selections.splice(this._draggingSelectionIndex, 1);
             var newSelection = this._createSelectionAtLocation(location);
