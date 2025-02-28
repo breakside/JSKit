@@ -94,7 +94,7 @@ JSClass('UIAnimationTransaction', JSObject, {
     _flush: function(){
         if (this.animations.length === 0){
             if (this.completionFunction){
-                this.completionFunction();
+                UIApplication.shared.windowServer.displayServer.schedule(this.completionFunction, this);
             }
             return;
         }
@@ -122,11 +122,12 @@ UIAnimationTransaction.commit = function(){
     UIAnimationTransaction.committed.push(transaction);
     if (UIAnimationTransaction.stack.length === 0){
         UIAnimationTransaction.currentTransaction = null;
-        for (var i = 0, l = UIAnimationTransaction.committed.length; i < l; ++i){
-            transaction = UIAnimationTransaction.committed[i];
+        var committed = UIAnimationTransaction.committed;
+        UIAnimationTransaction.committed = [];
+        for (var i = 0, l = committed.length; i < l; ++i){
+            transaction = committed[i];
             transaction._flush();
         }
-        UIAnimationTransaction.committed = [];
     }else{
         UIAnimationTransaction.currentTransaction = UIAnimationTransaction.stack[UIAnimationTransaction.stack.length - 1];
     }
