@@ -875,6 +875,9 @@ JSClass('UIWindow', UIView, {
     // MARK: - Event Dispatch
 
     sendEvent: function(event){
+        if (this._screen === null){
+            return;
+        }
         switch (event.category){
             case UIEvent.Category.mouse:
                 this._sendMouseEvent(event);
