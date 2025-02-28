@@ -426,7 +426,7 @@ JSClass('UIApplication', UIResponder, {
                 target = undefined;
             }
             if (target instanceof JSObject){
-                actionLogger.debug("sendAction " + (action.name || ("anonymousfn")) + " to %{public}#%d from %{public}#%d", target.$class.className, target.objetID, sender.$class.className, sender.objectID);
+                actionLogger.debug("sendAction " + (action.name || ("anonymousfn")) + " to %{public}#%d from %{public}#%d", target.$class.className, target.objectID, sender.$class.className, sender.objectID);
             }else{
                 actionLogger.debug("sendAction " + (action.name || ("anonymousfn")) + " from %{public}#%d", sender.$class.className, sender.objectID);
             }
