@@ -297,26 +297,7 @@ JSClass("UIPopupWindow", UIWindow, {
             }
             return;
         }
-        if (this._modalAnimator !== null){
-            return;
-        }
-        var window = this;
-        var transform = this.transform;
-        this._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.075);
-        this._modalAnimator.addAnimations(function(){
-            window.transform = transform.scaledBy(1.15);
-        });
-        this._modalAnimator.addCompletion(function(){
-            window._modalAnimator = UIViewPropertyAnimator.initWithDuration(0.075);
-            window._modalAnimator.addAnimations(function(){
-                window.transform = transform;
-            });
-            window._modalAnimator.addCompletion(function(){
-                window._modalAnimator = null;
-            });
-            window._modalAnimator.start();
-        });
-        this._modalAnimator.start();
+        UIPopupWindow.$super.indicateModalStatus.call(this);
     },
 
     accessibilityRole: UIAccessibility.Role.popover
