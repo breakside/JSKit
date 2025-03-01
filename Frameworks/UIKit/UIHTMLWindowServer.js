@@ -881,7 +881,16 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         return modifiers;
     },
 
+    _hasWarnedAboutMouseLocation: false,
+
     _updateMouseLocation: function(e){
+        if (isNaN(e.clientX) || isNaN(e.clientY)){
+            if (!this._hasWarnedAboutMouseLocation){
+                this._hasWarnedAboutMouseLocation = true;
+                logger.warn("not updating mouse location: e.clientX = %{public}, e.clientY = %{public}", typeof(e.clientX), typeof(e.clientY));
+                return;
+            }
+        }
         this.mouseLocation.x = e.clientX - this._screenClientOrigin.x;
         this.mouseLocation.y = e.clientY - this._screenClientOrigin.y;
     },
