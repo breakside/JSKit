@@ -1400,8 +1400,43 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
     _updateDataTranserObjectForType: function(type){
         if (this._dataTransfer !== null){
             var objects = this.objectsForType(type);
-            var json = JSON.stringify(objects);
-            this._dataTransfer.setData(type, json);
+            if (objects !== null){
+                var dictionaries = [];
+                var dictionary;
+                var obj;
+                var i, l;
+                for (i = 0, l = objects.length; i < l; ++i){
+                    obj = objects[i];
+                    if (obj instanceof JSObject){
+                        if (obj.dictionaryRepresentation){
+                            dictionaries.push(obj.dictionaryRepresentation());
+                        }else if (obj.encodeToStorableDictionary){
+                            dictionary = {};
+                            obj.encodeToStorableDictionary(dictionary);
+                            dictionaries.push(dictionary);
+                        }else if (obj.encodeToDictionary){
+                            dictionary = {};
+                            obj.encodeToDictionary(dictionary);
+                            dictionaries.push(dictionary);
+                        }else{
+                            // intentionally dropping object form html pasteboard
+                            // because we don't know how to get a plain dictionary
+                            // representation of it.  These objects will not be
+                            // droppable outside of the source window, but will
+                            // still be droppable within the source window as
+                            // in-memory objects.
+                        }
+                    }else{
+                        dictionaries.push(obj);
+                    }
+                }
+                try{
+                    var json = JSON.stringify(dictionaries);
+                    this._dataTransfer.setData(type, json);
+                }catch (e){
+                    logger.warning("Unable to serialize pasteboard objects to JSON: %{error}", e);
+                }
+            }
         }
     },
 
