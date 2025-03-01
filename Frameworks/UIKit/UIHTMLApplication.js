@@ -80,11 +80,15 @@ JSClass("UIHTMLApplication", UIApplication, {
             };
             this.stop(open);
         }else{
-            var child = this.domWindow.open(url.encodedString);
-            if ((url.scheme == "http" || url.scheme == "https") && !child){
-                if (this.delegate && this.delegate.applicationBrowserBlockedWindowForURL){
-                    this.delegate.applicationBrowserBlockedWindowForURL(this, url);
+            try{
+                var child = this.domWindow.open(url.encodedString);
+                if ((url.scheme == "http" || url.scheme == "https") && !child){
+                    if (this.delegate && this.delegate.applicationBrowserBlockedWindowForURL){
+                        this.delegate.applicationBrowserBlockedWindowForURL(this, url);
+                    }
                 }
+            }catch (e){
+                logger.warning("unable to open URL `%{public}`: %{error}", url.encodedString, e);
             }
         }
     },
