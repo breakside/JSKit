@@ -2765,7 +2765,7 @@ VisibleItem.prototype = Object.create(Function.prototype, {
     view: {
         configurable: true,
         set: function(view){
-            Object.defineProperty(this, 'view', {value: view});
+            Object.defineProperty(this, 'view', {writable: true, value: view});
             Object.defineProperty(this, 'rect', {
                 get: function(){
                     return JSRect(
