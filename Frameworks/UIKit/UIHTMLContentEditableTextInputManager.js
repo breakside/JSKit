@@ -394,21 +394,29 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
         // We don't want to preventDefault on anything that looks like
         // it'll cause input
         var text = null;
-        var iterator = e.key.userPerceivedCharacterIterator();
-        if (iterator.nextIndex === e.key.length){
-            text = e.key;
-            preventDefault = false;
-        }else if (e.key.startsWith(".") && e.key.length > 1){
-            // iOS has keys for ".com", ".org", etc.  They don't follow
-            // the key string (https://www.w3.org/TR/uievents-key/#key-string)
-            // specification, in that they are more than one user percived
-            // character long.  But since they always start with a ".", we
-            // can special case it and assume when key = ".anything", it's
-            // meant to be inserted
-            text = e.key;
-            preventDefault = false;
-        }else if (e.key == "Backspace" || e.key == "Delete"){
-            preventDefault = false;
+        if (e.key === null){
+            logger.warn("got a null key value for keydown code:%{public} keyCode:%d", e.code, e.keyCode);
+        }else if (e.key === undefined){
+            logger.warn("got an undefined key value for keydown code:%{public} keyCode:%d", e.code, e.keyCode);
+        }else if (e.key === ""){
+            logger.warn("got an empty key value for keydown code:%{public} keyCode:%d", e.code, e.keyCode);
+        }else{
+            var iterator = e.key.userPerceivedCharacterIterator();
+            if (iterator.nextIndex === e.key.length){
+                text = e.key;
+                preventDefault = false;
+            }else if (e.key.startsWith(".") && e.key.length > 1){
+                // iOS has keys for ".com", ".org", etc.  They don't follow
+                // the key string (https://www.w3.org/TR/uievents-key/#key-string)
+                // specification, in that they are more than one user percived
+                // character long.  But since they always start with a ".", we
+                // can special case it and assume when key = ".anything", it's
+                // meant to be inserted
+                text = e.key;
+                preventDefault = false;
+            }else if (e.key == "Backspace" || e.key == "Delete"){
+                preventDefault = false;
+            }
         }
         this.windowServer._createKeyEventFromDOMEvent(e, UIEvent.Type.keyDown, preventDefault);
         if (!this.supportsBeforeinputEvent && this.textInputClient !== null && text !== null && text !== ""){

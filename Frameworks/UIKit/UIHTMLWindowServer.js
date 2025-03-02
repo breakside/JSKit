@@ -497,6 +497,9 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
     },
 
     _correctedEventKey: function(key){
+        if (key === null || key === undefined || key === ""){
+            return "Unidentified";
+        }
         if (key === 'Left'){
             return 'ArrowLeft';
         }
