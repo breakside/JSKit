@@ -35,6 +35,9 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     initWithString: function(string, attributes){
+        if (typeof(string) !== "string" && !(string instanceof String)){
+            throw new Error("JSAttributedString.initWithString() called with non-string");
+        }
         if (attributes === undefined){
             attributes = {};
         }
@@ -178,6 +181,9 @@ JSClass("JSAttributedString", JSObject, {
     },
 
     initWithAttributedString: function(attributedString, defaultAttributes){
+        if (!(attributedString instanceof JSAttributedString)){
+            throw new Error("JSAttributedString.initWithAttributedString called with non-JSAttributedString");
+        }
         this._string = attributedString.string;
         this._runs = [];
         var run;
