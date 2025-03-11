@@ -44,7 +44,13 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
             }
         }
         var panel = this;
-        fileInput.addEventListener("change", function(){
+        var hasCompleted = false;
+        var handleChange = function(){
+            fileInput.removeEventListener("change", handleChange);
+            fileInput.removeEventListener("cancel", handleCancel);
+            if (hasCompleted){
+                return;
+            }
             if (panel.allowsMultipleSelection || panel.chooseDirectories){
                 if (fileInput.webkitEntries && fileInput.webkitEntries.length > 0){
                     panel._fileEnumerator = JSHTMLFileSystemEntryFileEnumerator.initWithHTMLEntries(fileInput.webkitEntries);
@@ -57,13 +63,22 @@ JSClass("UIHTMLOpenPanel", UIOpenPanel, {
                 }
             }
             action.call(target, panel);
+            hasCompleted = true;
             fileInput.parentNode.removeChild(fileInput);
             UIHTMLOpenPanel.fileInput = null;
-        });
-        fileInput.addEventListener("cancel", function(){
+        };
+        var handleCancel = function(){
+            fileInput.removeEventListener("change", handleChange);
+            fileInput.removeEventListener("cancel", handleCancel);
+            if (hasCompleted){
+                return;
+            }
+            hasCompleted = true;
             fileInput.parentNode.removeChild(fileInput);
             UIHTMLOpenPanel.fileInput = null;
-        });
+        };
+        fileInput.addEventListener("change", handleChange);
+        fileInput.addEventListener("cancel", handleCancel);
         fileInput.click();
     }
 
