@@ -19,14 +19,12 @@ window.HTMLAppBootstrapper = function(rootElement, jskitapp){
         this.appSrc = jskitapp.appSrc;
         this.appCss = jskitapp.appCss;
     }
+    this.id = this._generateRandomID();
     this.status = HTMLAppBootstrapper.STATUS.notstarted;
-    this.statusDispatchTimeoutID = null;
     this.preflightChecks = [];
-    this.minStatusInterval = 30;
     this.loadingScripts = {};
     this.preflightStorageKey = this.preflightID;
     this.preflightStorageValue = navigator.userAgent;
-    this._isAppcacheInstalled = false;
     this.serviceWorker = null;
     this.application = null;
     this.error = null;
@@ -58,26 +56,38 @@ HTMLAppBootstrapper.prototype = {
 
     // expected to be overridden by whatver code instantiates the bootstrapper, in order
     // to receive callbacks for status changes so the bootstrap UI can be updated
-    onstatus: function(){
+    onstatus: function(status){
     },
 
-    onprogress: function(){
+    onprogress: function(loaded, total){
+    },
+
+    onlongload: function(i){
+    },
+
+    onerror: function(error){
     },
 
     onlog: function(record){
+    },
+
+    ontimeout: function(){
+    },
+
+    onhidden: function(){
     },
 
     run: function(){
         if (this.app === null){
             return;
         }
-        this.log_info("boot", "Booting " + this.app.bundleId + ", build " + this.app.buildId);
+        this.rootElement.ownerDocument.addEventListener("visibilitychange", this);
+        this._resetTimeout();
+        this.log_debug("boot", "Booting " + this.app.bundleId + ", version " + this.app.bundleVersion + " (build " + this.app.buildId + ")");
         if (this.serviceWorkerSrc && window.navigator.serviceWorker){
             this._installUsingServiceWorker(window.navigator.serviceWorker);
-        }else if (document.documentElement.getAttribute("manifest") && window.applicationCache){
-            this._installUsingAppcache(window.applicationCache);
         }else{
-            this.log_warn("app", "Service worker and appcache not available");
+            this.log_warn("app", "Service worker not available");
             this.load();
         }
     },
@@ -114,6 +124,7 @@ HTMLAppBootstrapper.prototype = {
         }, function HTMLAppBootstrapper_preflightLoadError(e){
             bootstrapper.error = e;
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.preflightLoadError);
+            bootstrapper.reportError(e);
         });
     },
 
@@ -153,6 +164,7 @@ HTMLAppBootstrapper.prototype = {
         this.linkStylesheets();
         window.addEventListener('error', this);
         window.addEventListener('unhandledrejection', this);
+        this.log_debug("boot", "including " + this.appSrc.length + " scripts");
         this.includeAppSrc(this.appSrc.shift());
     },
 
@@ -169,6 +181,9 @@ HTMLAppBootstrapper.prototype = {
 
     includeAppSrc: function(src){
         var bootstrapper = this;
+        if (!this.app.debug){
+            this.log_debug("boot", "including " + src);
+        }
         this.include(src, true, function HTMLAppBootstrapper_appScriptLoaded(){
             if (bootstrapper.appSrc.length){
                 bootstrapper.includeAppSrc(bootstrapper.appSrc.shift());
@@ -178,6 +193,7 @@ HTMLAppBootstrapper.prototype = {
         }, function HTMLAppBootstrapper_appScriptLoadError(e){
             bootstrapper.error = e;
             bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.appLoadError);
+            bootstrapper.reportError(e);
         });
     },
 
@@ -199,6 +215,7 @@ HTMLAppBootstrapper.prototype = {
             this.log_error("app", "Error calling main(): " + e.message);
             this.error = e;
             this.setStatus(HTMLAppBootstrapper.STATUS.appRunError);
+            this.reportError(e);
         }
     },
 
@@ -209,6 +226,7 @@ HTMLAppBootstrapper.prototype = {
             }else{
                 this.error = error;
                 this.setStatus(HTMLAppBootstrapper.STATUS.appLaunchFailure);
+                this.reportError(error);
             }
             return;
         }
@@ -258,22 +276,51 @@ HTMLAppBootstrapper.prototype = {
 
     setStatus: function(status){
         if (status !== HTMLAppBootstrapper.STATUS.appCrashed){
-            this.log_info("status", this.status + " -> " + status);
+            this.log_debug("boot", this.status + " -> " + status);
         }
         this.status = status;
-        var bootstrapper = this;
-        if (status === HTMLAppBootstrapper.STATUS.appRunning || status === HTMLAppBootstrapper.STATUS.appLaunched || status === HTMLAppBootstrapper.STATUS.appCrashed){
-            if (this.statusDispatchTimeoutID !== null){
-                clearTimeout(this.statusDispatchTimeoutID);
-                this.statusDispatchTimeoutID = null;
-            }
-            bootstrapper.onstatus();
-        }else if (this.statusDispatchTimeoutID === null){
-            this.statusDispatchTimeoutID = setTimeout(function HTMLAppBootstrapper_dispatchStatusChanged(){
-                bootstrapper.statusDispatchTimeoutID = null;
-                bootstrapper.onstatus();
-            }, this.minStatusInterval);
+        switch (this.status){
+            case HTMLAppBootstrapper.STATUS.preflightLoading:
+            case HTMLAppBootstrapper.STATUS.preflightRunning:
+            case HTMLAppBootstrapper.STATUS.appLoading:
+            case HTMLAppBootstrapper.STATUS.appRunning:
+            case HTMLAppBootstrapper.STATUS.updating:
+                this._resetTimeout();
+                break;
+            case HTMLAppBootstrapper.STATUS.checkingForUpdate:
+            case HTMLAppBootstrapper.STATUS.installing:
+                this._resetTimeout();
+                this._startLongLoadInterval();
+                break;
+            case HTMLAppBootstrapper.STATUS.preflightFailedChecks:
+            case HTMLAppBootstrapper.STATUS.preflightLoadError:
+            case HTMLAppBootstrapper.STATUS.updateError:
+            case HTMLAppBootstrapper.STATUS.appLoadError:
+            case HTMLAppBootstrapper.STATUS.appRunError:
+            case HTMLAppBootstrapper.STATUS.appLaunchFailure:
+            case HTMLAppBootstrapper.STATUS.appRequiresNoOtherInstances:
+            case HTMLAppBootstrapper.STATUS.appLaunched:
+                this.rootElement.ownerDocument.removeEventListener("visibilitychange", this);
+                this._cancelTimeout();
+                this._cancelLongLoadInterval();
+                break;
+            case HTMLAppBootstrapper.STATUS.appCrashed:
+                break;
         }
+        this.onstatus(this.status);
+    },
+
+    _hasSeenProgress: false,
+
+    setProgress: function(loaded, total){
+        if (!this._hasSeenProgress){
+            this._hasSeenProgress = true;
+            this._cancelTimeout();
+        }
+        if (loaded === total){
+            this._resetTimeout();
+        }
+        this.onprogress(loaded, total);
     },
 
     handleEvent: function(e){
@@ -284,12 +331,14 @@ HTMLAppBootstrapper.prototype = {
         if (window.applicationCache && e.target === window.applicationCache){
             this.error = e.error;
             this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+            this.reportError(e.error);
             return;
         }
         if (e.target === this.serviceWorker){
             if (!this._hasLoaded){
                 this.error = e.error;
                 this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                this.reportError(e.error);
                 return;
             }
         }
@@ -312,6 +361,91 @@ HTMLAppBootstrapper.prototype = {
         // TODO: 
     },
 
+    event_visibilitychange: function(e){
+        if (this.rootElement.ownerDocument.visibilityState === "hidden"){
+            this.onhidden();
+        }
+    },
+
+    // MARK: - Timeouts
+
+    timeoutInterval: 30,
+    _timeoutID: null,
+
+    _resetTimeout: function(){
+        if (this._timeoutID !== null){
+            clearTimeout(this._timeoutID);
+        }
+        var bootstrapper = this;
+        this._timeoutID = setTimeout(function(){
+            bootstrapper._handleTimeout();
+        }, this.timeoutInterval * 1000);
+    },
+
+    _cancelTimeout: function(){
+        if (this._timeoutID !== null){
+            clearTimeout(this._timeoutID);
+            this._timeoutID = null;
+        }
+    },
+
+    _handleTimeout: function(){
+        this._timeoutID = null;
+        this.ontimeout();
+        window.location.reload();
+    },
+
+    _longLoadIntervalID: null,
+    _longLoadCount: 0,
+    longLoadInterval: 5,
+
+    _startLongLoadInterval: function(){
+        if (this._longLoadIntervalID === null){
+            var bootstrapper = this;
+            this._longLoadIntervalID = setInterval(function(){
+                bootstrapper._handleLongLoadInterval();
+            }, this.longLoadInterval * 1000);
+        }
+    },
+
+    _cancelLongLoadInterval: function(){
+        if (this._longLoadIntervalID !== null){
+            clearInterval(this._longLoadIntervalID);
+            this._longLoadIntervalID = null;
+        }
+    },
+
+    _handleLongLoadInterval: function(){
+        this.onlongload(this._longLoadCount);
+        ++this._longLoadCount;
+    },
+
+    _currentTimestamp: function(){
+        return Date.now() / 1000;
+    },
+
+    _generateRandomID: function(){
+        var data = new Uint8Array(20);
+        var i, l;
+        if (window.crypto){
+            window.crypto.getRandomValues(data);
+        }else{
+            for (i = 0, l = data.length; i < l; ++i){
+                data[i] = Math.floor(Math.random() * 256);
+            }
+        }
+        var id = "";
+        var h;
+        for (i = 0, l = data.length; i < l; ++i){
+            h = data[i].toString(16);
+            if (h.length == 1){
+                id += "0";
+            }
+            id += h;
+        }
+        return id;
+    },
+
     // MARK: - Service Worker
 
     serviceWorkerRegistration: null,
@@ -327,6 +461,7 @@ HTMLAppBootstrapper.prototype = {
                 bootstrapper.log_debug("serviceWorker", "Checking for update");
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
                 registration.addEventListener('updatefound', bootstrapper);
+                bootstrapper.log_debug("serviceWorker", "calling update()");
                 return registration.update();
             }
             bootstrapper.log_debug("serviceWorker", "No registration found");
@@ -334,22 +469,30 @@ HTMLAppBootstrapper.prototype = {
             bootstrapper.log_debug("serviceWorker", "Registering");
             return container.register(bootstrapper.serviceWorkerSrc);
         }).then(function(registration){
-            bootstrapper.serviceWorkerRegistration = registration;
+            bootstrapper.registration = registration;
+            bootstrapper.log_debug("serviceWorker", "update() or register() resolved");
+            bootstrapper.log_debug("serviceWorker", "registration.installing = " + (registration.installing ? "ServiceWorker" : "null"));
+            bootstrapper.log_debug("serviceWorker", "registration.waiting = " + (registration.waiting ? "ServiceWorker" : "null"));
+            bootstrapper.log_debug("serviceWorker", "registration.active = " + (registration.active ? "ServiceWorker" : "null"));
             if (registration.installing){
+                bootstrapper.serviceWorker = registration.installing;
+                bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
+                bootstrapper.log_debug("serviceWorker", "Installing registration found (state = " + bootstrapper.serviceWorker.state + ")");
                 if (bootstrapper.status === HTMLAppBootstrapper.STATUS.checkingForUpdate){
                     bootstrapper.log_debug("serviceWorker", "Installing Update");
                     bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updating);
                 }else{
                     bootstrapper.log_debug("serviceWorker", "Installing for the first time");
                 }
-                bootstrapper.serviceWorker = registration.installing;
             }else if (registration.waiting){
-                bootstrapper.log_debug("serviceWorker", "Waiting registration found.  Activating");
                 bootstrapper.serviceWorker = registration.waiting;
+                bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
+                bootstrapper.log_debug("serviceWorker", "Waiting registration found (state = " + bootstrapper.serviceWorker.state + ").  Activating");
                 bootstrapper.serviceWorker.postMessage({type: "activate"});
             }else if (registration.active){
                 bootstrapper.serviceWorker = registration.active;
-                bootstrapper.log_debug("serviceWorker", "Active registration found");
+                bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
+                bootstrapper.log_debug("serviceWorker", "Active registration found (state = " + bootstrapper.serviceWorker.state + ")");
                 if (bootstrapper.serviceWorker.state == 'activating'){
                     bootstrapper.log_debug("serviceWorker", "Activating");
                 }else{
@@ -360,15 +503,18 @@ HTMLAppBootstrapper.prototype = {
                 bootstrapper.log_error("serviceWorker", "Nothing to install???");
                 throw new Error("No service worker found on registration");
             }
-            bootstrapper.serviceWorker.addEventListener('statechange', bootstrapper);
         }).catch(function(error){
             bootstrapper.log_warn("serviceWorker", "Error with registration: " + error.message);
             if (container.controller){
+                bootstrapper.serviceWorker = container.controller;
                 bootstrapper.log_debug("serviceWorker", "Proceeding with cached version");
                 bootstrapper.load();
+                bootstrapper.error = error;
+                bootstrapper.reportError(error);
             }else{
                 bootstrapper.error = error;
                 bootstrapper.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                bootstrapper.reportError(error);
             }
         });
     },
@@ -382,8 +528,11 @@ HTMLAppBootstrapper.prototype = {
             }else if (worker.state === "activated"){
                 this.log_debug("serviceWorker", "Activated");
                 this.load();
+            }else{
+                this.log_debug("serviceWorker", "statechange " + worker.state);
             }
         }else{
+            this.log_debug("serviceWorker", "other statechange " + worker.state);
             if (worker.state == "installed"){
                 this.log_debug("serviceWorker", "Update Installed");
                 if (this.application !== null){
@@ -403,15 +552,18 @@ HTMLAppBootstrapper.prototype = {
                 if ((e.data.loaded % d === 0) || (e.data.loaded === e.data.total)){
                     this.log_debug("serviceWorker", "Progress " + e.data.loaded + '/' + e.data.total);
                 }
-                this.onprogress(e.data.loaded, e.data.total);
+                this.setProgress(e.data.loaded, e.data.total);
             }else if (e.data.type == 'error'){
                 this.log_warn("serviceWorker", "Install error: " + e.data.message);
                 if (container.controller){
+                    this.serviceWorker = worker;
                     this.log_debug("serviceWorker", "Proceeding with cached version");
                     this.load();
                 }else{
-                    this.error = new Error(e.data.message);
+                    var error = new Error(e.data.message);
+                    this.error = error;
                     this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                    this.reportError(error);
                 }
             }
         }else{
@@ -431,7 +583,7 @@ HTMLAppBootstrapper.prototype = {
         // But in Firefox, the update() promise doesn't resolve until after
         // the install is complete, so this is where we have to detect an update starting.
         if (this.serviceWorker === null){
-            this.log_debug("servicewWorker", "Update found before service worker set");
+            this.log_debug("serviceWorker", "Update found before service worker set");
             this.setStatus(HTMLAppBootstrapper.STATUS.updating);
             this.serviceWorker = worker;
         }
@@ -447,67 +599,12 @@ HTMLAppBootstrapper.prototype = {
             this.serviceWorker = worker;
             if (!this.serviceWorker){
                 this.log_warn("serviceWorker", "null installer");
-                this.error = new Error("null installing worker");
+                var error = new Error("null installing worker");
+                this.error = error;
                 this.setStatus(HTMLAppBootstrapper.STATUS.updateError);
+                this.reportError(error);
             }
         }
-    },
-
-    // MARK: - Appcache
-
-    _installUsingAppcache: function(appcache){
-        this._isAppcacheInstalled = window.applicationCache.status !== window.applicationCache.UNCACHED;
-        appcache.addEventListener('checking', this);
-        appcache.addEventListener('downloading', this);
-        appcache.addEventListener('noupdate', this);
-        appcache.addEventListener('progress', this);
-        appcache.addEventListener('error', this);
-        appcache.addEventListener('updateready', this);
-        appcache.addEventListener('cached', this);
-        appcache.addEventListener('obsoleted', this);
-    },
-
-    event_checking: function(e){
-        this.log_info("appcache", 'checking app cache');
-        this.setStatus(HTMLAppBootstrapper.STATUS.checkingForUpdate);
-    },
-
-    event_downloading: function(e){
-        this.log_info("appcache", 'cache downloading');
-        this.setStatus(this._isAppcacheInstalled ? HTMLAppBootstrapper.STATUS.updating : HTMLAppBootstrapper.STATUS.installing);
-    },
-
-    event_noupdate: function(e){
-        this.log_info("appcache", 'no update');
-        this.load();
-    },
-
-    event_progress: function(e){
-        if (e.lengthComputable){
-            this.onprogress(e.loaded, e.total);
-        }else{
-            // this.log_info("appcache", 'progress is not length computable');
-        }
-    },
-
-    event_cached: function(e){
-        this.log_info("appcache", 'first version cached');
-        this.load();
-    },
-
-    event_updateready: function(e){
-        this.log_info("appcache", 'new version available');
-        if (this._hasLoaded){
-            // TODO: communicate to app
-        }else{
-            e.target.swapCache();
-            this.load();
-        }
-    },
-
-    event_obsoleted: function(e){
-        this.log_info("appcache", 'cache obsoleted');
-        this.load();
     },
 
     // MARK: - Logging
@@ -537,7 +634,7 @@ HTMLAppBootstrapper.prototype = {
             level: level,
             subsystem: "boot",
             category: category,
-            timestamp: Date.now() / 1000,
+            timestamp: this._currentTimestamp(),
             message: message,
             args: []
         };
@@ -546,6 +643,9 @@ HTMLAppBootstrapper.prototype = {
 
     _recordLog: function(record){
         this.logs.push(record);
+        if (this.app.debug){
+            console[record.level](HTMLAppBootstrapper.formatter.log(record));
+        }
         this.onlog(record);
     },
 
@@ -566,6 +666,15 @@ HTMLAppBootstrapper.prototype = {
 
     _getLogsJSLog: function(){
         return window.JSLog.getRecords();
+    },
+
+    // MARK: - Telemetry
+
+    reportError: function(error, fingerprint){
+        if (this.app.debug){
+            console.error(error);
+        }
+        this.onerror(error);
     }
 
 };

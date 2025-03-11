@@ -172,7 +172,6 @@
           statusLabel.innerHTML = "Unable to Start Application";
           detailsLabel.style.opacity = 1;
           detailsLabel.innerHTML = "Apologies, but we couldn't start the application.  Don't worry, it wasn't anything you did, and it isn't something we expect to happen under normal usage.<br>We've notified our engineers of the problem, and the best thing you can do is try again soon.";
-          reportError(bootstrapper.error, bootstrapper.getLogs());
           break;
         case S.appRequiresNoOtherInstances:
           statusLabel.style.opacity = 1;
@@ -209,15 +208,7 @@
       progressBar.style.width = (loaded * 100 / total) + '%';
       progress.setAttribute("aria-valuenow", Math.round(loaded * 100 / total));
     };
-    if (app.debug){
-      bootstrapper.onlog = function(record){
-          console[record.level](HTMLAppBootstrapper.formatter.log(record));
-      };
-    }
-    var reportError = function(error, logs){
-      if (app.debug){
-        console.error(error);
-      }
+    bootstrapper.onerror = function(error){
     };
     window.JSKIT_PREFLIGHT_CONTEXT = bootstrapper;
     bootstrapper.run();
