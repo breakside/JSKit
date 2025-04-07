@@ -168,7 +168,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.addEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.addEventListener('touchmove', this, {passive: false, capture: false});
-        if (this.domWindow.visualViewport !== null){
+        if (this.domWindow.visualViewport !== null && this.domWindow.visualViewport !== undefined){
             this.domWindow.visualViewport.addEventListener('resize', this, false);
         }
     },
@@ -205,7 +205,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.rootElement.removeEventListener('touchend', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchcancel', this, {passive: false, capture: false});
         this.rootElement.removeEventListener('touchmove', this, {passive: false, capture: false});
-        if (this.domWindow.visualViewport !== null){
+        if (this.domWindow.visualViewport !== null && this.domWindow.visualViewport !== undefined){
             this.domWindow.visualViewport.removeEventListener('resize', this, false);
         }
     },
@@ -760,7 +760,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             this.screen.frame = JSRect(JSPoint.Zero, this.rootElementSize());
             this.screenDidChangeFrame(oldFrame);
             this.displayServer.setScreenSize(this.screen.frame.size);
-        }else if (e.currentTarget === this.domWindow.visualViewport){
+        }else if (this.domWindow.visualViewport !== null && this.domWindow.visualViewport !== undefined && e.currentTarget === this.domWindow.visualViewport){
             // using touch screen as proxy for "has virtual keyboard"
             // not a perfect match, but good enough for now
             if (UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
