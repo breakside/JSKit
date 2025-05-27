@@ -1437,7 +1437,7 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
                     var json = JSON.stringify(dictionaries);
                     this._dataTransfer.setData(type, json);
                 }catch (e){
-                    logger.warning("Unable to serialize pasteboard objects to JSON: %{error}", e);
+                    logger.warn("Unable to serialize pasteboard objects to JSON: %{error}", e);
                 }
             }
         }

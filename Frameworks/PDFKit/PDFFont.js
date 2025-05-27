@@ -460,7 +460,7 @@ JSGlobalObject.PDFType0Font.prototype = Object.create(PDFFont.prototype, {
 
     widthOfData: {
         value: function PDFType0Font_widthOfData(data, characterSpacing){
-            logger.warning("Type0 font widthOfData called but not implemented, always returns 0");
+            logger.warn("Type0 font widthOfData called but not implemented, always returns 0");
             return 0;
         }
     },

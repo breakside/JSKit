@@ -97,7 +97,7 @@ MKAsset.definePropertiesFromExtensions({
         }else if (this.isKindOfClass(MKRemoteAsset)){
             video.src = this.url.encodedString;
         }else{
-            logger.warning("unsupported asset class: %{public}", this.$class.className);
+            logger.warn("unsupported asset class: %{public}", this.$class.className);
             JSRunLoop.main.schedule(completion, target, null);
         }
         video.load();

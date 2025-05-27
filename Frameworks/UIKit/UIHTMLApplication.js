@@ -88,7 +88,7 @@ JSClass("UIHTMLApplication", UIApplication, {
                     }
                 }
             }catch (e){
-                logger.warning("unable to open URL `%{public}`: %{error}", url.encodedString, e);
+                logger.warn("unable to open URL `%{public}`: %{error}", url.encodedString, e);
             }
         }
     },
