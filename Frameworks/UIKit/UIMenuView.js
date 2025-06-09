@@ -56,6 +56,7 @@ JSClass("UIMenuWindow", UIWindow, {
     textColor: null,
     highlightedTextColor: null,
     disabledTextColor: null,
+    _lastMoveLocation: null,
 
     // -----------------------------------------------------------------------
     // MARK: - Creating a Menu Window
@@ -252,7 +253,9 @@ JSClass("UIMenuWindow", UIWindow, {
             this.contentOffset = JSPoint(0, 0);
             this._scrollTimer.invalidate();
             this._scrollTimer = null;
-            this._adjustHighlightForLocation(this._lastMoveLocation);
+            if (this._lastMoveLocation !== null){
+                this._adjustHighlightForLocation(this._lastMoveLocation);
+            }
         }else{
             this.contentOffset = JSPoint(0, offset.y - 10);
         }
@@ -265,7 +268,9 @@ JSClass("UIMenuWindow", UIWindow, {
             this.contentOffset = JSPoint(0, end);
             this._scrollTimer.invalidate();
             this._scrollTimer = null;
-            this._adjustHighlightForLocation(this._lastMoveLocation);
+            if (this._lastMoveLocation !== null){
+                this._adjustHighlightForLocation(this._lastMoveLocation);
+            }
         }else{
             this.contentOffset = JSPoint(0, offset.y + 10);
         }
@@ -294,7 +299,9 @@ JSClass("UIMenuWindow", UIWindow, {
         var delta = JSPoint(event.scrollingDelta);
         delta.x = 0;
         this.contentOffset = this.contentOffset.adding(delta);
-        this._adjustHighlightForLocation(this._lastMoveLocation);
+        if (this._lastMoveLocation !== null){
+            this._adjustHighlightForLocation(this._lastMoveLocation);
+        }
     },
 
     // -----------------------------------------------------------------------
