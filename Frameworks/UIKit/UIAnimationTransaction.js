@@ -93,7 +93,7 @@ JSClass('UIAnimationTransaction', JSObject, {
 
     _flush: function(){
         if (this.animations.length === 0){
-            if (this.completionFunction){
+            if (this.completionFunction && UIApplication.shared){
                 UIApplication.shared.windowServer.displayServer.schedule(this.completionFunction, this);
             }
             return;
@@ -101,9 +101,14 @@ JSClass('UIAnimationTransaction', JSObject, {
         var animation;
         for (var i = 0, l = this.animations.length; i < l; ++i){
             animation = this.animations[i];
-            animation.layer.setNeedsAnimation();
+            if (animation.layer._displayServer !== null){
+                animation.layer.setNeedsAnimation();
+            }else if (UIApplication.shared){
+                UIApplication.shared.windowServer.displayServer.setLayerNeedsAnimation(animation.layer);
+            }
         }
     },
+
 });
 
 UIAnimationTransaction.currentTransaction = null;
