@@ -44,11 +44,11 @@ JSClass("MKQuickTimeTrackHeader", MKQuickTimeAtom, {
     },
 
     getWidth: function(){
-        return this.dataView.getUint16(84) + this.dataView.getUint16(86) / 0xFFFF;
+        return this.dataView.getUint16(84) + this.dataView.getUint16(86) / 0x10000;
     },
 
     getHeight: function(){
-        return this.dataView.getUint16(88) + this.dataView.getUint16(90) / 0xFFFF;
+        return this.dataView.getUint16(88) + this.dataView.getUint16(90) / 0x10000;
     },
 
     videoResolution: JSReadOnlyProperty(),

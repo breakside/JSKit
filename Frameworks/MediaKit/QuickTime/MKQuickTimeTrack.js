@@ -1,6 +1,7 @@
 // #import "MKQuickTimeAtom.js"
 // #import "MKQuickTimeTrackHeader.js"
 // #import "MKQuickTimeMedia.js"
+// #import "MKQuickTimeEdit.js"
 "use strict";
 
 (function(){
@@ -15,6 +16,7 @@ JSClass("MKQuickTimeTrack", MKQuickTimeAtom, {
         MKQuickTimeTrack.$super.initWithData.call(this, data);
         this.registerAtomClass(MKQuickTimeTrackHeader);
         this.registerAtomClass(MKQuickTimeMedia);
+        this.registerAtomClass(MKQuickTimeEdit);
         this.readAtoms(8);
     },
 

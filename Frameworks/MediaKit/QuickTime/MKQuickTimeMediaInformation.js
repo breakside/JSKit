@@ -1,5 +1,6 @@
 // #import "MKQuickTimeAtom.js"
 // #import "MKQuickTimeSampleTable.js"
+// #import "MKQuickTimeVideoMediaInformationHeader.js"
 "use strict";
 
 (function(){
@@ -13,6 +14,7 @@ JSClass("MKQuickTimeMediaInformation", MKQuickTimeAtom, {
     initWithData: function(data){
         MKQuickTimeMediaInformation.$super.initWithData.call(this, data);
         this.registerAtomClass(MKQuickTimeSampleTable);
+        this.registerAtomClass(MKQuickTimeVideoMediaInformationHeader);
         this.readAtoms(8);
     },
 
@@ -20,6 +22,12 @@ JSClass("MKQuickTimeMediaInformation", MKQuickTimeAtom, {
 
     getSampleTable: function(){
         return this.atomOfType(MKQuickTimeAtom.Type.stbl);
+    },
+
+    videoMediaInformationHeader: JSReadOnlyProperty(),
+
+    getVideoMediaInformationHeader: function(){
+        return this.atomOfType(MKQuickTimeAtom.Type.vmhd);
     },
 
     sampleDurations: JSReadOnlyProperty(),

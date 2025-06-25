@@ -60,7 +60,7 @@ JSClass("MKQuickTimeSampleDescription", MKQuickTimeAtom, {
         while (index < n && i < l - 16){
             size = this.dataView.getUint32(i);
             if (size >= 36){
-                rates.push(this.dataView.getUint16(i + 32) + this.dataView.getUint16(i + 34) / 0xFFFF);
+                rates.push(this.dataView.getUint16(i + 32) + this.dataView.getUint16(i + 34) / 0x10000);
             }
             i += size;
         }

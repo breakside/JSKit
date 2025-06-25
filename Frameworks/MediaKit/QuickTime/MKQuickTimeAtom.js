@@ -133,7 +133,9 @@ MKQuickTimeAtom.Type = {
     stsd: 0x73747364,
     stsz: 0x7374737a,
     udta: 0x75647461,
-    meta: 0x6d657461
+    meta: 0x6d657461,
+    edts: 0x65647473,
+    elst: 0x656c7374
 };
 
 MKQuickTimeAtom.stringForType = function(type){

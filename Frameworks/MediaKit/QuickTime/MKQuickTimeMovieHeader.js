@@ -32,7 +32,7 @@ JSClass("MKQuickTimeMovieHeader", MKQuickTimeAtom, {
     },
 
     getPreferredRate: function(){
-        return this.dataView.getUint16(28) + this.dataView.getUint16(30) / 0xFFFF;
+        return this.dataView.getUint16(28) + this.dataView.getUint16(30) / 0x10000;
     },
 
     getPosterTime: function(){
