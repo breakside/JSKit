@@ -23,6 +23,7 @@ JSClass("UIPopupWindow", UIWindow, {
     showsSourceArrow: JSDynamicProperty('_showsSourceArrow', false),
     sourceArrowSize: JSDynamicProperty('_sourceArrowSize', 10),
     sourceSpacing: JSDynamicProperty('_sourceSpacing', 0),
+    sourceView: null,
     isUserMovable: false,
     placement: 0,
     canBecomeKey: true,
@@ -41,8 +42,59 @@ JSClass("UIPopupWindow", UIWindow, {
     },
 
     setShowsSourceArrow: function(showsSourceArrow){
+        if (showsSourceArrow === this._showsSourceArrow){
+            return;
+        }
+        if (this._isOpen){
+            var frame = JSRect(this.untransformedFrame);
+            if (this.placement === UIPopupWindow.Placement.left){
+                if (this._showsSourceArrow){
+                    frame.size.width -= this._actualArrowSize;
+                }else{
+                    frame.size.width += this._actualArrowSize;
+                }
+            }else if (this.placement === UIPopupWindow.Placement.right){
+                if (this._showsSourceArrow){
+                    frame.size.width -= this._actualArrowSize;
+                    frame.origin.x += this._actualArrowSize;
+                    if (this._downLocation !== null){
+                        this._downLocation.x -= this._actualArrowSize;
+                    }
+                }else{
+                    frame.size.width += this._actualArrowSize;
+                    frame.origin.x -= this._actualArrowSize;
+                    if (this._downLocation !== null){
+                        this._downLocation.x += this._actualArrowSize;
+                    }
+                }
+            }else if (this.placement === UIPopupWindow.Placement.above){
+                if (this._showsSourceArrow){
+                    frame.size.height -= this._actualArrowSize;
+                }else{
+                    frame.size.height += this._actualArrowSize;
+                }
+            }else if (this.placement === UIPopupWindow.Placement.below){
+                if (this._showsSourceArrow){
+                    frame.size.height -= this._actualArrowSize;
+                    frame.origin.y += this._actualArrowSize;
+                    if (this._downLocation !== null){
+                        this._downLocation.y -= this._actualArrowSize;
+                    }
+                }else{
+                    frame.size.height += this._actualArrowSize;
+                    frame.origin.y -= this._actualArrowSize;
+                    if (this._downLocation !== null){
+                        this._downLocation.x += this._actualArrowSize;
+                    }
+                }
+            }
+            this.untransformedFrame = frame;
+        }
         this._showsSourceArrow = showsSourceArrow;
         this._styler.updateWindow(this);
+        if (this._isOpen && !this._showsSourceArrow){
+            JSNotificationCenter.shared.post("UIPopupWindowDidDetachFromSource", this);
+        }
     },
 
     setSourceArrowSize: function(sourceArrowSize){
@@ -68,7 +120,7 @@ JSClass("UIPopupWindow", UIWindow, {
             animated = true;
         }
         var sourceFrame = view.convertRectToScreen(view.bounds).rectWithInsets(-this._sourceSpacing);
-        var safeFrame = view.window.screen.availableFrame;
+        var safeFrame = view.window.screen.availableFrame.rectWithInsets(20);
 
         // Size to our content's preferred size
         this.sizeToFit();
@@ -153,8 +205,8 @@ JSClass("UIPopupWindow", UIWindow, {
             if (frame.origin.x + frame.size.width > safeFrame.origin.x + safeFrame.size.width){
                 frame.origin.x = safeFrame.origin.x + safeFrame.size.width - frame.size.width;
             }
-            if (frame.origin.x < 0){
-                frame.origin.x = 0;
+            if (frame.origin.x < safeFrame.origin.x){
+                frame.origin.x = safeFrame.origin.x;
                 if (frame.size.width > safeFrame.size.width){
                     frame.size.width = safeFrame.size.width;
                 }
@@ -164,8 +216,8 @@ JSClass("UIPopupWindow", UIWindow, {
             if (frame.origin.y + frame.size.height > safeFrame.origin.y + safeFrame.size.height){
                 frame.origin.y = safeFrame.origin.y + safeFrame.size.height - frame.size.height;
             }
-            if (frame.origin.y < 0){
-                frame.origin.y = 0;
+            if (frame.origin.y < safeFrame.origin.y){
+                frame.origin.y = safeFrame.origin.y;
                 if (frame.size.height > safeFrame.size.height){
                     frame.size.height = safeFrame.size.height;
                 }
@@ -216,6 +268,7 @@ JSClass("UIPopupWindow", UIWindow, {
 
         this.placement = placement;
         this.frame = frame;
+        this.sourceView = view;
 
         // Create animated opening, closing
         if (animated){
@@ -241,12 +294,64 @@ JSClass("UIPopupWindow", UIWindow, {
         this.makeKeyAndOrderFront();
     },
 
+    repositionSourceArrow: function(){
+        var view = this.sourceView;
+        if (view === null){
+            return;
+        }
+        var sourceFrame = view.convertRectToScreen(view.bounds);
+        var frame = this.untransformedFrame;
+        if (sourceFrame === null){
+            this.sourceView = null;
+            this.showsSourceArrow = false;
+            return;
+        }
+        var x, y;
+        var minY = frame.origin.y + this.styler.cornerRadius + this._actualArrowSize;
+        var maxY = frame.origin.y + frame.size.height - this.styler.cornerRadius - this._actualArrowSize;
+        if (this.placement === UIPopupWindow.Placement.left){
+            x = sourceFrame.origin.x - this._sourceSpacing;
+            if (Math.abs(frame.origin.x + frame.size.width - x) < 1){
+                y = sourceFrame.center.y;
+                if (y >= minY && y <= maxY){
+                    this.anchorPoint = JSPoint(1, (y - frame.origin.y) / frame.size.height);
+                    this.untransformedFrame = frame;
+                    this.setNeedsLayout();
+                }else{
+                    this.sourceView = null;
+                    this.showsSourceArrow = false;
+                }
+            }else{
+                this.sourceView = null;
+                this.showsSourceArrow = false;
+            }
+        }else if (this.placement === UIPopupWindow.Placement.right){
+            x = sourceFrame.origin.x + sourceFrame.size.width + this._sourceSpacing;
+            if (Math.abs(frame.origin.x - x) < 1){
+                y = sourceFrame.center.y;
+                if (y >= minY && y <= maxY){
+                    this.anchorPoint = JSPoint(0, (y - frame.origin.y) / frame.size.height);
+                    this.untransformedFrame = frame;
+                    this.setNeedsLayout();
+                }else{
+                    this.sourceView = null;
+                    this.showsSourceArrow = false;
+                }
+            }else{
+                this.sourceView = null;
+                this.showsSourceArrow = false;
+            }
+        }else if (this.placement === UIPopupWindow.Placement.above){
+        }else if (this.placement === UIPopupWindow.Placement.below){
+        }
+    },
+
     openCenteredInView: function(view, animated){
         if (animated === undefined){
             animated = true;
         }
         var sourceFrame = view.convertRectToScreen(view.bounds);
-        var safeFrame = view.window.screen.availableFrame;
+        var safeFrame = view.window.screen.availableFrame.rectWithInsets(20);
 
         this.sizeToFit();
         var frame = JSRect(this.frame);
@@ -281,9 +386,12 @@ JSClass("UIPopupWindow", UIWindow, {
                 this.closeAnimator = closeAnimator;
             }
         }
-
         this.makeKeyAndOrderFront();
+    },
 
+    close: function(){
+        UIPopupWindow.$super.close.call(this);
+        this.sourceView = null;
     },
 
     modalIndicationClosesWindow: false,
@@ -300,7 +408,26 @@ JSClass("UIPopupWindow", UIWindow, {
         UIPopupWindow.$super.indicateModalStatus.call(this);
     },
 
-    accessibilityRole: UIAccessibility.Role.popover
+    accessibilityRole: UIAccessibility.Role.popover,
+
+    minimumMoveDistance: 10,
+
+    mouseDragged: function(event){
+        if (this._showsSourceArrow && this._isMoving){
+            var frameBeforeMoving = this.frame;
+            var location = this.convertPointToScreen(event.locationInWindow);
+            var distance = this._downLocation ? location.distanceToPoint(this._downLocation) : JSPoint.Zero;
+            UIPopupWindow.$super.mouseDragged.call(this, event);
+            this._didMove = distance >= this.minimumMoveDistance;
+            if (this._didMove){
+                this.showsSourceArrow = false;
+            }else{
+                this.frame = frameBeforeMoving;
+            }
+        }else{
+            UIPopupWindow.$super.mouseDragged.call(this, event);
+        }
+    }
 
 });
 
