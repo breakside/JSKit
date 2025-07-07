@@ -417,6 +417,7 @@ JSClass('UIWindow', UIView, {
         if (!this._isOpen){
             return;
         }
+        JSNotificationCenter.shared.post("UIWindowWillClose", this);
         if (this.viewController){
             this.viewController.viewWillDisappear(false);
         }else if (this._contentViewController){
@@ -426,13 +427,14 @@ JSClass('UIWindow', UIView, {
             this.openAnimator.stopAndCallCompletions();
         }
         if (this.closeAnimator !== null){
-            var self = this;
             this.closeAnimator.addCompletion(function(){
-                self.windowServer.windowRemoved(self);
-            });
+                this.windowServer.windowRemoved(this);
+                JSNotificationCenter.shared.post("UIWindowDidClose", this);
+            }, this);
             this.closeAnimator.start();
         }else{
             this.windowServer.windowRemoved(this);
+            JSNotificationCenter.shared.post("UIWindowDidClose", this);
         }
         this._isOpen = false;
     },
