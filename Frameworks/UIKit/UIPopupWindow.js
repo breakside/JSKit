@@ -309,6 +309,8 @@ JSClass("UIPopupWindow", UIWindow, {
         var x, y;
         var minY = frame.origin.y + this.styler.cornerRadius + this._actualArrowSize;
         var maxY = frame.origin.y + frame.size.height - this.styler.cornerRadius - this._actualArrowSize;
+        var minX = frame.origin.x + this.styler.cornerRadius + this._actualArrowSize;
+        var maxX = frame.origin.x + frame.size.width - this.styler.cornerRadius - this._actualArrowSize;
         if (this.placement === UIPopupWindow.Placement.left){
             x = sourceFrame.origin.x - this._sourceSpacing;
             if (Math.abs(frame.origin.x + frame.size.width - x) < 1){
@@ -342,7 +344,37 @@ JSClass("UIPopupWindow", UIWindow, {
                 this.showsSourceArrow = false;
             }
         }else if (this.placement === UIPopupWindow.Placement.above){
+            y = sourceFrame.origin.y - this._sourceSpacing;
+            if (Math.abs(frame.origin.y + frame.size.height - y) < 1){
+                x = sourceFrame.center.x;
+                if (x >= minX && x <= maxX){
+                    this.anchorPoint = JSPoint((x - frame.origin.x) / frame.size.width, 1);
+                    this.untransformedFrame = frame;
+                    this.setNeedsLayout();
+                }else{
+                    this.sourceView = null;
+                    this.showsSourceArrow = false;
+                }
+            }else{
+                this.sourceView = null;
+                this.showsSourceArrow = false;
+            }
         }else if (this.placement === UIPopupWindow.Placement.below){
+            y = sourceFrame.origin.y + sourceFrame.size.height + this._sourceSpacing;
+            if (Math.abs(frame.origin.y - y) < 1){
+                x = sourceFrame.center.x;
+                if (x >= minX && x <= maxX){
+                    this.anchorPoint = JSPoint((x - frame.origin.x) / frame.size.width, 0);
+                    this.untransformedFrame = frame;
+                    this.setNeedsLayout();
+                }else{
+                    this.sourceView = null;
+                    this.showsSourceArrow = false;
+                }
+            }else{
+                this.sourceView = null;
+                this.showsSourceArrow = false;
+            }
         }
     },
 
@@ -427,7 +459,14 @@ JSClass("UIPopupWindow", UIWindow, {
         }else{
             UIPopupWindow.$super.mouseDragged.call(this, event);
         }
-    }
+    },
+
+    _windowServerDidResize: function(){
+        UIPopupWindow.$super._windowServerDidResize.call(this);
+        if (this._showsSourceArrow){
+            this.repositionSourceArrow();
+        }
+    },
 
 });
 
@@ -555,6 +594,9 @@ JSClass("UIPopupWindowStyler", UIWindowStyler, {
                 popupArrow.position = anchorPosition;
                 popupArrow.anchorPoint = JSPoint(0.5, 0);
             }
+            window._resizeView = popupBacking;
+        }else{
+            window._resizeView = null;
         }
         window._contentView.frame = window.bounds.rectWithInsets(contentInsets);
     },

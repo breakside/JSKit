@@ -595,6 +595,52 @@ JSClass("UIWindowServer", JSObject, {
             return;
         }
 
+        var event;
+        var targetWindow;
+        var locationInWindow;
+
+        // window resizing is handled by the window server itself, rather than
+        // passing events to windows
+        if (this._windowResizeWindow !== null && this._windowResizeMouseEventData === null && type === UIEvent.Type.leftMouseDown && this.mouseDownCount === 0){
+            locationInWindow = this._windowResizeWindow.convertPointFromScreen(location);
+            var resizeOperation = this.windowResizeHitTest(this._windowResizeWindow, locationInWindow);
+            if (resizeOperation !== UIWindowServer.ResizeOperation.none){
+                this._mouseIdleTimer.invalidate();
+                if (this._tooltipWindow !== null){
+                    this.hideTooltip();
+                }
+                this._leftClickCount = 1;
+                this._rightClickCount = 0;
+                this.mouseDownCount = 1;
+                this.mouseEventWindow = null;
+                this._previousMouseEventWindow = null;
+                this._windowResizeMouseEventData = {
+                    operation: resizeOperation,
+                    location0: JSPoint(location)
+                };
+            }else{
+                if (this._windowResizeCursor !== null){
+                    this._windowResizeCursor.pop();
+                    this._windowResizeCursor = null;
+                }
+                this._windowResizeWindow = null;
+            }
+        }
+        if (this._windowResizeMouseEventData !== null){
+            if (locationInWindow === undefined || locationInWindow === null){
+                locationInWindow = this._windowResizeWindow.convertPointFromScreen(location);
+            }
+            event = UIEvent.initMouseEventWithType(type, timestamp, this._windowResizeWindow, locationInWindow, modifiers, this._leftClickCount);
+            this.handleWindowResizeMouseEvent(event, location);
+            if (type === UIEvent.Type.leftMouseUp){
+                this._leftClickCount = 0;
+                this.mouseDownCount = 0;
+                this._windowResizeMouseEventData = null;
+                this.sendMouseTrackingEvents(timestamp, modifiers);
+            }
+            return;
+        }
+
         if (isADown){
             this._mouseIdleTimer.invalidate();
             if (this._tooltipWindow !== null){
@@ -643,8 +689,7 @@ JSClass("UIWindowServer", JSObject, {
                 break;
         }
 
-        var event;
-        var targetWindow = this.mouseEventWindow;
+        targetWindow = this.mouseEventWindow;
 
         if (isAnUp){
             --this.mouseDownCount;
@@ -664,7 +709,8 @@ JSClass("UIWindowServer", JSObject, {
             }
         }
         if (targetWindow !== null){
-            event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, targetWindow.convertPointFromScreen(location), modifiers, clickCount);
+            locationInWindow = targetWindow.convertPointFromScreen(location);
+            event = UIEvent.initMouseEventWithType(type, timestamp, targetWindow, locationInWindow, modifiers, clickCount);
             this._sendEventToApplication(event, targetWindow.application);
         }
     },
@@ -747,30 +793,211 @@ JSClass("UIWindowServer", JSObject, {
     _mouseTrackingWindow: null,
 
     sendMouseTrackingEvents: function(timestamp, modifiers){
-        var window = null;
+        var mouseTrackingWindow = null;
+        var resizeWindow = null;
         var windowIndex;
+        var window;
         var location;
         var event;
         var hasWindowReceivingAllEvents = false;
-        for (windowIndex = this.windowStack.length - 1; windowIndex >= 0 && window === null; --windowIndex){
-            location = this.windowStack[windowIndex].convertPointFromScreen(this.mouseLocation);
-            hasWindowReceivingAllEvents = hasWindowReceivingAllEvents || this.windowStack[windowIndex].receivesAllEvents;
-            if (this.windowStack[windowIndex].userInteractionEnabled && this.windowStack[windowIndex].containsPoint(location)){
-                window = this.windowStack[windowIndex];
+        var hasSeenMainWindow = false;
+        var resizeOperation = UIWindowServer.ResizeOperation.none;
+        for (windowIndex = this.windowStack.length - 1; windowIndex >= 0 && mouseTrackingWindow === null; --windowIndex){
+            window = this.windowStack[windowIndex];
+            if (!window.hidden){
+                location = window.convertPointFromScreen(this.mouseLocation);
+                hasWindowReceivingAllEvents = hasWindowReceivingAllEvents || window.receivesAllEvents;
+                if (window.userInteractionEnabled){
+                    if (!hasSeenMainWindow){
+                        resizeOperation = this.windowResizeHitTest(window, location);
+                    }
+                    if (resizeOperation !== UIWindowServer.ResizeOperation.none){
+                        mouseTrackingWindow = window;
+                    }else if (window.containsPoint(location)){
+                        mouseTrackingWindow = window;
+                    }
+                }
+                hasSeenMainWindow = hasSeenMainWindow || window === this.mainWindow;
             }
         }
-        if (hasWindowReceivingAllEvents && window !== null && !window.receivesAllEvents){
-            window = null;
+        if (hasWindowReceivingAllEvents && mouseTrackingWindow !== null && !mouseTrackingWindow.receivesAllEvents){
+            mouseTrackingWindow = null;
+            resizeOperation = UIWindowServer.ResizeOperation.none;
+        }
+        if (resizeOperation !== UIWindowServer.ResizeOperation.none){
+            resizeWindow = mouseTrackingWindow;
+            mouseTrackingWindow = null;
         }
         if (this._mouseTrackingWindow !== null){
-            if (window !== this._mouseTrackingWindow){
+            if (mouseTrackingWindow !== this._mouseTrackingWindow){
                 this._mouseTrackingWindow.sendMouseTrackingEvents(this._mouseTrackingWindow.convertPointFromScreen(this.mouseLocation), timestamp, modifiers, true);
             }
         }
-        this._mouseTrackingWindow = window;
+        this._mouseTrackingWindow = mouseTrackingWindow;
         if (this._mouseTrackingWindow !== null){
             this._mouseTrackingWindow.sendMouseTrackingEvents(this._mouseTrackingWindow.convertPointFromScreen(this.mouseLocation), timestamp, modifiers, false);
         }
+        var resizeCursor = null;
+        if (resizeOperation !== UIWindowServer.ResizeOperation.none){
+            resizeCursor = this.cursorForWindowResizeOperation(resizeWindow, resizeOperation);
+        }
+        if (resizeCursor !== this._windowResizeCursor){
+            if (this._windowResizeCursor !== null){
+                this._windowResizeCursor.pop();
+            }
+            this._windowResizeCursor = resizeCursor;
+            if (this._windowResizeCursor !== null){
+                this._windowResizeCursor.push();
+            }
+        }
+        this._windowResizeWindow = resizeWindow;
+    },
+
+    _windowResizeCursor: null,
+    _windowResizeWindow: null,
+    _windowResizeMouseEventData: null,
+    _windowResizeWidthInside: 4,
+    _windowResizeWidthOutside: 4,
+
+    windowResizeHitTest: function(window, location){
+        if (!window._canResizeWidth && !window._canResizeHeight){
+            return UIWindowServer.ResizeOperation.none;
+        }
+        var resizeView = window;
+        if (window._resizeView !== null){
+            resizeView = window._resizeView;
+            location = window.convertPointToView(location, resizeView);
+        }
+        var resizeFrame = resizeView.bounds;
+        var cornerSize = Math.max(resizeView.cornerRadius, this._windowResizeWidthInside);
+        if (location.y < resizeFrame.origin.y - this._windowResizeWidthOutside){
+            return UIWindowServer.ResizeOperation.none;
+        }
+        if (location.x < resizeFrame.origin.x - this._windowResizeWidthOutside){
+            return UIWindowServer.ResizeOperation.none;
+        }
+        if (location.y > resizeFrame.origin.y + resizeFrame.size.height + this._windowResizeWidthOutside){
+            return UIWindowServer.ResizeOperation.none;
+        }
+        if (location.x > resizeFrame.origin.x + resizeFrame.size.width + this._windowResizeWidthOutside){
+            return UIWindowServer.ResizeOperation.none;
+        }
+        if (window._canResizeWidth && window._canResizeHeight){
+            if ((location.y <= resizeFrame.origin.y + cornerSize) && (location.x <= resizeFrame.origin.x + cornerSize)){
+                return UIWindowServer.ResizeOperation.topLeft;
+            }
+            if ((location.y <= resizeFrame.origin.y + cornerSize) && (location.x >= resizeFrame.origin.x + resizeFrame.size.width - cornerSize)){
+                return UIWindowServer.ResizeOperation.topRight;
+            }
+            if ((location.y >= resizeFrame.origin.y + resizeFrame.size.height - cornerSize) && (location.x >= resizeFrame.origin.x + resizeFrame.size.width - cornerSize)){
+                return UIWindowServer.ResizeOperation.bottomRight;
+            }
+            if ((location.y >= resizeFrame.origin.y + resizeFrame.size.height - cornerSize) && (location.x <= resizeFrame.origin.x + cornerSize)){
+                return UIWindowServer.ResizeOperation.bottomLeft;
+            }
+        }
+        if (window._canResizeWidth){
+            if (location.x <= resizeFrame.origin.x + this._windowResizeWidthInside){
+                return UIWindowServer.ResizeOperation.left;
+            }
+            if (location.x >= resizeFrame.origin.x + resizeFrame.size.width - this._windowResizeWidthInside){
+                return UIWindowServer.ResizeOperation.right;
+            }
+        }
+        if (window._canResizeHeight){
+            if (location.y <= resizeFrame.origin.y + this._windowResizeWidthInside){
+                return UIWindowServer.ResizeOperation.top;
+            }
+            if (location.y >= resizeFrame.origin.y + resizeFrame.size.height - this._windowResizeWidthInside){
+                return UIWindowServer.ResizeOperation.bottom;
+            }
+        }
+        return UIWindowServer.ResizeOperation.none;
+    },
+
+    handleWindowResizeMouseEvent: function(event, location){
+        var frame;
+        // FIXME: assuming no scale or rotation in window.transform
+        if (event.type === UIEvent.Type.leftMouseDown){
+            frame = event.window._resizeView !== null ? event.window._resizeView.bounds : event.window.bounds;
+            this._windowResizeMouseEventData.frame0 = event.window.untransformedFrame;
+            this._windowResizeMouseEventData.maximumResize = JSSize(
+                event.window.maximumSize.width - frame.size.width,
+                event.window.maximumSize.height - frame.size.height
+            );
+            this._windowResizeMouseEventData.minimumResize = JSSize(
+                event.window.minimumSize.width - frame.size.width,
+                event.window.minimumSize.height - frame.size.height
+            );
+        }else if (event.type === UIEvent.Type.leftMouseDragged){
+            var diff = location.subtracting(this._windowResizeMouseEventData.location0);
+            var over;
+            var resizeOperation = this._windowResizeMouseEventData.operation;
+            frame = JSRect(this._windowResizeMouseEventData.frame0);
+            if (resizeOperation === UIWindowServer.ResizeOperation.top || resizeOperation === UIWindowServer.ResizeOperation.topLeft  || resizeOperation === UIWindowServer.ResizeOperation.topRight){
+                if (diff.y < 0 && diff.y < -this._windowResizeMouseEventData.maximumResize.height){
+                    diff.y = -this._windowResizeMouseEventData.maximumResize.height;
+                }else if (diff.y > 0 && diff.y > -this._windowResizeMouseEventData.minimumResize.height){
+                    diff.y = -this._windowResizeMouseEventData.minimumResize.height;
+                }
+                frame.origin.y += diff.y;
+                frame.size.height -= diff.y;
+            }else if (resizeOperation === UIWindowServer.ResizeOperation.bottom || resizeOperation === UIWindowServer.ResizeOperation.bottomLeft  || resizeOperation === UIWindowServer.ResizeOperation.bottomRight){
+                if (diff.y > 0 && diff.y > this._windowResizeMouseEventData.maximumResize.height){
+                    diff.y = this._windowResizeMouseEventData.maximumResize.height;
+                }else if (diff.y < 0 && diff.y < this._windowResizeMouseEventData.minimumResize.height){
+                    diff.y = this._windowResizeMouseEventData.minimumResize.height;
+                }
+                frame.size.height += diff.y;
+            }
+            if (resizeOperation === UIWindowServer.ResizeOperation.left || resizeOperation === UIWindowServer.ResizeOperation.topLeft  || resizeOperation === UIWindowServer.ResizeOperation.bottomLeft){
+                if (diff.x < 0 && diff.x < -this._windowResizeMouseEventData.maximumResize.width){
+                    diff.x = -this._windowResizeMouseEventData.maximumResize.width;
+                }else if (diff.x > 0 && diff.x > -this._windowResizeMouseEventData.minimumResize.width){
+                    diff.x = -this._windowResizeMouseEventData.minimumResize.width;
+                }
+                frame.origin.x += diff.x;
+                frame.size.width -= diff.x;
+            }else if (resizeOperation === UIWindowServer.ResizeOperation.right || resizeOperation === UIWindowServer.ResizeOperation.topRight  || resizeOperation === UIWindowServer.ResizeOperation.bottomRight){
+                if (diff.x > 0 && diff.x > this._windowResizeMouseEventData.maximumResize.width){
+                    diff.x = this._windowResizeMouseEventData.maximumResize.width;
+                }else if (diff.x < 0 && diff.x < this._windowResizeMouseEventData.minimumResize.width){
+                    diff.x = this._windowResizeMouseEventData.minimumResize.width;
+                }
+                frame.size.width += diff.x;
+            }
+            event.window.untransformedFrame = frame;
+            event.window._windowServerDidResize();
+        }
+    },
+
+    cursorForWindowResizeOperation: function(window, resizeOperation){
+        // TODO: consider window transform
+        if (resizeOperation === UIWindowServer.ResizeOperation.top){
+            return UICursor.resizeNorthSouth;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.left){
+            return UICursor.resizeEastWest;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.bottom){
+            return UICursor.resizeNorthSouth;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.right){
+            return UICursor.resizeEastWest;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.topLeft){
+            return UICursor.resizeNorthWestSouthEast;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.topRight){
+            return UICursor.resizeNorthEastSouthWest;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.bottomLeft){
+            return UICursor.resizeNorthEastSouthWest;
+        }
+        if (resizeOperation === UIWindowServer.ResizeOperation.bottomRight){
+            return UICursor.resizeNorthWestSouthEast;
+        }
+        return null;
     },
 
     // -----------------------------------------------------------------------
@@ -1128,6 +1355,18 @@ JSClass("UIWindowServer", JSObject, {
     },
 
 });
+
+UIWindowServer.ResizeOperation = {
+    none: 0,
+    top: 1,
+    left: 2,
+    bottom: 3,
+    right: 4,
+    topLeft: 5,
+    topRight: 6,
+    bottomLeft: 7,
+    bottomRight: 8
+};
 
 JSClass("UIWindowServerAccessibilityHighlightView", UIView, {
 

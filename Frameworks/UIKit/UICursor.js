@@ -153,6 +153,10 @@ UICursor.SystemIdentifier = {
     operationNotAllowed: 'not-allowed',
     resizeLeftRight: 'col-resize',
     resizeUpDown: 'row-resize',
+    resizeEastWest: 'ew-resize',
+    resizeNorthSouth: 'ns-resize',
+    resizeNorthEastSouthWest: 'nesw-resize',
+    resizeNorthWestSouthEast: 'nwse-resize',
     openHand: 'grab',
     closedHand: 'grabbing',
     dragLink: 'alias',
@@ -167,6 +171,10 @@ UICursor.pointingHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentif
 UICursor.operationNotAllowed = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.operationNotAllowed);
 UICursor.resizeLeftRight = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeLeftRight);
 UICursor.resizeUpDown = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeUpDown);
+UICursor.resizeEastWest = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeEastWest);
+UICursor.resizeNorthSouth = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeNorthSouth);
+UICursor.resizeNorthEastSouthWest = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeNorthEastSouthWest);
+UICursor.resizeNorthWestSouthEast = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.resizeNorthWestSouthEast);
 UICursor.openHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.openHand);
 UICursor.closedHand = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.closedHand);
 UICursor.dragLink = UICursor.initWithSystemIdentifier(UICursor.SystemIdentifier.dragLink);

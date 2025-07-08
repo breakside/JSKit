@@ -327,6 +327,9 @@ JSClass('UIWindow', UIView, {
             this._setTraitCollection(traits);
         }
     },
+
+    _windowServerDidResize: function(){
+    },
     
     traitCollection: JSReadOnlyProperty('_traitCollection', null),
 
@@ -663,6 +666,24 @@ JSClass('UIWindow', UIView, {
             }
         }
         return responder;
+    },
+
+    minimumSize: JSDynamicProperty("_minimumSize", null),
+    maximumSize: JSDynamicProperty("_maximumSize", null),
+    _canResizeWidth: false,
+    _canResizeHeight: false,
+    _resizeView: null,
+
+    setMinimumSize: function(minimumSize){
+        this._minimumSize = JSSize(minimumSize);
+        this._canResizeWidth = this._minimumSize !== null && this._maximumSize !== null && this._minimumSize.width !== this._maximumSize.width;
+        this._canResizeHeight = this._minimumSize !== null && this._maximumSize !== null && this._minimumSize.height !== this._maximumSize.height;
+    },
+
+    setMaximumSize: function(maximumSize){
+        this._maximumSize = JSSize(maximumSize);
+        this._canResizeWidth = this._minimumSize !== null && this._maximumSize !== null && this._minimumSize.width !== this._maximumSize.width;
+        this._canResizeHeight = this._minimumSize !== null && this._maximumSize !== null && this._minimumSize.height !== this._maximumSize.height;
     },
 
     // -------------------------------------------------------------------------
