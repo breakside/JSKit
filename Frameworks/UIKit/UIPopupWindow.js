@@ -461,10 +461,18 @@ JSClass("UIPopupWindow", UIWindow, {
         }
     },
 
-    _windowServerDidResize: function(){
+    _windowServerDidResize: function(frameBeforeResize){
         UIPopupWindow.$super._windowServerDidResize.call(this);
         if (this._showsSourceArrow){
+            var frameBeforeReposition = JSRect(this.untransformedFrame);
             this.repositionSourceArrow();
+            if (!this._showsSourceArrow){
+                var frameAfterReposition = this.untransformedFrame;
+                frameBeforeResize.origin.x += frameAfterReposition.origin.x - frameBeforeReposition.origin.x;
+                frameBeforeResize.origin.y += frameAfterReposition.origin.y - frameBeforeReposition.origin.y;
+                frameBeforeResize.size.width += frameAfterReposition.size.width - frameBeforeReposition.size.width;
+                frameBeforeResize.size.height += frameAfterReposition.size.height - frameBeforeReposition.size.height;
+            }
         }
     },
 

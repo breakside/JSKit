@@ -967,7 +967,7 @@ JSClass("UIWindowServer", JSObject, {
                 frame.size.width += diff.x;
             }
             event.window.untransformedFrame = frame;
-            event.window._windowServerDidResize();
+            event.window._windowServerDidResize(this._windowResizeMouseEventData.frame0);
         }
     },
 
