@@ -119,7 +119,11 @@ JSClass("UIPopupWindow", UIWindow, {
         if (animated === undefined){
             animated = true;
         }
-        var sourceFrame = view.convertRectToScreen(view.bounds).rectWithInsets(-this._sourceSpacing);
+        var sourceBounds = view.bounds;
+        if (view.sourceRectForPopupWindow){
+            sourceBounds = view.sourceRectForPopupWindow(this);
+        }
+        var sourceFrame = view.convertRectToScreen(sourceBounds).rectWithInsets(-this._sourceSpacing);
         var safeFrame = view.window.screen.availableFrame.rectWithInsets(20);
 
         // Size to our content's preferred size
@@ -153,27 +157,39 @@ JSClass("UIPopupWindow", UIWindow, {
         );
         if (placement == UIPopupWindow.Placement.below){
             if (frame.size.height > available.bottom){
-                if (available.top > available.bottom * 2){
+                if (available.top >= available.bottom * 2){
                     placement = UIPopupWindow.Placement.above;
-                }else if (available.right > frame.size.width){
+                }else if (available.right >= frame.size.width){
                     placement = UIPopupWindow.Placement.right;
-                }else if (available.left > frame.size.width){
+                }else if (available.left >= frame.size.width){
                     placement = UIPopupWindow.Placement.left;
-                }else if (available.top > frame.size.width){
+                }else if (available.top >= frame.size.height){
                     placement = UIPopupWindow.Placement.top;
                 }
             }
         }else if (placement == UIPopupWindow.Placement.above){
-            if (frame.size.height > available.top && available.bottom > available.top * 2){
-                placement = UIPopupWindow.Placement.below;
+            if (frame.size.height > available.top){
+                if (available.bottom >= available.top * 2){
+                    placement = UIPopupWindow.Placement.below;
+                }else if (available.bottom >= frame.size.height){
+                    placement = UIPopupWindow.Placement.below;
+                }
             }
         }else if (placement == UIPopupWindow.Placement.left){
-            if (frame.size.width > available.left && available.right > available.left * 2){
-                placement = UIPopupWindow.Placement.right;
+            if (frame.size.width > available.left){
+                if (available.right >= frame.size.width){
+                    placement = UIPopupWindow.Placement.right;
+                }else if ((this.windowServer.mouseLocation.x - safeFrame.origin.x) < frame.size.width){
+                    placement = UIPopupWindow.Placement.right;
+                }
             }
         }else if (placement == UIPopupWindow.Placement.right){
-            if (frame.size.width > available.right && available.left > available.right * 2){
-                placement = UIPopupWindow.Placement.left;
+            if (frame.size.width > available.right){
+                if (available.left >= frame.size.width){
+                    placement = UIPopupWindow.Placement.left;
+                }else if ((safeFrame.origin.x + safeFrame.size.width - this.windowServer.mouseLocation.x) < frame.size.width){
+                    placement = UIPopupWindow.Placement.left;
+                }
             }
         }
 
@@ -190,12 +206,22 @@ JSClass("UIPopupWindow", UIWindow, {
             frame.origin.y = sourceFrame.origin.y - frame.size.height;
         }else if (placement == UIPopupWindow.Placement.left){
             if (frame.size.width > available.left){
-                frame.size.width = available.left;
+                sourceFrame = JSRect(
+                    Math.max(safeFrame.origin.x + frame.size.width, this.windowServer.mouseLocation.x),
+                    sourceFrame.origin.y,
+                    1,
+                    sourceFrame.size.height
+                );
             }
             frame.origin.x = sourceFrame.origin.x - frame.size.width;
         }else if (placement == UIPopupWindow.Placement.right){
             if (frame.size.width > available.right){
-                frame.size.width = available.right;
+                sourceFrame = JSRect(
+                    Math.min(safeFrame.origin.x + safeFrame.size.width - frame.size.width, this.windowServer.mouseLocation.x) - 1,
+                    sourceFrame.origin.y,
+                    1,
+                    sourceFrame.size.height
+                );
             }
             frame.origin.x = sourceFrame.origin.x + sourceFrame.size.width;
         }
