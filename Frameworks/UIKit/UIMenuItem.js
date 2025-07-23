@@ -43,6 +43,8 @@ JSClass("UIMenuItem", JSObject, {
     target: null,
     action: null,
     view: null,
+    accessoryView: null,
+    accessorySize: null,
 
     initWithSpec: function(spec){
         UIMenuItem.$super.initWithSpec.call(this, spec);
@@ -82,6 +84,12 @@ JSClass("UIMenuItem", JSObject, {
             }
             if (spec.containsKey("view")){
                 this.view = spec.valueForKey("view", UIView);
+            }
+            if (spec.containsKey("accessoryView")){
+                this.accessoryView = spec.valueForKey("accessoryView", UIView);
+            }
+            if (spec.containsKey("accessorySize")){
+                this.accessorySize = spec.valueForKey("accessorySize", JSSize);
             }
             if (spec.containsKey("accessibilityIdentifier")){
                 this.accessibilityIdentifier = spec.valueForKey("accessibilityIdentifier");

@@ -528,11 +528,15 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Item Highlighting
 
     _highlightItem: function(item, openingSubmenu){
+        var view;
         if (this._menu.highlightedItem !== item){
             this._itemDownTimestamp = UIEvent.minimumTimestamp;
             if (this._menu.highlightedItem !== null){
                 this._menu.highlightedItem.highlighted = false;
-                this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]].setItem(this._menu.highlightedItem);
+                view = this.menuView.itemViews[this._itemViewIndexesByItemId[this._menu.highlightedItem.objectID]];
+                if (view instanceof UIMenuItemView){
+                    view.setItem(this._menu.highlightedItem);
+                }
                 if (this._menu.highlightedItem.submenu){
                     if (this.submenu !== null){
                         this.submenu.close();
@@ -546,7 +550,10 @@ JSClass("UIMenuWindow", UIWindow, {
             this._menu._highlightedItem = item;
             if (this._menu.highlightedItem !== null){
                 this._menu.highlightedItem.highlighted = true;
-                this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]].setItem(this._menu.highlightedItem);
+                view = this.menuView.itemViews[this._itemViewIndexesByItemId[item.objectID]];
+                if (view instanceof UIMenuItemView){
+                    view.setItem(this._menu.highlightedItem);
+                }
                 if (this._menu.highlightedItem.submenu && openingSubmenu){
                     this.submenuTimer = JSTimer.scheduledTimerWithInterval(0.3, this.openHighlightedSubmenu, this);
                 }
@@ -752,15 +759,17 @@ JSClass("UIMenuView", UIView, {
                 view.frame = JSRect(0, 0, 1, this.menuWindow.separatorSize);
             }else{
                 view = UIMenuItemView.init();
-                view.contentInsets = this.menuWindow.itemContentInsets;
-                view.indentationSize = this.menuWindow.indentationSize;
-                view.textColor = this.menuWindow.textColor;
-                view.highlightedTextColor = this.menuWindow.highlightedTextColor;
-                view.disabledTextColor = this.menuWindow.disabledTextColor;
-                view.highlightColor = this.menuWindow.highlightColor;
-                view.keyWidth = this.menuWindow._keyWidth;
-                view.setItem(item);
             }
+        }
+        if (view instanceof UIMenuItemView){
+            view.contentInsets = this.menuWindow.itemContentInsets;
+            view.indentationSize = this.menuWindow.indentationSize;
+            view.textColor = this.menuWindow.textColor;
+            view.highlightedTextColor = this.menuWindow.highlightedTextColor;
+            view.disabledTextColor = this.menuWindow.disabledTextColor;
+            view.highlightColor = this.menuWindow.highlightColor;
+            view.keyWidth = this.menuWindow._keyWidth;
+            view.setItem(item);
         }
         if (UIDevice.shared !== null && UIDevice.shared.primaryPointerType === UIUserInterface.PointerType.touch){
             if (!item.separator && this.itemViews.length > 0 && !(this.itemViews[this.itemViews.length - 1] instanceof UIMenuItemSeparatorView)){
@@ -874,6 +883,8 @@ JSClass("UIMenuItemView", UIView, {
     _keyLabel: null,
     _keyModifierLabel: null,
     _menuStyler: null,
+    _accessoryView: null,
+    _accessorySize: null,
     _item: null,
 
     init: function(){
@@ -983,6 +994,18 @@ JSClass("UIMenuItemView", UIView, {
         if (this._stateImageView !== null){
             this.stateImageView.templateColor = textColor;
         }
+        if (item.accessoryView !== null){
+            if (this._accessoryView !== item.accessoryView){
+                if (this._accessoryView !== null){
+                    this._accessoryView.removeFromSuperview();
+                }
+                this._accessoryView = item.accessoryView;
+                if (this._accessoryView !== null){
+                    this.addSubview(this._accessoryView);
+                }
+            }
+        }
+        this._accessorySize = item.accessorySize;
         this.setNeedsLayout();
     },
 
@@ -1017,6 +1040,34 @@ JSClass("UIMenuItemView", UIView, {
             left += imageSize + this.contentInsets.left;
         }
         left += this.indentationSize * item.indentationLevel;
+        var accessorySize = null;
+        var accessoryRight = right;
+        if (this._accessoryView !== null){
+            accessorySize = JSSize(this._accessorySize || this._accessoryView.intrinsicSize);
+            if (accessorySize.height === UIView.noIntrinsicSize){
+                accessorySize.height = lineHeight;
+            }
+            if (accessorySize.width === UIView.noIntrinsicSize){
+                accessorySize.width = accessorySize.height;
+            }
+            var baseline = this._accessoryView.firstBaselineOffsetFromTop;
+            if (baseline === 0){
+                this._accessoryView.frame = JSRect(
+                    accessoryRight - accessorySize.width,
+                    Math.floor(this.contentInsets.top + ((lineHeight - accessorySize.height) / 2)),
+                    accessorySize.width,
+                    accessorySize.height
+                );
+            }else{
+                this._accessoryView.frame = JSRect(
+                    accessoryRight - accessorySize.width,
+                    Math.floor(this.contentInsets.top + this.titleLabel.firstBaselineOffsetFromTop - baseline),
+                    accessorySize.width,
+                    accessorySize.height
+                );
+            }
+            right -= accessorySize.width + this.contentInsets.right;
+        }
         if (this._submenuImageView !== null && !this._submenuImageView.hidden){
             this._submenuImageView.frame = JSRect(right - this._submenuImageView.frame.size.width, this.contentInsets.top, imageSize, imageSize);
             right -= this._submenuImageView.frame.size.width + this.contentInsets.right;
@@ -1025,7 +1076,7 @@ JSClass("UIMenuItemView", UIView, {
             right -= this.keyWidth;
             this._keyModifierLabel.frame = JSRect(right - this._keyModifierLabel.frame.size.width, this.contentInsets.top, this._keyModifierLabel.frame.size.width, this._keyModifierLabel.font.displayLineHeight);
             right -= this._keyModifierLabel.frame.size.width + this.contentInsets.right;
-        }else{
+        }else if (this._accessoryView !== null){
             right += this.contentInsets.right - this.contentInsets.left;
             if (item.menu.showStatusColumn){
                 right -= imageSize + this.contentInsets.left;
@@ -1062,6 +1113,16 @@ JSClass("UIMenuItemView", UIView, {
             if (item.menu.showStatusColumn){
                 size.width += imageSize + this.contentInsets.left;
             }
+        }
+        if (this._accessoryView !== null){
+            var accessorySize = JSSize(this._accessorySize || this._accessoryView.intrinsicSize);
+            if (accessorySize.height === UIView.noIntrinsicSize){
+                accessorySize.height = lineHeight;
+            }
+            if (accessorySize.width === UIView.noIntrinsicSize){
+                accessorySize.width = accessorySize.height;
+            }
+            size.width += accessorySize.width + this.contentInsets.right;
         }
         size.height = lineHeight + this.contentInsets.top + this.contentInsets.bottom;
         size.width = Math.ceil(size.width);
