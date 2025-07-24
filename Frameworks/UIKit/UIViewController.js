@@ -30,6 +30,14 @@ JSClass("UIViewController", UIResponder, {
     // MARK: - Creating a View Controller
 
     init: function(){
+        if (JSBundle.mainBundle !== null){
+            var spec = JSSpec.initWithResource(this.$class.className);
+            if (spec !== null){
+                if (!spec.initializeFilesOwner(this)){
+                    return null;
+                }
+            }
+        }
     },
 
     initWithSpec: function(spec){

@@ -97,6 +97,13 @@ topics:
           When a view controller is created, nothing much happens.  The view
           itself gets created on-demand, so typically a view controller's `init`
           method will setup any initial state or defaults and that's it.
+        note: |
+          As of 2025.29.0, `UIViewController.init()` will automatically initialize
+          from a spec file if one is found in the main bundle with the same name
+          as the class.  So if you have a class named `MessagesViewController`, and
+          a spec file named `MessagesViewController.spec.yaml`, then
+          `MessagesViewController.init()` will do the same thing as
+          `MessagesViewController.initWithSpecName("MessageViewController")`.
       -
         name: Spec File Properties
         kind: spec
