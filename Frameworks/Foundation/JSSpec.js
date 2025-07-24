@@ -70,6 +70,17 @@ JSClass("JSSpec", JSObject, {
         this._cache = {};
     },
 
+    initializeFilesOwner: function(filesOwner){
+        var owner = this._root.valueForKey(JSSpec.Keys.FilesOwner, null, filesOwner);
+        if (owner === null){
+            return false;
+        }
+        if (owner !== filesOwner){
+            return false;
+        }
+        return true;
+    },
+
     getFilesOwner: function(){
         var owner = this._root.valueForKey(JSSpec.Keys.FilesOwner);
         if (owner === null){
@@ -117,7 +128,7 @@ JSClass("JSSpec", JSObject, {
         return values;
     },
 
-    valueForKey: function(key, type){
+    valueForKey: function(key, type, allocatedObject){
         if (this._dictionaryValue === null){
             return null;
         }
@@ -127,7 +138,7 @@ JSClass("JSSpec", JSObject, {
         if (this === this._root){
             this._keysForNextObjectInit.push(key);
         }
-        var value = this._createValueForKey(key, type);
+        var value = this._createValueForKey(key, type, allocatedObject);
         this._keysForNextObjectInit = [];
         this._cache[key] = value;
         return value;
@@ -140,7 +151,7 @@ JSClass("JSSpec", JSObject, {
         return JSDeepCopy(this._dictionaryValue[key]);
     },
 
-    _createValueForKey: function(key, type){
+    _createValueForKey: function(key, type, allocatedObject){
         if (type === undefined){
             type = null;
         }
@@ -163,7 +174,7 @@ JSClass("JSSpec", JSObject, {
                 return value.substr(1);
             }
             if (prefix == '/'){
-                return this._root.valueForKey(value.substr(1), type);
+                return this._root.valueForKey(value.substr(1), type, allocatedObject);
             }
             if (prefix == '@'){
                 return JSObject.initWithSpecName(value.substr(1), this._root._bundle);
@@ -194,17 +205,20 @@ JSClass("JSSpec", JSObject, {
                 }
             }
             if (type !== null){
-                return this._initializeObject(type, value);
+                if (allocatedObject && !(allocatedObject instanceof type)){
+                    throw new Error("Incorrect File's Owner type provided in the spec file: " + type.className);
+                }
+                return this._initializeObject(type, value, allocatedObject);
             }
             return JSSpec.initWithValue(value, this._root);
         }
         return value;
     },
 
-    _initializeObject: function(type, value){
+    _initializeObject: function(type, value, allocatedObject){
         var spec = JSSpec.initWithValue(value, this._root);
         if (type instanceof JSClass){
-            var obj = type.allocate();
+            var obj = allocatedObject || type.allocate();
             // Since initWithSpec may resolve objects that reference back
             // to us, we need to set our entry in the object map before
             // calling init.

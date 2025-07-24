@@ -19,6 +19,33 @@
 
 JSClass("JSSpecTests", TKTestSuite, {
 
+    testInitializeFilesOwner: function(){
+        var obj = JSSpecTestsObject.allocate();
+        var dictionary = {
+            "File's Owner": {
+                "class": "JSSpecTestsObject",
+                "testKey": 12
+            }
+        };
+        var spec = JSSpec.initWithDictionary(dictionary);
+        var success = spec.initializeFilesOwner(obj);
+        TKAssertExactEquals(success, true);
+        TKAssertEquals(obj.test, 12);
+
+        obj = JSSpecTestsObject.allocate();
+        dictionary = {
+            "File's Owner": "/Other",
+            "Other": {
+                "class": "JSSpecTestsObject",
+                "testKey": 12
+            }
+        };
+        spec = JSSpec.initWithDictionary(dictionary);
+        success = spec.initializeFilesOwner(obj);
+        TKAssertExactEquals(success, true);
+        TKAssertEquals(obj.test, 12);
+    },
+
     testValueForKey: function(){
         var dictionary = {
             "Number": 123,

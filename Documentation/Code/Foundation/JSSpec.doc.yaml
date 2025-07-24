@@ -69,6 +69,30 @@ topics:
     name: Getting Objects
     members:
       -
+        name: initializeFilesOwner
+        introducted: 2025.29.0
+        kind: method
+        type: Boolean
+        summary: Initialize the given object using values from the `File's Owner` key.
+        arguments:
+          - 
+            name: filesOwner
+            type: JSObject
+            summary: The object to use as the File's Owner
+        description: |
+          Every spec file defines an object graph, and there must be a starting
+          point, an object that is at the root of the graph.
+
+          In spec files, that root is always the value of a key named
+          `File's Owner`.
+
+          In contrast to `filesOwner`, which allocates, populates, and returns
+          an entirely new object, this method populates the already allocated
+          object you pass in.
+
+          So it is most useful to call during an `init`() method, passing in the
+          object that is being created.
+      -
         name: filesOwner
         type: JSObject
         summary: Instantiate the object referened by the `File's Owner` key.

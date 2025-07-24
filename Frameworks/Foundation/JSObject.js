@@ -88,13 +88,12 @@ JSObject.definePropertiesFromExtensions({
 
     initWithSpecName: function(specName, bundle){
         var spec = JSSpec.initWithResource(specName, bundle);
-        if (spec !== null){
-            var owner = spec.filesOwner;
-            if (owner.isKindOfClass(this.$class)){
-                return owner;
-            }
+        if (spec === null){
+            return null;
         }
-        return null;
+        if (!spec.initializeFilesOwner(this)){
+            return null;
+        }
     },
 
     initWithSpec: function(spec){
