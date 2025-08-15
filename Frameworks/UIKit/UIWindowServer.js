@@ -1354,6 +1354,9 @@ JSClass("UIWindowServer", JSObject, {
         }, this);
     },
 
+    windowDidChangeTitle: function(window){
+    }
+
 });
 
 UIWindowServer.ResizeOperation = {

@@ -158,6 +158,7 @@ JSClass('UIWindow', UIView, {
         this.setNeedsLayout();
         this._styler.updateWindow(this);
         this.postAccessibilityNotification(UIAccessibility.Notification.labelChanged);
+        this.windowServer.windowDidChangeTitle(this);
     },
 
     setIcon: function(icon){

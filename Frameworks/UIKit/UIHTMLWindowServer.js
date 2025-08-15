@@ -1021,6 +1021,12 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         this.themeColorElement.setAttribute("content", color.cssString());
     },
 
+    windowDidChangeTitle: function(window){
+        if (window === this.windowStack[0]){
+            this.updateDocumentTitle();
+        }
+    },
+
     updateDocumentTitle: function(){
         var window = this.windowStack[0];
         if (window instanceof UIRootWindow){
@@ -1132,9 +1138,6 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
         var context = this.contextForAccessibilityElement(element);
         if (context !== null){
             context.updateAccessibilityLabel(element);
-        }
-        if (element instanceof UIRootWindow){
-            this.updateDocumentTitle();
         }
     },
 
