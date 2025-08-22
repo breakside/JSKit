@@ -95,7 +95,7 @@ JSClass("UIToolbarItem", JSObject, {
             if (this._minimumSize === null){
                 var size = JSSize(this._view.intrinsicSize);
                 if (size.width == UIView.noIntrinsicSize){
-                    size.width = this._view.frame.width;
+                    size.width = this._view.frame.size.width;
                 }
                 this._minimumSize = size;
             }
