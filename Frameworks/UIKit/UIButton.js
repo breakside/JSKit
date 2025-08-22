@@ -150,9 +150,7 @@ JSClass("UIButton", UIControl, {
 
     setImageForState: function(image, state){
         this._imagesByState[state] = image;
-        if (this._imageView === null){
-            this._imageView = this._createImageView();
-        }
+        var imageView = this.imageView; // force create image view
         this._styler.updateControl(this);
         if (state & UIControl.State.over){
             this.hasOverState = true;
