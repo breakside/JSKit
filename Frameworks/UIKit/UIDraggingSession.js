@@ -83,6 +83,10 @@ JSClass("UIDraggingSession", JSObject, {
     },
 
     cancel: function(){
+        this.operation = UIDragOperation.none;
+        if (this.source !== null){
+            this.source.draggingSessionEnded(this, this.operation);
+        }
         if (this.destination){
             this.destination.draggingExited(this);
         }
