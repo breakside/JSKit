@@ -85,7 +85,17 @@ JSClass("UIContainerView", UIView, {
     getIntrinsicSize: function(){
         var contentSize;
         if (this._contentView !== null){
-            contentSize = this._contentView.intrinsicSize;
+            contentSize = JSSize(this._contentView.intrinsicSize);
+            if (contentSize.width !== UIView.noIntrinsicSize){
+                if (this._maximumContentSize.width > 0 && this._maximumContentSize.width < contentSize.width){
+                    contentSize.width = this._maximumContentSize.width;
+                }
+            }
+            if (contentSize.height !== UIView.noIntrinsicSize){
+                if (this._maximumContentSize.height > 0 && this._maximumContentSize.height < contentSize.height){
+                    contentSize.height = this._maximumContentSize.height;
+                }
+            }
         }else{
             contentSize = JSSize(UIView.noIntrinsicSize, UIView.noIntrinsicSize);
         }
@@ -103,6 +113,12 @@ JSClass("UIContainerView", UIView, {
                 maxSize.width < Number.MAX_VALUE ? maxSize.width - this._contentInsets.width : Number.MAX_VALUE,
                 maxSize.height < Number.MAX_VALUE ? maxSize.height - this._contentInsets.height : Number.MAX_VALUE
             );
+            if (this._maximumContentSize.width > 0 && this._maximumContentSize.width < maxContentSize.width){
+                maxContentSize.width = this._maximumContentSize.width - this.contentInsets.width;
+            }
+            if (this._maximumContentSize.height > 0 && this._maximumContentSize.height < maxContentSize.height){
+                maxContentSize.height = this._maximumContentSize.height - this.contentInsets.height;
+            }
             this._contentView.sizeToFitSize(maxContentSize);
             this.bounds = JSRect(0, 0, this._contentView.bounds.size.width + this._contentInsets.width, this._contentView.bounds.size.height + this._contentInsets.height);
         }
