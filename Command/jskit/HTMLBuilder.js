@@ -17,6 +17,7 @@
 // #import "Builder.js"
 // #import "Resources.js"
 // #import "JavascriptCompilation.js"
+// #import "HTMLProjectServer.js"
 'use strict';
 
 // buildURL
@@ -48,7 +49,8 @@ JSClass("HTMLBuilder", Builder, {
         'env': {default: null, help: "A file with environmental variables for this build"},
         'tls-cert': {default: null, help: "The SSL cert to use for the debug build"},
         'tls-key': {default: null, help: "The SSL key to use for the debug build"},
-        'zoneinfo': {default: null, help: "The build host path to timezone data files"}
+        'zoneinfo': {default: null, help: "The build host path to timezone data files"},
+        'server': {kind: "flag", help: "Run an http server (required --debug) (implies --no-docker)"}
     },
 
     needsDockerBuild: true,
@@ -79,6 +81,11 @@ JSClass("HTMLBuilder", Builder, {
                 this.arguments['http-port'] = 8080;
             }else{
                 this.arguments['http-port'] = this.project.info.HTTPPort || 80;
+            }
+        }
+        if (this.arguments.server){
+            if (!this.debug){
+                throw new Error("--server requires --debug");
             }
         }
         this.wwwJavascriptPaths = [];
@@ -135,6 +142,7 @@ JSClass("HTMLBuilder", Builder, {
         await this.bundleInfo();
         await this.buildDocker();
         await this.finish();
+        await this.runServer();
     },
 
     findImports: async function(){
@@ -1099,7 +1107,7 @@ JSClass("HTMLBuilder", Builder, {
         var url = this.buildURL.appendingPathComponent("Dockerfile");
         await this.fileManager.createFileAtURL(url, dockerfile);
 
-        if (this.arguments['no-docker']){
+        if (this.arguments['no-docker'] || this.arguments.server){
             return;
         }
 
@@ -1166,6 +1174,38 @@ JSClass("HTMLBuilder", Builder, {
             });
         });
     },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Server
+
+    httpServer: null,
+
+    runServer: async function(){
+        if (!this.debug){
+            return;
+        }
+        if (!this.arguments.server){
+            return;
+        }
+        if (this.options.server){
+            if (this.httpServer === null){
+                this.httpServer = HTMLProjectServer.initWithProject(this.project, this.wwwURL, this.fileManager, this.printer);
+                this.httpServer.port = this.arguments['http-port'];
+                if (this.arguments['tls-cert']){
+                    this.httpServer.tlsCertificateFileURL = JSURL.initWithString(this.arguments['tls-cert'], this.workingDirectoryURL);
+                    if (this.arguments['tls-key']){
+                        this.httpServer.tlsKeyFileURL = JSURL.initWithString(this.arguments['tls-key'], this.workingDirectoryURL);
+                    }
+                }
+                this.httpServer.run();
+            }
+        }else{
+            if (this.httpServer !== null){
+                await this.httpServer.stop();
+                this.httpServer = null;
+            }
+        }
+    }
 
 });
 
