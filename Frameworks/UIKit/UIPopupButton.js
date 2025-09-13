@@ -286,6 +286,7 @@ JSClass("UIPopupButton", UIControl, {
                 this.menu.font = this.titleLabel.font;
             }
             this.menu.delegate = this;
+            this.sendActionsForEvents(UIControl.Event.editingDidBegin);
             if (this._pullsDown){
                 this.menu.minimumWidth = this.frame.size.width;
                 this.menu.openAdjacentToView(this, UIMenu.Placement.below, 1);
@@ -318,6 +319,7 @@ JSClass("UIPopupButton", UIControl, {
         this.menu.delegate = null;
         this.menu.accessibilityParent = null;
         this._isMenuOpen = false;
+        this.sendActionsForEvents(UIControl.Event.editingDidEnd);
     },
 
     setSelectedIndex: function(index){
