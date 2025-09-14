@@ -53,6 +53,7 @@ JSProtocol("UIAccessibility", JSProtocol, {
     // Properties
     accessibilityTextualContext: null,
     accessibilityMenu: null,
+    accessibilityDraggable: false,
 
     // Children
     accessibilityParent: null,

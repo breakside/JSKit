@@ -1137,6 +1137,7 @@ JSClass('UIView', UIResponder, {
     accessibilityEnabled: null,
     accessibilityLevel: null,
     accessibilityMultiline: null,
+    accessibilityDraggable: false,
 
     // Children
     accessibilityParent: JSReadOnlyProperty(),

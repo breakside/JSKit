@@ -953,8 +953,11 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
                 };
                 this.accessibilityMousedownListener = function(e){
                     // We don't want mousedown to focus the element
-                    // Unfortunately, this prevents the element from working with drag and drop
-                    e.preventDefault();
+                    // Unfortunately, this prevents the element from working with drag and drop,
+                    // So elements can opt-in to allowing drag by allowing focus-on-mousedown 
+                    if (!accessibility.accessibilityDraggable){
+                        e.preventDefault();
+                    }
                 };
                 this.element.addEventListener("focus", this.accessibilityFocusListener);
                 this.element.addEventListener("mousedown", this.accessibilityMousedownListener);
