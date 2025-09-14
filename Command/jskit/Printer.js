@@ -75,8 +75,19 @@ JSClass("Printer", JSObject, {
         }
     },
 
+    atNewline: true,
+
+    ensureNewline: function(){
+        if (!this.atNewline){
+            this._printRawData("\n".utf8());
+        }
+    },
+
     _printRawData: function(data){
         this.stream.write(data);
+        if (data.length > 0){
+            this.atNewline = data[data.length - 1] == 0x0A;
+        }
     },
 
     _erase: function(count){

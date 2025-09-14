@@ -101,6 +101,11 @@ JSClass("HTMLProjectServer", JSObject, {
 
     alwaysExpires: JSLazyInitProperty(() => "Thu, 01 Jan 1970 00:00:01 GMT"),
     neverExpires: JSLazyInitProperty(() => "Thu, 31 Dec 2037 23:55:55 GMT"),
+    ingored404URLs: JSLazyInitProperty(() => new Set([
+        "/favicon.ico",
+        "/apple-touch-icon.png",
+        "/apple-touch-icon-precomposed.png"
+    ])),
 
     _handleNodeRequest: async function(nodeRequest, nodeResponse){
         let statusCode = null;
@@ -178,6 +183,7 @@ JSClass("HTMLProjectServer", JSObject, {
                 statusCode = 404;
             }
         }catch (e){
+            this.printer.ensureNewline();
             logger.error("Error handling request: %{error}", e);
             statusCode = 500;
         }        
@@ -186,6 +192,7 @@ JSClass("HTMLProjectServer", JSObject, {
             try{
                 nodeResponse.writeHead(statusCode, headers);
             }catch (e){
+                this.printer.ensureNewline();
                 logger.error("Error sending response headers: %{error}", e);
                 nodeResponse.writeHead(500);
             }
@@ -198,10 +205,14 @@ JSClass("HTMLProjectServer", JSObject, {
                 nodeResponse.end();
             }
             if (statusCode >= 400){
-                logger.warn("%d %{public} %{public}", statusCode, nodeRequest.method, nodeRequest.url);
+                if (statusCode !== 404 || !this.ingored404URLs.has(nodeRequest.url)){
+                    this.printer.ensureNewline();
+                    logger.warn("%d %{public} %{public}", statusCode, nodeRequest.method, nodeRequest.url);
+                }
             }
         }catch (e){
             nodeRequest.socket.destroy();
+            this.printer.ensureNewline();
             logger.error("Error sending response: %{error}", e);
         }
     },
