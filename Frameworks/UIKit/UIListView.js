@@ -3384,7 +3384,13 @@ JSClass("UIListViewDefaultStyler", UIListViewStyler, {
         if (cell._accessoryView !== null){
             var accessorySize = this.accessorySize;
             if (accessorySize === null){
-                accessorySize = cell._accessoryView.intrinsicSize;
+                accessorySize = JSSize(cell._accessoryView.intrinsicSize);
+                if (accessorySize.width === UIView.noIntrinsicSize){
+                    accessorySize.width = cell._accessoryView.bounds.size.width;
+                }
+                if (accessorySize.height === UIView.noIntrinsicSize){
+                    accessorySize.height = cell._accessoryView.bounds.size.height;
+                }
             }
             cell._accessoryView.frame = JSRect(cell._contentView.bounds.size.width - cell._accessoryInsets.right - accessorySize.width, (cell._contentView.bounds.size.height - accessorySize.height) / 2, accessorySize.width, accessorySize.height);
             size.width -= accessorySize.width + cell._accessoryInsets.width;
