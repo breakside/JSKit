@@ -678,7 +678,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
             size = props.overflowButton.intrinsicSize;
             props.overflowButton.frame = JSRect(toolbar.bounds.size.width - this.contentInsets.right - size.width, y + (maxHeight - size.height) / 2.0, size.width, size.height);
             // reduce available width by overflow button width
-            availableWidth -= props.overflowButton.bounds.size.width - this.itemSpacing;
+            availableWidth -= props.overflowButton.bounds.size.width + this.itemSpacing;
             // Back up over any overflowing items
             for (; props.lastVisibleIndex >= 0 && itemsWidth > availableWidth; --props.lastVisibleIndex){
                 size = itemSizes[props.lastVisibleIndex];
