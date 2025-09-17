@@ -760,7 +760,9 @@ JSClass("UITextEditor", JSObject, {
         }
         this.undoManager.registerUndo(this, this._replaceTextStorageRangeAllowingUndo, textStorage, JSRange(range.location, insertedLength), replacedString);
         this._isHandlingSelectionAdjustments = true;
+        this._isHandlingUserAction = true;
         textStorage.replaceCharactersInRangeWithAttributedString(range, attributedString);
+        this._isHandlingUserAction = false;
         this._isHandlingSelectionAdjustments = false;
     },
 
@@ -817,6 +819,7 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _isHandlingSelectionAdjustments: false,
+    _isHandlingUserAction: false,
 
     textStorageDidReplaceCharactersInRange: function(range, insertedLength){
         if (!this._isHandlingSelectionAdjustments){

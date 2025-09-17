@@ -799,13 +799,17 @@ JSClass("UITextField", UIControl, {
         }else if (!this._isEmpty && insertedLength === 0 && !this._textLayer.hasText()){
             this._updateIsEmpty(true);
         }
-        this.didChangeValueForBinding('text');
-        this.didChangeValueForBinding('attributedText');
-        this.didChangeValueForBinding('integerValue');
-        this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
-        this.sendActionsForEvents(UIControl.Event.editingChanged);
-        if (this.delegate && this.delegate.textFieldDidChange){
-            this.delegate.textFieldDidChange(this);
+        if (textEditor._isHandlingUserAction){
+            this.didChangeValueForBinding('text');
+            this.didChangeValueForBinding('attributedText');
+            this.didChangeValueForBinding('integerValue');
+            this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
+            this.sendActionsForEvents(UIControl.Event.editingChanged);
+            if (this.delegate && this.delegate.textFieldDidChange){
+                this.delegate.textFieldDidChange(this);
+            }
+        }else{
+            this.postAccessibilityNotification(UIAccessibility.Notification.valueChanged);
         }
         this._didChange = true;
         if (this._textLayer.textAlignment !== JSTextAlignment.left){
