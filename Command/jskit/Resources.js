@@ -50,7 +50,7 @@ JSClass("Resources", JSObject, {
 
     getImportPaths: async function(importDirectoryURLs){
         var fileManager = this.fileManager;
-        var addImportsFromObject = async function(obj){
+        var addImportsFromObject = async function(obj, debugPath){
             if (typeof(obj) == "object"){
                 if ('class' in obj){
                     let path = obj['class'] + '.js';
@@ -97,7 +97,9 @@ JSClass("Resources", JSObject, {
                 }
                 for (let k in obj){
                     if (k == 'class' || k == 'include') continue;
-                    await addImportsFromObject(obj[k]);
+                    if (obj[k] !== null){
+                        await addImportsFromObject(obj[k], debugPath.concat([k]));
+                    }
                 }
             }
         };
@@ -119,7 +121,7 @@ JSClass("Resources", JSObject, {
         for (let i = 0, l = this.metadata.length; i < l; ++i){
             let metadata = this.metadata[i];
             if (metadata.spec){
-                await addImportsFromObject(metadata.value);
+                await addImportsFromObject(metadata.value, [metadata.path]);
             }
         }
         return Array.from(paths.values());
