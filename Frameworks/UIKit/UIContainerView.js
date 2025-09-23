@@ -128,7 +128,7 @@ JSClass("UIContainerView", UIView, {
         var rect = this.bounds.rectWithInsets(this._contentInsets);
         if (this._contentView !== null){
             if (this._alignment === UIContainerView.Alignment.full){
-                this._contentView.frame = rect;
+                this._contentView.untransformedFrame = rect;
             }else if (this._alignment === UIContainerView.Alignment.center){
                 var maxSize = JSSize(rect.size);
                 if (this._maximumContentSize.width > 0 && this._maximumContentSize.width < maxSize.width){
