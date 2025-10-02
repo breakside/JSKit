@@ -44,7 +44,7 @@ JSClass('UIScrollView', UIView, {
         // These properties are optional in the spec, and are typically only provided if
         // the user wants to provide specialized customization
         if (spec.containsKey('contentView')){
-            this._contentView = spec.valueForKey("contentView", UIView);
+            this._contentView = spec.valueForKey("contentView", this.contentViewClass);
         }else{
             // If any subviews were added directly to this view, and a 
             // contentView was not provided, treat the subviews as children
@@ -89,13 +89,15 @@ JSClass('UIScrollView', UIView, {
         }
     },
 
+    contentViewClass: UIView,
+
     _commonScrollViewInit: function(){
         this.clipsToBounds = true;
 
         // Only create the content view and scrollers if the haven't already been created
         // by a specialized init function like initWithSpec.
         if (this._contentView === null){
-            this._contentView = UIView.initWithFrame(this.bounds);
+            this._contentView = this.contentViewClass.initWithFrame(this.bounds);
         }
         if (this._horizontalScroller === null){
             this._horizontalScroller = UIScroller.initWithDirection(UIScroller.Direction.horizontal, this._scrollStyler);
