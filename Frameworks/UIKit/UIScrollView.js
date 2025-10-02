@@ -84,6 +84,9 @@ JSClass('UIScrollView', UIView, {
         if (spec.containsKey('delaysContentTouches')){
             this._delaysContentTouches = spec.valueForKey("delaysContentTouches");
         }
+        if (spec.containsKey('delegate')){
+            this.delegate = spec.valueForKey('delegate');
+        }
     },
 
     _commonScrollViewInit: function(){
