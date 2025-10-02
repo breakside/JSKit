@@ -717,8 +717,8 @@ JSClass("UITabViewDefaultStyler", UITabViewStyler, {
         if (spec.containsKey("itemContentInsets")){
             this.itemContentInsets = spec.valueForKey("itemContentInsets", JSInsets);
         }
-        if (spec.containsKey("itemInsets")){
-            this.itemInsets = spec.valueForKey("itemInsets", JSInsets);
+        if (spec.containsKey("itemsInsets")){
+            this.itemsInsets = spec.valueForKey("itemsInsets", JSInsets);
         }
         if (spec.containsKey("dividerColor")){
             this.dividerColor = spec.valueForKey("dividerColor", JSColor);
