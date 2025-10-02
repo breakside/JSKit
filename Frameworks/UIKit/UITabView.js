@@ -421,7 +421,19 @@ JSClass("UITabViewItemView", UIView, {
 
     canBecomeFirstResponder: function(){
         return this.fullKeyboardAccessEnabled;
-    }
+    },
+
+    mouseEntered: function(event){
+        var tabView = this.superview.tabView;
+        tabView.items[this.index].over = true;
+        tabView._styler.updateTabViewItemAtIndex(tabView, this.index);
+    },
+
+    mouseExited: function(event){
+        var tabView = this.superview.tabView;
+        tabView.items[this.index].over = false;
+        tabView._styler.updateTabViewItemAtIndex(tabView, this.index);
+    },
 
 });
 
