@@ -105,6 +105,11 @@ JSClass("UIContainerView", UIView, {
         );
     },
 
+    subviewDidInvalidateSize: function(subview){
+        this.setNeedsLayout();
+        this.invalidateSize();
+    },
+
     sizeToFitSize: function(maxSize){
         if (this._contentView === null){
             UIContainerView.$super.sizeToFitSize.call(this, maxSize);

@@ -217,6 +217,11 @@ JSClass("UIStackView", UIView, {
         this.setNeedsLayout();
     },
 
+    subviewDidInvalidateSize: function(subview){
+        this.setNeedsLayout();
+        this.invalidateSize();
+    },
+
     getFirstBaselineOffsetFromTop: function(){
         var top = this._contentInsets.top;
         if (this._arrangedSubviews.length > 0){

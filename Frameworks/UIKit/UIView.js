@@ -583,6 +583,15 @@ JSClass('UIView', UIResponder, {
         this._needsIntrinsicSizeConstraintUpdate = true;
     },
 
+    invalidateSize: function(){
+        if (this.superview !== null){
+            this.superview.subviewDidInvalidateSize(this);
+        }
+    },
+
+    subviewDidInvalidateSize: function(subview){
+    },
+
     layerDidChangeSize: function(layer){
         if (layer === this.layer){
             this.invalidateFocusRingPath();
