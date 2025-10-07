@@ -158,6 +158,19 @@ JSClass("UIToolbar", UIView, {
         return this._styler.intrinsicSizeOfToolbar(this);
     },
 
+    sizeToFitSize: function(maxSize){
+        var size = JSSize(this.intrinsicSize);
+        if (size.width === UIView.noIntrinsicSize){
+            size.width = maxSize.width;
+        }else if (size.width > maxSize.width){
+            size.width = maxSize.width;
+        }
+        if (size.height > maxSize.height){
+            size.height = maxSize.height;
+        }
+        this.bounds = JSRect(JSPoint.Zero, size);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Accessibility
 
