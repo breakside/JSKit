@@ -487,7 +487,7 @@ JSClass("UISplitView", UIView, {
         }
         if (divider === this._leadingDividerView){
             var maximumLeadingSize = boundsSize - this._minimumMainSize;
-            if (this._trailingViewOpen){
+            if (this._trailingViewOpen && this._trailingView !== null){
                 maximumLeadingSize -= this._trailingSize;
             }
             if (this._maximumLeadingSize < maximumLeadingSize){
@@ -517,7 +517,7 @@ JSClass("UISplitView", UIView, {
             }
         }else if (divider === this._trailingDividerView){
             var maximumTrailingSize = boundsSize - this._minimumMainSize;
-            if (this._leadingViewOpen){
+            if (this._leadingViewOpen && this._leadingView !== null){
                 maximumTrailingSize -= this._leadingSize;
             }
             if (this._maximumTrailingSize < maximumTrailingSize){
