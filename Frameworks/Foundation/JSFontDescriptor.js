@@ -45,7 +45,16 @@ JSClass("JSFontDescriptor", JSObject, {
 
     bolderDescriptor: function(){
         var weight = this._weight + 300;
-        return this.descriptorWithWeight(weight);
+        var descriptor = JSFontDescriptor.descriptorWithFamily(this.family, weight, this.style);
+        if (descriptor === null){
+            weight = this._weight + 200;
+            descriptor = JSFontDescriptor.descriptorWithFamily(this.family, weight, this.style);
+            if (descriptor === null){
+                weight = this._weight + 100;
+                descriptor = JSFontDescriptor.descriptorWithFamily(this.family, weight, this.style);
+            }
+        }
+        return descriptor || this;
     },
 
     descriptorWithStyle: function(style){

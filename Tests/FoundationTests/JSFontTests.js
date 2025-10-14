@@ -91,6 +91,14 @@ JSClass("JSFontTests", TKTestSuite, {
         TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
         TKAssertExactEquals(font.pointSize, 30);
         TKAssertExactEquals(font.descriptor, this.descriptors[1]);
+
+        font = JSFont.initWithDescriptor(this.descriptors[4], 30).bolderFont();
+        TKAssertNotNull(font);
+        TKAssertExactEquals(font.descriptor.family, "Dummy");
+        TKAssertExactEquals(font.descriptor.weight, JSFont.Weight.bold);
+        TKAssertExactEquals(font.descriptor.style, JSFont.Style.normal);
+        TKAssertExactEquals(font.pointSize, 30);
+        TKAssertExactEquals(font.descriptor, this.descriptors[1]);
     },
 
     testFontWithStyle: function(){
