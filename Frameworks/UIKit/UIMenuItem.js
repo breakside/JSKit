@@ -43,6 +43,8 @@ JSClass("UIMenuItem", JSObject, {
     target: null,
     action: null,
     view: null,
+    detailText: null,
+    numberOfDetailTextLines: 0,
     accessoryView: null,
     accessorySize: null,
 

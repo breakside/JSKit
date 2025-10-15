@@ -446,6 +446,7 @@ JSClass("UIMenuStyler", JSObject, {
 });
 
 var defaultTextColor = JSColor.text;
+var defaultSecondaryTextColor = JSColor.secondaryText;
 var defaultHighlightTextColor = JSColor.highlightedText;
 var defaultDisabledTextColor = JSColor.text.colorWithAlpha(0.2);
 var defaultHighlightColor = JSColor.highlight;
@@ -457,6 +458,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
     cornerRadius: JSDynamicProperty('_cornerRadius', 6),
     capSize: JSDynamicProperty('_capSize', 5),
     textColor: JSDynamicProperty('_textColor', defaultTextColor),
+    secondaryTextColor: JSDynamicProperty('_secondaryTextColor', defaultSecondaryTextColor),
     disabledTextColor: JSDynamicProperty('_disabledTextColor', defaultDisabledTextColor),
     highlightedTextColor: JSDynamicProperty('_highlightedTextColor', defaultHighlightTextColor),
     highlightColor: JSDynamicProperty('_highlightColor', defaultHighlightColor),
@@ -492,6 +494,9 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         }
         if (spec.containsKey('textColor')){
             this._textColor = spec.valueForKey("textColor", JSColor);
+        }
+        if (spec.containsKey('secondaryTextColor')){
+            this._secondaryTextColor = spec.valueForKey("secondaryTextColor", JSColor);
         }
         if (spec.containsKey('disabledTextColor')){
             this._disabledTextColor = spec.valueForKey("disabledTextColor", JSColor);
@@ -876,6 +881,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         window.indentationSize = this.indentationSize;
         window.highlightColor = this.highlightColor;
         window.textColor = this.textColor;
+        window.secondaryTextColor = this.secondaryTextColor;
         window.highlightedTextColor = this.highlightedTextColor;
         window.disabledTextColor = this.disabledTextColor;
         window.update();

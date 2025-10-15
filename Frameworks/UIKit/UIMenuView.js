@@ -54,6 +54,7 @@ JSClass("UIMenuWindow", UIWindow, {
     indentationSize: 10,
     highlightColor: null,
     textColor: null,
+    secondaryTextColor: null,
     highlightedTextColor: null,
     disabledTextColor: null,
     _lastMoveLocation: null,
@@ -130,12 +131,13 @@ JSClass("UIMenuWindow", UIWindow, {
         var item;
         var itemView;
         var menuSize = JSSize.Zero;
+        var i, l;
         // TODO: optimize by only drawing those views that fill the screen
         // We don't need to know the true height because we aren't showing a
         // scroll bar, only indicators that there is more.
         // Although, a UI that uses very long menus is poorly designed, so this
         // is a low priority
-        for (var i = 0, l = this._menu.items.length; i < l; ++i){
+        for (i = 0, l = this._menu.items.length; i < l; ++i){
             item = this._menu.items[i];
             if (!item.hidden){
                 this._itemViewIndexesByItemId[item.objectID] = this.menuView.itemViews.length;
@@ -765,6 +767,7 @@ JSClass("UIMenuView", UIView, {
             view.contentInsets = this.menuWindow.itemContentInsets;
             view.indentationSize = this.menuWindow.indentationSize;
             view.textColor = this.menuWindow.textColor;
+            view.secondaryTextColor = this.menuWindow.secondaryTextColor;
             view.highlightedTextColor = this.menuWindow.highlightedTextColor;
             view.disabledTextColor = this.menuWindow.disabledTextColor;
             view.highlightColor = this.menuWindow.highlightColor;
@@ -865,7 +868,9 @@ JSClass("UIMenuItemSeparatorView", UIView, {
 JSClass("UIMenuItemView", UIView, {
 
     titleLabel: null,
+    detailLabel: null,
     textColor: null,
+    secondaryTextColor: null,
     highlightedTextColor: null,
     disabledTextColor: null,
     highlightColor: null,
@@ -927,6 +932,19 @@ JSClass("UIMenuItemView", UIView, {
     setItem: function(item){
         this._item = item;
         this.titleLabel.text = item.title;
+        if (item.detailText !== null){
+            if (this.detailLabel === null){
+                this.detailLabel = UILabel.init();
+                this.detailLabel.font = JSFont.detail;
+                this.detailLabel.text = item.detailText;
+                this.insertSubviewBelowSibling(this.detailLabel, this.titleLabel);
+            }
+        }else{
+            if (this.detailLabel !== null){
+                this.detailLabel.removeFromSuperview();
+                this.detailLabel = null;
+            }
+        }
         if (item.image !== null){
             this.imageView.image = item.image;
         }else if (this._imageView !== null){
@@ -969,6 +987,10 @@ JSClass("UIMenuItemView", UIView, {
         var textColor = this.getTextColorForItem(item);
         this.titleLabel.font = item.menu.font;
         this.titleLabel.textColor = textColor;
+        if (this.detailLabel !== null){
+            this.detailLabel.textColor = this.getDetailTextColorForItem(item);
+            this.detailLabel.maximumNumberOfLines = item.numberOfDetailTextLines;
+        }
         if (this._imageView !== null){
             this._imageView.templateColor = textColor;
             if (!item.enabled && this._imageView.image !== null && this._imageView.image.renderMode === JSImage.RenderMode.original){
@@ -1015,6 +1037,16 @@ JSClass("UIMenuItemView", UIView, {
                 return this.highlightedTextColor;
             }
             return this.textColor;
+        }
+        return this.disabledTextColor;
+    },
+
+    getDetailTextColorForItem: function(item){
+        if (item.enabled){
+            if (item.highlighted){
+                return this.highlightedTextColor;
+            }
+            return this.secondaryTextColor;
         }
         return this.disabledTextColor;
     },
@@ -1086,6 +1118,11 @@ JSClass("UIMenuItemView", UIView, {
             left = right;
         }
         this.titleLabel.frame = JSRect(left, this.contentInsets.top, right - left, lineHeight);
+        if (this.detailLabel !== null){
+            right = this.bounds.size.width - this.contentInsets.right;
+            var y = this.contentInsets.top + lineHeight;
+            this.detailLabel.frame = JSRect(left, y, right - left, this.bounds.size.height - this.contentInsets.bottom - y);
+        }
     },
 
     sizeToFit: function(){
@@ -1127,6 +1164,9 @@ JSClass("UIMenuItemView", UIView, {
         size.height = lineHeight + this.contentInsets.top + this.contentInsets.bottom;
         size.width = Math.ceil(size.width);
         size.height = Math.ceil(size.height);
+        if (this.detailLabel !== null && item.numberOfDetailTextLines > 0){
+            size.height += this.detailLabel.font.displayLineHeight * item.numberOfDetailTextLines;
+        }
         this.bounds = JSRect(JSPoint.Zero, size);
     },
 
