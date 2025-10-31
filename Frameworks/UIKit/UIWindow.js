@@ -514,6 +514,13 @@ JSClass('UIWindow', UIView, {
         }
     },
 
+    setHidden: function(hidden){
+        UIWindow.$super.setHidden.call(this, hidden);
+        if (this._modal !== null){
+            this._modal.hidden = hidden;
+        }
+    },
+
     // -------------------------------------------------------------------------
     // MARK: - Window Server
 
