@@ -35,15 +35,30 @@ JSGlobalObject.UIViewLayerProperty = function(){
 UIViewLayerProperty.prototype = Object.create(JSCustomProperty.prototype);
 
 UIViewLayerProperty.prototype.define = function(C, key, extensions){
+    var setterName = C.nameOfSetMethodForKey(key);
+    var setter = extensions[setterName];
+    if (!setter){
+        setter = function UIView_setLayerProperty(value){
+            this.layer[key] = value;
+        };
+        Object.defineProperty(C.prototype, setterName, {
+            configurable: true,
+            enumerable: false,
+            value: setter
+        });
+    }
+    var getter = function UIView_getLayerProperty(){
+        return this.layer[key];
+    };
+    getter._JSCustomProperty = this;
+    getter._JSCustomPropertyKey = key;
+    setter._JSCustomProperty = this;
+    setter._JSCustomPropertyKey = key;
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
-        set: function UIView_setLayerProperty(value){
-            this.layer[key] = value;
-        },
-        get: function UIView_getLayerProperty(){
-            return this.layer[key];
-        }
+        set: setter,
+        get: getter
     });
 };
 

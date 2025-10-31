@@ -53,6 +53,10 @@ UILayerAnimatedProperty.prototype.define = function(C, key, extensions){
             value: setter
         });
     }
+    getter._JSCustomProperty = this;
+    getter._JSCustomPropertyKey = key;
+    setter._JSCustomProperty = this;
+    setter._JSCustomPropertyKey = key;
     Object.defineProperty(C.prototype, key, {
         configurable: false,
         enumerable: false,
