@@ -230,6 +230,38 @@ JSClass("JSImageTests", TKTestSuite, {
         image = JSImage.initWithData(svg.utf8());
         TKAssertExactEquals(image.size.width, 1);
         TKAssertExactEquals(image.size.height, 1);
-    }
+    },
+
+    testInitWithData_JPEGOrientation: {
+        inputs: {
+            orientation0: ["jpg_orientation0", 200, 300],
+            orientation1: ["jpg_orientation1", 200, 300],
+            orientation2: ["jpg_orientation2", 200, 300],
+            orientation3: ["jpg_orientation3", 200, 300],
+            orientation4: ["jpg_orientation4", 200, 300],
+            orientation5: ["jpg_orientation5", 300, 200],
+            orientation6: ["jpg_orientation6", 300, 200],
+            orientation7: ["jpg_orientation7", 300, 200],
+            orientation8: ["jpg_orientation8", 300, 200],
+            manyExif0: ["jpg_many_exif0", 200, 300],
+            manyExif6: ["jpg_many_exif6", 300, 200],
+        },
+        test: function(resourceName, expectedWidth, expectedHeight){
+
+            var metadata = JSBundle.testBundle.metadataForResourceName(resourceName);
+            TKAssertNotNull(metadata);
+
+            var expectation = TKExpectation.init();
+            expectation.call(JSBundle.testBundle.getResourceData, JSBundle.testBundle, metadata, function(data){
+                TKAssertNotNull(data);
+                var image = JSImage.initWithData(data);
+                TKAssertNotNull(image);
+                TKAssertExactEquals(image.size.width, expectedWidth);
+                TKAssertExactEquals(image.size.height, expectedHeight);
+            });
+
+            this.wait(expectation, 2.0);
+        }
+    },
 
 });

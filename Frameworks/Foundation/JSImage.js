@@ -343,6 +343,9 @@ _JSDataImage.sizeFromJPEGData = function(data){
     var l = data.length;
     var blockLength;
     var blockdata;
+    var exifData;
+    var exif = null;
+    var flipWidthHeight = false;
     while (i < l){
         b = data[i++];
         if (b != 0xFF){
@@ -369,10 +372,21 @@ _JSDataImage.sizeFromJPEGData = function(data){
                 // TODO: Error, not enough room for block data
                 return JSSize.Zero;
             }
+            // E1 is Exif Data
+            if (b === 0xE1){
+                exifData = data.subdataInRange(JSRange(i + 2, blockLength - 2));
+                exif = JSImageExif.initWithData(exifData);
+                if (exif !== null){
+                    flipWidthHeight = exif.orientationFlipsWidthHeight;
+                }
+            }
             // C0-CF are start of frame blocks, expect for C4 and CC
             // start of frame blocks have image sizes
             if (b >= 0xC0 && b <= 0xCF && b != 0xC4 && b != 0xCC){
                 if (blockLength >= 7){
+                    if (flipWidthHeight){
+                        return JSSize(dataView.getUint16(i + 3), dataView.getUint16(i + 5));
+                    }
                     return JSSize(dataView.getUint16(i + 5), dataView.getUint16(i + 3));
                 }
                 return JSSize.Zero;
@@ -534,6 +548,100 @@ JSImage.RenderMode = {
     automatic: 0,
     original: 1,
     template: 2
+};
+
+JSClass("JSImageExif", JSObject, {
+
+    data: null,
+    dataView: null,
+
+    initWithData: function(data){
+        if (data.length < 8){
+            return null;
+        }
+        if (data[0] === 0x45 && data[1] === 0x78 && data[2] === 0x69 && data[3] === 0x66 && data[4] === 0x00 && data[5] === 0x00){
+            data = data.subdataInRange(JSRange(6, data.length - 6));
+        }
+        this.data = data;
+        this.dataView = this.data.dataView();
+        this.littleEndian = this.data[0] === 0x49 && this.data[1] === 0x49;
+        this.magicNumber = this.dataView.getUint16(2, this.littleEndian);
+        if (this.magicNumber !== 42){
+            return null;
+        }
+        this.firstDirectoryOffset = this.dataView.getUint32(4, this.littleEndian);
+        if (this.firstDirectoryOffset + 2 > this.data.length){
+            return null;
+        }
+        this.numberOfEntries = this.dataView.getUint16(this.firstDirectoryOffset, this.littleEndian);
+        if (this.firstDirectoryOffset + this.numberOfEntries * 12 + 4 > this.data.length){
+            return null;
+        }
+    },
+
+    valueForTag: function(tag, defaultValue){
+        var min = 0;
+        var max = this.numberOfEntries;
+        var mid;
+        var offset;
+        var result;
+        var type;
+        var count;
+        while (min < max){
+            mid = Math.floor(min + (max - min) / 2);
+            offset = this.firstDirectoryOffset + 2 + 12 * mid;
+            result = tag - this.dataView.getUint16(offset, this.littleEndian);
+            if (result < 0){
+                max = mid;
+            }else if (result > 0){
+                min = mid + 1;
+            }else{
+                min = max = mid;
+                type = this.dataView.getUint16(offset + 2, this.littleEndian);
+                count = this.dataView.getUint32(offset + 4, this.littleEndian);
+                if (count === 1){
+                    if (type === JSImageExif.Type.byte){
+                        return this.data[offset + 8];
+                    }
+                    if (type === JSImageExif.Type.short){
+                        return this.dataView.getUint16(offset + 8, this.littleEndian);
+                    }
+                }
+                return defaultValue;
+            }
+        }
+        return defaultValue;
+    },
+
+    orientation: JSLazyInitProperty(function(){
+        return this.valueForTag(JSImageExif.Tag.orientation, 1);
+    }),
+
+    orientationFlipsWidthHeight: JSLazyInitProperty(function(){
+        var orientation = this.orientation;
+        if (orientation === 5 || orientation === 6 || orientation === 7 || orientation === 8){
+            return true;
+        }
+        return false;
+    }),
+
+});
+
+JSImageExif.Type = {
+    byte: 1,
+    ascii: 2,
+    short: 3,
+    long: 4,
+    rational: 5,
+    sbyte: 6,
+    undefined: 7,
+    sshort: 8,
+    slong: 9,
+    srational: 10
+};
+
+JSImageExif.Tag = {
+    orientation: 274,
 };
 
 })();
