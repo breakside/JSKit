@@ -31,4 +31,4 @@ jobs:
         run: npx jskit make Command/jskit
 
       - name: Publish
-        run: npm publish --access public builds/io.breakside.jskit/latest/jskit
+        run: npm publish --provenance --access public builds/io.breakside.jskit/latest/jskit
