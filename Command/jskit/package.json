@@ -10,9 +10,5 @@
   },
   "engines": {
     "node": ">=10.10.0"
-  },
-  "publishConfig": {
-    "access": "public",
-    "provenance": true
   }
 }

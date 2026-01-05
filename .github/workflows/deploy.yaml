@@ -32,5 +32,3 @@ jobs:
 
       - name: Publish
         run: npm publish --provenance --access public builds/io.breakside.jskit/latest/jskit
-        env:
-          NPM_CONFIG_PROVENANCE: true
