@@ -119,6 +119,10 @@ JSClass("UIPopupWindow", UIWindow, {
         if (animated === undefined){
             animated = true;
         }
+        if (view.window === null || view.window.screen === null){
+            JSNotificationCenter.shared.post("UIWindowWillClose", this);
+            return;
+        }
         var sourceBounds = view.bounds;
         if (view.sourceRectForPopupWindow){
             sourceBounds = view.sourceRectForPopupWindow(this);
@@ -407,6 +411,10 @@ JSClass("UIPopupWindow", UIWindow, {
     openCenteredInView: function(view, animated){
         if (animated === undefined){
             animated = true;
+        }
+        if (view.window === null || view.window.screen === null){
+            JSNotificationCenter.shared.post("UIWindowWillClose", this);
+            return;
         }
         var sourceFrame = view.convertRectToScreen(view.bounds);
         var safeFrame = view.window.screen.availableFrame.rectWithInsets(20);
