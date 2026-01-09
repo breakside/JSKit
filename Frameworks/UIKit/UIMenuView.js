@@ -132,16 +132,26 @@ JSClass("UIMenuWindow", UIWindow, {
         var itemView;
         var menuSize = JSSize.Zero;
         var i, l;
+        this._itemIndexesByItemViewId = {};
+        this._itemViewIndexesByItemId = {};
         // TODO: optimize by only drawing those views that fill the screen
         // We don't need to know the true height because we aren't showing a
         // scroll bar, only indicators that there is more.
         // Although, a UI that uses very long menus is poorly designed, so this
         // is a low priority
+        var itemViewIndex = 0;
         for (i = 0, l = this._menu.items.length; i < l; ++i){
             item = this._menu.items[i];
             if (!item.hidden){
-                this._itemViewIndexesByItemId[item.objectID] = this.menuView.itemViews.length;
-                itemView = this.menuView.addViewForItem(item);
+                this._itemViewIndexesByItemId[item.objectID] = itemViewIndex;
+                if (i < this.menuView.itemViews.length){
+                    itemView = this.menuView.itemViews[i];
+                    if (itemView instanceof UIMenuItemView){
+                        itemView.setItem(item);
+                    }
+                }else{
+                    itemView = this.menuView.addViewForItem(item);
+                }
                 itemView.sizeToFit();
                 if (!item.alternate){
                     menuSize.height += itemView.frame.size.height;
@@ -150,7 +160,13 @@ JSClass("UIMenuWindow", UIWindow, {
                     menuSize.width = itemView.frame.size.width;
                 }
                 this._itemIndexesByItemViewId[itemView.objectID] = i;
+                ++itemViewIndex;
             }
+        }
+        for (var j = this.menuView.itemViews.length - 1; j >= itemViewIndex; --j){
+            itemView = this.menuView.itemViews[j];
+            itemView.removeFromSuperview();
+            this.menuView.itemViews.pop();
         }
         this.menuView.bounds = JSRect(JSPoint.Zero, menuSize);
         this.menuView.layoutIfNeeded();

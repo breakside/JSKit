@@ -143,6 +143,7 @@ JSClass("UIMenu", JSObject, {
         for (var i = index + 1, l = this._items.length; i < l; ++i){
             this._items[i].index = i;
         }
+        this._styler.invalidateMenuPresentation(this);
     },
 
     // MARK: - Removing Items
@@ -168,11 +169,15 @@ JSClass("UIMenu", JSObject, {
         if (item.tag in this._itemsByTag){
             delete this._itemsByTag[item.tag];
         }
+        if (item === this._highlightedItem){
+            this._highlightedItem = null;
+        }
         item.menu = null;
         this._items.splice(index, 1);
         for (var i = index, l = this._items.length; i < l; ++i){
             this._items[i].index = i;
         }
+        this._styler.invalidateMenuPresentation(this);
     },
 
     removeAllItems: function(){
@@ -186,6 +191,8 @@ JSClass("UIMenu", JSObject, {
         }
         this._itemsByTag = {};
         this._items = [];
+        this._highlightedItem = null;
+        this._styler.invalidateMenuPresentation(this);
     },
 
     // MARK: - Supermenu
@@ -431,6 +438,9 @@ JSClass("UIMenuStyler", JSObject, {
     },
 
     dismissMenu: function(menu, animated, completion, target){
+    },
+
+    invalidateMenuPresentation: function(menu){
     },
 
     getItemTitleOffset: function(menu){
@@ -841,6 +851,51 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
             });
             window.closeAnimator = animator;
             window.close();
+        }
+    },
+
+    invalidateMenuPresentation: function(menu){
+        var window = menu.stylerProperties.window || null;
+        if (window !== null && window.screen !== null){
+            menu.updateEnabled();
+            window.update();
+
+            var screenMetrics = this.metricsForScreen(window.screen);
+            var size = JSSize(window.frame.size);
+
+            // Ensure we're at least the minimum width
+            // (although max width will take precedence)
+            if (size.width < menu._minimumWidth){
+                size.width = menu._minimumWidth;
+            }
+
+            // Limit width to the max screen width
+            if (size.width > screenMetrics.maximumWidth){
+                size.width = screenMetrics.maximumWidth;
+            }
+
+            // Set our origin so the origin of the target item matches the given location
+            var origin = JSPoint(window.frame.origin);
+
+            // Adjust our x position if we've overflowed
+            var over = origin.x + size.width - screenMetrics.safeFrame.origin.x - screenMetrics.safeFrame.size.width;
+            if (over > 0){
+                origin.x -= over;
+            }
+            if (origin.x < screenMetrics.safeFrame.origin.x){
+                origin.x = screenMetrics.safeFrame.origin.x;
+            }
+
+            var offset = JSPoint.Zero;
+
+            // If we extend beyond the bottom, adjust our height
+            over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
+            if (over > 0){
+                size.height -= over;
+            }
+
+            window.frame = JSRect(origin, size);
+            window.layoutIfNeeded();
         }
     },
 
