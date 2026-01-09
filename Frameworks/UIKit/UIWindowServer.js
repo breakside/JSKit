@@ -860,6 +860,9 @@ JSClass("UIWindowServer", JSObject, {
     _windowResizeWidthOutside: 4,
 
     windowResizeHitTest: function(window, location){
+        if (location === null){
+            return UIWindowServer.ResizeOperation.none;
+        }
         if (!window._canResizeWidth && !window._canResizeHeight){
             return UIWindowServer.ResizeOperation.none;
         }
