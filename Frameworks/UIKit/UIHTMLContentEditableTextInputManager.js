@@ -470,8 +470,12 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
                 if (this.shouldPreventSpaceInput || e.data !== " "){
                     e.preventDefault();
                 }
-                this.textInputClient.insertText(e.data);
-                this.scheduleDocumentSelectionUpdate();
+                if (e.data === null){
+                    logger.warn("received null data for insertText, ignoring");
+                }else{
+                    this.textInputClient.insertText(e.data);
+                    this.scheduleDocumentSelectionUpdate();
+                }
                 break;
             case "insertLineBreak":
                 e.preventDefault();
