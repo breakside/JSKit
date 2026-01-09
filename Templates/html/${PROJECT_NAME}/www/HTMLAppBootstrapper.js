@@ -252,6 +252,9 @@ HTMLAppBootstrapper.prototype = {
             script.type = 'text/javascript';
             script.async = async;
             script.addEventListener('load', function HTMLAppBootstrapper_scriptLoad(e){
+                if (!bootstrapper.loadingScripts[src]){
+                    return;
+                }
                 if (bootstrapper.loadingScripts[src].compileError !== null){
                     errorCallback(bootstrapper.loadingScripts[src].compileError);
                     delete bootstrapper.loadingScripts[src];
