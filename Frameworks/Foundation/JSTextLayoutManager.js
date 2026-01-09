@@ -490,7 +490,7 @@ Object.defineProperties(JSTextLayoutManagerLineEnumerator.prototype, {
     line: {
         get: function(){
             var container = this.container;
-            if (container !== null){
+            if (container !== null && container.textFrame !== null){
                 return container.textFrame.lines[this._lineIndex];
             }
             return null;
@@ -500,7 +500,7 @@ Object.defineProperties(JSTextLayoutManagerLineEnumerator.prototype, {
     rect: {
         get: function(){
             var container = this.container;
-            if (container !== null){
+            if (container !== null && container.textFrame !== null){
                 var line = container.textFrame.lines[this._lineIndex];
                 var rect = JSRect(line.origin, line.size);
                 return this._layoutManager.convertRectFromTextContainer(rect, container);
