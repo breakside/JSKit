@@ -203,9 +203,9 @@ JSClass("UIHTMLTextRun", JSTextRun, {
         var rect;
         var localIndex = index - this.range.location;
         localIndex *= this._maskFactor;
-        var iterator = sharedElementForSizing.firstChild.nodeValue.userPerceivedCharacterIterator(localIndex);
-        sharedDomRange.setStart(sharedElementForSizing.firstChild, iterator.range.location);
-        sharedDomRange.setEnd(sharedElementForSizing.firstChild, iterator.range.end);
+        var iterator = sharedTextNodeForSizing.nodeValue.userPerceivedCharacterIterator(localIndex);
+        sharedDomRange.setStart(sharedTextNodeForSizing, iterator.range.location);
+        sharedDomRange.setEnd(sharedTextNodeForSizing, iterator.range.end);
         var clientRect = this._pickCorrectClientRectFromRects(sharedDomRange.getClientRects());
         if (clientRect === undefined){
             return JSRect(0, 0, 0, this.size.height);
@@ -217,7 +217,6 @@ JSClass("UIHTMLTextRun", JSTextRun, {
     updateSharedElementForSizing: function(){
         if (sharedElementForSizing === null){
             sharedElementForSizing = this.element.ownerDocument.createElement("span");
-            sharedElementForSizing.appendChild(sharedElementForSizing.ownerDocument.createTextNode(""));
             sharedElementForSizing.style.visibility = "hidden";
             sharedElementForSizing.style.position = "absolute";
             sharedElementForSizing.style.zIndex = -100;
@@ -225,8 +224,12 @@ JSClass("UIHTMLTextRun", JSTextRun, {
             sharedElementForSizing.style.whiteSpace = "pre";
             sharedElementForSizing.ownerDocument.body.appendChild(sharedElementForSizing);
         }
+        if (sharedTextNodeForSizing === null){
+            sharedTextNodeForSizing = sharedElementForSizing.ownerDocument.createTextNode("");
+            sharedElementForSizing.appendChild(sharedTextNodeForSizing);
+        }
         sharedElementForSizing.style.font = this.element.style.font;
-        sharedElementForSizing.firstChild.nodeValue = this.textNode.nodeValue;
+        sharedTextNodeForSizing.nodeValue = this.textNode.nodeValue;
     },
 
     _pickCorrectClientRectFromRects: function(rects){
@@ -288,5 +291,6 @@ JSClass("UIHTMLTextRun", JSTextRun, {
 });
 
 var sharedElementForSizing = null;
+var sharedTextNodeForSizing = null;
 
 })();
