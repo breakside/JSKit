@@ -165,7 +165,14 @@ JSClass('UIHTMLContentEditableTextInputManager', UITextInputManager, {
             if (anchor.offset < 0 || focus.offset < 0){
                 throw new Error("negative dom offset");
             }
-            domSelection.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+            try{
+                domSelection.setBaseAndExtent(anchor.node, anchor.offset, focus.node, focus.offset);
+            }catch (e){
+                logger.debug("selection: @%d +%d", selection.range.location, selection.range.length);
+                logger.debug("anchor: %{public} @%d", anchor.toString(), anchor.offset);
+                logger.debug("focus: %{public} @%d", focus.toString(), focus.offset);
+                logger.error("failed to update html selection: %{error}", e);
+            }
             // logger.debug("setting dom selection: %d->%d", anchor.offset, focus.offset);
             if (domSelection.anchorNode){
                 // logger.debug("  selection anchor: %{public} @ %d", domSelection.anchorNode.nodeValue, domSelection.anchorOffset);
