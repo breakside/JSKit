@@ -19,6 +19,10 @@
 // #import "JSURLResponse.js"
 'use strict';
 
+(function(){
+
+var logger = JSLog("foundation", "bundle");
+
 JSBundle.definePropertiesFromExtensions({
     getResourceData: function(metadata, completion, target){
         if (!completion){
@@ -27,7 +31,11 @@ JSBundle.definePropertiesFromExtensions({
         var session = JSURLSession.shared;
         var url = JSURL.initWithString(metadata.htmlURL);
         var task = session.dataTaskWithURL(url, function(error){
-            if (error !== null || task.response.statusClass != JSURLResponse.StatusClass.success){
+            if (error !== null){
+                logger.error("error getting resource data (%{public}): %{error}", url.encodedString, error);
+                completion.call(target, null);
+            }else if (task.response.statusClass != JSURLResponse.StatusClass.success){
+                logger.error("unable to fetch resource data (%{public}): HTTP %d", url.encodedString, task.response.statusCode);
                 completion.call(target, null);
             }else{
                 completion.call(target, task.response.data);
@@ -37,3 +45,5 @@ JSBundle.definePropertiesFromExtensions({
         return completion.promise;
     }
 });
+
+})();
