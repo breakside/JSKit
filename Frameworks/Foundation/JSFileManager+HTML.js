@@ -93,6 +93,9 @@ JSClass("JSHTMLFileManager", JSFileManager, {
         };
         request.onsuccess = function JSFileManager_open_onsuccess(e){
             manager._db = e.target.result;
+            manager._db.onclose = function JSFileManager_db_onclose(e){
+                logger.warn("database closed by browser");
+            };
             if (oldVersion === 1){
                 var v1url = manager._rootURL.appendingPathComponents(["Containers", "io.breakside.JSKit.Foundation.JSFileManager"], true);
                 var v2url = manager.persistentContainerURL;
