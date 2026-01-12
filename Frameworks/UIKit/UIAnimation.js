@@ -121,7 +121,7 @@ UIAnimation.defaultInterpolationValueToPairWithValue = function(value){
         return JSRect.Zero;
     }
     if (value instanceof JSAffineTransform){
-        return JSAffineTransform.Zero;
+        return JSAffineTransform.Identity;
     }
     if (value.isKindOfClass && value.isKindOfClass(JSColor)){
         return value.colorWithAlpha(0);
