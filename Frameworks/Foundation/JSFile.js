@@ -73,7 +73,7 @@ JSFile.unregisterContentTypeForFileExtension = function(contentType, fileExtensi
 };
 
 JSFile.contentTypeForFileExtension = function(fileExtension){
-    return JSFile.contentTypesByFileExtension[fileExtension] || null;
+    return JSFile.contentTypesByFileExtension[fileExtension.toLowerCase()] || null;
 };
 
 JSClass("JSDataFile", JSFile, {
