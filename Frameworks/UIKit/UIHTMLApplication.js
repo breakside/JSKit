@@ -73,12 +73,14 @@ JSClass("UIHTMLApplication", UIApplication, {
         if (options === undefined){
             options = {};
         }
-        if (options.replacingApplication || url.scheme === "mailto" || url.scheme === "tel"){
+        if (options.replacingApplication){
             var application = this;
             var open = function(){
                 application.domWindow.location.href = url.encodedString;
             };
             this.stop(open);
+        }else if (url.scheme === "mailto" || url.scheme === "tel"){
+            this.domWindow.location.href = url.encodedString;
         }else{
             try{
                 var child = this.domWindow.open(url.encodedString);
