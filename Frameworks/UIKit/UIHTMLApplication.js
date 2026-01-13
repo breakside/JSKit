@@ -76,6 +76,11 @@ JSClass("UIHTMLApplication", UIApplication, {
         if (options.replacingApplication){
             var application = this;
             var open = function(){
+                application.domWindow.addEventListener("visibilitychange", function(e){
+                    if (application.domWindow.document.visibilityState === "visible"){
+                        application.domWindow.location.reload();
+                    }
+                });
                 application.domWindow.location.href = url.encodedString;
             };
             this.stop(open);
