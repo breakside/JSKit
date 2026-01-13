@@ -132,7 +132,16 @@ JSClass("UICollectionViewCell", UICollectionReusableView, {
     },
 
     mouseEntered: function(event){
-        var shouldSelect = (!this.collectionView || !this.collectionView.delegate || !this.collectionView.delegate.collectionViewShouldSelectCellAtIndexPath || this.collectionView.delegate.collectionViewShouldSelectCellAtIndexPath(this.collectionView, this.collectionView.indexPathOfCell(this)));
+        if (!this.collectionView){
+            return;
+        }
+        if (this.collectionView._needsReload){
+            return;
+        }
+        if (this.collectionView._edit !== null){
+            return;
+        }
+        var shouldSelect = (!this.collectionView.delegate || !this.collectionView.delegate.collectionViewShouldSelectCellAtIndexPath || this.collectionView.delegate.collectionViewShouldSelectCellAtIndexPath(this.collectionView, this.collectionView.indexPathOfCell(this)));
         if (shouldSelect){
             this.over = true;
         }
