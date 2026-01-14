@@ -185,6 +185,9 @@ JSClass("UISlider", UIControl, {
         var p0 = this._cachedMinimumPoint;
         var p1 = this._cachedMaximumPoint;
         var length = p1.x - p0.x;
+        if (length <= 0){
+            return this._minimumValue;
+        }
         var dx = location.x - p0.x;
         return Math.min(this._maximumValue, Math.max(this._minimumValue, this._minimumValue + (this._maximumValue - this._minimumValue) * dx / length));
     },
@@ -194,6 +197,9 @@ JSClass("UISlider", UIControl, {
         var p0 = this._cachedMinimumPoint;
         var p1 = this._cachedMaximumPoint;
         var length = p1.x - p0.x;
+        if (length <= 0){
+            return JSPoint(p0);
+        }
         var dx = (value - this._minimumValue) / (this._maximumValue - this._minimumValue) * length;
         return JSPoint(p0.x + dx, p0.y);
     },
