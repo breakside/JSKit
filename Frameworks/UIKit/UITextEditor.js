@@ -21,6 +21,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "textedit");
+
 JSClass("UITextEditor", JSObject, {
 
     layoutLayer: null,
@@ -144,6 +146,7 @@ JSClass("UITextEditor", JSObject, {
             }
         }else{
             this._handledSelectOnMouseDown = true;
+            this._draggingSelectionIndex = 0;
             var range = null;
             var atomicRange;
             var affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
