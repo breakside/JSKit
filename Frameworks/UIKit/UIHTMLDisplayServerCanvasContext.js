@@ -283,7 +283,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     updateHTMLProperty_transform: function(layer){
         var transform = layer.presentation.transform;
         var anchorPoint = layer.presentation.anchorPoint;
-        if (!transform.isIdentity){
+        if (!!transform && !transform.isIdentity){
             var cssTransform = 'matrix(%f, %f, %f, %f, %f, %f)'.sprintf(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
             this.style.transform = cssTransform;
             this.style.transformOrigin = '%f%% %f%% 0'.sprintf(anchorPoint.x * 100, anchorPoint.y * 100);

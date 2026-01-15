@@ -19,6 +19,8 @@
 
 (function(){
 
+var logger = JSLog("uikit", "animation");
+
 JSClass('UIBasicAnimation', UIPropertyAnimation, {
     timingFunction: null,
     duration: JSDynamicProperty('_duration', 0.25),
@@ -87,7 +89,26 @@ JSClass('UIBasicAnimation', UIPropertyAnimation, {
     _updatePresentation: function(){
         var progress = this.timingFunction(this._state.currentPercentage);
         this.isComplete = this._state.isComplete();
-        this._updateContext[this._updateProperty] = this.interpolation(this._fromValue, this._toValue, progress);
+        var value = this.interpolation(this._fromValue, this._toValue, progress);
+        if (this._updateContext === this._layer.presentation && this._updateProperty === "transform"){
+            if (value === undefined || value === null){
+                logger.debug("fromValue = %{public}, toValue = %{public}", "" + this._fromValue, "" + this._toValue);
+                if (this._layer.delegate instanceof UIView){
+                    var view = this._layer.delegate;
+                    logger.debug("view = %{public}, viewController = %{public}", view.$class.className, view.viewController ? view.viewController.$class.className : "null");
+                    view = view.superview;
+                    while (view !== null){
+                        logger.debug("superview = %{public}, viewController = %{public}", view.$class.className, view.viewController ? view.viewController.$class.className : "null");
+                        view = view.superview;
+                    }
+                }else{
+                    logger.debug("layer delegate is not a view");
+                }
+                logger.error("interpolated transform value is null/undefined");
+                value = JSAffineTransform.Identity;
+            }
+        }
+        this._updateContext[this._updateProperty] = value;
         if (this._updateContext === this._layer.presentation && (this._updateProperty === "bounds" || this._updateProperty === "imageFrame")){
             this._layer.setNeedsDisplay();
         }
