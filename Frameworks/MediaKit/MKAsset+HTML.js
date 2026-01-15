@@ -73,6 +73,11 @@ MKAsset.definePropertiesFromExtensions({
             // logger.debug("drawn");
             canvas.toBlob(function(blob){
                 // logger.debug("blob");
+                if (blob === null){
+                    logger.error("Unable to get blob from canvas");
+                    completion.call(target, null);
+                    return;
+                }
                 var reader = new FileReader();
                 reader.addEventListener("loadend", function(){
                     // logger.debug("read");
