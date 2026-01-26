@@ -871,6 +871,9 @@ JSClass("UIWindowServer", JSObject, {
             resizeView = window._resizeView;
             location = window.convertPointToView(location, resizeView);
         }
+        if (location === null){
+            return UIWindowServer.ResizeOperation.none;
+        }
         var resizeFrame = resizeView.bounds;
         var cornerSize = Math.max(resizeView.cornerRadius, this._windowResizeWidthInside);
         if (location.y < resizeFrame.origin.y - this._windowResizeWidthOutside){
