@@ -21,10 +21,10 @@ JSClass("MKQuickTimeFileType", MKQuickTimeAtom, {
     },
 
     initWithData: function(data){
+        MKQuickTimeFileType.$super.initWithData.call(this, data);
         if (data.length < 16){
             throw new Error("expecting at least 16 bytes for ftyp atom");
         }
-        MKQuickTimeFileType.$super.initWithData.call(this, data);
     },
 
     dictionaryRepresentation: function(){

@@ -36,18 +36,34 @@ JSClass("MKQuickTimeTrackHeader", MKQuickTimeAtom, {
     },
 
     getTrackID: function(){
+        if (this.version === 1){
+            return this.dataView.getUint32(28);
+        }
+        // version 0
         return this.dataView.getUint32(20);
     },
 
     getDuration: function(){
+        if (this.version === 1){
+            return this.dataView.getUint32(40);
+        }
+        // version 0
         return this.dataView.getUint32(28);
     },
 
     getWidth: function(){
+        if (this.version === 1){
+            return this.dataView.getUint16(96) + this.dataView.getUint16(98) / 0x10000;
+        }
+        // version 0
         return this.dataView.getUint16(84) + this.dataView.getUint16(86) / 0x10000;
     },
 
     getHeight: function(){
+        if (this.version === 1){
+            return this.dataView.getUint16(100) + this.dataView.getUint16(102) / 0x10000;
+        }
+        // version 0
         return this.dataView.getUint16(88) + this.dataView.getUint16(90) / 0x10000;
     },
 
@@ -58,10 +74,21 @@ JSClass("MKQuickTimeTrackHeader", MKQuickTimeAtom, {
     },
 
     initWithData: function(data){
+        MKQuickTimeTrackHeader.$super.initWithData.call(this, data);
+        if (data.length < 12){
+            Error("expecting at least 12 bytes for tkhd atom");
+        }
+        if (this.version > 1){
+            throw new Error("Unsupported tkhd version: %d".sprintf(this.version));
+        }
+        if (this.version === 1){
+            if (data.length < 104){
+                throw new Error("expecting at least 104 bytes for tkhd v1 atom");
+            }
+        }
         if (data.length < 92){
             throw new Error("expecting at least 92 bytes for tkhd atom");
         }
-        MKQuickTimeTrackHeader.$super.initWithData.call(this, data);
     },
 
     dictionaryRepresentation: function(){

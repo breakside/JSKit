@@ -31,39 +31,9 @@ JSClass("MKQuickTime", MKQuickTimeAtom, {
         }
         if (header.timeScale === 0){
             logger.warn("mvhd timeScale = 0");
-            // Seen some videos in the wild with timeScale = 0
-            // That messes up our ability to calcualte things using timeScale,
-            // but those videos are still playable by QuickTime, so there's
-            // gotta be something else we can do.  Documentation doesn't really
-            // say anything, so we'll look to tracks for an answer.
-            return this.durationCalculatedFromTracks;
-        }
-        return header.duration / header.timeScale;
-    },
-
-    durationCalculatedFromTracks: JSReadOnlyProperty(),
-
-    getDurationCalculatedFromTracks: function(){
-        var movie = this.movie;
-        if (movie === null){
             return -1;
         }
-        var track;
-        var media;
-        var i, l;
-        var longestTrackDuration = -1;
-        var duration;
-        for (i = 0, l = movie.tracks.length; i < l; ++i){
-            track = movie.tracks[i];
-            media = track.media;
-            if (media !== null){
-                duration = media.duration;
-                if (duration > longestTrackDuration){
-                    longestTrackDuration = duration;
-                }
-            }
-        }
-        return longestTrackDuration;
+        return header.duration / header.timeScale;
     },
 
     posterTime: JSReadOnlyProperty(),

@@ -30,19 +30,15 @@ JSClass("MKQuickTimeAtom", JSObject, {
         var l = this.data.length;
         var size;
         var type;
-        var a, b;
         var atomClass, atom;
         while (i < l - 8){
             size = this.dataView.getUint32(i);
             type = this.dataView.getUint32(i + 4);
             if (size === 0x00000001){
                 if (i < l - 16){
-                    a = this.dataView.getUint32(i + 8);
-                    b = this.dataView.getUint32(i + 12);
-                    size = Math.pow(2, 32) * a + b;
-                    if (size > Number.MAX_SAFE_INTEGER){
-                        throw new Error("cannot retain full precision of 64 bit integer for atom at byte %d".sprintf(i));
-                    }
+                    size = this._getUint64(i + 8);
+                }else{
+                    throw new Error("not enough bytes at %d for a 64bit size".sprintf(i));
                 }
             }else{
                 if (size === 0x00000000){
@@ -113,6 +109,16 @@ JSClass("MKQuickTimeAtom", JSObject, {
             }
         }
         return dictionary;
+    },
+
+    _getUint64: function(offset){
+        var a = this.dataView.getUint32(offset);
+        var b = this.dataView.getUint32(offset + 4);
+        var size = Math.pow(2, 32) * a + b;
+        if (size > Number.MAX_SAFE_INTEGER){
+            throw new Error("cannot retain full precision of 64 bit integer for atom at byte %d".sprintf(offset));
+        }
+        return size;
     }
 
 });

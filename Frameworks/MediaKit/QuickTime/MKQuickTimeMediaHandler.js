@@ -30,10 +30,13 @@ JSClass("MKQuickTimeMediaHandler", MKQuickTimeAtom, {
     },
 
     initWithData: function(data){
+        MKQuickTimeMediaHandler.$super.initWithData.call(this, data);
         if (data.length < 20){
             throw new Error("expecting at least 20 bytes for hdlr atom");
         }
-        MKQuickTimeMediaHandler.$super.initWithData.call(this, data);
+        if (this.version > 0){
+            throw new Error("Unsupported hdlr version: %d".sprintf(this.version));
+        }
     },
 
     dictionaryRepresentation: function(){

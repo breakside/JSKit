@@ -24,6 +24,9 @@ JSClass("MKQuickTimeVideoMediaInformationHeader", MKQuickTimeAtom, {
         if (data.length < 20){
             throw new Error("expecting at least 20 bytes for vmhd atom");
         }
+        if (this.version > 0){
+            throw new Error("Unsupported vmhd version: %d".sprintf(this.version));
+        }
     },
 
     graphicsMode: JSReadOnlyProperty(),

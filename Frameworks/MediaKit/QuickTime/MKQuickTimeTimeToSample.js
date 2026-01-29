@@ -30,6 +30,9 @@ JSClass("MKQuickTimeTimeToSample", MKQuickTimeAtom, {
         if (data.length < l){
             throw new Error("expecting at least %d bytes for stts atom with %d entries".sprintf(l, n));
         }
+        if (this.version > 0){
+            throw new Error("Unsupported stts version: %d".sprintf(this.version));
+        }
     },
 
     getNumberOfEntries: function(){

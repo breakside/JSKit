@@ -23,7 +23,11 @@ JSClass("MKQuickTimeSampleDescription", MKQuickTimeAtom, {
     initWithData: function(data){
         MKQuickTimeSampleDescription.$super.initWithData.call(this, data);
         if (data.length < 16){
-            throw new Error("expecting at least 16 bytes for stts atom");
+            throw new Error("expecting at least 16 bytes for stsd atom");
+        }
+        // version 1 is allowed, but treated like version 0
+        if (this.version > 1){
+            throw new Error("Unsupported stsd version: %d".sprintf(this.version));
         }
     },
 

@@ -24,7 +24,10 @@ JSClass("MKQuickTimeSampleSize", MKQuickTimeAtom, {
     initWithData: function(data){
         MKQuickTimeSampleSize.$super.initWithData.call(this, data);
         if (data.length < 20){
-            throw new Error("expecting at least 20 bytes for st atom");
+            throw new Error("expecting at least 20 bytes for stsz atom");
+        }
+        if (this.version > 0){
+            throw new Error("Unsupported stsz version: %d".sprintf(this.version));
         }
     },
 
