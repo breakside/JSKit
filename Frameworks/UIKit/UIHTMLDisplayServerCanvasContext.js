@@ -169,6 +169,7 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
             this[methodName](layer);
         }
         this.propertiesNeedingUpdate = {};
+        this.renderScale = layer._renderScale;
 
         if (this.needsCustomDisplay){
             layer._drawInContext(this);
@@ -412,13 +413,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         return this.element.ownerDocument.defaultView.devicePixelRatio || 1;
     },
 
+    renderScale: 1,
+
     getCanvasContext: function(){
         if (!this._canvasContext){
-            var scale = this.deviceScale;
-            // FIXME: scale should account for any transform ancestor layers
+            var scale = this.deviceScale * this.renderScale;
             var canvas = this._dequeueReusableCanvasElement();
-            canvas.width = this.bounds.size.width * scale;
-            canvas.height = this.bounds.size.height * scale;
+            canvas.width = Math.ceil(this.bounds.size.width * scale);
+            canvas.height = Math.ceil(this.bounds.size.height * scale);
             this._insertChildElement(canvas);
             this._canvasContext = canvas.getContext('2d');
             this._canvasContext.save();

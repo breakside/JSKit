@@ -769,6 +769,12 @@ JSClass("UILayer", JSObject, {
     // MARK: - Display
 
     _needsDisplay: false,
+    renderScale: JSDynamicProperty("_renderScale", 1),
+
+    setRenderScale: function(renderScale){
+        this._renderScale = renderScale;
+        this.setNeedsDisplay();
+    },
 
     setNeedsDisplay: function(){
         if (this._displayServer !== null){
