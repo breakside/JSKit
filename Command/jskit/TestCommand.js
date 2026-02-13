@@ -239,7 +239,7 @@ JSClass("TestCommand", Command, {
         var query = url.query;
         query.add("headless");
         url.query = query;
-        var page = await browser.newPage();
+        var page = await browser.newPage({locale: Intl.DateTimeFormat().resolvedOptions().locale});
         var cmd = this;
         await new Promise(function(resolve, reject){
             page.exposeFunction("headlessPrint", function(text, ttyOnly){
