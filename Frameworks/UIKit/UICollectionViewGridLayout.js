@@ -17,6 +17,14 @@
 /* global UICollectionView */
 "use strict";
 
+JSProtocol("UICollectionViewGridLayoutDelegate", JSProtocol, {
+
+    heightForCollectionViewHeaderInSection: function(collectionView, sectionIndex){},
+    heightForCollectionViewFooterInSection: function(collectionView, sectionIndex){},
+    cellSizeForCollectionViewInSection: function(collectionView, sectionIndex){},
+
+});
+
 JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     init: function(){
@@ -228,33 +236,63 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         var rowOffset = 0;
         var sectionHeaderAndSpacingHeight = 0;
         var sectionFooterAndSpacingHeight = 0;
-        if (this._sectionHeaderHeight > 0){
-            sectionHeaderAndSpacingHeight = this._sectionHeaderHeight + this._sectionHeaderSpacing;
-        }
-        if (this._sectionFooterHeight > 0){
-            sectionFooterAndSpacingHeight= this._sectionFooterHeight + this._sectionFooterSpacing;
-        }
+        var sectionHeaderHeight;
+        var sectionFooterHeight;
+        var sectionCellSize;
+        var sectionColumns;
         for (sectionIndex = 0; sectionIndex < sectionCount; ++sectionIndex){
+            sectionHeaderHeight = this._sectionHeaderHeight;
+            sectionFooterHeight = this._sectionFooterHeight;
+            sectionCellSize = this._cellSize;
+            if (this.collectionView.delegate && this.collectionView.delegate.heightForCollectionViewHeaderInSection){
+                sectionHeaderHeight = this.collectionView.delegate.heightForCollectionViewHeaderInSection(this.collectionView, sectionIndex);
+            }
+            if (this.collectionView.delegate && this.collectionView.delegate.heightForCollectionViewFooterInSection){
+                sectionFooterHeight = this.collectionView.delegate.heightForCollectionViewFooterInSection(this.collectionView, sectionIndex);
+            }
+            if (this.collectionView.delegate && this.collectionView.delegate.cellSizeForCollectionViewInSection){
+                sectionCellSize = this.collectionView.delegate.cellSizeForCollectionViewInSection(this.collectionView, sectionIndex);
+            }
+            if (sectionHeaderHeight > 0){
+                sectionHeaderAndSpacingHeight = sectionHeaderHeight + this._sectionHeaderSpacing;
+            }
+            if (sectionFooterHeight > 0){
+                sectionFooterAndSpacingHeight= sectionFooterHeight + this._sectionFooterSpacing;
+            }
+            if (sectionCellSize.width != this._cellSize.width){
+                columnCount = Math.max(1, Math.floor((availableWidth + this._columnSpacing) / (sectionCellSize.width + this._columnSpacing)));
+                x = this._collectionInsets.left + this._sectionInsets.left;
+                sectionColumns = [];
+                for (columnIndex = 0; columnIndex < columnCount; ++columnIndex){
+                    sectionColumns.push({x: x});
+                    x += sectionCellSize.width + this._columnSpacing;
+                }
+            }else{
+                columnCount = this._cachedLayout.columns.length;
+                sectionColumns = this._cachedLayout.columns;
+            }
             cellCount = this.collectionView.dataSource.numberOfCellsInCollectionViewSection(this.collectionView, sectionIndex);
             rowCount = Math.ceil(cellCount / columnCount);
             size.height = this._sectionInsets.height + sectionHeaderAndSpacingHeight + sectionFooterAndSpacingHeight;
-            size.height += rowCount * this._cellSize.height + (rowCount - 1) * this._rowSpacing;
+            size.height += rowCount * sectionCellSize.height + (rowCount - 1) * this._rowSpacing;
             this._cachedLayout.sections.push({
                 rowOffset: rowOffset,
                 cellCount: cellCount,
                 rowCount: rowCount,
                 frame: JSRect(origin, size),
+                columns: sectionColumns,
+                cellSize: sectionCellSize,
                 headerFrame: JSRect(
                     origin.x + this._sectionInsets.left,
                     origin.y + this._sectionInsets.top,
                     availableWidth,
-                    this._sectionHeaderHeight
+                    sectionHeaderHeight
                 ),
                 footerFrame: JSRect(
                     origin.x + this._sectionInsets.left,
-                    origin.y + size.height - this._sectionInsets.bottom - this._sectionFooterHeight,
+                    origin.y + size.height - this._sectionInsets.bottom - sectionFooterHeight,
                     availableWidth,
-                    this._sectionFooterHeight
+                    sectionFooterHeight
                 ),
                 cellsFrame: JSRect(
                     origin.x + this._sectionInsets.left,
@@ -295,7 +333,7 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         if (this._cachedLayout.headerFrame.size.height > 0 && (this._headersStickToTop || rect.intersectsRect(this._cachedLayout.headerFrame))){
             attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([]), UICollectionViewGridLayout.SupplimentaryKind.header));
         }
-        var columnCount = this._cachedLayout.columns.length;
+        var columnCount;
         var columnIndex;
         var sectionIndex;
         var sectionCount = this._cachedLayout.sections.length;
@@ -304,12 +342,14 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
         var y;
         var y0 = rect.origin.y;
         var y1 = rect.origin.y + rect.size.height;
-        var rowHeight = this._cellSize.height + this._rowSpacing;
+        var rowHeight;
         var rowIndex;
         var attrs;
         // FIXME: can do a more efficient search of sections
         for (sectionIndex = 0; sectionIndex < sectionCount; ++sectionIndex){
             sectionLayout = this._cachedLayout.sections[sectionIndex];
+            columnCount = sectionLayout.columns.length;
+            rowHeight = sectionLayout.cellSize.height + this._rowSpacing;
             if (sectionLayout.frame.size.height > 0 && rect.intersectsRect(sectionLayout.frame)){
                 if (this._showsSectionBackgroundViews){
                     attributes.push(this.layoutAttributesForSupplimentaryViewAtIndexPath(JSIndexPath([sectionIndex]), UICollectionViewGridLayout.SupplimentaryKind.background));
@@ -326,10 +366,10 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
                     for (; rowIndex < sectionLayout.rowCount && y < y1; ++rowIndex, y += rowHeight){
                         for (columnIndex = 0; columnIndex < columnCount && indexPath.row < sectionLayout.cellCount; ++columnIndex, ++indexPath.row){
                             attrs = UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, JSRect(
-                                this._cachedLayout.columns[columnIndex].x,
+                                sectionLayout.columns[columnIndex].x,
                                 y,
-                                this._cellSize.width,
-                                this._cellSize.height
+                                sectionLayout.cellSize.width,
+                                sectionLayout.cellSize.height
                             ));
                             attrs.rowIndex = sectionLayout.rowOffset + rowIndex;
                             attrs.columnIndex = columnIndex;
@@ -350,16 +390,16 @@ JSClass("UICollectionViewGridLayout", UICollectionViewLayout, {
 
     layoutAttributesForCellAtIndexPath: function(indexPath){
         var sectionLayout = this._cachedLayout.sections[indexPath.section];
-        var columnCount = this._cachedLayout.columns.length;
+        var columnCount = sectionLayout.columns.length;
         var rowIndex = Math.floor(indexPath.row / columnCount);
         var columnIndex = indexPath.row % columnCount;
         var origin = JSPoint(
-            this._cachedLayout.columns[columnIndex].x,
-            sectionLayout.cellsFrame.origin.y + rowIndex * (this._cellSize.height + this._rowSpacing)
+            sectionLayout.columns[columnIndex].x,
+            sectionLayout.cellsFrame.origin.y + rowIndex * (sectionLayout.cellSize.height + this._rowSpacing)
         );
         var frame = JSRect(
             origin,
-            this._cellSize
+            sectionLayout.cellSize
         );
         var attributes = UICollectionViewLayoutAttributes.initCellAtIndexPath(indexPath, frame);
         attributes.rowIndex = sectionLayout.rowOffset + rowIndex;
