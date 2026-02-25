@@ -209,7 +209,29 @@ JSClass("JSContext", JSObject, {
     drawLinearGradient: function(gradient, rect){
     },
 
-    drawRadialGradient: function(gradient, rect, r0, r1){
+    drawRadialGradient: function(gradient, rect){
+    },
+
+    drawLinearGradientStroke: function(gradient, path){
+        // FIXME: gradient should be aligned to original path rect
+        var strokePath = path.pathThatFillsStroke(this.state.lineWidth, this.state.lineCap, this.state.lineJoin, this.state.miterLimit);
+        this.save();
+        var rect = strokePath.boundingRect;
+        this.addPath(path);
+        this.clip();
+        this.drawLinearGradient(gradient, rect);
+        this.restore();
+    },
+
+    drawRadialGradientStroke: function(gradient, path){
+        // FIXME: gradient should be aligned to original path rect
+        var strokePath = path.pathThatFillsStroke(this.state.lineWidth, this.state.lineCap, this.state.lineJoin, this.state.miterLimit);
+        this.save();
+        var rect = strokePath.boundingRect;
+        this.addPath(path);
+        this.clip();
+        this.drawRadialGradient(gradient, rect);
+        this.restore();
     },
 
     // ----------------------------------------------------------------------

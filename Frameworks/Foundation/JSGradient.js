@@ -86,6 +86,31 @@ JSClass('JSGradient', JSObject, {
         }
     },
 
+    initFromDictionary: function(dictionary){
+        if (dictionary === null || dictionary === undefined){
+            return null;
+        }
+        this.start = JSPoint(dictionary.x0, dictionary.y0);
+        this.end = JSPoint(dictionary.x1, dictionary.y1);
+        this.stops = [];
+        var i, l;
+        for (i = 0, l = dictionary.stops.length; i < l; ++i){
+            this.addStop(dictionary.stops[i][0], JSColor.initWithRGBAHexString(dictionary.stops[i][1]));
+        }
+    },
+
+    dictionaryRepresentation: function(){
+        return {
+            x0: this.start.x,
+            y0: this.start.y,
+            x1: this.end.x,
+            y1: this.end.y,
+            stops: this.stops.map(function(s){
+                return [s.position, s.color.rgbaHexStringRepresentation()];
+            })
+        };
+    },
+
     initWithStops: function(position1, color1 /* , ... */){
         this.init();
         var args = Array.prototype.slice.call(arguments, 0);
