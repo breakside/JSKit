@@ -8,6 +8,12 @@ For an in-depth explanation of motivation and rationale, consult the
 [Goals Document](Documentation/Goals.md).
 
 
+Documentation
+=================
+
+Full API reference and getting started guides are available at [docs.jskit.dev](https://docs.jskit.dev).
+
+
 Developer Install
 =================
 
