@@ -838,6 +838,83 @@ JSClass("JSPath", JSObject, {
         return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
     },
 
+    initWithSVGPathData: function(svgPathData){
+        if (svgPathData === null || svgPathData === undefined){
+            return null;
+        }
+        var parts = svgPathData.split(" ").filter(function(p){
+            return p !== "";
+        });
+        this.subpaths = [];
+        var part;
+        var subpath = null;
+        var point = JSPoint.Zero;
+        var cp1;
+        var cp2;
+        var curve;
+        while (parts.length > 0){
+            part = parts.shift();
+            if (part === "M"){
+                if (parts.length < 2){
+                    break;
+                }
+                point = JSPoint.Zero;
+                part = parts.shift();
+                point.x = parseFloat(part);
+                part = parts.shift();
+                point.y = parseFloat(part);
+                subpath = Subpath(point);
+                this.subpaths.push(subpath);
+                this._currentPoint = point;
+            }else if (part === "L"){
+                if (parts.length < 2){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                point = JSPoint.Zero;
+                part = parts.shift();
+                point.x = parseFloat(part);
+                part = parts.shift();
+                point.y = parseFloat(part);
+                subpath.segments.push({type: JSPath.SegmentType.line, end: point});
+                this._currentPoint = point;
+            }else if (part === "C"){
+                if (parts.length < 6){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                cp1 = JSPoint.Zero;
+                cp2 = JSPoint.Zero;
+                point = JSPoint.Zero;
+                part = parts.shift();
+                cp1.x = parseFloat(part);
+                part = parts.shift();
+                cp1.y = parseFloat(part);
+                part = parts.shift();
+                cp2.x = parseFloat(part);
+                part = parts.shift();
+                cp2.y = parseFloat(part);
+                part = parts.shift();
+                point.x = parseFloat(part);
+                part = parts.shift();
+                point.y = parseFloat(part);
+                subpath.segments.push({type: JSPath.SegmentType.curve, curve: JSCubicBezier(this._currentPoint, cp1, cp2, point)});
+                this._currentPoint = point;
+            }else if (part === "Z"){
+                if (subpath !== null){
+                    subpath.closed = true;
+                    subpath = null;
+                }
+            }
+        }
+    },
+
     svgPathData: function(){
         var subpath;
         var segment;
@@ -867,6 +944,9 @@ JSClass("JSPath", JSObject, {
             if (subpath.closed){
                 data += "Z ";
             }
+        }
+        if (data.length > 0 && data[data.length - 1] == " "){
+            data = data.substr(0, data.length - 1);
         }
         return data;
     },
