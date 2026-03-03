@@ -214,25 +214,69 @@ JSClass("UITextEditor", JSObject, {
     _touchBeganInfo: null,
 
     handleTouchesBeganAtLocation: function(location, touches, event){
-        this._setSingleSelectionAtLocation(location);
+        var newSelection = this._createSelectionAtLocation(location);
+        var existingSelection = null;
+        for (var i = 0, l = this.selections.length; i < l; ++i){
+            if (this.selections[i].containsIndex(newSelection.range.location)){
+                existingSelection = this.selections[i];
+                break;
+            }
+        }
+        if (existingSelection === null){
+            this._setSingleSelectionAtLocation(location);
+        }
         this._touchBeganInfo = {
             timestamp: event.timestamp,
             location: location,
+            selection: existingSelection,
             moved: false
         };
     },
 
     handleTouchesMovedAtLocation: function(location, touches, event){
-        this._setSingleSelectionAtLocation(location);
         if (this._touchBeganInfo !== null){
+            if (this._touchBeganInfo.selection === null){
+                this._setSingleSelectionAtLocation(location);
+            }
             this._touchBeganInfo.moved = this._touchBeganInfo.moved || location.distanceToPoint(this._touchBeganInfo.location) > 10;
+            if (this._touchBeganInfo.moved && this._touchBeganInfo.selection !== null){
+                var existingSelection = this._touchBeganInfo.selection;
+                var selection = this._createSelectionAtLocation(location);
+                if (selection.range.location < existingSelection.range.location){
+                    selection.range.length = existingSelection.range.end - selection.range.location;
+                    this._setSingleSelection(selection);
+                    this._touchBeganInfo.selection = selection;
+                }else if (selection.range.location > existingSelection.range.end){
+                    selection.range = JSRange(existingSelection.range.location, selection.range.location - existingSelection.range.location);
+                    this._setSingleSelection(selection);
+                    this._touchBeganInfo.selection = selection;
+                }else{
+                    var dl = selection.range.location - existingSelection.range.location;
+                    var de = existingSelection.range.end - selection.range.location;
+                    if (dl > 0 && de > 0){
+                        if (dl <= de){
+                            selection.range.length = existingSelection.range.end - selection.range.location;
+                        }else{
+                            selection.range = JSRange(existingSelection.range.location, selection.range.location - existingSelection.range.location);
+                        }
+                        this._setSingleSelection(selection);
+                        this._touchBeganInfo.selection = selection;
+                    }
+                }
+            }
+        }else{
+            this._setSingleSelectionAtLocation(location);
         }
     },
 
     handleTouchesEndedAtLocation: function(location, touches, event){
-        this._setSingleSelectionAtLocation(location);
         if (this._touchBeganInfo !== null){
+            if (this._touchBeganInfo.selection === null){
+                this._setSingleSelectionAtLocation(location);
+            }
             this._touchBeganInfo = null;
+        }else{
+            this._setSingleSelectionAtLocation(location);
         }
     },
 
@@ -241,10 +285,16 @@ JSClass("UITextEditor", JSObject, {
             if (this.selections.length === 1 && !this._touchBeganInfo.moved){
                 if ((event.timestamp - this._touchBeganInfo.timestamp) > JSTimeInterval.seconds(0.5)){
                     var selection = this.selections[0];
-                    var range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(this.selections[0].range.location);
-                    if (range.length > 0){
-                        var wordSelection = this._createSelection(range);
-                        this._setSingleSelection(wordSelection);
+                    var updatedSelection;
+                    if (this._touchBeganInfo.selection !== null){
+                        updatedSelection = this._createSelection(JSRange(selection.range.location, 0));
+                        this._setSingleSelection(updatedSelection);
+                    }else{
+                        var range = this.textLayoutManager.textStorage.string.rangeForWordAtIndex(selection.range.location);
+                        if (range.length > 0){
+                            updatedSelection = this._createSelection(range);
+                            this._setSingleSelection(updatedSelection);
+                        }
                     }
                 }
             }
