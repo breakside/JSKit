@@ -116,17 +116,27 @@ JSClass("UIPopupWindow", UIWindow, {
     },
 
     openAdjacentToView: function(view, preferredPlacement, animated){
-        if (animated === undefined){
-            animated = true;
+        var rect = view.bounds;
+        if (view.sourceRectForPopupWindow){
+            rect = view.sourceRectForPopupWindow(this);
         }
+        this.openAdjacentToRectInView(rect, view, preferredPlacement, animated);
+    },
+
+    openAtLocationInView: function(location, view, preferredPlacement, animated){
+        var rect = JSRect(location, JSSize.Zero);
+        this.openAdjacentToRectInView(rect, view, preferredPlacement, animated);
+    },
+
+    openAdjacentToRectInView: function(rect, view, preferredPlacement, animated){
         if (view.window === null || view.window.screen === null){
             JSNotificationCenter.shared.post("UIWindowWillClose", this);
             return;
         }
-        var sourceBounds = view.bounds;
-        if (view.sourceRectForPopupWindow){
-            sourceBounds = view.sourceRectForPopupWindow(this);
+        if (animated === undefined){
+            animated = true;
         }
+        var sourceBounds = rect;
         var sourceFrame = view.convertRectToScreen(sourceBounds).rectWithInsets(-this._sourceSpacing);
         var safeFrame = view.window.screen.availableFrame.rectWithInsets(20);
 

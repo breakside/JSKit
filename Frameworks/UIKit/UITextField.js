@@ -24,6 +24,7 @@
 // #import "JSColor+UIKit.js"
 // #import "UITextAction.js"
 // #import "UIMenu.js"
+// #import "UITextActionsMenu.js"
 'use strict';
 
 (function(){
@@ -796,6 +797,7 @@ JSClass("UITextField", UIControl, {
     },
 
     textEditorDidReplaceCharactersInRange: function(textEditor, range, insertedLength){
+        this.hideTextActionsMenu();
         if (this._isEmpty && insertedLength > 0){
             this._updateIsEmpty(false);
         }else if (!this._isEmpty && insertedLength === 0 && !this._textLayer.hasText()){
@@ -891,6 +893,7 @@ JSClass("UITextField", UIControl, {
     },
 
     resignFirstResponder: function(){
+        this.hideTextActionsMenu();
         this.active = false;
         this._updateAccessoryViewHidden(this._leftAccessoryView, this._leftAccessoryVisibility);
         this._updateAccessoryViewHidden(this._rightAccessoryView, this._rightAccessoryVisibility);
@@ -996,8 +999,10 @@ JSClass("UITextField", UIControl, {
     },
 
     _touchOrigin: null,
+    _touchesBeganSelections: null,
 
     touchesBegan: function(touches, event){
+        this._touchesBeganSelections = null;
         if (this.enabled){
             var location = touches[0].locationInView(this);
             this._touchOrigin = this.convertPointToView(this.bounds.origin, this.window);
@@ -1007,6 +1012,7 @@ JSClass("UITextField", UIControl, {
                 // when mobile safari ignores focus() calls that aren't tied to
                 // user interaction
                 this.window.firstResponder = this;
+                this._touchesBeganSelections = this.selections.map(function(s){ return UITextInputSelection(s)});
                 this._localEditor.handleTouchesBeganAtLocation(this.layer.convertPointToLayer(location, this._textLayer), touches, event);
                 return;
             }
@@ -1030,6 +1036,26 @@ JSClass("UITextField", UIControl, {
             var location = touches[0].locationInView(this);
             if (this.isFirstResponder()){
                 this._localEditor.handleTouchesEnded(touches, event);
+                if (this.textActionsMenu !== null){
+                    this.hideTextActionsMenu();
+                }else if (this._touchesBeganSelections !== null){
+                    var selections = this.selections;
+                    var match = true;
+                    if (selections.length === this._touchesBeganSelections.length){
+                        for (var i = 0, l = selections.length; i < l; ++i){
+                            if (!selections[i].range.isEqual(this._touchesBeganSelections[i].range)){
+                                match = false;
+                                break;
+                            }
+                        }
+                    }else{
+                        match = false;
+                    }
+                    if (match){
+                        this.showTextActionsMenu(location);
+                    }
+                }
+                this._touchesBeganSelections = null;
                 return;
             }
             if (this._touchOrigin !== null){
@@ -1040,10 +1066,12 @@ JSClass("UITextField", UIControl, {
                 }
             }
         }
+        this._touchesBeganSelections = null;
         UITextField.$super.touchesEnded.call(this, touches, event);
     },
 
     touchesCanceled: function(touches, event){
+        this._touchesBeganSelections = null;
         if (this.enabled){
             var location = touches[0].locationInView(this);
             this._localEditor.handleTouchesCanceled(touches, event);
@@ -1072,6 +1100,36 @@ JSClass("UITextField", UIControl, {
 
     textActions: function(){
         return [this.copyTextAction, this.pasteTextAction];
+    },
+
+    textActionsMenu: null,
+
+    showTextActionsMenu: function(location){
+        var responder = this;
+        var actions = this.textActions().filter(function(textAction){
+            var target = responder.targetForAction(textAction.action, null);
+            return target !== null && target.canPerformAction(textAction.action, null);
+        });
+        if (actions.length === 0){
+            return;
+        }
+        this.textActionsMenu = UITextActionsMenu.initWithActions(actions);
+        this.textActionsMenu.delegate = this;
+        this.textActionsMenu.openAtLocationInView(location, this);
+    },
+
+    hideTextActionsMenu: function(){
+        if (this.textActionsMenu !== null){
+            this.textActionsMenu.close();
+            this.textActionsMenu = null;
+        }
+    },
+
+    textActionsMenuDidClose: function(textActionsMenu){
+        if (textActionsMenu === this.textActionsMenu){
+            textActionsMenu.delegate = null;
+            this.textActionsMenu = null;
+        }
     },
 
     // --------------------------------------------------------------------
