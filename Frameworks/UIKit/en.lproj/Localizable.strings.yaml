@@ -18,3 +18,6 @@ en:
         "on": "On"
         "off": "Off"
         mixed: Mixed
+  textActions:
+    copy: Copy
+    paste: Paste

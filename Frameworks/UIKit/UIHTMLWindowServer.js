@@ -690,7 +690,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             return;
         }
         UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
-            this.keyWindow.application.sendAction('cut');
+            this.keyWindow.application.sendAction('cut', null, this);
         }, this);
     },
 
@@ -702,7 +702,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             return;
         }
         UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
-            this.keyWindow.application.sendAction('copy');
+            this.keyWindow.application.sendAction('copy', null, this);
         }, this);
     },
 
@@ -714,7 +714,7 @@ JSClass("UIHTMLWindowServer", UIWindowServer, {
             return;
         }
         UIPasteboard.general.withDataTransfer(e.clipboardData, function(){
-            this.keyWindow.application.sendAction('paste');
+            this.keyWindow.application.sendAction('paste', null, this);
         }, this);
     },
 
@@ -1513,6 +1513,20 @@ JSClass("UIHTMLDataTransferPasteboard", UIPasteboard, {
         }
         return UIHTMLDataTransferPasteboard.$super.containsType.call(this, type);
     },
+
+    withStrings: function(strings, action, target){
+        var locallySetTypes = JSCopy(this._locallySetTypes);
+        try{
+            for (var type in strings){
+                this.setStringForType(strings[type], type);
+            }
+            action.call(target);
+        }finally{
+            this._locallySetTypes = locallySetTypes;
+            this.dataTransfer = null;
+        }
+    },
+
 });
 
 

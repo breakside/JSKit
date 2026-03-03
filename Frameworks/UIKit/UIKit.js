@@ -79,6 +79,7 @@
 // #import "UITextAttachmentView.js"
 // #import "UITokenField.js"
 // #import "UITokenFieldDelegate.js"
+// #import "UITextAction.js"
 
 // Controls
 // #import "UIControl.js"

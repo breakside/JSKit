@@ -22,6 +22,8 @@
 // #import "UIImageView.js"
 // #import "UIPasteboard.js"
 // #import "JSColor+UIKit.js"
+// #import "UITextAction.js"
+// #import "UIMenu.js"
 'use strict';
 
 (function(){
@@ -977,6 +979,22 @@ JSClass("UITextField", UIControl, {
         UITextField.$super.mouseUp.call(this, event);
     },
 
+    rightMouseDown: function(event){
+        var actions = this.textActions();
+        if (actions.length > 0){
+            var menu = UIMenu.init();
+            var action;
+            for (var i = 0, l = actions.length; i < l; ++i){
+                action = actions[i];
+                menu.addItemWithTitle(action.title, action.action, action.target);
+            }
+            var location = event.locationInView(this);
+            menu.openAtLocationInContextView(location, this);
+            return;
+        }
+        UITextField.$super.rightMouseDown.call(this, event);
+    },
+
     _touchOrigin: null,
 
     touchesBegan: function(touches, event){
@@ -1039,6 +1057,21 @@ JSClass("UITextField", UIControl, {
             return text.replace(/\r\n/g, ' ').replace(/[\t\r\n\u000B\u000C\u0085\u2028\u2029]/g, ' ');
         }
         return text;
+    },
+
+    // ----------------------------------------------------------------------
+    // MARK: Text Actions
+
+    copyTextAction: JSLazyInitProperty(function(){
+        return UITextAction.initWithTitle(UITextField.bundle.localizedString("textActions.copy"), "copy", this);
+    }),
+
+    pasteTextAction: JSLazyInitProperty(function(){
+        return UITextAction.initWithTitle(UITextField.bundle.localizedString("textActions.paste"), "paste", this);
+    }),
+
+    textActions: function(){
+        return [this.copyTextAction, this.pasteTextAction];
     },
 
     // --------------------------------------------------------------------
@@ -1263,6 +1296,17 @@ JSClass("UITextField", UIControl, {
         return this.selections;
     },
 
+});
+
+Object.defineProperties(UITextField, {
+    bundle: {
+        configurable: true,
+        get: function(){
+            var bundle = JSBundle.initWithIdentifier("io.breakside.JSKit.UIKit");
+            Object.defineProperty(UITextField, "bundle", {value: bundle});
+            return bundle;
+        }
+    }
 });
 
 UITextField.AccessoryVisibility = {

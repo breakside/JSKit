@@ -438,9 +438,13 @@ JSClass('UIApplication', UIResponder, {
             target = this.firstTargetForAction(action, target, sender);
             if (target !== null){
                 actionLogger.debug("sendAction " + action + " to %{public}#%d from %{public}#%d", target.$class.className, target.objectID, sender.$class.className, sender.objectID);
-                target[action](sender, event);
+                this._sendAction(action, target, sender, event);
             }
         }
+    },
+
+    _sendAction: function(action, target, sender, event){
+        target[action](sender, event);
     },
 
     targetForAction: function(action, sender){

@@ -140,6 +140,30 @@ JSClass("UIHTMLApplication", UIApplication, {
         return url;
     },
 
+    _sendAction: function(action, target, sender, event){
+        var application = this;
+        var window = this.domWindow;
+        if (action === "paste" && sender !== this.windowServer){
+            if (this.domWindow.navigator.clipboard){
+                logger.info("sending paste action with clipboard.readText");
+                window.navigator.clipboard.readText().then(function(text){
+                    var strings = {};
+                    strings[UIPasteboard.ContentType.plainText] = text;
+                    UIPasteboard.general.withStrings(strings, function(){
+                        UIHTMLApplication.$super._sendAction.call(application, action, target, sender, event);
+                    });
+                }, function(e){
+                    logger.warn("could not readText() from clipboard: %{error}", e);
+                });
+                return;
+            }
+            logger.info("sending paste action with document.execCommand");
+            this.domWindow.document.execCommand("paste");
+            return;
+        }
+        UIHTMLApplication.$super._sendAction.call(this, action, target, sender, event);
+    },
+
     addEventListeners: function(){
         this.domWindow.addEventListener("error", this);
         this.domWindow.addEventListener("unhandledrejection", this);
