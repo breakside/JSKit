@@ -175,6 +175,7 @@ JSClass("UIListView", UIScrollView, {
     
     delegate: null,
     dataSource: null,
+    _dataSourceIsValid: false,
 
     // --------------------------------------------------------------------
     // MARK: - Styling
@@ -325,6 +326,7 @@ JSClass("UIListView", UIScrollView, {
             return;
         }
         this._needsReload = true;
+        this._dataSourceIsValid = false;
         this.setNeedsLayout();
     },
 
@@ -579,6 +581,7 @@ JSClass("UIListView", UIScrollView, {
                 selectionChanged: false,
             };
             this._needsUpdate = true;
+            this._dataSourceIsValid = false;
             this.setNeedsLayout();
         }
         if (animation != UIListView.RowAnimation.none && this._edit.animator === null){
@@ -655,6 +658,7 @@ JSClass("UIListView", UIScrollView, {
 
     layoutSubviews: function(){
         UIListView.$super.layoutSubviews.call(this);
+        this._dataSourceIsValid = true;
         var origin = JSPoint.Zero;
         var fitSize = JSSize(this.bounds.size.width, Number.MAX_VALUE);
         // We have to size the header and footer first, so a reloadDuringLayout
@@ -1121,6 +1125,7 @@ JSClass("UIListView", UIScrollView, {
         this.__numberOfSections = this.__numberOfSections + edit.insertedSections.length - edit.deletedSections.length;
         this._updateVisibleIndexPathsForEdit(edit);
         this._updateSelectedIndexPathsForEdit(edit);
+        this._updateOtherIndexPathsForEdit(edit);
         if (edit.didDeleteSelectedItem){
             this._updateSelectedIndexPaths({notifyDelegate: true});
         }
@@ -1466,6 +1471,9 @@ JSClass("UIListView", UIScrollView, {
         }
     },
 
+    _updateOtherIndexPathsForEdit: function(edit){
+    },
+
     _createViewsForEdit: function(edit, anchorIndex, anchorY, rect){
         var diff = {offset: 0, height: 0};
         var items = this._visibleItems;
@@ -1597,7 +1605,7 @@ JSClass("UIListView", UIScrollView, {
         cell.position = JSPoint(rect.origin.x + cell.bounds.size.width * cell.anchorPoint.x, rect.origin.y + cell.bounds.size.height * cell.anchorPoint.y);
         cell.active = false;
         cell.over = false;
-        this._updateCellState(cell);
+        this._updateCellState(cell, true);
         cell.update();
         cell.setNeedsLayout();
         return cell;
@@ -2002,12 +2010,12 @@ JSClass("UIListView", UIScrollView, {
         for (var i = 0, l = this._visibleItems.length; i < l; ++i){
             item = this._visibleItems[i];
             if (item.kind === VisibleItem.Kind.cell){
-                this._updateCellState(item.view);
+                this._updateCellState(item.view, this._dataSourceIsValid && item.indexPath !== null);
             }
         }
     },
 
-    _updateCellState: function(cell){
+    _updateCellState: function(cell, dataSourceIsValid){
         cell.selected = this._selectionContainsIndexPath(cell.indexPath);
         cell.contextSelected = this._contextSelectionContainsIndexPath(cell.indexPath);
     },

@@ -102,7 +102,7 @@ JSClass("UIOutlineView", UIListView, {
             this._edit.insertedIndexPaths.push({indexPath: JSIndexPath(iterator.indexPath), animation:this.expandRowAnimation});
         }
         if (visibleCell){
-            this._updateCellState(visibleCell);
+            this._updateCellState(visibleCell, true);
             visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowExpanded);
         }
         this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
@@ -139,7 +139,7 @@ JSClass("UIOutlineView", UIListView, {
             }
         }
         if (visibleCell){
-            this._updateCellState(visibleCell);
+            this._updateCellState(visibleCell, true);
             visibleCell.postAccessibilityNotification(UIAccessibility.Notification.rowCollapsed);
         }
         this.postAccessibilityNotification(UIAccessibility.Notification.rowCountChanged);
@@ -220,9 +220,11 @@ JSClass("UIOutlineView", UIListView, {
         UIOutlineView.$super.keyUp.call(this, event);
     },
 
-    _updateCellState: function(cell){
-        UIOutlineView.$super._updateCellState.call(this, cell);
-        cell.expandable = this.dataSource.outlineViewIsExandableAtIndexPath(this, cell.indexPath);
+    _updateCellState: function(cell, dataSourceIsValid){
+        UIOutlineView.$super._updateCellState.call(this, cell, dataSourceIsValid);
+        if (dataSourceIsValid){
+            cell.expandable = this.dataSource.outlineViewIsExandableAtIndexPath(this, cell.indexPath);
+        }
         cell.expanded = cell.expandable && this._isIndexPathExpanded(cell.indexPath);
     },
 
@@ -250,6 +252,64 @@ JSClass("UIOutlineView", UIListView, {
         }
         --row;
         return row;
+    },
+
+    _updateOtherIndexPathsForEdit: function(edit){
+        UIOutlineView.$super._updateOtherIndexPathsForEdit.call(this, edit);
+        var expandedIndexPaths = Array.from(this._expandedIndexPaths).map(function(indexPathString){
+            var indexes = indexPathString.split(".").map(function(indexString){
+                return parseInt(indexString);
+            });
+            return JSIndexPath(indexes);
+        });
+        expandedIndexPaths.sort(JSIndexPath.compare);
+        var i, l;
+        var section, indexPath;
+        var index;
+        var searcher = JSBinarySearcher(expandedIndexPaths, JSIndexPath.compare);
+        var parent;
+        var selectedLength = expandedIndexPaths.length;
+        for (i = edit.deletedIndexPaths.length - 1; i >= 0; --i){
+            indexPath = edit.deletedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            if (index < selectedLength && expandedIndexPaths[index].isEqual(indexPath)){
+                expandedIndexPaths.splice(index, 1);
+                --selectedLength;
+            }
+            for (; index < selectedLength && expandedIndexPaths[index].startsWith(parent); ++index){
+                expandedIndexPaths[index][parent.length]--;
+            }
+        }
+        for (i = edit.deletedSections.length - 1; i >= 0; --i){
+            section = edit.deletedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && expandedIndexPaths[index].section == section; --selectedLength){
+                expandedIndexPaths.splice(index, 1);
+            }
+            for (; index < selectedLength; ++index){
+                expandedIndexPaths[index].section--;
+            }
+        }
+        for (i = 0, l = edit.insertedSections.length; i < l; ++i){
+            section = edit.insertedSections[i].section;
+            index = searcher.insertionIndexForValue(JSIndexPath(section, 0));
+            for (; index < selectedLength && expandedIndexPaths[index].section >= section; ++index){
+                expandedIndexPaths[index].section++;
+            }
+        }
+        for (i = 0, l = edit.insertedIndexPaths.length; i < l; ++i){
+            indexPath = edit.insertedIndexPaths[i].indexPath;
+            parent = indexPath.removingLastIndex();
+            index = searcher.insertionIndexForValue(indexPath);
+            for (; index < selectedLength && expandedIndexPaths[index].startsWith(parent); ++index){
+                expandedIndexPaths[index][parent.length]++;
+            }
+        }
+        this._expandedIndexPaths = new Set();
+        for (i = 0, l = expandedIndexPaths.length; i < l; ++i){
+            this._expandedIndexPaths.add(expandedIndexPaths[i].toString());
+        }
     },
 
     // --------------------------------------------------------------------
