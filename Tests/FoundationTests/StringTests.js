@@ -986,6 +986,63 @@ JSClass('StringTests', TKTestSuite, {
 
     },
 
+    testSprintf: function(){
+        TKAssertEquals("%d".sprintf(0), "0");
+        TKAssertEquals("%d".sprintf(1), "1");
+        TKAssertEquals("%d".sprintf(12), "12");
+        TKAssertEquals("%d".sprintf(12.3), "12");
+        TKAssertEquals("%d".sprintf(12.9), "12");
+        TKAssertEquals("%02d".sprintf(0), "00");
+        TKAssertEquals("%02d".sprintf(1), "01");
+        TKAssertEquals("%02d".sprintf(12), "12");
+        TKAssertEquals("%02d".sprintf(12.3), "12");
+        TKAssertEquals("%02d".sprintf(12.9), "12");
+        TKAssertEquals("%03d".sprintf(1), "001");
+        TKAssertEquals("%03d".sprintf(12), "012");
+        TKAssertEquals("%03d".sprintf(12.3), "012");
+        TKAssertEquals("%03d".sprintf(12.9), "012");
+        TKAssertEquals("%x".sprintf(0), "0");
+        TKAssertEquals("%x".sprintf(1), "1");
+        TKAssertEquals("%x".sprintf(12), "c");
+        TKAssertEquals("%x".sprintf(12.3), "c");
+        TKAssertEquals("%x".sprintf(12.9), "c");
+        TKAssertEquals("%02x".sprintf(0), "00");
+        TKAssertEquals("%02x".sprintf(1), "01");
+        TKAssertEquals("%02x".sprintf(12), "0c");
+        TKAssertEquals("%02x".sprintf(12.3), "0c");
+        TKAssertEquals("%02x".sprintf(12.9), "0c");
+        TKAssertEquals("%X".sprintf(0), "0");
+        TKAssertEquals("%X".sprintf(1), "1");
+        TKAssertEquals("%X".sprintf(12), "C");
+        TKAssertEquals("%X".sprintf(12.3), "C");
+        TKAssertEquals("%X".sprintf(12.9), "C");
+        TKAssertEquals("%02X".sprintf(0), "00");
+        TKAssertEquals("%02X".sprintf(1), "01");
+        TKAssertEquals("%02X".sprintf(12), "0C");
+        TKAssertEquals("%02X".sprintf(12.3), "0C");
+        TKAssertEquals("%02X".sprintf(12.9), "0C");
+        TKAssertEquals("%f".sprintf(0), "0");
+        TKAssertEquals("%f".sprintf(1), "1");
+        TKAssertEquals("%f".sprintf(1.99999945), "1.999999");
+        TKAssertEquals("%f".sprintf(1.99999956), "2");
+        TKAssertEquals("%f".sprintf(12), "12");
+        TKAssertEquals("%f".sprintf(12.3), "12.3");
+        TKAssertEquals("%f".sprintf(12.9), "12.9");
+        TKAssertEquals("%f".sprintf(12.12345678), "12.123457");
+        TKAssertEquals("%0.f".sprintf(0), "0");
+        TKAssertEquals("%0.f".sprintf(0.9), "0.9");
+        TKAssertEquals("%0.f".sprintf(0.12345678), "0.123457");
+        TKAssertEquals("%0.f".sprintf(12.12345678), "12.123457");
+        TKAssertEquals("%0.8f".sprintf(12.12345678), "12.12345678");
+        TKAssertEquals("%0.7f".sprintf(12.12345678), "12.1234568");
+        TKAssertEquals("%0.1f".sprintf(12.12345678), "12.1");
+        TKAssertEquals("%0.3f".sprintf(0.12345678), "0.123");
+        TKAssertEquals("%.3f".sprintf(0), ".000");
+        TKAssertEquals("%.3f".sprintf(0.12345678), ".123");
+        TKAssertEquals("%.3f".sprintf(1.9994), "1.999");
+        TKAssertEquals("%.3f".sprintf(1.9995), "2.000");
+    },
+
     testInitWithData: function(){
         var data = null;
         var str = String.initWithData(data, String.Encoding.utf8);

@@ -1592,7 +1592,7 @@ String.printf_formatter = {
 
     x: function(arg, options){
         // TODO: obey any other options
-        var str = arg.toString(16);
+        var str = Math.floor(arg).toString(16);
         if (options.width){
             if (options.zero){
                 str = str.leftPaddedString('0', options.width);
@@ -1633,7 +1633,83 @@ String.printf_formatter = {
         if (Math.abs(arg) < 0.000001){
             arg = 0;
         }
-        return (arg !== null && arg !== undefined && arg.toString) ? arg.toString() : arg;
+        var n = arg;
+        if (n === null){
+            return "null";
+        }
+        if (n === undefined){
+            return "undefined";
+        }
+        if (isNaN(n)){
+            return "NaN";
+        }
+        if (!isFinite(n)){
+            if (n < 0){
+                return "-Inf";
+            }
+            return "Inf";
+        }
+
+        // Prefix & Suffix
+        var negative = n < 0;
+        var prefix = "";
+        if (negative){
+            n = -n;
+            prefix = "-";
+        }
+
+        // Integer
+        var maximumFractionDigits = options.precision || 6;
+        var minimumFractionDigits = options.precision || 0;
+        var minimumIntegerDigits = options.zero ? 1 : 0;
+        var integer = Math.floor(n);
+        var fraction = n - integer;
+        var maximumFraction = Math.pow(10, maximumFractionDigits);
+        fraction = Math.round(fraction * maximumFraction);
+        if (fraction >= maximumFraction){
+            integer += 1;
+            fraction = 0;
+        }
+        var str = (integer !== 0 || (minimumIntegerDigits === 0 && minimumFractionDigits === 0)) ? integer.toString() : "";
+        var zeroFillCount = minimumIntegerDigits - str.length;
+        var i, l;
+        if (zeroFillCount > 0){
+            var fill = "";
+            for (i = 0; i < zeroFillCount; ++i){
+                fill += "0";
+            }
+            str = fill + str;
+        }
+
+        // Decimal
+        if (maximumFraction > 0){
+            if (minimumFractionDigits > 0 || fraction !== 0){
+                if (minimumFractionDigits > 0 || fraction !== 0){
+                    str += ".";
+                    var fractionString = fraction.toString();
+                    while (fractionString.length < maximumFractionDigits){
+                        fractionString = "0" + fractionString;
+                    }
+                    while (fractionString.length > minimumFractionDigits && fractionString[fractionString.length - 1] === "0"){
+                        fractionString = fractionString.substr(0, fractionString.length - 1);
+                    }
+                    str += fractionString;
+                }
+            }
+        }
+        str = prefix + str;
+        if (options.width){
+            if (options.zero){
+                str = str.leftPaddedString('0', options.width);
+            }else if (options.left_justified){
+                str = str.rightPaddedString(' ', options.width);
+            }else{
+                str = str.leftPaddedString(' ', options.width);
+            }
+        }else if (str === ""){
+            str = "0";
+        }
+        return str;
     },
 
     b: function(arg, options){
