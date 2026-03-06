@@ -1634,7 +1634,7 @@ JSClass("JSPathTests", TKTestSuite, {
         var path = JSPath.init();
         TKAssertExactEquals(path.svgPathData(), "");
         path.moveToPoint(JSPoint(1.2, 2.3));
-        TKAssertExactEquals(path.svgPathData(), "");
+        TKAssertExactEquals(path.svgPathData(), "M 1.2 2.3");
         path.addLineToPoint(JSPoint(4.5, 5.6));
         TKAssertExactEquals(path.svgPathData(), "M 1.2 2.3 L 4.5 5.6");
         path.addCurveToPoint(JSPoint(6.7, 7.8), JSPoint(8.9, 9.1), JSPoint(10.11, 11.12));
@@ -1674,6 +1674,30 @@ JSClass("JSPathTests", TKTestSuite, {
         path = JSPath.initWithSVGPathData("M 1.2 2.3 L 4.5 5.6 C 8.9 9.1 10.11 11.12 6.7 7.8 Z");
         TKAssertInstance(path, JSPath);
         TKAssertExactEquals(path.svgPathData(), "M 1.2 2.3 L 4.5 5.6 C 8.9 9.1 10.11 11.12 6.7 7.8 Z");
+
+        path = JSPath.initWithSVGPathData("M1.2,2.3 L4.5,5.6");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1.2 2.3 L 4.5 5.6");
+
+        path = JSPath.initWithSVGPathData("m1 2 0.2 0.3 l3.3,3.4");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1 2 L 1.2 2.3 L 4.5 5.7");
+
+        path = JSPath.initWithSVGPathData("M1.2,2.3M3.4,4.5L5.6,6.7");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1.2 2.3 M 3.4 4.5 L 5.6 6.7");
+
+        path = JSPath.initWithSVGPathData("M1.0,1.0m1.2,2.3m3.4,4.5l5.6,6.7");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1 1 M 2.2 3.3 M 5.6 7.8 L 11.2 14.5");
+
+        path = JSPath.initWithSVGPathData("M1-2");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1 -2");
+
+        path = JSPath.initWithSVGPathData("M1.2.3");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1.2 0.3");
     }
 
 });

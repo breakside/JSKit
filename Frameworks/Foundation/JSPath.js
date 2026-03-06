@@ -990,80 +990,362 @@ JSClass("JSPath", JSObject, {
     },
 
     initWithSVGPathData: function(svgPathData){
+        // TODO: Q, q, T, t, A, a
+        //
+        // - All instructions are expressed as one character (e.g., a moveto
+        //   is expressed as an M).
+        // - Superfluous white space and separators such as commas can be
+        //   eliminated (e.g., "M 100 100 L 200 200" contains unnecessary spaces
+        //   and could be expressed more compactly as "M100 100L200 200").
+        // - The command letter can be eliminated on subsequent commands if the
+        //   same command is used multiple times in a row (e.g., you can drop
+        //   the second "L" in "M 100 200 L 200 100 L -100 -200" and use
+        //   "M 100 200 L 200 100 -100 -200" instead).
+        // - Relative versions of all commands are available (uppercase means
+        //   absolute coordinates, lowercase means relative coordinates).
+        // - Alternate forms of lineto are available to optimize the special
+        //   cases of horizontal and vertical lines (absolute and relative).
+        // - Alternate forms of curve are available to optimize the special
+        //   cases where some of the control points on the current segment can 
+        //   be determined automatically from the control points on the previous
+        //   segment.
+        // - The processing of the BNF must consume as much of a given BNF
+        //   production as possible, stopping at the point when a character is
+        //   encountered which no longer satisfies the production. Thus, in the
+        //   string "M 100-200", the first coordinate for the "moveto" consumes
+        //   the characters "100" and stops upon encountering the minus sign
+        //   because the minus sign cannot follow a digit in the production of
+        //   a "coordinate". The result is that the first coordinate will be
+        //   "100" and the second coordinate will be "-200".
+        // - Similarly, for the string "M 0.6.5", the first coordinate of the
+        //   "moveto" consumes the characters "0.6" and stops upon encountering
+        //   the second decimal point because the production of a "coordinate"
+        //   only allows one decimal point. The result is that the first
+        //   coordinate will be "0.6" and the second coordinate will be ".5".
+        // - The general rule for error handling in path data is that the SVG
+        //   user agent shall render a 'path' element up to (but not including)
+        //   the path command containing the first error...
+        // - If a path data command contains an incorrect set of parameters,
+        //   then the given path data command is rendered up to and including
+        //   the last correctly defined path segment...
         if (svgPathData === null || svgPathData === undefined){
             return null;
         }
-        var parts = svgPathData.split(" ").filter(function(p){
-            return p !== "";
-        });
+        var i = 0;
+        var l = svgPathData.length;
         this.subpaths = [];
-        var part;
         var subpath = null;
-        var point = JSPoint.Zero;
-        var cp1;
-        var cp2;
+        var segment = null;
+        var point = this._currentPoint;
         var curve;
-        while (parts.length > 0){
-            part = parts.shift();
-            if (part === "M"){
-                if (parts.length < 2){
+        var previousCommand = null;
+        var command = null;
+        var token = null;
+        var isWhitespace = function(c){
+            return c === " " || c === "\t" || c === "\r" || c === "\n";
+        };
+        var isDigit = function(c){
+            return c >= "0" && c <= "9";
+        };
+        var parseToken = function(){
+            var c;
+            var str;
+            var signAllowed;
+            var decimalAllowed;
+            var exponentAllowed;
+            if (i < l){
+                c = svgPathData[i];
+                while (i < l && isWhitespace(c)){
+                    ++i;
+                    if (i < l){
+                        c = svgPathData[i];
+                    }
+                }
+            }
+            if (i < l){
+                if (
+                    c === "M" || c === "m" ||
+                    c === "L" || c === "l" ||
+                    c === "C" || c === "c" ||
+                    c === "S" || c === "s" ||
+                    c === "Z" || c === "z" ||
+                    c === "Q" || c === "q" ||
+                    c === "T" || c === "t" ||
+                    c === "A" || c === "a"
+                ){
+                    ++i;
+                    return c;
+                }
+                str = "";
+                signAllowed = true;
+                decimalAllowed = true;
+                exponentAllowed = true;
+                while (i < l){
+                    c = svgPathData[i];
+                    if ((c === "-" || c === "+") && signAllowed){
+                        signAllowed = false;
+                    }else if (c === "." && decimalAllowed){
+                        decimalAllowed = false;
+                        signAllowed = false;
+                    }else if ((c === "e" || c === "E") && exponentAllowed && str !== ""){
+                        exponentAllowed = false;
+                        signAllowed = true;
+                        decimalAllowed = true;
+                    }else if (isDigit(c)){
+                        signAllowed = false;
+                    }else{
+                        break;
+                    }
+                    str += c;
+                    ++i;
+                }
+                if (str === ""){
+                    ++i;
+                    return null;
+                }
+                while (i < l && (isWhitespace(c) || c === ",")){
+                    ++i;
+                    if (i < l){
+                        c = svgPathData[i];
+                    }
+                }
+                try{
+                    return parseFloat(str);
+                }catch (e){
+                    return null;
+                }
+            }
+            return null;
+        };
+        var tokenBuffer = null;
+        var parseCommand = function(){
+            var command = null;
+            var token = tokenBuffer;
+            tokenBuffer = null;
+            if (token === null){
+                token = parseToken();
+            }
+            if (token !== null){
+                if (typeof(token) === "string"){
+                    command = {name: token, values: []};
+                    token = parseToken();
+                    while (typeof(token) === "number"){
+                        command.values.push(token);
+                        token = parseToken();
+                    }
+                    tokenBuffer = token;
+                }
+            }
+            return command;
+        };
+        command = parseCommand();
+        var v;
+        while (command !== null){
+            if (command.name === "M"){
+                if (command.values.length < 2){
                     break;
                 }
-                point = JSPoint.Zero;
-                part = parts.shift();
-                point.x = parseFloat(part);
-                part = parts.shift();
-                point.y = parseFloat(part);
+                point = JSPoint(command.values[0], command.values[1]);
                 subpath = Subpath(point);
                 this.subpaths.push(subpath);
-                this._currentPoint = point;
-            }else if (part === "L"){
-                if (parts.length < 2){
+                segment = null;
+                // If a moveto is followed by multiple pairs of coordinates,
+                // the subsequent pairs are treated as implicit lineto commands.
+                for (v = 2; v < command.values.length - 1; v += 2){
+                    point = JSPoint(command.values[v], command.values[v + 1]);
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "m"){
+                if (command.values.length < 2){
+                    break;
+                }
+                if (point !== null){
+                    point = point.adding(JSPoint(command.values[0], command.values[1]))
+                }else{
+                    point = JSPoint(command.values[0], command.values[1]);
+                }
+                subpath = Subpath(point);
+                this.subpaths.push(subpath);
+                segment = null;
+                // If a moveto is followed by multiple pairs of coordinates,
+                // the subsequent pairs are treated as implicit lineto commands.
+                for (v = 2; v < command.values.length - 1; v += 2){
+                    point = point.adding(JSPoint(command.values[v], command.values[v + 1]));
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "L"){
+                if (command.values.length < 2){
                     break;
                 }
                 if (subpath === null){
                     subpath = Subpath(point);
                     this.subpaths.push(subpath);
                 }
-                point = JSPoint.Zero;
-                part = parts.shift();
-                point.x = parseFloat(part);
-                part = parts.shift();
-                point.y = parseFloat(part);
-                subpath.segments.push({type: JSPath.SegmentType.line, end: point});
-                this._currentPoint = point;
-            }else if (part === "C"){
-                if (parts.length < 6){
+                for (v = 0; v < command.values.length - 1; v += 2){
+                    point = JSPoint(command.values[v], command.values[v + 1]);
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "l"){
+                if (command.values.length < 2){
                     break;
                 }
                 if (subpath === null){
                     subpath = Subpath(point);
                     this.subpaths.push(subpath);
                 }
-                cp1 = JSPoint.Zero;
-                cp2 = JSPoint.Zero;
-                point = JSPoint.Zero;
-                part = parts.shift();
-                cp1.x = parseFloat(part);
-                part = parts.shift();
-                cp1.y = parseFloat(part);
-                part = parts.shift();
-                cp2.x = parseFloat(part);
-                part = parts.shift();
-                cp2.y = parseFloat(part);
-                part = parts.shift();
-                point.x = parseFloat(part);
-                part = parts.shift();
-                point.y = parseFloat(part);
-                subpath.segments.push({type: JSPath.SegmentType.curve, curve: JSCubicBezier(this._currentPoint, cp1, cp2, point)});
-                this._currentPoint = point;
-            }else if (part === "Z"){
+                for (v = 0; v < command.values.length - 1; v += 2){
+                    point = point.adding(JSPoint(command.values[v], command.values[v + 1]));
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "H"){
+                if (command.values.length < 1){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length; v += 1){
+                    point = JSPoint(command.values[v], point.y);
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "h"){
+                if (command.values.length < 1){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length; v += 1){
+                    point = point.adding(JSPoint(command.values[v], 0));
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "V"){
+                if (command.values.length < 1){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length; v += 1){
+                    point = JSPoint(point.x, command.values[v]);
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "v"){
+                if (command.values.length < 1){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length; v += 1){
+                    point = point.adding(JSPoint(0, command.values[v]));
+                    segment = {type: JSPath.SegmentType.line, end: point};
+                    subpath.segments.push(segment);
+                }
+            }else if (command.name === "C"){
+                if (command.values.length < 6){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 5; v += 6){
+                    curve = JSCubicBezier(
+                        point,
+                        JSPoint(command.values[v], command.values[v + 1]),
+                        JSPoint(command.values[v + 2], command.values[v + 3]),
+                        JSPoint(command.values[v + 4], command.values[v + 5])
+                    );
+                    segment = {type: JSPath.SegmentType.curve, curve: curve};
+                    subpath.segments.push(segment);
+                    point = curve.p2;
+                }
+            }else if (command.name === "c"){
+                if (command.values.length < 6){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 5; v += 6){
+                    curve = JSCubicBezier(
+                        point,
+                        point.adding(JSPoint(command.values[v], command.values[v + 1])),
+                        point.adding(JSPoint(command.values[v + 2], command.values[v + 3])),
+                        point.adding(JSPoint(command.values[v + 4], command.values[v + 5]))
+                    );
+                    segment = {type: JSPath.SegmentType.curve, curve: curve};
+                    subpath.segments.push(segment);
+                    point = curve.p2;
+                }
+            }else if (command.name === "S"){
+                if (command.values.length < 4){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 3; v += 4){
+                    curve = JSCubicBezier(
+                        point,
+                        point,
+                        JSPoint(command.values[v + 1], command.values[v + 2]),
+                        JSPoint(command.values[v + 3], command.values[v + 4])
+                    );
+                    if (previousCommand !== null && (previousCommand.name === "C" || previousCommand.name === "c" || previousCommand.name === "S" || previousCommand.name === "s")){
+                        curve.cp1 = point.adding(segment.curve.p2.subtracting(segment.curve.cp2));
+                    }
+                    segment = {type: JSPath.SegmentType.curve, curve: curve};
+                    subpath.segments.push(segment);
+                    point = curve.p2;
+                }
+            }else if (command.name === "s"){
+                if (command.values.length < 4){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 3; v += 4){
+                    curve = JSCubicBezier(
+                        point,
+                        point,
+                        point.adding(JSPoint(command.values[v + 1], command.values[v + 2])),
+                        point.adding(JSPoint(command.values[v + 3], command.values[v + 4]))
+                    );
+                    if (previousCommand !== null && (previousCommand.name === "C" || previousCommand.name === "c" || previousCommand.name === "S" || previousCommand.name === "s")){
+                        curve.cp1 = point.adding(segment.curve.p2.subtracting(segment.curve.cp2));
+                    }
+                    subpath.segments.push({type: JSPath.SegmentType.curve, curve: curve});
+                    point = curve.p2;
+                }
+            }else if (command.name === "Z" || command.name === "z"){
                 if (subpath !== null){
                     subpath.closed = true;
                     subpath = null;
                 }
+            }else{
+                break;
             }
+            previousCommand = command;
+            command = parseCommand();
         }
+        this._currentPoint = point;
     },
 
     svgPathData: function(){
@@ -1074,14 +1356,14 @@ JSClass("JSPath", JSObject, {
         var data = "";
         for (i = 0, l = this.subpaths.length; i < l; ++i){
             subpath = this.subpaths[i];
+            data += "M %0.f %0.f ".sprintf(subpath.firstPoint.x, subpath.firstPoint.y);
             if (subpath.segments.length > 0){
-                data += "M %f %f ".sprintf(subpath.firstPoint.x, subpath.firstPoint.y);
                 for (j = 0, k = subpath.segments.length; j < k; ++j){
                     segment = subpath.segments[j];
                     if (segment.type == JSPath.SegmentType.line){
-                        data += "L %f %f ".sprintf(segment.end.x, segment.end.y);
+                        data += "L %0.f %0.f ".sprintf(segment.end.x, segment.end.y);
                     }else if (segment.type == JSPath.SegmentType.curve){
-                        data += "C %f %f %f %f %f %f ".sprintf(
+                        data += "C %0.f %0.f %0.f %0.f %0.f %0.f ".sprintf(
                             segment.curve.cp1.x,
                             segment.curve.cp1.y,
                             segment.curve.cp2.x,
