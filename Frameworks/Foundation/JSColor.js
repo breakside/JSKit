@@ -373,6 +373,11 @@ JSClass('JSColor', JSObject, {
         var rgbaColor = this.rgbaColor();
         var hsl = JSColorSpace.rgb.hslFromComponents(rgbaColor.components);
         return hsl[2];
+    },
+
+    cssString: function(){
+        var rgbaColor = this.rgbaColor();
+        return 'rgba(%d, %d, %d, %f)'.sprintf(Math.round(rgbaColor.components[0] * 255), Math.round(rgbaColor.components[1] * 255), Math.round(rgbaColor.components[2] * 255), rgbaColor.components[3]);
     }
 
 });

@@ -173,6 +173,16 @@ JSClass('JSGradientTests', TKTestSuite, {
         TKAssertFloatEquals(gradient2.stops[0].color.white, 0.5);
         TKAssertFloatEquals(gradient2.stops[1].position, 1/3);
         TKAssertFloatEquals(gradient2.stops[1].color.white, 0);
+    },
+
+    testCSSString: function(){
+        var gradient = JSGradient.init();
+        gradient.start.y = 1;
+        gradient.end.y = 0;
+        gradient.addStop(0, JSColor.black);
+        gradient.addStop(1, JSColor.white);
+        var css = gradient.cssString(JSSize(100, 100));
+        TKAssertExactEquals(css, "linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%)");
     }
 
 });
