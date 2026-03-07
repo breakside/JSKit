@@ -896,6 +896,99 @@ JSClass("JSPath", JSObject, {
         // to worry about for most shapes.  Will refined if needed.
         return false;
     },
+
+    pathConvertedToTransform: function(transform){
+        var path = JSPath.init();
+        var subpath0;
+        var segment0;
+        var subpath1;
+        var segment1;
+        var point0;
+        var point1;
+        var i, l;
+        var j, k;
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath0 = this.subpaths[i];
+            if (subpath0.segments.length > 0){
+                point0 = subpath0.firstPoint;
+                point1 = transform.convertPointToTransform(point0);
+                subpath1 = Subpath(point1);
+                path.subpaths.push(subpath1);
+                for (j = 0, k = subpath0.segments.length; j < k; ++j){
+                    segment0 = subpath0.segments[j];
+                    if (segment0.type == JSPath.SegmentType.line){
+                        segment1 = {
+                            type: JSPath.SegmentType.line,
+                            end: transform.convertPointToTransform(segment0.end)
+                        };
+                        subpath1.segments.push(segment1);
+                        point1 = segment1.end;
+                    }else if (segment0.type == JSPath.SegmentType.curve){
+                        segment1 = {
+                            type: JSPath.SegmentType.curve,
+                            curve: JSCubicBezier(
+                                point1,
+                                transform.convertPointToTransform(segment0.curve.cp1),
+                                transform.convertPointToTransform(segment0.curve.cp2),
+                                transform.convertPointToTransform(segment0.curve.p2)
+                            )
+                        };
+                        subpath1.segments.push(segment1);
+                        point1 = segment1.curve.p2;
+                    }
+                }
+                subpath1.closed = subpath0.closed;
+            }
+        }
+        return path;
+    },
+
+    pathConvertedFromTransform: function(transform){
+        var path = JSPath.init();
+        var subpath0;
+        var segment0;
+        var subpath1;
+        var segment1;
+        var point0;
+        var point1;
+        var i, l;
+        var j, k;
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath0 = this.subpaths[i];
+            if (subpath0.segments.length > 0){
+                point0 = subpath0.firstPoint;
+                point1 = transform.convertPointFromTransform(point0);
+                subpath1 = Subpath(point1);
+                path.subpaths.push(subpath1);
+                for (j = 0, k = subpath0.segments.length; j < k; ++j){
+                    segment0 = subpath0.segments[j];
+                    if (segment0.type == JSPath.SegmentType.line){
+                        segment1 = {
+                            type: JSPath.SegmentType.line,
+                            end: transform.convertPointFromTransform(segment0.end)
+                        };
+                        subpath1.segments.push(segment1);
+                        point1 = segment1.end;
+                    }else if (segment0.type == JSPath.SegmentType.curve){
+                        segment1 = {
+                            type: JSPath.SegmentType.curve,
+                            curve: JSCubicBezier(
+                                point1,
+                                transform.convertPointFromTransform(segment0.curve.cp1),
+                                transform.convertPointFromTransform(segment0.curve.cp2),
+                                transform.convertPointFromTransform(segment0.curve.p2)
+                            )
+                        };
+                        subpath1.segments.push(segment1);
+                        point1 = segment1.curve.p2;
+                    }
+                }
+                subpath1.closed = subpath0.closed;
+            }
+        }
+        return path;
+    },
+
     initWithSVGPathData: function(svgPathData){
         if (svgPathData === null || svgPathData === undefined){
             return null;
