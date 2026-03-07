@@ -838,6 +838,64 @@ JSClass("JSPath", JSObject, {
         return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
     },
 
+    intersectsPath: function(other, fillRule){
+        var boundingRect = this.boundingRect;
+        // no need to check if bounding rect don't intersect
+        if (!boundingRect.intersectsRect(other.boundingRect)){
+            return false;
+        }
+        // are any of our points inside other?
+        var subpath;
+        var segment;
+        var i, l;
+        var j, k;
+        var point;
+        for (i = 0, l = this.subpaths.length; i < l; ++i){
+            subpath = this.subpaths[i];
+            if (subpath.segments.length > 0){
+                if (other.containsPoint(subpath.firstPoint, fillRule)){
+                    return true;
+                }
+                for (j = 0, k = subpath.segments.length; j < k; ++j){
+                    segment = subpath.segments[j];
+                    if (segment.type == JSPath.SegmentType.line){
+                        if (other.containsPoint(segment.end, fillRule)){
+                            return true;
+                        }
+                    }else if (segment.type == JSPath.SegmentType.curve){
+                        if (other.containsPoint(segment.curve.p2, fillRule)){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        // are any of other's points iside us?
+        for (i = 0, l = other.subpaths.length; i < l; ++i){
+            subpath = other.subpaths[i];
+            if (subpath.segments.length > 0){
+                if (this.containsPoint(subpath.firstPoint, fillRule)){
+                    return true;
+                }
+                for (j = 0, k = subpath.segments.length; j < k; ++j){
+                    segment = subpath.segments[j];
+                    if (segment.type == JSPath.SegmentType.line){
+                        if (this.containsPoint(segment.end, fillRule)){
+                            return true;
+                        }
+                    }else if (segment.type == JSPath.SegmentType.curve){
+                        if (this.containsPoint(segment.curve.p2, fillRule)){
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        // Could still have situations where curves intersect without
+        // points contained within each other, but not significant enough
+        // to worry about for most shapes.  Will refined if needed.
+        return false;
+    },
     initWithSVGPathData: function(svgPathData){
         if (svgPathData === null || svgPathData === undefined){
             return null;
