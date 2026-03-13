@@ -177,7 +177,11 @@ JSClass("JSSpec", JSObject, {
                 return this._root.valueForKey(value.substr(1), type, allocatedObject);
             }
             if (prefix == '@'){
-                return JSObject.initWithSpecName(value.substr(1), this._root._bundle);
+                value = JSSpec.initWithResource(value.substr(1), this._root._bundle);
+                if (value === null){
+                    throw new Error("Spec not found: %s".sprintf(value.substr(1)));
+                }
+                return value.filesOwner;
             }
             if (type !== null){
                 if (value in type){
