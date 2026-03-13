@@ -57,7 +57,7 @@
                 elements.splice(index++, 0, params);
                 params.setAttribute("class", "parameters");
                 let header = params.appendChild(document.createElement("header"));
-                let h1 = header.appendChild(document.createElement("h1"));
+                let h1 = header.appendChild(document.createElement("h2"));
                 h1.setAttribute("outline-level", "1");
                 h1.appendChild(document.createTextNode("Parameters"));
                 let dl = fn.argumentListElement(document, this);
@@ -69,7 +69,7 @@
                 elements.splice(index++, 0, returnSection);
                 returnSection.setAttribute("class", "return");
                 let header = returnSection.appendChild(document.createElement("header"));
-                let h1 = header.appendChild(document.createElement("h1"));
+                let h1 = header.appendChild(document.createElement("h2"));
                 h1.setAttribute("outline-level", "1");
                 h1.appendChild(document.createTextNode("Return Value"));
 

@@ -300,7 +300,7 @@ JSClass("DocComponent", JSObject, {
             let section = document.createElement('section');
             section.setAttribute('class', 'see');
             let header = document.createElement('header');
-            let h1 = header.appendChild(document.createElement("h1"));
+            let h1 = header.appendChild(document.createElement("h2"));
             h1.appendChild(document.createTextNode('See Also'));
             let p = document.createElement('p');
             section.appendChild(header);
@@ -428,10 +428,10 @@ JSClass("DocComponent", JSObject, {
             let description = document.createElement("section");
             elements.push(description);
             description.setAttribute("class", "description");
-            let markdown = this.createMarkdownWithString(this.description);
+            let markdown = this.createMarkdownWithString(this.description,);
             let children = markdown.htmlElementsForDocument(document);
             if (children.length === 0 || children[0].tagName != markdown.htmlOptions.firstLevelHeaderTagName){
-                let h1 = description.appendChild(document.createElement("h1"));
+                let h1 = description.appendChild(document.createElement(markdown.htmlOptions.firstLevelHeaderTagName));
                 h1.appendChild(document.createTextNode(this.titleForDescriptionSection));
                 h1.setAttribute("outline-level", "1");
             }
@@ -591,7 +591,7 @@ JSClass("DocComponent", JSObject, {
     codeSectionElement: function(document, title, lines){
         var section = document.createElement("section");
         var header = section.appendChild(document.createElement("header"));
-        var h1 = header.appendChild(document.createElement("h1"));
+        var h1 = header.appendChild(document.createElement("h2"));
         h1.appendChild(document.createTextNode(title));
         var code = section.appendChild(document.createElement("div"));
         code.setAttribute("class", "code");
@@ -865,6 +865,8 @@ JSClass("DocComponent", JSObject, {
 
     createMarkdownWithString: function(string){
         let markdown = Markdown.initWithString(string);
+        markdown.htmlOptions.firstLevelHeaderTagName = "h2";
+        markdown.htmlOptions.secondLevelHeaderTagName = "h3";
         markdown.delegate = this;
         return markdown;
     },

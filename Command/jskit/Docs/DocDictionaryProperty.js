@@ -45,7 +45,7 @@
             elements.splice(index++, 0, typeSection);
             typeSection.setAttribute("class", "return");
             let header = typeSection.appendChild(document.createElement("header"));
-            let h1 = header.appendChild(document.createElement("h1"));
+            let h1 = header.appendChild(document.createElement("h2"));
             h1.appendChild(document.createTextNode("Value Type"));
             let p = typeSection.appendChild(document.createElement("p"));
             let code = p.appendChild(document.createElement("code"));
@@ -65,7 +65,7 @@
             section.setAttribute("class", "variations");
             elements.push(section);
             let header = section.appendChild(document.createElement("header"));
-            let h1 = header.appendChild(document.createElement("h1"));
+            let h1 = header.appendChild(document.createElement("h2"));
             h1.appendChild(document.createTextNode("Alternate Forms"));
 
             let ul = section.appendChild(document.createElement("ul"));

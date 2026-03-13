@@ -57,7 +57,7 @@
                     elements.push(inherits);
                     inherits.setAttribute("class", "inherits");
                     let header = inherits.appendChild(document.createElement("header"));
-                    let h1 = header.appendChild(document.createElement("h1"));
+                    let h1 = header.appendChild(document.createElement("h2"));
                     h1.appendChild(document.createTextNode("Inherits From"));
                     let p = inherits.appendChild(document.createElement("p"));
                     let code = p.appendChild(document.createElement("code"));
