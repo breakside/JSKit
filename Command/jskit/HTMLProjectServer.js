@@ -172,6 +172,12 @@ JSClass("HTMLProjectServer", JSObject, {
                                 }
                             }
                         }
+                        if (this.project.info.HTMLDocViewer){
+                            if (this.filenameMap["docs" + url.path]){
+                                statusCode = 302;
+                                headers.Location = "/#" + url.path;
+                            }
+                        }
                         if (statusCode === null){
                             if (url.pathComponents.length === 2){
                                 if (url.pathComponents[1] === "index.html"){
