@@ -1197,7 +1197,9 @@ JSClass("HTMLBuilder", Builder, {
                         this.httpServer.tlsKeyFileURL = JSURL.initWithString(this.arguments['tls-key'], this.workingDirectoryURL);
                     }
                 }
-                this.httpServer.run();
+                await this.httpServer.run();
+            }else{
+                await this.httpServer.reload();
             }
         }else{
             if (this.httpServer !== null){

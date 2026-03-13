@@ -49,6 +49,7 @@ JSClass("HTMLProjectServer", JSObject, {
     _nodeHttpServer: null,
 
     run: async function(){
+        await this.reload();
         var scheme = "http";
         if (this.tlsCertificateFileURL !== null && this.tlsKeyFileURL !== null){
             scheme = "https";
@@ -81,6 +82,10 @@ JSClass("HTMLProjectServer", JSObject, {
         }
     },
 
+    reload: async function(){
+        await this.loadFilenameMap();
+    },
+
     stop: function(completion, target){
         if (!completion){
             completion = Promise.completion();
@@ -106,6 +111,32 @@ JSClass("HTMLProjectServer", JSObject, {
         "/apple-touch-icon.png",
         "/apple-touch-icon-precomposed.png"
     ])),
+
+    filenameMap: null,
+
+    loadFilenameMap: async function(){
+        this.filenameMap = {};
+        var configFiles = this.project.info.HMTLManifestConfiguration || [];
+        if (!(configFiles instanceof Array)){
+            configFiles = [configFiles];
+        }
+
+        for (let i = 0, l = configFiles.length; i < l; ++i){
+            let config = configFiles[i];
+            if (typeof(config) == "string"){
+                let url = this.project.url.appendingPathComponent(configFiles[i]);
+                let contents = await this.fileManager.contentsAtURL(url);
+                let json = contents.stringByDecodingUTF8();
+                config = JSON.parse(json);
+            }
+            for (let k in config){
+                let item = config[k];
+                if (item.path && item.path !== k){
+                    this.filenameMap[item.path] = k;
+                }
+            }
+        }
+    },
 
     _handleNodeRequest: async function(nodeRequest, nodeResponse){
         let statusCode = null;
@@ -161,7 +192,8 @@ JSClass("HTMLProjectServer", JSObject, {
                                 headers["Cache-Control"] = "max-age=315360000"; // ~10 years
                                 headers.Etag = url.lastPathComponent;
                             }
-                            let fileURL = this.wwwURL.appendingPathComponents(url.pathComponents.slice(1));
+                            let path = url.pathComponents.slice(1).join("/");
+                            let fileURL = this.wwwURL.appendingPathComponents((this.filenameMap[path] || path).split("/"));
                             let exists = await this.fileManager.itemExistsAtURL(fileURL);
                             if (exists){
                                 let attributes = await this.fileManager.attributesOfItemAtURL(fileURL);
