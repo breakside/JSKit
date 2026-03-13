@@ -44,6 +44,7 @@ JSClass("Documentation", JSObject, {
         this.fileManager = fileManager;
     },
 
+    customStylesheetURL: null,
     stylesheetURL: null,
     rootURL: null,
     outputDirectoryURL: null,
@@ -197,8 +198,15 @@ JSClass("Documentation", JSObject, {
         var stylesURL = this.wwwURL.appendingPathComponent('_style', true);
         var metadata = JSBundle.mainBundle.metadataForResourceName('doc-default', 'css');
         var contents = await JSBundle.mainBundle.getResourceData(metadata);
-        this.stylesheetURL = stylesURL.appendingPathComponent('default.css');
-        await this.fileManager.createFileAtURL(this.stylesheetURL, contents);
+        var defaultStyleURL = stylesURL.appendingPathComponent('default.css');
+        await this.fileManager.createFileAtURL(defaultStyleURL, contents);
+        if (this.customStylesheetURL !== null){
+            var customStyleURL = stylesURL.appendingPathComponent(this.customStylesheetURL.lastPathComponent);
+            await this.fileManager.copyItemAtURL(this.customStylesheetURL, customStyleURL);
+            this.stylesheetURL = customStyleURL;
+        }else{
+            this.stylesheetURL = defaultStyleURL;
+        }
     },
 
     loadSource: async function(url){

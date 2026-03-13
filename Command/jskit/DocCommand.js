@@ -26,8 +26,8 @@ JSClass("DocCommand", Command, {
     options: {
         input: {kind: "positional", help: "The root documentation file to start with"},
         output: {kind: "positional", help: "The directory in which to output the generated documentation"},
-        sublime: {kind: "flag", help: "Generate Sublime Text completions"}
-        // style: {default: null, help: "The stylesheet to use"}
+        sublime: {kind: "flag", help: "Generate Sublime Text completions"},
+        stylesheet: {default: null, help: "Path to the stylesheet to use for docs"},
     },
 
     run: async function(){
@@ -37,6 +37,9 @@ JSClass("DocCommand", Command, {
         var documentation = Documentation.initWithRootURL(rootURL, this.fileManager);
         documentation.printer = printer;
         documentation.outputDirectoryURL = this.fileManager.urlForPath(this.arguments.output, workspaceURL);
+        if (this.arguments.stylesheet){
+            documentation.customStylesheetURL = this.fileManager.urlForPath(this.arguments.stylesheet, workspaceURL);
+        }
 
         if (this.arguments.sublime){
             await documentation.sublime();
