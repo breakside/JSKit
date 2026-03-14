@@ -210,12 +210,23 @@ JSClass("Documentation", JSObject, {
     },
 
     loadSource: async function(url){
-        this.printer.setStatus("Reading %s...".sprintf(url.lastPathComponent));
-        let exists = await this.fileManager.itemExistsAtURL(url);
-        if (!exists){
+        if (url.scheme === "jskit"){
+            if (!this.hasAttemptedJSKitDownload){
+                await this.downloadJSKitDocumentation();
+            }
+            url = JSURL.initWithString(url.path + ".doc.yaml", this.jskitDocumenationLocalURL);
+        }
+        let contents = null;
+        if (url.scheme === JSFileManager.Scheme.file){
+            this.printer.setStatus("Reading %s...".sprintf(url.lastPathComponent));
+            let exists = await this.fileManager.itemExistsAtURL(url);
+            if (exists){
+                contents = await this.fileManager.contentsAtURL(url);
+            }
+        }
+        if (contents === null){
             return null;
         }
-        let contents = await this.fileManager.contentsAtURL(url);
         let yaml = contents.stringByDecodingUTF8();
         let info = jsyaml.safeLoad(yaml);
         if (!info.name){
@@ -227,8 +238,64 @@ JSClass("Documentation", JSObject, {
         return component;
     },
 
+    jskitVersion: JSLazyInitProperty(() => JSBundle.mainBundle.info.JSBundleVersion),
+
+    jskitDocumenationRemoteURL: JSLazyInitProperty(function(){
+        let url = JSURL.initWithString("https://github.com/breakside/JSKit/archive/refs/tags/");
+        url.appendPathComponent("v" + this.jskitVersion + ".zip");
+        return url;
+    }),
+
+    jskitDocumenationLocalURL: JSLazyInitProperty(function(){
+        return JSURL.initWithString("JSKit", this.rootURL).appendingPathComponent(this.jskitVersion, true);
+    }),
+
+    hasAttemptedJSKitDownload: false,
+
+    downloadJSKitDocumentation: async function(){
+        if (!this.hasAttemptedJSKitDownload){
+            this.hasAttemptedJSKitDownload = true;
+            let exists = await this.fileManager.itemExistsAtURL(this.jskitDocumenationLocalURL);
+            if (!exists){
+                this.printer.setStatus("Downloading JSKit docs...");
+                let task = JSURLSession.shared.dataTaskWithURL(this.jskitDocumenationRemoteURL);
+                let response = await task.resume();
+                if (response.statusClass === JSURLResponse.StatusClass.success){
+                    this.printer.setStatus("Unzipping JSKit docs...");
+                    let zip = JSZip.initWithData(response.data);
+                    if (zip !== null){
+                        let docsPrefix = "JSKit-" + this.jskitVersion + "/Documentation/Code/";
+                        let url;
+                        let contents;
+                        for (let filename of zip.filenames){
+                            if (filename.startsWith(docsPrefix) && !filename.endsWith("/")){
+                                contents = zip.dataForFilename(filename);
+                                if (contents !== null){
+                                    filename = filename.substr(docsPrefix.length);
+                                    url = JSURL.initWithString(filename, this.jskitDocumenationLocalURL);
+                                    await this.fileManager.createFileAtURL(url, contents);
+                                }else{
+                                    throw new Error("could not extract " + filename);
+                                }
+                            }
+                        }
+                    }else{
+                        throw new Error("Could not read zip");
+                    }
+                }else{
+                    throw new Error("Response status is %d".sprintf(response.statusCode));
+                }
+            }
+        }
+    },
+
     createComponentFromInfo: async function(info, baseURL, defaultKind){
         if (typeof(info) === 'string'){
+            if (info.startsWith("jskit:")){
+                let url = JSURL.initWithString(info);
+                let component = await this.loadSource(url);
+                return component;
+            }
             let url = JSURL.initWithString(info + '.doc.yaml', baseURL);
             url.standardize();
             let component = await this.loadSource(url);
