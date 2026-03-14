@@ -11,7 +11,158 @@ JSClass("JSZip", JSObject, {
     init: function(){
         this.chunks = [];
         this.directory = [];
+        this.directoryIndexByFilename = {};
         this.offset = 0;
+    },
+
+    initWithData: function(data){
+        if (data === null || data === undefined){
+            return null;
+        }
+        if (data.length < 22){
+            return null;
+        }
+        this._data = data;
+        this.directory = [];
+        this.directoryIndexByFilename = {};
+        var offset = this._data.length - 22;
+        var minOffset = Math.max(0, offset - 0xFFFF);
+        while (offset >= minOffset && !(this._data[offset] === 0x50 && this._data[offset+1] === 0x4b && this._data[offset+2] === 0x05 && this._data[offset+3] === 0x06)){
+            offset -= 1;
+        }
+        if (offset < minOffset){
+            return null;
+        }
+        var end = this._data.subdataInRange(JSRange(offset, this._data.length - offset));
+        var dataView = end.dataView();
+        // End of Central Directory Record (APPNOTE.txt 4.3.16)
+        // everything is little-endian
+        var signature = dataView.getUint32(0, true);
+        if (signature !== 0x06054b50){
+            return null;
+        }
+        var diskNumber = dataView.getUint16(4, true);
+        var diskNumberWithDirectoryStart = dataView.getUint16(6, true);
+        var numberOfItemsOnDisk = dataView.getUint16(8, true);
+        var numberOfItemsTotal = dataView.getUint16(10, true);
+        var sizeOfDirectory = dataView.getUint32(12, true);
+        var offsetOfDirectoryStart = dataView.getUint32(16, true);
+        var commentLength = dataView.getUint16(20, true);
+        if (diskNumber !== 0 || diskNumberWithDirectoryStart !== 0){
+            return null;
+        }
+        if (offsetOfDirectoryStart + sizeOfDirectory > this._data.length){
+            return null;
+        }
+        var directory = this._data.subdataInRange(JSRange(offsetOfDirectoryStart, sizeOfDirectory));
+        dataView = directory.dataView();
+        var crc;
+        var compressedLength;
+        var uncompressedLength;
+        var nameLength;
+        var extraFieldLength;
+        var name;
+        var headerOffset;
+        var offset = 0;
+        for (var i = 0; i < numberOfItemsTotal; ++i){
+            // Central Directory File Header (APPNOTE.txt 4.3.12)
+            // Everything is little-endian
+            if (offset + 46 > sizeOfDirectory){
+                return null;
+            }
+            signature = dataView.getUint32(offset + 0, true);
+            if (signature !== 0x02014b50){
+                return null;
+            }
+            crc = dataView.getUint32(offset + 16, true);
+            compressedLength = dataView.getUint32(offset + 20, true);
+            uncompressedLength = dataView.getUint32(offset + 24, true);
+            nameLength = dataView.getUint16(offset + 28, true);
+            extraFieldLength = dataView.getUint16(offset + 30, true);
+            commentLength = dataView.getUint16(offset + 32, true);
+            headerOffset = dataView.getUint32(offset + 42, true);
+            if (offset + 46 + nameLength > sizeOfDirectory){
+                return null;
+            }
+            name = directory.subdataInRange(JSRange(offset + 46, nameLength)).stringByDecodingUTF8();
+            this.directory.push({
+                name: name,
+                offset: headerOffset,
+                header: this.data.subdataInRange(JSRange(headerOffset, 30 + nameLength + extraFieldLength)),
+                crc: crc,
+                compressedLength: compressedLength,
+                uncompressedLength: uncompressedLength
+            });
+            this.directoryIndexByFilename[name] = i;
+            offset += 46 + nameLength + extraFieldLength + commentLength;
+        }
+
+    },
+
+    directoryIndexByFilename: null,
+    filenames: JSReadOnlyProperty(),
+
+    getFilenames: function(){
+        var filenames = [];
+        for (var i = 0, l = this.directory.length; i < l; ++i){
+            filenames.push(this.directory[i].name);
+        }
+        return filenames;
+    },
+
+    dataForFilename: function(filename){
+        var index = this.directoryIndexByFilename[filename];
+        if (index === undefined){
+            return null;
+        }
+        var file = this.directory[index];
+        var dataView = file.header.dataView();
+        var signature = dataView.getUint32(0, true);
+        if (signature !== 0x04034b50){
+            return null;
+        }
+        var version = dataView.getUint16(4, true);
+        var flags = dataView.getUint16(6, true);
+        var method = dataView.getUint16(8, true);
+        var crc = dataView.getUint32(14, true);
+        var compressedLength = dataView.getUint32(18, true);
+        var uncompressedLength = dataView.getUint32(22, true);
+        var nameLength = dataView.getUint16(26, true);
+        var extraFieldLength = dataView.getUint16(28, true);
+        var offset = file.offset + 30 + nameLength + extraFieldLength;
+        if (version > 20){
+            return null;
+        }
+        if (method !== 8){
+            return null;
+        }
+        if ((flags & 0x8) !== 0){
+            crc = file.crc;
+            compressedLength = file.compressedLength;
+            uncompressedLength = file.uncompressedLength;
+        }
+        if (offset + compressedLength > this.data.length){
+            return null;
+        }
+        if (compressedLength === 0 || uncompressedLength === 0){
+            return null;
+        }
+        var compressedData = this.data.subdataInRange(JSRange(offset, compressedLength));
+        var data = JSData.initWithLength(uncompressedLength);
+        var stream = DeflateStream();
+        stream.input = compressedData;
+        stream.output = data;
+        stream.inflate(true);
+        if (stream.state !== DeflateStream.State.done){
+            data = null;
+        }
+        if (data === null){
+            return;
+        }
+        if (JSCRC32(data) !== crc){
+            return null;
+        }
+        return data;
     },
 
     offset: 0,
@@ -83,7 +234,10 @@ JSClass("JSZip", JSObject, {
         this.directory.push({
             name: name,
             offset: this.offset,
-            header: header
+            header: header,
+            crc: crc,
+            compressedLength: storedData.length,
+            uncompressedLength: data.length
         });
         this.chunks.push(header);
         this.chunks.push(storedData);

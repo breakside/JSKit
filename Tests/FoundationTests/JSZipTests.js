@@ -411,6 +411,26 @@ JSClass("JSZipTests", TKTestSuite, {
             TKAssertEquals(zipData[offset++], 0x00);
         });
         this.wait(expectation, 2.0);
+    },
+
+    testInitWithData: function(){
+        var expectation = TKExpectation.init();
+        expectation.call(this.getResourceData, this, "test", "zip", function(data){
+            var zip = JSZip.initWithData(data);
+            TKAssertNotNull(zip);
+            var filenames = zip.filenames;
+            TKAssertEquals(filenames.length, 3);
+            TKAssertEquals(filenames[0], "folder1/");
+            TKAssertEquals(filenames[1], "folder1/test2.txt");
+            TKAssertEquals(filenames[2], "test.txt");
+            data = zip.dataForFilename("test.txt");
+            TKAssertNotNull(data);
+            TKAssertEquals(data.stringByDecodingUTF8(), "Hello, world!");
+            data = zip.dataForFilename("folder1/test2.txt");
+            TKAssertNotNull(data);
+            TKAssertEquals(data.stringByDecodingUTF8(), "Second test!\n");
+        }, this);
+        this.wait(expectation, 2);
     }
 
 });
