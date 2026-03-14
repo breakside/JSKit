@@ -203,7 +203,7 @@ JSClass("HTMLProjectServer", JSObject, {
                             let exists = await this.fileManager.itemExistsAtURL(fileURL);
                             if (exists){
                                 let attributes = await this.fileManager.attributesOfItemAtURL(fileURL);
-                                headers["Content-Type"] = this.contentTypesByExtension[url.fileExtension] || "application/octet-stream";
+                                headers["Content-Type"] = this.contentTypesByExtension[fileURL.fileExtension] || "application/octet-stream";
                                 headers["Content-Length"] = attributes.size;
                                 filePath = this.fileManager.pathForURL(fileURL);
                                 statusCode = 200;
