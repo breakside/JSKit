@@ -270,7 +270,7 @@ article.doc > section.topics > section.topic > header{
     margin-right: 20px;
 }
 
-article.doc > section.topics > section.topic > header > h1{
+article.doc > section.topics > section.topic > header > h3{
     margin: 0;
 }
 
@@ -425,7 +425,7 @@ article.doc > footer > p {
     article.doc > section.topics > section.topic{
         display: block;
     }
-    article.doc > section.topics > section.topic > header > h1{
+    article.doc > section.topics > section.topic > header > h3{
         margin-bottom: 10px;
     }
 }
