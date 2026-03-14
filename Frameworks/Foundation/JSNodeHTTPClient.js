@@ -28,7 +28,10 @@ var https = require('https');
 
 JSClass("JSNodeHTTPClient", JSObject, {
 
-    send: function(request, callbacks, target){
+    send: function(request, callbacks, target, allowedRedirects){
+        if (allowedRedirects === undefined){
+            allowedRedirects = 5;
+        }
         var completed = false;
         var complete = function(error){
             if (completed){
@@ -41,6 +44,7 @@ JSClass("JSNodeHTTPClient", JSObject, {
         };
         try{
             var response = null;
+            var client = this;
 
             // Create node request
             var options = {
@@ -66,20 +70,36 @@ JSClass("JSNodeHTTPClient", JSObject, {
                 }
                 response._headerMap.parse(rawHeaders.join("\r\n"));
                 response.statusText = message.statusMessage;
-                if (callbacks.response){
-                    callbacks.response.call(target, response);
-                }
-                var chunks = [];
-                message.on('data', function(chunk){
-                    chunks.push(JSData.initWithNodeBuffer(chunk));
-                });
-                message.on('end', function(){
-                    if (completed){
-                        return;
+                if (allowedRedirects > 0 && (response.statusCode === JSURLResponse.StatusCode.movedPermanently || response.statusCode === JSURLResponse.StatusCode.found)){
+                    message.on('data', function(chunk){
+                    });
+                    message.on('end', function(){
+                        if (completed){
+                            return;
+                        }
+                        request = request.redirectedRequestToURL(response.location);
+                        if (callbacks.redirect){
+                            callbacks.redirect(request);
+                        }
+                        client.send(request, callbacks, target, allowedRedirects - 1);
+                        // TODO: send new request
+                    });
+                }else{
+                    if (callbacks.response){
+                        callbacks.response.call(target, response);
                     }
-                    response.data = JSData.initWithChunks(chunks);
-                    complete(null);
-                });
+                    var chunks = [];
+                    message.on('data', function(chunk){
+                        chunks.push(JSData.initWithNodeBuffer(chunk));
+                    });
+                    message.on('end', function(){
+                        if (completed){
+                            return;
+                        }
+                        response.data = JSData.initWithChunks(chunks);
+                        complete(null);
+                    });
+                }
             });
             nodeRequest.on('error', function(error){
                 complete(error);

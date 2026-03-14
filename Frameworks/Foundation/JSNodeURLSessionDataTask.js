@@ -38,8 +38,8 @@ JSClass("JSNodeURLSessionDataTask", JSURLSessionDataTask, {
         }
         if (this.cancelation === null){
             this.cancelation = JSNodeHTTPClient.shared.send(this.currentRequest, {
-                redirect: function(url){
-                    this._currentRequest = this._originalRequest.redirectedRequestToURL(url);
+                redirect: function(request){
+                    this._currentRequest = request;
                 },
                 uploadProgress: function(sent, total){
                     this.session._taskDidSendBodyData(this, sent, total);

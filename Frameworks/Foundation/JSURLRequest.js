@@ -46,6 +46,9 @@ JSClass("JSURLRequest", JSObject, {
     },
 
     redirectedRequestToURL: function(url){
+        if (!url.isAbsolute){
+            url.resolveToBaseURL(this.url);
+        }
         var request = JSURLRequest.initWithURL(url);
         request._method = this._method;
         request._headerMap = this._headerMap;
