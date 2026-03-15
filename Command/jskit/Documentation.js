@@ -20,6 +20,7 @@
 // #import "DocIndex.js"
 // #import "DocFramework.js"
 // #import "DocClass.js"
+// #import "DocExtension.js"
 // #import "DocProtocol.js"
 // #import "DocMethod.js"
 // #import "DocInit.js"
@@ -62,6 +63,7 @@ JSClass("Documentation", JSObject, {
         await this.copyStyles();
         let rootComponent = await this.loadSource(this.rootURL);
         rootComponent.outputURL = this.wwwURL.appendingPathComponent('index.html');
+        rootComponent.populateRelationships();
         await this.output([rootComponent]);
         await this.outputComponentsJSON(rootComponent);
         await this.outputManifestConfig(rootComponent);

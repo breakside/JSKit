@@ -35,6 +35,9 @@
     },
 
     getTitle: function(){
+        if (this.parent.kind === "extension"){
+            return "%s.%s".sprintf(this.parent.extends, this.name);
+        }
         var title = "%s.%s".sprintf(this.parent.name, this.name);
         if (this.parent.parent && this.parent.parent.kind == 'class' || this.parent.parent.kind == 'protocol'){
             title = "%s.%s".sprintf(this.parent.parent.name, title);

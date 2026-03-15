@@ -45,6 +45,9 @@
 
     getTitle: function(){
         if (this.isStatic){
+            if (this.parent.kind === "extension"){
+                return "%s.%s".sprintf(this.parent.extends, this.name);    
+            }
             return "%s.%s".sprintf(this.parent.name, this.name);
         }
         return this.name;

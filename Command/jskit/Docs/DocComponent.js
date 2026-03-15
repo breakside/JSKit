@@ -628,7 +628,7 @@ JSClass("DocComponent", JSObject, {
             if (token.className){
                 span.setAttribute("class", token.className);
             }
-            if (i < l - 1 && tokens[i + 1].value != ','){
+            if (i < l - 1 && tokens[i + 1].value != ',' && tokens[i + 1].value[0] != '.'){
                 line.appendChild(document.createTextNode(' '));
             }
         }
@@ -667,6 +667,12 @@ JSClass("DocComponent", JSObject, {
             "@type": "ListItem",
             "name": this.name
         };
+    },
+
+    populateRelationships: function(){
+        for (let child of this.children){
+            child.populateRelationships();
+        }
     },
 
     output: async function(documentation){
@@ -777,6 +783,13 @@ JSClass("DocComponent", JSObject, {
         if (candidates.length > 0){
             return candidates[0];
         }
+
+        // Extensions
+        let component = this.extensionChildForName(name);
+        if (component !== null){
+            return component;
+        }
+
         return null;
     },
 
@@ -824,6 +837,10 @@ JSClass("DocComponent", JSObject, {
     },
 
     inhertitedComponentForName: function(name){
+        return null;
+    },
+
+    extensionChildForName: function(name){
         return null;
     },
 

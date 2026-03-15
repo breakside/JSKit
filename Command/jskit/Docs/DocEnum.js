@@ -36,6 +36,29 @@
         }
     },
 
+    extensions: null,
+
+    addExtension: function(extension){
+        if (this.extensions === null){
+            this.extensions = [];
+        }
+        this.extensions.push(extension);
+    },
+
+    extensionChildForName: function(name){
+        if (this.extensions === null){
+            return null;
+        }
+        for (let i = 0, l = this.extensions.length; i < l; ++i){
+            let extension = this.extensions[i];
+            let component = extension.childForName(name);
+            if (component !== null){
+                return component;
+            }
+        }
+        return null;
+    },
+
     suffixForMember: function(member){
         if (member.isKindOfClass(DocEnumOption) && member.value !== null){
             return ": %s".sprintf(member.value);
@@ -61,12 +84,22 @@
         var declaration = this.codeSectionElement(document, "Declaration", this.declarationCode());
         declaration.setAttribute("class", "declaration");
         elements.splice(index++, 0, declaration);
+        if (this.extensions !== null){
+            for (let extension of this.extensions){
+                elements = elements.concat(this.htmlArticleTopicsElements(document, extension.extensionName + " Extensions", extension.topics));
+            }
+        }
         return elements;
     },
 
     declarationCode: function(){
-        if (this.parent && this.parent.kind == 'class' || this.parent.kind == 'protocol'){
-            return ["%s.%s = { ... }".sprintf(this.parent.name, this.name)];
+        if (this.parent){
+            if (this.parent.kind == 'class' || this.parent.kind == 'protocol'){
+                return ["%s.%s = { ... }".sprintf(this.parent.name, this.name)];
+            }
+            if (this.parent.kind === "extension"){
+                return ["%s.%s = { ... }".sprintf(this.parent.extends, this.name)];
+            }
         }
         return ["%s = { ... }".sprintf(this.name)];
     },

@@ -35,11 +35,34 @@
         if (info.implements){
             this.implements = info.implements;
         }
+
     },
     
     inherits: null,
     anonymous: false,
     implements: null,
+    extensions: null,
+
+    addExtension: function(extension){
+        if (this.extensions === null){
+            this.extensions = [];
+        }
+        this.extensions.push(extension);
+    },
+
+    extensionChildForName: function(name){
+        if (this.extensions === null){
+            return null;
+        }
+        for (let i = 0, l = this.extensions.length; i < l; ++i){
+            let extension = this.extensions[i];
+            let component = extension.childForName(name);
+            if (component !== null){
+                return component;
+            }
+        }
+        return null;
+    },
 
     // --------------------------------------------------------------------
     // MARK: - Naming
@@ -60,6 +83,12 @@
             var declaration = this.codeSectionElement(document, "Declaration", this.declarationCode(document));
             declaration.setAttribute("class", "declaration");
             elements.splice(1, 0, declaration);
+        }
+
+        if (this.extensions !== null){
+            for (let extension of this.extensions){
+                elements = elements.concat(this.htmlArticleTopicsElements(document, extension.extensionName + " Extensions", extension.topics));
+            }
         }
 
         if (this.inherits){
@@ -129,6 +158,6 @@
             }
         }
         return component;
-    },
+    }
 
  });
