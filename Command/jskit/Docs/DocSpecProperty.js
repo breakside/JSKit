@@ -53,6 +53,10 @@
             if (url){
                 let a = code.appendChild(document.createElement("a"));
                 a.setAttribute("href", url.encodedString);
+                if (url.isAbsolute){
+                    a.setAttribute("target", "_blank");
+                    a.setAttribute("rel", "noopener noreferrer");
+                }
                 a.appendChild(document.createTextNode(this.valueType));
             }else{
                 code.appendChild(document.createTextNode(this.valueType));
@@ -77,6 +81,10 @@
                 li.setAttribute("class", variation.kind);
                 let a = document.createElement("a");
                 a.setAttribute("href", url.encodedString);
+                if (url.isAbsolute){
+                    a.setAttribute("target", "_blank");
+                    a.setAttribute("rel", "noopener noreferrer");
+                }
                 let code = li.appendChild(document.createElement('code'));
                 code.appendChild(a);
                 a.appendChild(document.createTextNode(variation.name));

@@ -313,6 +313,10 @@ JSClass("DocComponent", JSObject, {
                 if (url){
                     let a = document.createElement('a');
                     a.setAttribute('href', url.encodedString);
+                    if (url.isAbsolute){
+                        a.setAttribute("target", "_blank");
+                        a.setAttribute("rel", "noopener noreferrer");
+                    }
                     a.appendChild(document.createTextNode(name));
                     code.appendChild(a);
                 }else{
@@ -619,6 +623,10 @@ JSClass("DocComponent", JSObject, {
                 if (url !== null){
                     span = line.appendChild(document.createElement('a'));
                     span.setAttribute("href", url.encodedString);
+                    if (url.isAbsolute){
+                        span.setAttribute("target", "_blank");
+                        span.setAttribute("rel", "noopener noreferrer");
+                    }
                 }
             }
             if (span === null){

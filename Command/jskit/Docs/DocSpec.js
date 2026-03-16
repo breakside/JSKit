@@ -63,6 +63,10 @@
                     let code = p.appendChild(document.createElement("code"));
                     let a = code.appendChild(document.createElement("a"));
                     a.setAttribute("href", url.encodedString);
+                    if (url.isAbsolute){
+                        a.setAttribute("target", "_blank");
+                        a.setAttribute("rel", "noopener noreferrer");
+                    }
                     a.appendChild(document.createTextNode(inheritedSpec.title));
                 }
             }

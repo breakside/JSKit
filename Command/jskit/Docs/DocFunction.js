@@ -88,6 +88,10 @@
                 if (url){
                     let a = code.appendChild(document.createElement("a"));
                     a.setAttribute("href", url.encodedString);
+                    if (url.isAbsolute){
+                        a.setAttribute("target", "_blank");
+                        a.setAttribute("rel", "noopener noreferrer");
+                    }
                     a.appendChild(document.createTextNode(this.valueType));
                 }else{
                     code.appendChild(document.createTextNode(this.valueType));
@@ -149,6 +153,10 @@
                 if (url !== null){
                     let a = code.appendChild(document.createElement("a"));
                     a.setAttribute("href", url.encodedString);
+                    if (url.isAbsolute){
+                        a.setAttribute("target", "_blank");
+                        a.setAttribute("rel", "noopener noreferrer");
+                    }
                     a.appendChild(document.createTextNode(arg.type));
                 }else{
                     code.appendChild(document.createTextNode(arg.type));

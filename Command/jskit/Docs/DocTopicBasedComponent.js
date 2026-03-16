@@ -115,6 +115,10 @@ JSClass("DocTopicBasedComponent", DocComponent, {
                 let a = document.createElement("a");
                 let url = this.urlForComponent(member);
                 a.setAttribute("href", url.encodedString);
+                if (url.isAbsolute){
+                    a.setAttribute("target", "_blank");
+                    a.setAttribute("rel", "noopener noreferrer");
+                }
                 if (member.kind == 'framework' || member.kind == 'document'){
                     item.appendChild(a);
                 }else{
