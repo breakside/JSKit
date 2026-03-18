@@ -373,7 +373,7 @@ topics:
           is found that responds to the `action`.
   -
     name: Environment
-    summary:
+    members:
       -
         name: environment
         introduced: 2021.8.4
@@ -394,7 +394,7 @@ topics:
           non-secret configuration varaibles.
   -
     name: HTML Based Applicatons
-    summary:
+    members:
       -
         name: baseURL
         type: JSURL
