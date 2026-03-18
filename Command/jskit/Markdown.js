@@ -265,7 +265,7 @@ JSClass("Markdown", JSObject, {
             let line = lines[i];
             var trimmed = line.trim();
             if (inCodeBlock){
-                if (line.match(/^````+$/)){
+                if (line.match(/^```+$/)){
                     inCodeBlock = false;
                     let code = document.createElement(options.codeBlockTagName);
                     code.setAttribute("class", options.codeBlockClassName);
@@ -291,7 +291,7 @@ JSClass("Markdown", JSObject, {
                 addHeader(options.secondLevelHeaderTagName);
             }else if (line.match(/^#{1,2}\s/)){
                 addATXHeader(line);
-            }else if (line.match(/^````+$/)){
+            }else if (line.match(/^```+$/)){
                 finishBlock();
                 inOrderedList = false;
                 inUnorderedList = false;

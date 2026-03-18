@@ -756,7 +756,7 @@ JSClass("MarkdownTests", TKTestSuite, {
         TKAssertEquals(elements[2].childNodes[0].data, "...done");
 
         // single line breaks
-        str = "This is a test of\ncode blocks\n````\nclass Test extendsJSObject(){\n\n  init(){\n  }\n\n}\n````\n...done";
+        str = "This is a test of\ncode blocks\n```\nclass Test extendsJSObject(){\n\n  init(){\n  }\n\n}\n```\n...done";
         markdown = Markdown.initWithString(str);
         document = DOM.createDocument();
         elements = markdown.htmlElementsForDocument(document);
