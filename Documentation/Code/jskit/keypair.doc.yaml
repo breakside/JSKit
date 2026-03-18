@@ -1,0 +1,43 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: command
+introduced: 2022.52.0
+summary: Create asymmetric signing key pairs
+environment: node
+codeURL: DocCommand.js
+description: |
+  Create an asymmetric signing key pair.
+  ````
+  $ npx jskit keypair --algorithm ecdh|rsa --format jwk --bits 512
+  ````
+invocations:
+  - --format pem|jwk --algorithm ecdh|rsa --bits 256|384|512
+topics:
+  - name: Format
+    members:
+      - name: --algorithm
+        type: String
+        summary: The asymmetric algorithm to use
+        description: |
+          Can be either `ecdh`() (Ellipic Curve Diffie-Hellmand) or `rsa`() (RSA).
+
+          Default is `ecdh`().
+      - name: --format
+        type: String
+        summary: The output format of the key data
+        description: |
+          Can be either `pem`() or `jwk`().
+
+          If `pem`(), the output will be the PEM encoded
+          representation of the key data.
+
+          If `jwk`(), the output will be the base64-url encoded
+          representation of the JWK's utf-8 encoded JSON serialization.
+
+          Default is `pem`().
+      - name: --bits
+        type: Number
+        summary: The desired key size in bits
+        description: |
+          Can be `256`(), `384`() or `512`().
+
+          Default is `512`().

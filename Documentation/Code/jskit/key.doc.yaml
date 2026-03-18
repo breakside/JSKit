@@ -1,0 +1,36 @@
+copyright: Copyright © 2020 Breakside Inc.
+introduced: 2022.52.0
+kind: command
+summary: Create symmetric encryption keys
+environment: node
+codeURL: DocCommand.js
+description: |
+  Create a symmetric encryption key using the HMAC algorithm.
+  ````
+  $ npx jskit key --format jwk --bits 512
+  ````
+invocations:
+  - --format raw|jwk --bits 256|384|512
+topics:
+  - name: Format
+    members:
+      - name: --format
+        type: String
+        summary: The output format of the key data
+        description: |
+          Can be either `raw`() or `jwk`().
+
+          If `raw`(), the output will be the base64-url encoded
+          representation of the key data.
+
+          If `jwk`(), the output will be the base64-url encoded
+          representation of the JWK's utf-8 encoded JSON serialization.
+
+          Default is `raw`().
+      - name: --bits
+        type: Number
+        summary: The desired key size in bits
+        description: |
+          Can be `256`(), `384`() or `512`().
+
+          Default is `512`().

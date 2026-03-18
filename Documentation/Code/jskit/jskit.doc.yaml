@@ -94,7 +94,7 @@ description: |
   See `doc` for more information about code documentation
 
 invocations:
-  - init|add|make|test|doc
+  - init|add|make|test|key|keypair|doc
   - -h
 topics:
   -
@@ -105,6 +105,10 @@ topics:
       - make
       - test
       - doc
+  - name: Encryption Key Creation
+    members:
+      - key
+      - keypair
   -
     name: Help
     members:
