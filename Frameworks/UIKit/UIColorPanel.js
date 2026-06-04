@@ -21,6 +21,8 @@
 
 JSProtocol("UIColorPanelDelegate", JSProtocol, {
 
+    colorPanelDidBeginEditing: function(panel, event){},
+    colorPanelDidEndEditing: function(panel, event){},
     colorPanelDidChangeColor: function(panel, color){},
     colorPanelDidClose: function(panel){}
 
@@ -239,8 +241,14 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.hexField.leftAccessoryVisibility = UITextField.AccessoryVisibility.always;
 
         this.saturationBrightnessControl.addAction(this.saturationBrightnessChanged, this);
+        this.saturationBrightnessControl.addAction(this.saturationBrightnessEditingBegan, this, UIControl.Event.editingDidBegin);
+        this.saturationBrightnessControl.addAction(this.saturationBrightnessEditingEnded, this, UIControl.Event.editingDidEnd);
         this.hueSlider.addAction(this.hueSliderChanged, this);
+        this.hueSlider.addAction(this.hueSliderEditingBegan, this, UIControl.Event.editingDidBegin);
+        this.hueSlider.addAction(this.hueSliderEditingEnded, this, UIControl.Event.editingDidEnd);
         this.alphaSlider.addAction(this.alphaSliderChanged, this);
+        this.alphaSlider.addAction(this.alphaSliderEditingBegan, this, UIControl.Event.editingDidBegin);
+        this.alphaSlider.addAction(this.alphaSliderEditingEnded, this, UIControl.Event.editingDidEnd);
         this.hexField.addAction(this.hexFieldChanged, this);
         this.component1Field.addAction(this.component1FieldChanged, this);
         this.component2Field.addAction(this.component2FieldChanged, this);
@@ -308,6 +316,18 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.notifyDelegateOfColor();
     },
 
+    saturationBrightnessEditingBegan: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidBeginEditing){
+            this.delegate.colorPanelDidBeginEditing(this, event);
+        }
+    },
+
+    saturationBrightnessEditingEnded: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidEndEditing){
+            this.delegate.colorPanelDidEndEditing(this, event);
+        }
+    },
+
     hueSliderChanged: function(slider){
         this._hsvComponents[0] = slider.value;
         this._recalculateColorFromHSV();
@@ -315,10 +335,34 @@ JSClass("UIColorPanelViewController", UIViewController, {
         this.notifyDelegateOfColor();
     },
 
+    hueSliderEditingBegan: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidBeginEditing){
+            this.delegate.colorPanelDidBeginEditing(this, event);
+        }
+    },
+
+    hueSliderEditingEnded: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidEndEditing){
+            this.delegate.colorPanelDidEndEditing(this, event);
+        }
+    },
+
     alphaSliderChanged: function(slider){
         this._color = this._color.colorWithAlpha(slider.value);
         this._alphaChanged(slider);
         this.notifyDelegateOfColor();
+    },
+
+    alphaSliderEditingBegan: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidBeginEditing){
+            this.delegate.colorPanelDidBeginEditing(this, event);
+        }
+    },
+
+    alphaSliderEditingEnded: function(sender, event){
+        if (this.delegate && this.delegate.colorPanelDidEndEditing){
+            this.delegate.colorPanelDidEndEditing(this, event);
+        }
     },
 
     component1FieldChanged: function(textField){
@@ -829,6 +873,7 @@ JSClass("UIColorPanelTwoAxisSlider", UIControl, {
             initialOffset: JSPoint.Zero,
         };
         this.active = true;
+        this.sendActionsForEvents(UIControl.Event.editingDidBegin, event);
         if (!isOnKnob){
             this.value = this.valueForPoint(location);
             this.didChangeValueForBinding('value');
@@ -852,6 +897,7 @@ JSClass("UIColorPanelTwoAxisSlider", UIControl, {
     _endSlide: function(event){
         if (this.active){
             this.active = false;
+            this.sendActionsForEvents(UIControl.Event.editingDidEnd, event);
         }
         this._drag = null;
     },

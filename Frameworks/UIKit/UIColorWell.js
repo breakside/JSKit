@@ -211,6 +211,14 @@ JSClass("UIColorWell", UIControl, {
     // ----------------------------------------------------------------------
     // MARK: - Color Panel
 
+    colorPanelDidBeginEditing: function(panel, event){
+        this.sendActionsForEvents(UIControl.Event.editingDidBegin, event);
+    },
+
+    colorPanelDidEndEditing: function(panel, event){
+        this.sendActionsForEvents(UIControl.Event.editingDidEnd, event);
+    },
+
     colorPanelDidChangeColor: function(panel, color){
         this._changeColor(color);
     },
