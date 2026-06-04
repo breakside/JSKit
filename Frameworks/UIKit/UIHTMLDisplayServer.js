@@ -419,12 +419,31 @@ JSClass("UIHTMLDisplayServer", UIDisplayServer, {
             }
             insertedLayersByParentContext[info.parentContext.objectID].push(info.layer);
         }
+        var parentContext;
+        var context;
+        var i, l;
         for (var contextId in insertedLayersByParentContext){
             insertedLayersByParentContext[contextId].sort(function(a, b){
                 return a.sublayerIndex - b.sublayerIndex;
             });
-            for (var i = 0, l = insertedLayersByParentContext[contextId].length; i < l; ++i){
-                this._insertLayerIntoDOM(insertedLayersByParentContext[contextId][i], parentContextsById[contextId]);
+            parentContext = parentContextsById[contextId];
+            // If a layer's element is already in the parent element (meaning it
+            // is just changing order), first remove it from the parent element
+            // so sublayer index calculations will work correctly. 
+            // NOTE: UIHTMLDisplayServerCanvasContext.insertSublayerContext()
+            // already checked for this, but its check only worked when moving a
+            // single layer.  When adding moving and adding multiple layers at
+            // a time, we need first to remove all elements that moving before
+            // trying to insert or re-insert any of moved/added elements.
+            for (i = 0, l = insertedLayersByParentContext[contextId].length; i < l; ++i){
+                layer = insertedLayersByParentContext[contextId][i];
+                context = this.contextsByObjectID[layer.objectID];
+                if (context && context.element.parentNode === parentContext.element){
+                    parentContext.element.removeChild(context.element);
+                }
+            }
+            for (i = 0, l = insertedLayersByParentContext[contextId].length; i < l; ++i){
+                this._insertLayerIntoDOM(insertedLayersByParentContext[contextId][i], parentContext);
             }
         }
         this._insertedLayers = {};
