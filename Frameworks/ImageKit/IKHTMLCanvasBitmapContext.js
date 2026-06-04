@@ -215,14 +215,15 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                     return;
                 }
                 var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
+                var size = JSSize(rect.size.width * scale, rect.size.height * scale);
                 var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
-                maskCanvas.width = maskImage.size.width * scale;
-                maskCanvas.height = maskImage.size.height * scale;
+                maskCanvas.width = size.width;
+                maskCanvas.height = size.height;
                 var maskContext = maskCanvas.getContext('2d');
                 maskContext.fillStyle = state.fillColor.cssString();
-                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.fillRect(0, 0, size.width, size.height);
                 maskContext.globalCompositeOperation = 'destination-in';
-                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.drawImage(imgElement, 0, 0, size.width, size.height);
                 this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
             }, this);
@@ -279,16 +280,16 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                     return;
                 }
                 var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
-                var size = JSSize(maskImage.size.width * scale, maskImage.size.height * scale);
+                var size = JSSize(rect.size.width * scale, rect.size.height * scale);
                 var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
                 maskCanvas.width = size.width;
                 maskCanvas.height = size.height;
                 var maskContext = maskCanvas.getContext('2d');
                 var canvasGradient = this._linearGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, size));
                 maskContext.fillStyle = canvasGradient;
-                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.fillRect(0, 0, size.width, size.height);
                 maskContext.globalCompositeOperation = 'destination-in';
-                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.drawImage(imgElement, 0, 0, size.width, size.height);
                 this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
             }, this);
@@ -303,16 +304,16 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
                     return;
                 }
                 var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
-                var size = JSSize(maskImage.size.width * scale, maskImage.size.height * scale);
+                var size = JSSize(rect.size.width * scale, rect.size.height * scale);
                 var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
                 maskCanvas.width = size.width;
                 maskCanvas.height = size.height;
                 var maskContext = maskCanvas.getContext('2d');
                 var canvasGradient = this._radialGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, size));
                 maskContext.fillStyle = canvasGradient;
-                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.fillRect(0, 0, size.width, size.height);
                 maskContext.globalCompositeOperation = 'destination-in';
-                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.drawImage(imgElement, 0, 0, size.width, size.height);
                 this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
                 completion.call(target);
             }, this);

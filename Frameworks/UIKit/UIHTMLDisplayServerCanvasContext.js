@@ -580,13 +580,13 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     fillMaskedRect: function(rect, maskImage){
         if (maskImage._htmlImage !== undefined && maskImage._htmlImage !== null){
             var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
-            maskCanvas.width = maskImage.size.width;
-            maskCanvas.height = maskImage.size.height;
+            maskCanvas.width = rect.size.width;
+            maskCanvas.height = rect.size.height;
             var maskContext = maskCanvas.getContext('2d');
             maskContext.fillStyle = this.state.fillColor.cssString();
-            maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.fillRect(0, 0, rect.size.width, rect.size.height);
             maskContext.globalCompositeOperation = 'destination-in';
-            maskContext.drawImage(maskImage._htmlImage, 0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.drawImage(maskImage._htmlImage, 0, 0, rect.size.width, rect.size.height);
             this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
             return;
         }
@@ -720,14 +720,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     drawMaskedLinearGradient: function(gradient, rect, maskImage){
         if (maskImage._htmlImage !== undefined && maskImage._htmlImage !== null){
             var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
-            maskCanvas.width = maskImage.size.width;
-            maskCanvas.height = maskImage.size.height;
+            maskCanvas.width = rect.size.width;
+            maskCanvas.height = rect.size.height;
             var maskContext = maskCanvas.getContext('2d');
-            var canvasGradient = this._linearGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, maskImage.size));
+            var canvasGradient = this._linearGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, rect.size));
             maskContext.fillStyle = canvasGradient;
-            maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.fillRect(0, 0, rect.size.width, rect.size.height);
             maskContext.globalCompositeOperation = 'destination-in';
-            maskContext.drawImage(maskImage._htmlImage, 0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.drawImage(maskImage._htmlImage, 0, 0, rect.size.width, rect.size.height);
             this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
             return;
         }
@@ -746,14 +746,14 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     drawMaskedRadialGradient: function(gradient, rect, maskImage){
         if (maskImage._htmlImage !== undefined && maskImage._htmlImage !== null){
             var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
-            maskCanvas.width = maskImage.size.width;
-            maskCanvas.height = maskImage.size.height;
+            maskCanvas.width = rect.size.width;
+            maskCanvas.height = rect.size.height;
             var maskContext = maskCanvas.getContext('2d');
-            var canvasGradient = this._radialGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, maskImage.size));
+            var canvasGradient = this._radialGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, rect.size));
             maskContext.fillStyle = canvasGradient;
-            maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.fillRect(0, 0, rect.size.width, rect.size.height);
             maskContext.globalCompositeOperation = 'destination-in';
-            maskContext.drawImage(maskImage._htmlImage, 0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.drawImage(maskImage._htmlImage, 0, 0, rect.size.width, rect.size.height);
             this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
             return;
         }
