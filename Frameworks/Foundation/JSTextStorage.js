@@ -30,6 +30,11 @@ JSClass("JSTextStorage", JSAttributedString, {
         this._commonTextStorageInit();
     },
 
+    initFromDictionary: function(dictionary){
+        JSTextStorage.$super.initFromDictionary.call(this, dictionary);
+        this._commonTextStorageInit();        
+    },
+
     _commonTextStorageInit: function(){
         this._layoutManagers = [];
     },
