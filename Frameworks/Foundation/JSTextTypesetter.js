@@ -77,8 +77,13 @@ JSClass("JSTextTypesetter", JSObject, {
         var attributes = this._attributedString.attributesAtIndex(range.location);
         attributes = this.resolveAttributes(attributes);
         var font = attributes.font;
+        if (this.useDisplayMetrics){
+            return JSTextLine.initWithHeight(font.displayLineHeight, -font.displayDescender, range.location);
+        }
         return JSTextLine.initWithHeight(font.lineHeight, -font.descender, range.location);
     },
+
+    useDisplayMetrics: false,
 
     _createLineFromLayout: function(layout){
         // Create runs from the adjusted run descriptors
@@ -88,7 +93,7 @@ JSClass("JSTextTypesetter", JSObject, {
         var runDescriptor;
         for (var i = 0, l = layout.runDescriptors.length; i < l; ++i){
             runDescriptor = layout.runDescriptors[i];
-            run = JSTextRun.initWithGlyphs(runDescriptor.glyphs, runDescriptor.glyphCharacterLengths, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length));
+            run = JSTextRun.initWithGlyphs(runDescriptor.glyphs, runDescriptor.glyphCharacterLengths, runDescriptor.font, runDescriptor.attributes, JSRange(runDescriptor.location, runDescriptor.length), this.useDisplayMetrics);
             run.origin.x = x;
             x += run.size.width;
             runs.push(run);

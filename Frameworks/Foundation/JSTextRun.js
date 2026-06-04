@@ -31,8 +31,10 @@ JSClass("JSTextRun", JSObject, {
     attributes: null,
     font: null,
     attachment: null,
+    _useDisplayMetrics: false,
 
-    initWithGlyphs: function(glyphs, glyphCharacterLengths, font, attributes, range){
+    initWithGlyphs: function(glyphs, glyphCharacterLengths, font, attributes, range, useDisplayMetrics){
+        this._useDisplayMetrics = useDisplayMetrics === true;
         this.glyphs = glyphs;
         this.glyphCharacterLengths = glyphCharacterLengths;
         this.attributes = attributes;
@@ -42,8 +44,13 @@ JSClass("JSTextRun", JSObject, {
             this._size = JSSize(this.attachment.size);
         }else{
             this.font = font;
-            this.baseline = -font.descender;
-            this._size = JSSize(0, font.lineHeight);
+            if (this._useDisplayMetrics){
+                this.baseline = -font.displayDescender;
+                this._size = JSSize(0, font.displayLineHeight);
+            }else{
+                this.baseline = -font.descender;
+                this._size = JSSize(0, font.lineHeight);
+            }
             for (var i = 0, l = glyphs.length; i < l; ++i){
                 this._size.width += font.widthOfGlyph(glyphs[i]);
             }
@@ -67,7 +74,11 @@ JSClass("JSTextRun", JSObject, {
             context.restore();
         }else{
             context.save();
-            context.translateBy(point.x, point.y + this.font.ascender);
+            if (this._useDisplayMetrics){
+                context.translateBy(point.x, point.y + this.font.displayAscender);
+            }else{
+                context.translateBy(point.x, point.y + this.font.ascender);
+            }
             context.setFont(this.font);
             context.setFillColor(this.attributes.textColor);
             context.showGlyphs(this.glyphs);
