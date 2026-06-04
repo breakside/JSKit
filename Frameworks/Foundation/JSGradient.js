@@ -142,7 +142,17 @@ JSClass('JSGradient', JSObject, {
     },
 
     addStop: function(position, color){
-        this.stops.push({position: position, color: color});
+        var l = this.stops.length;
+        var stop = {position: position, color: color};
+        var i = l - 1;
+        for (; i >= 0; --i){
+            if (this.stops[i].position <= position){
+                break;
+            }
+        }
+        i++;
+        this.stops.splice(i, 0, stop);
+        return i;
     },
 
     cssString: function(size){
@@ -229,7 +239,10 @@ JSClass('JSGradient', JSObject, {
         var gradient = JSGradient.init();
         gradient.start = transform.convertPointFromTransform(this.start);
         gradient.end = transform.convertPointFromTransform(this.end);
-        gradient.stops = JSCopy(this.stops);
+        var i, l;
+        for (i = 0, l = this.stops.length; i < l; ++i){
+            gradient.addStop(this.stops[i].position, this.stops[i].color);
+        }
         return gradient;
     }
 
