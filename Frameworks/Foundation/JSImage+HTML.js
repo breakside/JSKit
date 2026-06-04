@@ -33,3 +33,29 @@ _JSURLImage.definePropertiesFromExtensions({
         return this.url.encodedString;
     }
 });
+
+JSImage.definePropertiesFromExtensions({
+
+    _htmlImage: null,
+    _htmlImagePromise: null,
+
+    preloadForHTMLContexts: function(){
+        if (this._htmlImagePromise === null){
+            var image = this;
+            this._htmlImagePromise = new Promise(function(resolve, reject){
+                var htmlImage = new JSGlobalObject.Image();
+                htmlImage.src = image.htmlURLString();
+                htmlImage.onload = function(){
+                    resolve(htmlImage);
+                };
+                htmlImage.onerror = function(){
+                    reject(new Error("failed to load image"));
+                };
+            }).then(function(htmlImage){
+                image._htmlImage = htmlImage;
+            });
+        }
+        return this._htmlImagePromise;
+    }
+
+});

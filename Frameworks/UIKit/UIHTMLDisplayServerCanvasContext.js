@@ -578,6 +578,18 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     fillMaskedRect: function(rect, maskImage){
+        if (maskImage._htmlImage !== undefined && maskImage._htmlImage !== null){
+            var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
+            maskCanvas.width = maskImage.size.width;
+            maskCanvas.height = maskImage.size.height;
+            var maskContext = maskCanvas.getContext('2d');
+            maskContext.fillStyle = this.state.fillColor.cssString();
+            maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+            maskContext.globalCompositeOperation = 'destination-in';
+            maskContext.drawImage(maskImage._htmlImage, 0, 0, maskCanvas.width, maskCanvas.height);
+            this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            return;
+        }
         var imageElement = this._dequeueReusableImageElement();
         this._positionImageElement(imageElement, maskImage, rect);
         var url = maskImage.htmlURLString();
@@ -602,6 +614,10 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     _imageElementIndex: 0,
 
     drawImage: function(image, rect){
+        if (image._htmlImage !== null && image._htmlImage !== undefined){
+            this.canvasContext.drawImage(image._htmlImage, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+            return;
+        }
         if (image !== null){
             var url = image.htmlURLString();
             // FIXME: proof of concept, but really shouldn't do async
