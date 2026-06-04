@@ -475,7 +475,7 @@ JSClass("JSXMLParser", JSObject, {
                 }
                 obj = readObject();
             }
-            if (!this.isStopped && this.delegate.xmlParserDidEndDocument){
+            if (!this.isStopped && this.delegate && this.delegate.xmlParserDidEndDocument){
                 this.delegate.xmlParserDidEndDocument(this);
             }
         }catch (e){
