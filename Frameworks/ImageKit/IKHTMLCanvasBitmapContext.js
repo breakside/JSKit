@@ -167,9 +167,11 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawPath: function(drawingMode){
         var path = this.path.copy();
         this.enqueueOperation(function(state, completion, target){
+            this.canvasContext.save();
             this.canvasContext.setTransform(1, 0, 0, 1, 0, 0);
             this.canvasContext.beginPath();
             path.addToIKHTMLCanvasContext(this.canvasContext);
+            this.canvasContext.restore();
             switch (drawingMode){
                 case JSContext.DrawingMode.fill:
                     this.canvasContext.fill();
