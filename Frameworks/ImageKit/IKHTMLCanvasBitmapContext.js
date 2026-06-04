@@ -323,7 +323,8 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         this.enqueueOperation(function(state, completion, target){
             var rect = path.boundingRect;
             this.canvasContext.save();
-            this.addPath(path);
+            this.canvasContext.beginPath();
+            path.addToIKHTMLCanvasContext(this.canvasContext);
             var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
@@ -337,7 +338,8 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         this.enqueueOperation(function(state, completion, target){
             var rect = path.boundingRect;
             this.canvasContext.save();
-            this.addPath(path);
+            this.canvasContext.beginPath();
+            path.addToIKHTMLCanvasContext(this.canvasContext);
             var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
