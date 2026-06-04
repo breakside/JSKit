@@ -212,6 +212,12 @@ JSClass("JSContext", JSObject, {
     drawRadialGradient: function(gradient, rect){
     },
 
+    drawMaskedLinearGradient: function(gradient, rect, maskImage){
+    },
+
+    drawMaskedRadialGradient: function(gradient, rect, maskImage){
+    },
+
     drawLinearGradientStroke: function(gradient, path){
         // FIXME: gradient should be aligned to original path rect
         var strokePath = path.pathThatFillsStroke(this.state.lineWidth, this.state.lineCap, this.state.lineJoin, this.state.miterLimit);

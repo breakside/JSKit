@@ -177,6 +177,19 @@ JSClass('JSGradient', JSObject, {
         return 'linear-gradient(%fdeg, %s)'.sprintf(angle, cssStops.join(', '));
     },
 
+    radialCSSString: function(size){
+        var cssStops = [];
+        var stop;
+        for (var i = 0, l = this.stops.length; i < l; ++i){
+            stop = this.stops[i];
+            cssStops.push('%s %f%%'.sprintf(stop.color.cssString(), stop.position * 100));
+        }
+        var start = JSPoint(this.start.x * size.width, this.start.y * size.height);
+        var end = JSPoint(this.end.x * size.width, this.end.y * size.height);
+        var d = start.distanceToPoint(end);
+        return 'radial-gradient(%fpx at %f%% %f%%, %s)'.sprintf(d, this.start.x * 100, this.start.y * 100, cssStops.join(', '));
+    },
+
     colorAtPosition: function(position){
         if (position <= this.stops[0].position){
             return this.stops[0].color;

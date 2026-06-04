@@ -228,6 +228,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             }, this);
         });
     },
+
     // ----------------------------------------------------------------------
     // MARK: - Images
 
@@ -251,17 +252,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawLinearGradient: function(gradient, rect){
         this.enqueueOperation(function(state, completion, target){
             this.canvasContext.save();
-            var canvasGradient = this.canvasContext.createLinearGradient(
-                rect.origin.x + gradient.start.x * rect.size.width,
-                rect.origin.y + gradient.start.y * rect.size.height,
-                rect.origin.x + gradient.end.x * rect.size.width,
-                rect.origin.y + gradient.end.y * rect.size.height
-            );
-            var stop;
-            for (var i = 0, l = gradient.stops.length; i < l; ++i){
-                stop = gradient.stops[i];
-                canvasGradient.addColorStop(stop.position, stop.color.cssString());
-            }
+            var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.fillStyle = canvasGradient;
             this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
             this.canvasContext.restore();
@@ -271,34 +262,60 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
 
     drawRadialGradient: function(gradient, rect){
         this.enqueueOperation(function(state, completion, target){
-            var r0 = 0;
-            var start = JSPoint(
-                rect.origin.x + gradient.start.x * rect.size.width,
-                rect.origin.y + gradient.start.y * rect.size.height
-            );
-            var end = JSPoint(
-                rect.origin.x + gradient.end.x * rect.size.width,
-                rect.origin.y + gradient.end.y * rect.size.height
-            );
-            var r1 = start.distanceToPoint(end);
+            var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.save();
-            var canvasGradient = this.canvasContext.createRadialGradient(
-                start.x,
-                start.y,
-                r0,
-                start.x,
-                start.y,
-                r1
-            );
-            var stop;
-            for (var i = 0, l = gradient.stops.length; i < l; ++i){
-                stop = gradient.stops[i];
-                canvasGradient.addColorStop(stop.position, stop.color.cssString());
-            }
             this.canvasContext.fillStyle = canvasGradient;
             this.canvasContext.fillRect(rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
             this.canvasContext.restore();
             completion.call(target);
+        });
+    },
+
+    drawMaskedLinearGradient: function(gradient, rect, maskImage){
+        this.enqueueOperation(function(state, completion, target){
+            drawableElementForImage(maskImage, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                if (imgElement === null){
+                    completion.call(target);
+                    return;
+                }
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
+                var size = JSSize(maskImage.size.width * scale, maskImage.size.height * scale);
+                var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
+                maskCanvas.width = size.width;
+                maskCanvas.height = size.height;
+                var maskContext = maskCanvas.getContext('2d');
+                var canvasGradient = this._linearGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, size));
+                maskContext.fillStyle = canvasGradient;
+                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.globalCompositeOperation = 'destination-in';
+                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                completion.call(target);
+            }, this);
+        });
+    },
+
+    drawMaskedRadialGradient: function(gradient, rect, maskImage){
+        this.enqueueOperation(function(state, completion, target){
+            drawableElementForImage(maskImage, this.canvasContext.canvas.ownerDocument, function(imgElement){
+                if (imgElement === null){
+                    completion.call(target);
+                    return;
+                }
+                var scale = Math.ceil(Math.max(state.transform.a, state.transform.b));
+                var size = JSSize(maskImage.size.width * scale, maskImage.size.height * scale);
+                var maskCanvas = this.canvasContext.canvas.ownerDocument.createElement("canvas");
+                maskCanvas.width = size.width;
+                maskCanvas.height = size.height;
+                var maskContext = maskCanvas.getContext('2d');
+                var canvasGradient = this._radialGradientForCanvasContext(maskContext, gradient, JSRect(JSPoint.Zero, size));
+                maskContext.fillStyle = canvasGradient;
+                maskContext.fillRect(0, 0, maskCanvas.width, maskCanvas.height);
+                maskContext.globalCompositeOperation = 'destination-in';
+                maskContext.drawImage(imgElement, 0, 0, maskCanvas.width, maskCanvas.height);
+                this.canvasContext.drawImage(maskCanvas, rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+                completion.call(target);
+            }, this);
         });
     },
 
@@ -307,17 +324,7 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
             var rect = path.boundingRect;
             this.canvasContext.save();
             this.addPath(path);
-            var canvasGradient = this.canvasContext.createLinearGradient(
-                rect.origin.x + gradient.start.x * rect.size.width,
-                rect.origin.y + gradient.start.y * rect.size.height,
-                rect.origin.x + gradient.end.x * rect.size.width,
-                rect.origin.y + gradient.end.y * rect.size.height
-            );
-            var stop;
-            for (var i = 0, l = gradient.stops.length; i < l; ++i){
-                stop = gradient.stops[i];
-                canvasGradient.addColorStop(stop.position, stop.color.cssString());
-            }
+            var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
             this.canvasContext.restore();
@@ -329,37 +336,57 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     drawRadialGradientStroke: function(gradient, path){
         this.enqueueOperation(function(state, completion, target){
             var rect = path.boundingRect;
-            var r0 = 0;
-            var start = JSPoint(
-                rect.origin.x + gradient.start.x * rect.size.width,
-                rect.origin.y + gradient.start.y * rect.size.height
-            );
-            var end = JSPoint(
-                rect.origin.x + gradient.end.x * rect.size.width,
-                rect.origin.y + gradient.end.y * rect.size.height
-            );
-            var r1 = start.distanceToPoint(end);
             this.canvasContext.save();
             this.addPath(path);
-            var canvasGradient = this.canvasContext.createRadialGradient(
-                start.x,
-                start.y,
-                r0,
-                start.x,
-                start.y,
-                r1
-            );
-            var stop;
-            for (var i = 0, l = gradient.stops.length; i < l; ++i){
-                stop = gradient.stops[i];
-                canvasGradient.addColorStop(stop.position, stop.color.cssString());
-            }
+            var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
             this.canvasContext.restore();
             completion.call(target);
         });
         this.beginPath();
+    },
+
+    _linearGradientForCanvasContext: function(canvasContext, gradient, rect){
+        var canvasGradient = canvasContext.createLinearGradient(
+            rect.origin.x + gradient.start.x * rect.size.width,
+            rect.origin.y + gradient.start.y * rect.size.height,
+            rect.origin.x + gradient.end.x * rect.size.width,
+            rect.origin.y + gradient.end.y * rect.size.height
+        );
+        var stop;
+        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+            stop = gradient.stops[i];
+            canvasGradient.addColorStop(stop.position, stop.color.cssString());
+        }
+        return canvasGradient;
+    },
+
+    _radialGradientForCanvasContext: function(canvasContext, gradient, rect){
+        var r0 = 0;
+        var start = JSPoint(
+            rect.origin.x + gradient.start.x * rect.size.width,
+            rect.origin.y + gradient.start.y * rect.size.height
+        );
+        var end = JSPoint(
+            rect.origin.x + gradient.end.x * rect.size.width,
+            rect.origin.y + gradient.end.y * rect.size.height
+        );
+        var r1 = start.distanceToPoint(end);
+        var canvasGradient = canvasContext.createRadialGradient(
+            start.x,
+            start.y,
+            r0,
+            start.x,
+            start.y,
+            r1
+        );
+        var stop;
+        for (var i = 0, l = gradient.stops.length; i < l; ++i){
+            stop = gradient.stops[i];
+            canvasGradient.addColorStop(stop.position, stop.color.cssString());
+        }
+        return canvasGradient;
     },
 
     // ----------------------------------------------------------------------

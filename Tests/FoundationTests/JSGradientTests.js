@@ -183,6 +183,25 @@ JSClass('JSGradientTests', TKTestSuite, {
         gradient.addStop(1, JSColor.white);
         var css = gradient.cssString(JSSize(100, 100));
         TKAssertExactEquals(css, "linear-gradient(0deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%)");
+    },
+
+    testRadialCSSString: function(){
+        var gradient = JSGradient.init();
+        gradient.start.x = 0.5;
+        gradient.start.y = 0.5;
+        gradient.end.x = 0.5;
+        gradient.end.y = 0;
+        gradient.addStop(0, JSColor.black);
+        gradient.addStop(1, JSColor.white);
+        var css = gradient.radialCSSString(JSSize(100, 100));
+        TKAssertExactEquals(css, "radial-gradient(50px at 50% 50%, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%)");
+
+        gradient.start.x = 0;
+        gradient.start.y = 0;
+        gradient.end.x = 1;
+        gradient.end.y = 1;
+        css = gradient.radialCSSString(JSSize(100, 100));
+        TKAssertExactEquals(css, "radial-gradient(141.421356px at 0% 0%, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 1) 100%)");
     }
 
 });
