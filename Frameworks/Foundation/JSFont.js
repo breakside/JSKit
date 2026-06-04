@@ -164,8 +164,14 @@ JSClass("JSFont", JSObject, {
     },
 
     _calculateDisplayMetrics: function(){
-        this._displayAscender = Math.round(this._ascender);
-        this._displayDescender = Math.round(this._descender);
+        // Math.round always rounds towards +Infinity when a given number
+        // has a fractional part exactly equal to 0.5.
+        // So, 2.5 rounds to 3 but -2.5 rounds to -2.
+        //
+        // For the purposes of this calculation, we want negative
+        // values like -2.5 to round to -3.
+        this._displayAscender = this._ascender < 0 ? -Math.round(-this._ascender) : Math.round(this._ascender);
+        this._displayDescender = this._descender < 0 ? -Math.round(-this._descender) : Math.round(this._descender);
         this._displayLineHeight = this._displayAscender - this._displayDescender;
     },
 
