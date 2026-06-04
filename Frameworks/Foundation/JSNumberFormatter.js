@@ -560,6 +560,8 @@ JSClass("JSNumberFormatter", JSObject, {
         var canSeePercent = false;
         var canSeeGroup = false;
         var seenDigit = false;
+        var prefix = "";
+        var suffix = "";
         var stringMatches = function(substr){
             if (substr.length === 0){
                 return false;
@@ -588,6 +590,7 @@ JSClass("JSNumberFormatter", JSObject, {
                 sign = -1;
                 canSeeSign = false;
                 i += this.minusSign.length;
+                prefix += this.minusSign;
             }else if (canSeeSign && stringMatches(this.plusSign)){
                 canSeeSign = false;
                 i += this.plusSign.length;
@@ -625,8 +628,12 @@ JSClass("JSNumberFormatter", JSObject, {
                 i += this.groupingSeparator.length;
             }else if (c == 0x20){
                 ++i;
+            }else if (!seenDigit){
+                prefix += string[i];
+                ++i;
             }else{
-                return null;
+                suffix += string[i];
+                ++i;
             }
         }
         if (!seenDigit){
@@ -638,6 +645,21 @@ JSClass("JSNumberFormatter", JSObject, {
         n /= this.multiplier;
         if (sign < 0){
             n = -n;
+        }
+        if (n >= 0){
+            if (prefix !== "" && prefix !== this.positivePrefix){
+                return null;
+            }
+            if (suffix !== "" && suffix !== this.positiveSuffix){
+                return null;
+            }
+        }else{
+            if (prefix !== "" && prefix !== this.negativePrefix){
+                return null;
+            }
+            if (suffix !== "" && suffix !== this.negativeSuffix){
+                return null;
+            }
         }
         return n;
     },
