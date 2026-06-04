@@ -328,7 +328,9 @@ JSClass("JSPath", JSObject, {
         if (this.subpaths.length === 0){
             this.moveToPoint(p1, transform);
         }else{
-            this.addLineToPoint(p1, transform);
+            if (Math.abs(p1.x - this._currentPoint.x) > 0.00001 || Math.abs(p1.y - this._currentPoint.y) > 0.00001){
+                this.addLineToPoint(p1, transform);
+            }
         }
 
         // If there's no radius, then there's nothing left to do
@@ -524,7 +526,9 @@ JSClass("JSPath", JSObject, {
         }else{
             clockwise = endAngle - startAngle <= Math.PI;
         }
-        this.moveToPoint(t1);
+        if (Math.abs(t1.x - this._currentPoint.x) > 0.00001 || Math.abs(t1.y - this._currentPoint.y) > 0.00001){
+            this.moveToPoint(t1);
+        }
         this.addArc(center, radius, startAngle, endAngle, clockwise);
     },
 
