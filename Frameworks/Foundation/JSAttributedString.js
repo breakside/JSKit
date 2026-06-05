@@ -745,7 +745,13 @@ JSAttributedString.AttributeDecoder = {
     dataBase64URL: function(value){ return value.dataByDecodingBase64URL(); },
     dataHex: function(value){ return value.dataByDecodingHex(); },
     url: function(value){ return JSURL.initWithString(value); },
-    font: function(value){ return JSFont.initFromDictionary(value); },
+    font: function(value){
+        var font = JSFont.initFromDictionary(value);
+        if (font === null){
+            font = JSFont.initWithDescriptor(JSFontDescriptor.system, value.size);
+        }
+        return font;
+    },
     color: function(value){ return JSColor.initFromDictionary(value); },
     boolean: function(value){ return typeof(value) === "boolean" ? value : undefined; },
     number: function(value){ return typeof(value) === "number" ? value : undefined; },
