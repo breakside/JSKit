@@ -88,12 +88,6 @@ JSClass("JSFont", JSObject, {
 
     initFromDictionary: function(dictionary){
         var descriptor = JSFontDescriptor.descriptorWithFamily(dictionary.family, dictionary.weight, dictionary.style);
-        if (descriptor === null){
-            if (dictionary.url){
-                descriptor = JSURLFontDescriptor.initWithURL(JSURL.initWithString(dictionary.url), dictionary.family, dictionary.weight, dictionary.style);
-                JSFontDescriptor.registerDescriptor(descriptor);
-            }
-        }
         if (descriptor !== null){
             return JSFont.initWithDescriptor(descriptor, dictionary.size);
         }
@@ -102,7 +96,6 @@ JSClass("JSFont", JSObject, {
 
     dictionaryRepresentation: function(){
         return {
-            url: this.descriptor instanceof JSURLFontDescriptor ? this._descriptor.url : undefined,
             family: this._descriptor.family,
             weight: this._descriptor.weight,
             style: this._descriptor.style,
