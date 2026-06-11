@@ -1138,7 +1138,7 @@ JSClass("UIMenuItemView", UIView, {
             right -= this._submenuImageView.frame.size.width + this.contentInsets.right;
         }else if (this._keyLabel !== null && !this._keyLabel.hidden){
             this._keyLabel.frame = JSRect(right - this.keyWidth, this.contentInsets.top, this.keyWidth, this._keyLabel.font.displayLineHeight);
-            right -= this.keyWidth;
+            right -= this.keyWidth + 2;
             this._keyModifierLabel.frame = JSRect(right - this._keyModifierLabel.frame.size.width, this.contentInsets.top, this._keyModifierLabel.frame.size.width, this._keyModifierLabel.font.displayLineHeight);
             right -= this._keyModifierLabel.frame.size.width + this.contentInsets.right;
         }else if (this._accessoryView !== null){
@@ -1176,7 +1176,7 @@ JSClass("UIMenuItemView", UIView, {
             size.width += this._submenuImageView.frame.size.width + this.contentInsets.right;
         }else if (item.keyEquivalent){
             this._keyModifierLabel.sizeToFit();
-            size.width += this.keyWidth + this._keyModifierLabel.frame.size.width + this.contentInsets.right;
+            size.width += this.keyWidth + this._keyModifierLabel.frame.size.width + this.contentInsets.right + 2;
         }else{
             // make sure the right padding is as much as the left
             size.width += this.contentInsets.left - this.contentInsets.right;
