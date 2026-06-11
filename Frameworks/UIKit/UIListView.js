@@ -2229,17 +2229,19 @@ JSClass("UIListView", UIScrollView, {
 
     _contextSelectCell: function(cell, location){
         if (this.delegate && this.delegate.menuForListViewCellAtIndexPath){
+            if (this._selectionContainsIndexPath(cell.indexPath)){
+                this._contextSelectedIndexPaths = JSCopy(this._selectedIndexPaths);
+            }else{
+                this._contextSelectedIndexPaths = [cell.indexPath];
+            }
             var menu = this.delegate.menuForListViewCellAtIndexPath(this, cell.indexPath);
             if (menu !== null){
-                if (this._selectionContainsIndexPath(cell.indexPath)){
-                    this._contextSelectedIndexPaths = JSCopy(this._selectedIndexPaths);
-                }else{
-                    this._contextSelectedIndexPaths = [cell.indexPath];
-                }
                 this._updateVisibleCellStates();
                 var locationInCell = this.convertPointToView(location, cell);
                 menu.delegate = this;
                 menu.openAtLocationInContextView(locationInCell, cell);
+            }else{
+                this._contextSelectedIndexPaths = [];
             }
         }
     },
