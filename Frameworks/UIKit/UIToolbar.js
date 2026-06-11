@@ -524,7 +524,7 @@ JSClass("UIToolbarCustomStyler", UIToolbarStyler, {
 
     _fillInMissingStyles: function(){
         if (this.itemFont === null){
-            this.itemFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.normal);
+            this.itemFont = JSFont.systemFontOfSize(JSFont.Size.detail).fontWithWeight(JSFont.Weight.regular);
         }
         if (this.itemColor === null){
             this.itemColor = JSColor.initWithUIStyles(JSColor.black.colorWithAlpha(0.7), JSColor.white.colorWithAlpha(0.7));
