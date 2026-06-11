@@ -23,11 +23,13 @@ JSClass("UIPlatform", JSObject, {
 
     identifier: null,
     commandModifier: UIEvent.Modifier.command,
+    commandKey: UIEvent.Key.command,
 
     initWithIdentifier: function(identifier){
         this.identifier = identifier;
         if (this.identifier in CommandModifiers){
             this.commandModifier = CommandModifiers[this.identifier];
+            this.commandKey = CommandKeys[this.identifier];
         }
         this._cachedModifierStrings = {};
     },
@@ -64,6 +66,11 @@ UIPlatform.Identifier = {
 var CommandModifiers = {
     win: UIEvent.Modifier.control,
     mac: UIEvent.Modifier.command
+};
+
+var CommandKeys = {
+    win: UIEvent.Key.control,
+    mac: UIEvent.Key.command
 };
 
 var OrderedModifiers = {

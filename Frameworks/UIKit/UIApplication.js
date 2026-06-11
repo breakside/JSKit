@@ -372,7 +372,7 @@ JSClass('UIApplication', UIResponder, {
     // MARK: - Sending Events & Actions
 
     sendEvent: function(event){
-        if (event.category === UIEvent.Category.key && event.type === UIEvent.Type.keyDown && UIPlatform.shared && event.hasModifier(UIPlatform.shared.commandModifier)){
+        if (event.category === UIEvent.Category.key && event.type === UIEvent.Type.keyDown && UIPlatform.shared && event.hasModifier(UIPlatform.shared.commandModifier) && event.key !== UIPlatform.shared.commandKey){
             var mainMenu = this.mainMenu;
             if (mainMenu){
                 if (mainMenu.performKeyEquivalent(event)){
@@ -382,6 +382,14 @@ JSClass('UIApplication', UIResponder, {
             if (this.shortcutMenu !== null){
                 if (this.shortcutMenu.performKeyEquivalent(event)){
                     return;
+                }
+            }
+            if (this.keyWindow !== null && this.keyWindow.firstResponder !== null){
+                var shortcutMenu = this.keyWindow.firstResponder.getShortcutMenu();
+                if (shortcutMenu !== null){
+                    if (shortcutMenu.performKeyEquivalent(event)){
+                        return;
+                    }
                 }
             }
         }

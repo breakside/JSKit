@@ -211,4 +211,12 @@ JSClass("UIResponder", JSObject, {
         }
     },
 
+    getShortcutMenu: function(){
+        var next = this.getNextResponder();
+        if (next !== null){
+            return next.getShortcutMenu();
+        }
+        return null;
+    },
+
 });
