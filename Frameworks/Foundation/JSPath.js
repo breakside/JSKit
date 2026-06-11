@@ -514,10 +514,10 @@ JSClass("JSPath", JSObject, {
         // distance is clockwise or counter clockwise.
         // Note: we could swap the angles and always arc in a fixed direction,
         // but I think it makes more sense to always arc from p0 to p2.
-        if (startAngle < 0){
+        if (startAngle <= 0){
             startAngle += TWO_PI;
         }
-        if (endAngle < 0){
+        if (endAngle <= 0){
             endAngle += TWO_PI;
         }
         var clockwise;
