@@ -170,6 +170,7 @@ JSClass("UIMenuItem", JSObject, {
         this._submenu = submenu;
         if (this._submenu !== null){
             this._submenu.supermenu = this.menu;
+            this._isEnabled = true;
         }
     },
 
