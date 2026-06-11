@@ -43,6 +43,7 @@ JSClass("UITextEditor", JSObject, {
     _selectionHighlightLayers: null,
     _selectionHighlightColor: null,
     _draggingSelectionIndex: null,
+    _showsSelectionWhenNotFirstResponder: false,
 
     initWithTextLayer: function(textLayer){
         this.layoutLayer = textLayer;
@@ -318,8 +319,10 @@ JSClass("UITextEditor", JSObject, {
     },
 
     didResignFirstResponder: function(){
-        this._hideCursors();
-        this._hideSelections();
+        if (!this._showsSelectionWhenNotFirstResponder){
+            this._hideCursors();
+            this._hideSelections();
+        }
         this._isFirstResponder = false;
         this.undoManager.clear();
     },
@@ -362,8 +365,10 @@ JSClass("UITextEditor", JSObject, {
     },
 
     _positionCursors: function(){
-        if (!this._isFirstResponder || !this._isWindowKey){
-            return;
+        if (!this._showsSelectionWhenNotFirstResponder){
+            if (!this._isFirstResponder || !this._isWindowKey){
+                return;
+            }
         }
         var i, l;
         for (i = this._cursorLayers.length, l = this.selections.length; i < l; ++i){
@@ -452,8 +457,10 @@ JSClass("UITextEditor", JSObject, {
     // MARK: - Selection Highlights
 
     _positionSelectionHighlights: function(){
-        if (!this._isFirstResponder || !this._isWindowKey){
-            return;
+        if (!this._showsSelectionWhenNotFirstResponder){
+            if (!this._isFirstResponder || !this._isWindowKey){
+                return;
+            }
         }
         // TODO: show paragraph marks when highlighting
         var selectionsWithLengths = [];
