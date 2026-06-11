@@ -132,11 +132,21 @@ JSClass("UIMenuItem", JSObject, {
         }
     },
 
+    setState: function(state){
+        this._state = state;
+        if (this.menu !== null){
+            this.menu._styler.invalidateMenuPresentation(this.menu);
+        }
+    },
+
     setEnabled: function(isEnabled){
         if (this._isSeparator){
             return;
         }
         this._isEnabled = isEnabled;
+        if (this.menu !== null){
+            this.menu._styler.invalidateMenuPresentation(this.menu);
+        }
     },
 
     setTag: function(tag){

@@ -127,6 +127,13 @@ JSClass("UIMenuWindow", UIWindow, {
     // -----------------------------------------------------------------------
     // MARK: - Upating the Window Contents
 
+    invalidate: function(){
+        this.needsUpdate = true;
+        this.setNeedsLayout();
+    },
+
+    needsUpdate: false,
+
     update: function(){
         var item;
         var itemView;
@@ -208,6 +215,12 @@ JSClass("UIMenuWindow", UIWindow, {
     // MARK: - Layout
 
     layoutSubviews: function(){
+        if (this.needsUpdate){
+            this._menu.updateEnabled();
+            this.update();
+            this.needsUpdate = false;
+            this._menu.styler.repositionWindow(this);
+        }
         UIMenuWindow.$super.layoutSubviews.call(this);
         var contentView = this.contentView;
         this.clipView.frame = contentView.bounds.rectWithInsets(this._capSize, 0);
@@ -1041,6 +1054,10 @@ JSClass("UIMenuItemView", UIView, {
                 if (this._accessoryView !== null){
                     this.addSubview(this._accessoryView);
                 }
+            }
+        }else{
+            if (this._accessoryView !== null){
+                this._accessoryView.removeFromSuperview();
             }
         }
         this._accessorySize = item.accessorySize;

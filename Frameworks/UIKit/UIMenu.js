@@ -857,46 +857,47 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
     invalidateMenuPresentation: function(menu){
         var window = menu.stylerProperties.window || null;
         if (window !== null && window.screen !== null){
-            menu.updateEnabled();
-            window.update();
-
-            var screenMetrics = this.metricsForScreen(window.screen);
-            var size = JSSize(window.frame.size);
-
-            // Ensure we're at least the minimum width
-            // (although max width will take precedence)
-            if (size.width < menu._minimumWidth){
-                size.width = menu._minimumWidth;
-            }
-
-            // Limit width to the max screen width
-            if (size.width > screenMetrics.maximumWidth){
-                size.width = screenMetrics.maximumWidth;
-            }
-
-            // Set our origin so the origin of the target item matches the given location
-            var origin = JSPoint(window.frame.origin);
-
-            // Adjust our x position if we've overflowed
-            var over = origin.x + size.width - screenMetrics.safeFrame.origin.x - screenMetrics.safeFrame.size.width;
-            if (over > 0){
-                origin.x -= over;
-            }
-            if (origin.x < screenMetrics.safeFrame.origin.x){
-                origin.x = screenMetrics.safeFrame.origin.x;
-            }
-
-            var offset = JSPoint.Zero;
-
-            // If we extend beyond the bottom, adjust our height
-            over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
-            if (over > 0){
-                size.height -= over;
-            }
-
-            window.frame = JSRect(origin, size);
-            window.layoutIfNeeded();
+            window.invalidate();
         }
+    },
+
+    repositionWindow: function(window){
+        var menu = window._menu;
+        var screenMetrics = this.metricsForScreen(window.screen);
+        var size = JSSize(window.frame.size);
+
+        // Ensure we're at least the minimum width
+        // (although max width will take precedence)
+        if (size.width < menu._minimumWidth){
+            size.width = menu._minimumWidth;
+        }
+
+        // Limit width to the max screen width
+        if (size.width > screenMetrics.maximumWidth){
+            size.width = screenMetrics.maximumWidth;
+        }
+
+        // Set our origin so the origin of the target item matches the given location
+        var origin = JSPoint(window.frame.origin);
+
+        // Adjust our x position if we've overflowed
+        var over = origin.x + size.width - screenMetrics.safeFrame.origin.x - screenMetrics.safeFrame.size.width;
+        if (over > 0){
+            origin.x -= over;
+        }
+        if (origin.x < screenMetrics.safeFrame.origin.x){
+            origin.x = screenMetrics.safeFrame.origin.x;
+        }
+
+        var offset = JSPoint.Zero;
+
+        // If we extend beyond the bottom, adjust our height
+        over = origin.y + size.height - screenMetrics.safeFrame.origin.y - screenMetrics.safeFrame.size.height;
+        if (over > 0){
+            size.height -= over;
+        }
+
+        window.frame = JSRect(origin, size);
     },
 
     metricsForScreen: function(screen){
