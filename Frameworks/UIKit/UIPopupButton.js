@@ -28,7 +28,7 @@ JSClass("UIPopupButton", UIControl, {
     titleInsets: JSDynamicProperty('_titleInsets', null),
     imageView: JSReadOnlyProperty('_imageView', null),
     indicatorView: JSReadOnlyProperty('_indicatorView', null),
-    menu: JSReadOnlyProperty('_menu', null),
+    menu: JSDynamicProperty('_menu', null),
     selectedIndex: JSDynamicProperty('_selectedIndex', -1),
     selectedTag: JSDynamicProperty(),
     _selectedItem: null,
@@ -279,6 +279,12 @@ JSClass("UIPopupButton", UIControl, {
     // MARK: - Menu
 
     menuAdoptsTitleFont: true,
+
+    setMenu: function(menu){
+        this._menu = menu;
+        this.menuAdoptsTitleFont = false;
+        this.invalidateIntrinsicSize();
+    },
 
     openMenu: function(){
         if (this.menu.items.length > 0){
