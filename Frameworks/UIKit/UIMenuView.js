@@ -941,7 +941,7 @@ JSClass("UIMenuItemView", UIView, {
     },
 
     _createSubmenuImageView: function(){
-        this._submenuImageView = UIImageView.initWithImage(images.submenu);
+        this._submenuImageView = UIImageView.init();
         this.insertSubviewAboveSibling(this._submenuImageView, this.titleLabel);
         return this._submenuImageView;
     },
@@ -981,6 +981,7 @@ JSClass("UIMenuItemView", UIView, {
         }
         if (item.submenu){
             this.submenuImageView.hidden = false;
+            this.submenuImageView.image = item.menu.styler.submenuIndicatorIcon;
         }else if (this._submenuImageView !== null){
             this._submenuImageView.hidden = true;
         }

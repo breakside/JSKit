@@ -477,6 +477,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
     borderWidth: JSDynamicProperty('_borderWidth', 0.5),
     itemContentInsets: JSDynamicProperty('_itemContentInsets', JSInsets(2, 3, 2, 7)),
     indentationSize: JSDynamicProperty('_indentationSize', 10),
+    submenuIndicatorIcon: null,
     separatorSize: 10,
     separatorLineWidth: 1,
     separatorColor: null,
@@ -490,6 +491,7 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         this.shadowColor = JSColor.menuShadow;
         this.shadowOffset = JSPoint.Zero;
         this.separatorColor = this.disabledTextColor;
+        this.submenuIndicatorIcon = JSImage.initWithResourceName("UIMenuItemSubmenu", this.bundle).imageWithRenderMode(JSImage.RenderMode.template);
     },
 
     initWithSpec: function(spec){
@@ -552,7 +554,16 @@ JSClass("UIMenuWindowStyler", UIMenuStyler, {
         if (spec.containsKey('indentationSize')){
             this.indentationSize = spec.valueForKey("indentationSize", Number);
         }
+        if (spec.containsKey('submenuIndicatorIcon')){
+            this.submenuIndicatorIcon = spec.valueForKey("submenuIndicatorIcon", Number);
+        }else{
+            this.submenuIndicatorIcon = JSImage.initWithResourceName("UIMenuItemSubmenu", this.bundle).imageWithRenderMode(JSImage.RenderMode.template);
+        }
     },
+
+    bundle: JSLazyInitProperty(function(){
+        return JSBundle.initWithIdentifier("io.breakside.JSKit.UIKit");
+    }),
 
     presentMenuAdjacentToView: function(menu, view, preferredPlacement, spacing){
         if (preferredPlacement === undefined){
