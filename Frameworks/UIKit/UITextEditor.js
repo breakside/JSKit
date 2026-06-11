@@ -883,7 +883,7 @@ JSClass("UITextEditor", JSObject, {
                 if (selection.range.location >= range.end){
                     selection.range = JSRange(selection.range.location + locationAdjustment, selection.range.length);
                 }else if (selection.range.location >= range.location){
-                    selection.range = JSRange(range.location, Math.max(0, selection.range.length + locationAdjustment));
+                    selection.range = JSRange(selection.range.location, Math.max(0, selection.range.length + locationAdjustment));
                 }else{
                     break;
                 }
