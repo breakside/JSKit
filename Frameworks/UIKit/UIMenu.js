@@ -1009,6 +1009,12 @@ UIMenu.keyEquivalentCodeForKeyCode = function(keyCode){
             case 0xBD:
                 characterCode = 0x2D; // -
                 break;
+            case 0xDB:
+                characterCode = 0x5B; // [
+                break;
+            case 0xDD:
+                characterCode = 0x5D; // [
+                break;
         }
     }
     return UIMenu.keyEquivalentCodeForCharacterCode(characterCode);
