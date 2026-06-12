@@ -53,6 +53,40 @@ JSClass("JSPath", JSObject, {
         return true;
     },
 
+    elements: JSReadOnlyProperty(),
+
+    _elements: null,
+
+    _invalidateElements: function(){
+        this._elements = null;
+    },
+
+    getElements: function(){
+        if (this._elements === null){
+            this._elements = [];
+            var i, l, j, k;
+            var subpath, segment;
+            for (i = 0, l = this.subpaths.length; i < l; ++i){
+                subpath = this.subpaths[i];
+                this._elements.push(JSPathElement(JSPathElement.Type.move, subpath.firstPoint));
+                if (subpath.segments.length > 0){
+                    for (j = 0, k = subpath.segments.length; j < k; ++j){
+                        segment = subpath.segments[j];
+                        if (segment.type == JSPath.SegmentType.line){
+                            this._elements.push(JSPathElement(JSPathElement.Type.line, segment.end));
+                        }else if (segment.type == JSPath.SegmentType.curve){
+                            this._elements.push(JSPathElement(JSPathElement.Type.cubicCurve, segment.curve.p2, segment.curve.p1, segment.curve.cp1, segment.curve.cp2));
+                        }
+                    }
+                }
+                if (subpath.closed){
+                    this._elements.push(JSPathElement(JSPathElement.Type.close));
+                }
+            }
+        }
+        return this._elements;
+    },
+
     subpaths: null,
     currentPoint: JSReadOnlyProperty('_currentPoint', null),
     currentSubpath: null,
@@ -68,6 +102,7 @@ JSClass("JSPath", JSObject, {
         this.subpaths.push(this.currentSubpath);
         this._currentPoint = point;
         this._invalidateBoundingRect();
+        this._invalidateElements();
     },
 
     addLineToPoint: function(point, transform){
@@ -80,6 +115,7 @@ JSClass("JSPath", JSObject, {
         this.currentSubpath.segments.push({type: JSPath.SegmentType.line, end: point});
         this._currentPoint = point;
         this._invalidateBoundingRect();
+        this._invalidateElements();
     },
 
     addCurveToPoint: function(point, control1, control2, transform){
@@ -93,6 +129,7 @@ JSClass("JSPath", JSObject, {
         this.currentSubpath.segments.push({type: JSPath.SegmentType.curve, curve: curve});
         this._currentPoint = point;
         this._invalidateBoundingRect();
+        this._invalidateElements();
     },
 
     addRect: function(rect, transform){
@@ -537,6 +574,7 @@ JSClass("JSPath", JSObject, {
             this._currentPoint = this.currentSubpath.firstPoint;
             this.currentSubpath.closed = true;
             this.currentSubpath = null;
+            this._invalidateElements();
         }
     },
 
@@ -1505,6 +1543,34 @@ JSPath.Sides = {
         return sides;
     }
 };
+
+JSGlobalObject.JSPathElement = function(type, point, point1, point2, point3){
+    if (this === undefined){
+        if (type === null){
+            return null;
+        }
+        return new JSPathElement(type, point, point1, point2, point3);
+    }
+    if (type instanceof JSPathElement){
+        this.type = type.type;
+        this.point = JSPoint(type.point);
+        this.curve = JSCubicBezier(type.curve);
+    }else{
+        this.type = type;
+        this.point = JSPoint(point || null);
+        if (type === JSPathElement.Type.cubicCurve){
+            this.curve = JSCubicBezier(point1, point2, point3, point);
+        }
+    }
+};
+
+JSPathElement.Type = {
+    move: 1,
+    line: 2,
+    cubicCurve: 3,
+    close: 4
+};
+
 
 JSPath.Sides.minYmaxY = JSPath.Sides.minY | JSPath.Sides.maxY;
 JSPath.Sides.minXmaxX = JSPath.Sides.minX | JSPath.Sides.maxX;

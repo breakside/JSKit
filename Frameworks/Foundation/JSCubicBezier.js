@@ -19,6 +19,9 @@
 
 JSGlobalObject.JSCubicBezier = function(p1, cp1, cp2, p2){
     if (this === undefined){
+        if (p1 === null){
+            return null;
+        }
         return new JSCubicBezier(p1, cp1, cp2, p2);
     }
     if (p1 instanceof JSCubicBezier){
