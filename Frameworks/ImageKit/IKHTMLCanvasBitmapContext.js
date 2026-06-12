@@ -534,31 +534,24 @@ JSPath.definePropertiesFromExtensions({
 
     addToIKHTMLCanvasContext: function(canvasContext){
         var i, l;
-        var j, k;
-        var subpath;
-        var segment;
-        var point;
-        var cp1;
-        var cp2;
-        for (i = 0, l = this.subpaths.length; i < l; ++i){
-            subpath = this.subpaths[i];
-            canvasContext.moveTo(subpath.firstPoint.x, subpath.firstPoint.y);
-            for (j = 0, k = subpath.segments.length; j < k; ++j){
-                segment = subpath.segments[j];
-                if (segment.type === JSPath.SegmentType.line){
-                    canvasContext.lineTo(segment.end.x, segment.end.y);
-                }else if (segment.type === JSPath.SegmentType.curve){
-                    canvasContext.bezierCurveTo(
-                        segment.curve.cp1.x,
-                        segment.curve.cp1.y,
-                        segment.curve.cp2.x,
-                        segment.curve.cp2.y,
-                        segment.curve.p2.x,
-                        segment.curve.p2.y
-                    );
-                }
-            }
-            if (subpath.closed){
+        var elements = this.elements;
+        var element;
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                canvasContext.moveTo(element.point.x, element.point.y);
+            }else if (element.type === JSPathElement.Type.line){
+                canvasContext.lineTo(element.point.x, element.point.y);
+            }else if (element.type === JSPathElement.Type.cubicCurve){
+                canvasContext.bezierCurveTo(
+                    element.curve.cp1.x,
+                    element.curve.cp1.y,
+                    element.curve.cp2.x,
+                    element.curve.cp2.y,
+                    element.curve.p2.x,
+                    element.curve.p2.y
+                );
+            }else if (element.type === JSPathElement.Type.close){
                 canvasContext.closePath();
             }
         }

@@ -100,21 +100,17 @@ JSClass("JSContext", JSObject, {
     addPath: function(path){
         this.beginPathIfNeeded();
         var i, l;
-        var j, k;
-        var subpath;
-        var segment;
-        for (i = 0, l = path.subpaths.length; i < l; ++i){
-            subpath = path.subpaths[i];
-            this.moveToPoint(subpath.firstPoint.x, subpath.firstPoint.y);
-            for (j = 0, k = subpath.segments.length; j < k; ++j){
-                segment = subpath.segments[j];
-                if (segment.type === JSPath.SegmentType.line){
-                    this.addLineToPoint(segment.end.x, segment.end.y);
-                }else if (segment.type === JSPath.SegmentType.curve){
-                    this.addCurveToPoint(segment.curve.p2, segment.curve.cp1, segment.curve.cp2);
-                }
-            }
-            if (subpath.closed){
+        var elements = path.elements;
+        var element;
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                this.moveToPoint(element.point.x, element.point.y);
+            }else if (element.type === JSPathElement.Type.line){
+                this.addLineToPoint(element.point.x, element.point.y);
+            }else if (element.type === JSPathElement.Type.cubicCurve){
+                this.addCurveToPoint(element.curve.p2, element.curve.cp1, element.curve.cp2);
+            }else if (element.type === JSPathElement.Type.close){
                 this.closePath();
             }
         }

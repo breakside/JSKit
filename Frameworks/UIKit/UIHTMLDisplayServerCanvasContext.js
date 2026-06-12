@@ -1342,29 +1342,25 @@ JSClass("UIHTMLDisplayServerCanvasContextPath", JSPath, {
     canvasOperations: function(prototype, transform){
         var operations = [];
         var i, l;
-        var j, k;
-        var subpath;
-        var segment;
+        var elements = this.elements;
+        var element;
         var point;
         var cp1;
         var cp2;
-        for (i = 0, l = this.subpaths.length; i < l; ++i){
-            subpath = this.subpaths[i];
-            point = transform.convertPointToTransform(subpath.firstPoint);
-            operations.push({method: prototype.moveTo, arguments: [point.x, point.y]});
-            for (j = 0, k = subpath.segments.length; j < k; ++j){
-                segment = subpath.segments[j];
-                if (segment.type === JSPath.SegmentType.line){
-                    point = transform.convertPointToTransform(segment.end);
-                    operations.push({method: prototype.lineTo, arguments: [point.x, point.y]});
-                }else if (segment.type === JSPath.SegmentType.curve){
-                    point = transform.convertPointToTransform(segment.curve.p2);
-                    cp1 = transform.convertPointToTransform(segment.curve.cp1);
-                    cp2 = transform.convertPointToTransform(segment.curve.cp2);
-                    operations.push({method: prototype.bezierCurveTo, arguments: [cp1.x, cp1.y, cp2.x, cp2.y, point.x, point.y]});
-                }
-            }
-            if (subpath.closed){
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                point = transform.convertPointToTransform(element.point);
+                operations.push({method: prototype.moveTo, arguments: [point.x, point.y]});
+            }else if (element.type === JSPathElement.Type.line){
+                point = transform.convertPointToTransform(element.point);
+                operations.push({method: prototype.lineTo, arguments: [point.x, point.y]});
+            }else if (element.type === JSPathElement.Type.cubicCurve){
+                point = transform.convertPointToTransform(element.curve.p2);
+                cp1 = transform.convertPointToTransform(element.curve.cp1);
+                cp2 = transform.convertPointToTransform(element.curve.cp2);
+                operations.push({method: prototype.bezierCurveTo, arguments: [cp1.x, cp1.y, cp2.x, cp2.y, point.x, point.y]});
+            }else if (element.type === JSPathElement.Type.close){
                 operations.push({method: prototype.closePath, arguments: []});
             }
         }

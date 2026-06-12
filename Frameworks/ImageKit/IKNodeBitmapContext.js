@@ -185,10 +185,10 @@ JSClass("IKNodeBitmapContext", IKBitmapContext, {
         squarePath.addLineToPoint(JSPoint(1, 1));
         squarePath.addLineToPoint(JSPoint(0, 1));
         squarePath.close();
-        var p1 = squarePath.subpaths[0].firstPoint;
-        var p2 = squarePath.subpaths[0].segments[0].end;
-        var p3 = squarePath.subpaths[0].segments[1].end;
-        var p4 = squarePath.subpaths[0].segments[2].end;
+        var p1 = squarePath.elements[0].point;
+        var p2 = squarePath.elements[1].point;
+        var p3 = squarePath.elements[2].point;
+        var p4 = squarePath.elements[3].point;
         for (var i = 0; p1.y < bitmap.size.height; ++p1.y, ++p2.y, ++p3.y, ++p4.y){
             for (p1.x = 0, p2.x = 1, p3.x = 1, p4.x = 0; p1.x < bitmap.size.width; ++p1.x, ++p2.x, ++p3.x, ++p4.x){
                 r = bitmap.data[i++];
