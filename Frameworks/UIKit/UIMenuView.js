@@ -990,6 +990,10 @@ JSClass("UIMenuItemView", UIView, {
             this.keyLabel.text = item.keyEquivalent.toUpperCase();
             var modifierText = UIPlatform.shared.stringForKeyModifiers(item.keyModifiers);
             this.keyModifierLabel.text = modifierText;
+        }else if (item.unmodifiedKeyEquivalent !== null){
+            this.keyLabel.hidden = false;
+            this.keyLabel.text = item.unmodifiedKeyEquivalent.toUpperCase();
+            this.keyModifierLabel.text = "";
         }else if (this._keyLabel !== null){
             this._keyLabel.hidden = true;
             this._keyModifierLabel.hidden = true;
@@ -1032,7 +1036,7 @@ JSClass("UIMenuItemView", UIView, {
         if (this._submenuImageView !== null){
             this.submenuImageView.templateColor = textColor;
         }
-        if (item.keyEquivalent){
+        if (item.keyEquivalent || item.unmodifiedKeyEquivalent){
             this.keyLabel.font = item.menu.font;
             this.keyLabel.textColor = textColor;
             this.keyModifierLabel.font = item.menu.font;
@@ -1175,7 +1179,7 @@ JSClass("UIMenuItemView", UIView, {
         size.width += this.titleLabel.frame.size.width;
         if (item.submenu !== null){
             size.width += this._submenuImageView.frame.size.width + this.contentInsets.right;
-        }else if (item.keyEquivalent){
+        }else if (item.keyEquivalent || item.unmodifiedKeyEquivalent){
             this._keyModifierLabel.sizeToFit();
             size.width += this.keyWidth + this._keyModifierLabel.frame.size.width + this.contentInsets.right + 2;
         }else{

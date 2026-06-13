@@ -25,6 +25,7 @@ JSClass("UIMenuItem", JSObject, {
     index: 0,
     title: JSDynamicProperty('_title', null),
     keyEquivalent: JSDynamicProperty('_keyEquivalent', null),
+    unmodifiedKeyEquivalent: JSDynamicProperty('_unmodifiedKeyEquivalent', null),
     _keyEquivalentCode: 0,
     keyModifiers: JSDynamicProperty('_keyModifiers', 0),
     image: JSDynamicProperty('_image', null),
