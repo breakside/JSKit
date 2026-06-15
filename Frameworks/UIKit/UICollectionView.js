@@ -1454,6 +1454,10 @@ JSClass("UICollectionView", UIScrollView, {
                 if (this.delegate && this.delegate.collectionViewWillBeginDraggingSession){
                     this.delegate.collectionViewWillBeginDraggingSession(this, session, indexPaths, location);
                 }
+                if (cell.over){
+                    cell.over = false;
+                }
+                cell.active = false;
             }
         }else{
             // TODO: scrolling (see UITextEditor for similar use case)
