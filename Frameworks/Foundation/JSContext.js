@@ -285,6 +285,30 @@ JSClass("JSContext", JSObject, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - Transparency Layers
+
+    beginTransparencyLayer: function(){
+        this.save();
+        this.state.transparencyLayer = this.createTransparencyLayer();
+        this.setAlpha(1);
+        this.setShadow(JSPoint.Zero, 0, null);
+    },
+
+    endTransparencyLayer: function(){
+        if (this.state.transparencyLayer === null){
+            return;
+        }
+        this.drawTransparencyLayer(this.state.transparencyLayer);
+        this.restore();
+    },
+
+    createTransparencyLayer: function(){
+    },
+
+    drawTransparencyLayer: function(transparencyLayer){
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Clipping
 
     clip: function(fillRule){
@@ -412,6 +436,8 @@ JSContext.State = {
     textMatrix: JSAffineTransform.Identity,
     characterSpacing: 0,
     textDrawingMode: JSContext.TextDrawingMode.fill,
+
+    transparencyLayer: null
 
 };
 

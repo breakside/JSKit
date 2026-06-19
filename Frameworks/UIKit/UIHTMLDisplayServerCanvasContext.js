@@ -964,6 +964,45 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - Transparency Layers
+
+    _reusableTransparencyLayer: null,
+
+    createTransparencyLayer: function(){
+        var scale = this.deviceScale * this.renderScale;
+        if (this._reusableTransparencyLayer !== null){
+            layer = this._reusableTransparencyLayer;
+            this._reusableTransparencyLayer = null;
+            layer.context.resetTransform();
+            layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+            this._canvasContextAdoptState(layer.context, this.state, scale);
+            layer.parentContext = this.canvasContext;
+            this._canvasContext = layer.context;
+            return layer;
+        }
+        var parentContext = this.canvasContext;
+        var canvas = this._canvasElements[0].ownerDocument.createElement("canvas");
+        canvas.width = this._canvasElements[0].width;
+        canvas.height = this._canvasElements[0].height;
+        var context = canvas.getContext("2d");
+        this._canvasContextAdoptState(context, this.state, scale);
+        var layer = {
+            canvas: canvas,
+            context: context,
+            parentContext: parentContext
+        };
+        this._canvasContext = context;
+        return layer;
+    },
+
+    drawTransparencyLayer: function(transparencyLayer){
+        this._canvasContext = transparencyLayer.parentContext;
+        this._canvasContext.resetTransform();
+        this._canvasContext.drawImage(transparencyLayer.canvas, 0, 0);
+        this._reusableTransparencyLayer = transparencyLayer;
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Clipping
 
     clip: function(fillRule){

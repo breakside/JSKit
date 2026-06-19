@@ -393,6 +393,63 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
     },
 
     // ----------------------------------------------------------------------
+    // MARK: - Transparency Layers 
+
+    _reusableTransparencyLayer: null,
+
+    createTransparencyLayer: function(){
+        if (this._reusableTransparencyLayer !== null){
+            layer = this._reusableTransparencyLayer;
+            this._reusableTransparencyLayer = null;
+            layer.context.resetTransform();
+            layer.context.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+            this._canvasContextAdoptState(layer.context, this.state);
+            layer.parentContext = this.canvasContext;
+            this.canvasContext = layer.context;
+            return layer;
+        }
+        var parentContext = this.canvasContext;
+        var canvas = this.canvasElement.ownerDocument.createElement("canvas");
+        canvas.width = this.canvasElement.width;
+        canvas.height = this.canvasElement.height;
+        var context = canvas.getContext("2d");
+        this._canvasContextAdoptState(context, this.state);
+        var layer = {
+            canvas: canvas,
+            context: context,
+            parentContext: parentContext
+        };
+        this.canvasContext = context;
+        return layer;
+    },
+
+    drawTransparencyLayer: function(transparencyLayer){
+        this.canvasContext = transparencyLayer.parentContext;
+        this.canvasContext.resetTransform();
+        this.canvasContext.drawImage(transparencyLayer.canvas, 0, 0);
+        this._reusableTransparencyLayer = transparencyLayer;
+    },
+
+    _canvasContextAdoptState: function(context, state){
+        context.globalAlpha = state.alpha;
+        context.fillStyle = state.fillColor ? state.fillColor.cssString() : '';
+        context.strokeStyle = state.strokeColor ? state.strokeColor.cssString() : '';
+        context.shadowOffsetX = state.shadowOffset.x;
+        context.shadowOffsetY = state.shadowOffset.y;
+        context.shadowBlur = state.shadowBlur;
+        context.shadowColor = state.shadowColor ? state.shadowColor.cssString() : '';
+        context.lineWidth = state.lineWidth;
+        context.lineCap = state.lineCap;
+        context.lineJoin = state.lineJoin;
+        context.miterLimit = state.miterLimit;
+        context.lineDashOffset = state.lineDashPhase;
+        context.setLineDash(state.lineDashArray);
+        var transform = state.transform;
+        context.setTransform(transform.a, transform.b, transform.c, transform.d, transform.tx, transform.ty);
+        context.font = state.font ? state.font.cssString() : '';
+    },
+
+    // ----------------------------------------------------------------------
     // MARK: - Text
 
     showGlyphs: function(glyphs){
