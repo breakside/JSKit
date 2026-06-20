@@ -72,6 +72,13 @@ JSPoint.prototype = {
 
     subtracting: function(other){
         return JSPoint(this.x - other.x, this.y - other.y);
+    },
+
+    interpolation: function(p1, percentage){
+        return JSPoint(
+            this.x + (p1.x - this.x) * percentage,
+            this.y + (p1.y - this.y) * percentage
+        );
     }
 };
 

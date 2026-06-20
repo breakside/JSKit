@@ -129,6 +129,21 @@ JSCubicBezier.prototype = {
             points.push(this.pointAtInterval(t[1]));
         }
         return points;
+    },
+
+    curvesBySplittingAtInterval: function(t){
+        var q0 = this.p1.interpolation(this.cp1, t);
+        var q1 = this.cp1.interpolation(this.cp2, t);
+        var q2 = this.cp2.interpolation(this.p2, t);
+        var r0 = q0.interpolation(q1, t);
+        var r1 = q1.interpolation(q2, t);
+        var p = r0.interpolation(r1, t);
+        var cp1 = this.p1.interpolation(this.cp1, t);
+        var cp2 = this.p2.interpolation(this.cp2, (1 - t));
+        return [
+            JSCubicBezier(this.p1, cp1, r0, p),
+            JSCubicBezier(p, r1, cp2, this.p2)
+        ];
     }
 
 };

@@ -317,6 +317,77 @@ JSClass("JSCubicBezierTests", TKTestSuite, {
             }
         }
         return JSRect(min, JSSize(max.x - min.x, max.y - min.y));
+    },
+
+    testCurvesBySplittingAtInterval: function(){
+        var p1 = JSPoint(1, 1);
+        var p2 = JSPoint(2, 1);
+        var cp1 = JSPoint(1, 1.2);
+        var cp2 = JSPoint(2, 1.2);
+        var curve = JSCubicBezier(p1, cp1, cp2, p2);
+        var curves = curve.curvesBySplittingAtInterval(0.5);
+        TKAssertFloatEquals(curves[0].p1.x, 1);
+        TKAssertFloatEquals(curves[0].p1.y, 1);
+        TKAssertFloatEquals(curves[0].cp1.x, 1);
+        TKAssertFloatEquals(curves[0].cp1.y, 1.1);
+        TKAssertFloatEquals(curves[0].cp2.x, 1.25);
+        TKAssertFloatEquals(curves[0].cp2.y, 1.15);
+        TKAssertFloatEquals(curves[0].p2.x, 1.5);
+        TKAssertFloatEquals(curves[0].p2.y, 1.15);
+        TKAssertFloatEquals(curves[1].p1.x, 1.5);
+        TKAssertFloatEquals(curves[1].p1.y, 1.15);
+        TKAssertFloatEquals(curves[1].cp1.x, 1.75);
+        TKAssertFloatEquals(curves[1].cp1.y, 1.15);
+        TKAssertFloatEquals(curves[1].cp2.x, 2);
+        TKAssertFloatEquals(curves[1].cp2.y, 1.1);
+        TKAssertFloatEquals(curves[1].p2.x, 2);
+        TKAssertFloatEquals(curves[1].p2.y, 1);
+
+        p1 = JSPoint(1, 1);
+        p2 = JSPoint(2, 1);
+        cp1 = JSPoint(1, 0.8);
+        cp2 = JSPoint(2, 0.8);
+        curve = JSCubicBezier(p1, cp1, cp2, p2);
+        curves = curve.curvesBySplittingAtInterval(0.5);
+        TKAssertFloatEquals(curves[0].p1.x, 1);
+        TKAssertFloatEquals(curves[0].p1.y, 1);
+        TKAssertFloatEquals(curves[0].cp1.x, 1);
+        TKAssertFloatEquals(curves[0].cp1.y, 0.9);
+        TKAssertFloatEquals(curves[0].cp2.x, 1.25);
+        TKAssertFloatEquals(curves[0].cp2.y, 0.85);
+        TKAssertFloatEquals(curves[0].p2.x, 1.5);
+        TKAssertFloatEquals(curves[0].p2.y, 0.85);
+        TKAssertFloatEquals(curves[1].p1.x, 1.5);
+        TKAssertFloatEquals(curves[1].p1.y, 0.85);
+        TKAssertFloatEquals(curves[1].cp1.x, 1.75);
+        TKAssertFloatEquals(curves[1].cp1.y, 0.85);
+        TKAssertFloatEquals(curves[1].cp2.x, 2);
+        TKAssertFloatEquals(curves[1].cp2.y, 0.9);
+        TKAssertFloatEquals(curves[1].p2.x, 2);
+        TKAssertFloatEquals(curves[1].p2.y, 1);
+
+        p1 = JSPoint(1, 1);
+        p2 = JSPoint(2, 1);
+        cp1 = JSPoint(1, 0.8);
+        cp2 = JSPoint(2, 1.2);
+        curve = JSCubicBezier(p1, cp1, cp2, p2);
+        curves = curve.curvesBySplittingAtInterval(0.5);
+        TKAssertFloatEquals(curves[0].p1.x, 1);
+        TKAssertFloatEquals(curves[0].p1.y, 1);
+        TKAssertFloatEquals(curves[0].cp1.x, 1);
+        TKAssertFloatEquals(curves[0].cp1.y, 0.9);
+        TKAssertFloatEquals(curves[0].cp2.x, 1.25);
+        TKAssertFloatEquals(curves[0].cp2.y, 0.95);
+        TKAssertFloatEquals(curves[0].p2.x, 1.5);
+        TKAssertFloatEquals(curves[0].p2.y, 1);
+        TKAssertFloatEquals(curves[1].p1.x, 1.5);
+        TKAssertFloatEquals(curves[1].p1.y, 1);
+        TKAssertFloatEquals(curves[1].cp1.x, 1.75);
+        TKAssertFloatEquals(curves[1].cp1.y, 1.05);
+        TKAssertFloatEquals(curves[1].cp2.x, 2);
+        TKAssertFloatEquals(curves[1].cp2.y, 1.1);
+        TKAssertFloatEquals(curves[1].p2.x, 2);
+        TKAssertFloatEquals(curves[1].p2.y, 1);
     }
 
 });
