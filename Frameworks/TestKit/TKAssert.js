@@ -145,28 +145,28 @@ JSGlobalObject.TKAssertExactEquals = function(a, b, message){
 JSGlobalObject.TKAssertLessThan = function(a, b, message){
     if (a >= b){
         message = message || '';
-        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' >= ' + (b) + '. ' + (message || ''));
+        throw TKAssertion('TKAssertLessThan failed, ' + (a) + ' >= ' + (b) + '. ' + (message || ''));
     }
 };
 
 JSGlobalObject.TKAssertGreaterThan = function(a, b, message){
     if (a <= b){
         message = message || '';
-        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' ,+ ' + (b) + '. ' + (message || ''));
+        throw TKAssertion('TKAssertGreaterThan failed, ' + (a) + ' <= ' + (b) + '. ' + (message || ''));
     }
 };
 
 JSGlobalObject.TKAssertLessThanOrEquals = function(a, b, message){
     if (a > b){
         message = message || '';
-        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' > ' + (b) + '. ' + (message || ''));
+        throw TKAssertion('TKAssertLessThanOrEquals failed, ' + (a) + ' > ' + (b) + '. ' + (message || ''));
     }
 };
 
 JSGlobalObject.TKAssertGreaterThanOrEquals = function(a, b, message){
     if (a < b){
         message = message || '';
-        throw TKAssertion('TKAssertExactEquals failed, ' + (a) + ' < ' + (b) + '. ' + (message || ''));
+        throw TKAssertion('TKAssertGreaterThanOrEquals failed, ' + (a) + ' < ' + (b) + '. ' + (message || ''));
     }
 };
 
