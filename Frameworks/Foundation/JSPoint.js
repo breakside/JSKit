@@ -79,6 +79,55 @@ JSPoint.prototype = {
             this.x + (p1.x - this.x) * percentage,
             this.y + (p1.y - this.y) * percentage
         );
+    },
+
+    lineToPointContainsPoint: function(other, point, tolerance){
+        // first check if we're within the box defined by the segment
+        var minX, maxX;
+        if (this.x <= other.x){
+            minX = this.x - tolerance;
+            maxX = other.x + tolerance;
+        }else{
+            minX = other.x - tolerance;
+            maxX = this.x + tolerance;
+        }
+        var minY, maxY;
+        if (this.y <= other.y){
+            minY = this.y - tolerance;
+            maxY = other.y + tolerance;
+        }else{
+            minY = other.y - tolerance;
+            maxY = this.y + tolerance;
+        }
+        if (point.x < minX){
+            return false;
+        }
+        if (point.x > maxX){
+            return false;
+        }
+        if (point.y < minY){
+            return false;
+        }
+        if (point.y > maxY){
+            return false;
+        }
+
+        // next check for the special cases of a vertical and horizontal line,
+        // where we must be near the line if we're within the box
+        var dx = (other.x - this.x);
+        var dy = (other.y - this.y);
+        if (Math.abs(dx) < 0.00001 || (Math.abs(dy) < 0.00001)){
+            return true;
+        }
+
+        // Finally, find the nearest point to the line and see how far away we are
+        var m1 = dy / dx;
+        var b1 = this.y - m1 * this.x;
+        var m2 = -1/m1;
+        var b2 = point.y - m2 * point.x;
+        var x = (b2 - b1) / (m1 - m2);
+        var y = m1 * x + b1;
+        return JSPoint(x, y).distanceToPoint(point) <= tolerance;
     }
 };
 

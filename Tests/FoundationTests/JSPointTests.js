@@ -127,6 +127,45 @@ JSClass('JSPointTests', TKTestSuite, {
         TKAssertFloatEquals(angle, Math.PI * 7 / 4);
         angle = b.angleToPoint(a);
         TKAssertFloatEquals(angle, Math.PI * 3 / 4);
+    },
+
+    testLineToPointContainsPoint: function(){
+        var point = JSPoint(1, 1);
+        // horizontal
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(1.5, 1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(1.5, 1.1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(1.5, 0.9), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(1.5, 1.11), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(1.5, 0.89), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(0.9, 1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(2.1, 1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(0.89, 1), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 1), JSPoint(2.11, 1), 0.1), false);
+        // vertical
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1, 1.5), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1.1, 1.5), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(0.9, 1.5), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1.11, 1.5), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(0.89, 1.5), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1, 0.9), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1, 2.1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1, 0.89), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(1, 2), JSPoint(1, 2.11), 0.1), false);
+        // diagonal (0.7071067812)
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1.5, 1.5), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1.5 - 0.0707, 1.5 + 0.0707), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1.5 + 0.0707, 1.5 - 0.0707), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1.5 - 0.07072, 1.5 + 0.07072), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1.5 + 0.07072, 1.5 - 0.07072), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1 - 0.0707, 1 - 0.0707), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(2 + 0.0707, 2 + 0.0707), 0.1), true);
+        // we have a little extra tolerance at the ends
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1 - 0.07072, 1 - 0.07072), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(2 + 0.07072, 2 + 0.07072), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1 - 0.1, 1 - 0.1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(2 + 0.1, 2 + 0.1), 0.1), true);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(1 - 0.11, 1 - 0.11), 0.1), false);
+        TKAssertExactEquals(point.lineToPointContainsPoint(JSPoint(2, 2), JSPoint(2 + 0.11, 2 + 0.11), 0.1), false);
     }
 
 });
