@@ -1793,6 +1793,60 @@ JSClass("JSPathTests", TKTestSuite, {
             TKAssertFloatEquals(elements[i].point.x, points[j].x, i);
             TKAssertFloatEquals(elements[i].point.y, points[j].y, i);
         }
+    },
+
+    testOutlineContainsPoint: function(){
+        var path = JSPath.init();
+        path.moveToPoint(JSPoint(2, 2));
+        path.addLineToPoint(JSPoint(1, 1));
+        path.addLineToPoint(JSPoint(2, 1));
+        // first segment (diagonal)
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 1.5), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5 - 0.0707, 1.5 + 0.0707), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5 + 0.0707, 1.5 - 0.0707), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5 - 0.07072, 1.5 + 0.07072), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5 + 0.07072, 1.5 - 0.07072), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1 - 0.0707, 1 - 0.0707), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2 + 0.0707, 2 + 0.0707), 0.1), true);
+        // we have a little extra tolerance at the ends
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1 - 0.07072, 1 - 0.07072), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2 + 0.07072, 2 + 0.07072), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1 - 0.1, 1 - 0.1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2 + 0.1, 2 + 0.1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1 - 0.11, 1 - 0.11), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2 + 0.11, 2 + 0.11), 0.1), false);
+        // second segment (horizontal)
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 1.1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 0.9), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 1.11), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.5, 0.89), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(0.9, 1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.1, 1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(0.89, 1), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.11, 1), 0.1), false);
+        // third segment (vertical, before close)
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.1, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.9, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.11, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.89, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 0.9), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 2.1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 0.89), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 2.11), 0.1), false);
+        path.closeSubpath();
+        // third segment (vertical, after close)
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 1.5), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.1, 1.5), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.9, 1.5), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2.11, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(1.89, 1.5), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 0.9), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 2.1), 0.1), true);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 0.89), 0.1), false);
+        TKAssertExactEquals(path.outlineContainsPoint(JSPoint(2, 2.11), 0.1), false);
+
     }
 
 });

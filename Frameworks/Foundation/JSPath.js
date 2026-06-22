@@ -1055,6 +1055,33 @@ JSClass("JSPath", JSObject, {
         return path;
     },
 
+    outlineContainsPoint: function(point, tolerance){
+        // Only works on an already flattened path (we don't check curves)
+        var firstPoint = JSPoint.Zero;
+        var currentPoint = JSPoint.firstPoint;
+        var elements = this.elements;
+        var element;
+        var i, l;
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                firstPoint = element.point;
+                currentPoint = firstPoint;
+            }else if (element.type === JSPathElement.Type.line){
+                if (currentPoint.lineToPointContainsPoint(element.point, point, tolerance)){
+                    return true;
+                }
+                currentPoint = element.point;
+            }else if (element.type === JSPathElement.Type.close){
+                if (currentPoint.lineToPointContainsPoint(firstPoint, point, tolerance)){
+                    return true;
+                }
+                currentPoint = firstPoint;
+            }
+        }
+        return false;
+    },
+
     initWithSVGPathData: function(svgPathData){
         // TODO: Q, q, T, t, A, a
         //
