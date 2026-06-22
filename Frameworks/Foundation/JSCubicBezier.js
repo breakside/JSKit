@@ -144,6 +144,35 @@ JSCubicBezier.prototype = {
             JSCubicBezier(this.p1, cp1, r0, p),
             JSCubicBezier(p, r1, cp2, this.p2)
         ];
+    },
+
+    pointsWithFlatness: function(flatness){
+        var points = [JSPoint(this.p1)];
+        var dt = 0.1;
+        var t = 0;
+        var p0 = this.p1;
+        var p;
+        var q;
+        var mid;
+        var delta;
+        var iterationCount = 0;
+        var acceptable;
+        while (t < 1 && iterationCount < 1000){
+            p = this.pointAtInterval(t + dt);
+            q = this.pointAtInterval(t + dt / 2);
+            mid = p0.interpolation(p, 0.5);
+            acceptable = q.distanceToPoint(mid) <= flatness;
+            if (acceptable){
+                points.push(p);
+                t += dt;
+                dt = Math.min(dt * 2, 1 - t);
+                p0 = p;
+            }else{
+                dt /= 2;
+            }
+            ++iterationCount;
+        }
+        return points;
     }
 
 };

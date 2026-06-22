@@ -388,6 +388,54 @@ JSClass("JSCubicBezierTests", TKTestSuite, {
         TKAssertFloatEquals(curves[1].cp2.y, 1.1);
         TKAssertFloatEquals(curves[1].p2.x, 2);
         TKAssertFloatEquals(curves[1].p2.y, 1);
-    }
+    },
+
+    testPointsWithFlatness: function(){
+        var assertPointsMatchCurve = function(points, curve, flatness, minPoints, maxPoints){
+            TKAssertGreaterThan(points.length, minPoints);
+            TKAssertLessThan(points.length, maxPoints);
+            TKAssertFloatEquals(points[0].x, curve.p1.x);
+            TKAssertFloatEquals(points[0].y, curve.p1.y);
+            TKAssertFloatEquals(points[points.length - 1].x, curve.p2.x);
+            TKAssertFloatEquals(points[points.length - 1].y, curve.p2.y);
+            var i, l;
+            var p;
+            var p0 = curve.p1;
+            var p1;
+            var t0 = 0;
+            var t1;
+            var t;
+            var y;
+            var d;
+            var dt;
+            for (i = 0, l = points.length; i < l; ++i){
+                p1 = points[i];
+                t1 = curve.intervalsForX(p1.x)[0];
+                y = curve.pointAtInterval(t1).y;
+                TKAssertFloatEquals(p1.y, y, "point %d".sprintf(i));
+                dt = (t1 - t0) / 10;
+                for (t = t0; t < t1; t += dt){
+                    p = curve.pointAtInterval(t);
+                    d = p.distanceToPoint(p0.interpolation(p1, (t - t0) / (t1 - t0)));
+                    TKAssertLessThanOrEquals(d, flatness, "point %d at t = %f".sprintf(i, t));
+                }
+                t0 = t1;
+                p0 = p1;
+            }
+        };
+        var p1 = JSPoint(1, 1);
+        var p2 = JSPoint(2, 1);
+        var cp1 = JSPoint(1, 0.5);
+        var cp2 = JSPoint(2, 1.5);
+        var curve = JSCubicBezier(p1, cp1, cp2, p2);
+        var points = curve.pointsWithFlatness(0.1);
+        assertPointsMatchCurve(points, curve, 0.1, 3, 10);
+
+        points = curve.pointsWithFlatness(0.01);
+        assertPointsMatchCurve(points, curve, 0.01, 5, 15);
+
+        points = curve.pointsWithFlatness(0.001);
+        assertPointsMatchCurve(points, curve, 0.01, 20, 40);
+    },
 
 });
