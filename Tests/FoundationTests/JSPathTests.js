@@ -1769,6 +1769,30 @@ JSClass("JSPathTests", TKTestSuite, {
         path = JSPath.initWithSVGPathData("M1.2.3");
         TKAssertInstance(path, JSPath);
         TKAssertExactEquals(path.svgPathData(), "M 1.2 0.3");
+    },
+
+    testPathWithFlatness: function(){
+        var path = JSPath.init();
+        path.moveToPoint(JSPoint(-1, -1));
+        path.addLineToPoint(JSPoint(1, 1));
+        path.addCurveToPoint(JSPoint(2, 1), JSPoint(1, 0.5), JSPoint(2, 1.5));
+        path = path.pathWithFlatness(0.01);
+        var elements = path.elements;
+        var curve = JSCubicBezier(JSPoint(1, 1), JSPoint(1, 0.5), JSPoint(2, 1.5), JSPoint(2, 1));
+        var points = curve.pointsWithFlatness(0.01);
+        TKAssertExactEquals(elements.length, 2 + points.length - 1);
+        TKAssertExactEquals(elements[0].type, JSPathElement.Type.move);
+        TKAssertFloatEquals(elements[0].point.x, -1);
+        TKAssertFloatEquals(elements[0].point.y, -1);
+        TKAssertExactEquals(elements[1].type, JSPathElement.Type.line);
+        TKAssertFloatEquals(elements[1].point.x, 1);
+        TKAssertFloatEquals(elements[1].point.y, 1);
+        var i, j, l;
+        for (i = 2, j = 1, l = elements.length; i < l; ++i, ++j){
+            TKAssertExactEquals(elements[i].type, JSPathElement.Type.line, i);
+            TKAssertFloatEquals(elements[i].point.x, points[j].x, i);
+            TKAssertFloatEquals(elements[i].point.y, points[j].y, i);
+        }
     }
 
 });

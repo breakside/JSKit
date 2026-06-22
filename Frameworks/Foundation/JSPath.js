@@ -1031,6 +1031,30 @@ JSClass("JSPath", JSObject, {
         return path;
     },
 
+    pathWithFlatness: function(flatness){
+        var path = JSPath.init();
+        var i, l, j, k;
+        var element;
+        var elements = this.elements;
+        var points;
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                path.moveToPoint(element.point);
+            }else if (element.type === JSPathElement.Type.line){
+                path.addLineToPoint(element.point);
+            }else if (element.type === JSPathElement.Type.cubicCurve){
+                points = element.curve.pointsWithFlatness(flatness);
+                for (j = 1, k = points.length; j < k; ++j){
+                    path.addLineToPoint(points[j]);
+                }
+            }else if (element.type === JSPathElement.Type.close){
+                path.closeSubpath();
+            }
+        }
+        return path;
+    },
+
     initWithSVGPathData: function(svgPathData){
         // TODO: Q, q, T, t, A, a
         //
