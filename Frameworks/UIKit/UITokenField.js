@@ -99,6 +99,71 @@ JSClass("UITokenField", UITextField, {
         }
     },
 
+    deleteBackward: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteBackward.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteWordBackward: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteWordBackward.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteToBeginningOfLine: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteToBeginningOfLine.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteToBeginningOfDocument: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteToBeginningOfDocument.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteForward: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteForward.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteWordForward: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteWordForward.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteToEndOfLine: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteToEndOfLine.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+    deleteToEndOfDocument: function(){
+        var l = this.representedObjects.length;
+        UITokenField.$super.deleteToEndOfDocument.call(this);
+        if (this.representedObjects.length !== l){
+            this.sendActionsForEvents(UIControl.Event.valueChanged);
+        }
+    },
+
+
     resignFirstResponder: function(){
         UITokenField.$super.resignFirstResponder.call(this);
         this._tokenize();
