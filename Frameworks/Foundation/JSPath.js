@@ -883,6 +883,9 @@ JSClass("JSPath", JSObject, {
     intersectsPath: function(other, fillRule){
         var boundingRect = this.boundingRect;
         // no need to check if bounding rect don't intersect
+        if (boundingRect === null){
+            return false;
+        }
         if (!boundingRect.intersectsRect(other.boundingRect)){
             return false;
         }
