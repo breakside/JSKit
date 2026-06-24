@@ -132,6 +132,14 @@ JSClass("JSPath", JSObject, {
         this._invalidateElements();
     },
 
+    addQuadraticCurveToPoint: function(point, control, transform){
+        if (transform !== undefined){
+            point = transform.convertPointFromTransform(point);
+            control = transform.convertPointFromTransform(control);
+        }
+        this.addCurveToPoint(point, this._currentPoint.interpolation(control, 2/3), point.interpolation(control, 2/3));
+    },
+
     addRect: function(rect, transform){
         var p1 = rect.origin;
         var p2 = rect.origin.adding(JSPoint(rect.size.width, 0));
@@ -1086,7 +1094,7 @@ JSClass("JSPath", JSObject, {
     },
 
     initWithSVGPathData: function(svgPathData){
-        // TODO: Q, q, T, t, A, a
+        // TODO: T, t, A, a
         //
         // - All instructions are expressed as one character (e.g., a moveto
         //   is expressed as an M).
@@ -1382,6 +1390,42 @@ JSClass("JSPath", JSObject, {
                         point.adding(JSPoint(command.values[v], command.values[v + 1])),
                         point.adding(JSPoint(command.values[v + 2], command.values[v + 3])),
                         point.adding(JSPoint(command.values[v + 4], command.values[v + 5]))
+                    );
+                    segment = {type: JSPath.SegmentType.curve, curve: curve};
+                    subpath.segments.push(segment);
+                    point = curve.p2;
+                }
+            }else if (command.name === "Q"){
+                if (command.values.length < 4){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 3; v += 4){
+                    curve = JSCubicBezier.fromQuadradicBezier(
+                        point,
+                        JSPoint(command.values[v], command.values[v + 1]),
+                        JSPoint(command.values[v + 2], command.values[v + 3])
+                    );
+                    segment = {type: JSPath.SegmentType.curve, curve: curve};
+                    subpath.segments.push(segment);
+                    point = curve.p2;
+                }
+            }else if (command.name === "q"){
+                if (command.values.length < 4){
+                    break;
+                }
+                if (subpath === null){
+                    subpath = Subpath(point);
+                    this.subpaths.push(subpath);
+                }
+                for (v = 0; v < command.values.length - 3; v += 4){
+                    curve = JSCubicBezier.fromQuadradicBezier(
+                        point,
+                        point.adding(JSPoint(command.values[v], command.values[v + 1])),
+                        point.adding(JSPoint(command.values[v + 2], command.values[v + 3]))
                     );
                     segment = {type: JSPath.SegmentType.curve, curve: curve};
                     subpath.segments.push(segment);

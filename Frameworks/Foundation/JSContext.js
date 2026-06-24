@@ -88,8 +88,7 @@ JSClass("JSContext", JSObject, {
 
     addQuadraticCurveToPoint: function(point, control){
         this.beginPathIfNeeded();
-        // FIXME: not exactly a quadradic
-        this.path.addCurveToPoint(point, control, point, this.state.transform);
+        this.path.addQuadraticCurveToPoint(point, control, this.state.transform);
     },
 
     addEllipseInRect: function(rect){

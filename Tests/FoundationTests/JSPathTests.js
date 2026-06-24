@@ -1769,6 +1769,10 @@ JSClass("JSPathTests", TKTestSuite, {
         path = JSPath.initWithSVGPathData("M1.2.3");
         TKAssertInstance(path, JSPath);
         TKAssertExactEquals(path.svgPathData(), "M 1.2 0.3");
+
+        path = JSPath.initWithSVGPathData("M 1 1 Q 1.6 1.9 2 1");
+        TKAssertInstance(path, JSPath);
+        TKAssertExactEquals(path.svgPathData(), "M 1 1 C 1.4 1.6 1.733333 1.6 2 1");
     },
 
     testPathWithFlatness: function(){

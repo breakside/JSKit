@@ -176,3 +176,9 @@ JSCubicBezier.prototype = {
     }
 
 };
+
+JSCubicBezier.fromQuadradicBezier = function(p1, cp, p2){
+    var cp1 = p1.interpolation(cp, 2/3);
+    var cp2 = p2.interpolation(cp, 2/3);
+    return JSCubicBezier(p1, cp1, cp2, p2);
+};
