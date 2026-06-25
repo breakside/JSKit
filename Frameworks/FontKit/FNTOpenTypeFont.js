@@ -14,7 +14,7 @@
 // limitations under the License.
 
 // #import Foundation
-/* global FNTOpenTypeConstructor */
+/* global FNTOpenTypeConstructor, DataView */
 'use strict';
 
 (function(){
@@ -494,6 +494,10 @@ JSClass("FNTOpenTypeFont", JSObject, {
             completion.call(target, font);
         });
         return completion.promise;
+    },
+
+    pathForGlyph: function(glyphIndex, transform){
+        return this.tables.glyf.pathForGlyph(glyphIndex, this.tables.loca, this.tables.head.indexToLocFormat, transform);
     },
 
 });
@@ -1183,7 +1187,25 @@ JSClass("FNTOpenTypeFontTableCFF", FNTOpenTypeFontTable, {
 });
 
 JSClass("FNTOpenTypeFontTableGlyf", FNTOpenTypeFontTable, {
-    tag: 'glyf'
+    tag: 'glyf',
+
+    glyph: function(glyphIndex, loca, format){
+        var range = loca.rangeForGlyph(glyphIndex, format);
+        var data = this.data.subdataInRange(range);
+        var glyph = FNTOpenTypeGlyph.initWithData(data);
+        if (glyph.isKindOfClass(FNTOpenTypeCompoundGlyph)){
+            glyph.glyf = this;
+            glyph.loca = loca;
+            glyph.locaFormat = format;
+        }
+        return glyph;
+    },
+
+    pathForGlyph: function(glyphIndex, loca, format, transform){
+        var glyph = this.glyph(glyphIndex, loca, format);
+        return glyph.getPath(transform);
+    },
+
 });
 
 JSClass("FNTOpenTypeFontTableLoca", FNTOpenTypeFontTable, {
@@ -1790,10 +1812,14 @@ JSClass("FNTOpenTypeFontCmap13", FNTOpenTypeFontCmap, {
 JSClass("FNTOpenTypeGlyph", JSObject, {
 
     initWithData: function(data){
-        if (data.length >= 2 && data.dataView().getInt16(0) < 0){
-            return FNTOpenTypeCompoundGlyph.initWithData(data);
+        if (this.$class === FNTOpenTypeGlyph){
+            if (data.length >= 2 && data.dataView().getInt16(0) < 0){
+                return FNTOpenTypeCompoundGlyph.initWithData(data);
+            }
+            return FNTOpenTypeSimpleGlyph.initWithData(data);
         }
-        return FNTOpenTypeSimpleGlyph.initWithData(data);
+        this.data = data;
+        this.dataView = data.dataView();
     },
 
     data: null,
@@ -1802,27 +1828,184 @@ JSClass("FNTOpenTypeGlyph", JSObject, {
     xMin: DataBackedProperty(2, "int16"),
     yMin: DataBackedProperty(4, "int16"),
     xMax: DataBackedProperty(6, "int16"),
-    yMax: DataBackedProperty(8, "int16")
+    yMax: DataBackedProperty(8, "int16"),
+
+    getPath: function(){
+        return null;
+    },
 
 });
 
-JSClass("FNTOpenTypeSimpleGlyph", JSObject, {
+JSClass("FNTOpenTypeSimpleGlyph", FNTOpenTypeGlyph, {
 
-    initWithData: function(data){
-        this.data = data;
-        this.dataView = data.dataView();
+    numberOfCountours: DataBackedProperty(0, "int16"),
+
+    endPointIndexes: null,
+    flags: null,
+
+    points: JSLazyInitProperty(function(){
+        var points = [];
+        var offset = 10;
+        var end = this.data.length;
+        var i, l;
+        if (offset + this.numberOfCountours * 2 > end){
+            throw new Error("not enough data for glyph end point indexes");
+        }
+        this.endPointIndexes = [];
+        for (i = 0; i < this.numberOfCountours; ++i){
+            this.endPointIndexes.push(this.dataView.getUint16(offset));
+            offset += 2;
+        }
+        if (offset + 2 > end){
+            throw new Error("not enough data for glyph instructions");
+        }
+        var instructionLength = this.dataView.getUint16(offset);
+        offset += 2;
+        if (offset + instructionLength > end){
+            throw new Error("not enough data for glyph instructions");
+        }
+        offset += instructionLength;
+        var numberOfPoints = this.endPointIndexes[this.endPointIndexes.length - 1] + 1;
+        var repeatCount;
+        var j, k;
+        var flags;
+        i = 0;
+        this.flags = [];
+        while (i < numberOfPoints){
+            if (offset >= end){
+                return null;
+            }
+            flags = this.data[offset];
+            ++offset;
+            this.flags.push(flags);
+            ++i;
+            if ((flags & 0x08) !== 0){
+                if (offset >= end){
+                    return null;
+                }
+                repeatCount = this.data[offset];
+                ++offset;
+                for (j = 0; j < repeatCount; ++j){
+                    this.flags.push(flags);
+                    ++i;
+                }
+            }
+        }
+        i = 0;
+        var point = JSPoint.Zero;
+        var dx, dy;
+        while (i < numberOfPoints){
+            point = JSPoint(point);
+            flags = this.flags[i];
+            if ((flags & 0x02) === 0){
+                if ((flags & 0x10) === 0){
+                    if (offset + 2 > end){
+                        throw new Error("not enough data for x delta");
+                    }
+                    dx = this.dataView.getInt16(offset);
+                    offset += 2;
+                }else{
+                    dx = 0;
+                }
+            }else{
+                if (offset >= end){
+                    throw new Error("not enough data for x delta");
+                }
+                dx = this.data[offset];
+                ++offset;
+                if ((flags & 0x10) === 0){
+                    dx = -dx;
+                }
+            }
+            point.x += dx;
+            points.push(point);
+            ++i;
+        }
+        i = 0;
+        while (i < numberOfPoints){
+            points[i].y = point.y;
+            point = points[i];
+            flags = this.flags[i];
+            if ((flags & 0x04) === 0){
+                if ((flags & 0x20) === 0){
+                    if (offset + 2 > end){
+                        throw new Error("not enough data for y delta");
+                    }
+                    dy = this.dataView.getInt16(offset);
+                    offset += 2;
+                }else{
+                    dy = 0;
+                }
+            }else{
+                if (offset >= end){
+                    throw new Error("not enough data for y delta");
+                }
+                dy = this.data[offset];
+                ++offset;
+                if ((flags & 0x20) === 0){
+                    dy = -dy;
+                }
+            }
+            point.y += dy;
+            ++i;
+        }
+        return points;
+    }),
+
+    getPath: function(transform){
+        if (this.data.length < 2 || this.numberOfCountours === 0){
+            return JSPath.init();
+        }
+        var flags;
+        var point;
+        var i, j, k;
+        var p0;
+        var path = JSPath.init();
+        var cp = null;
+        j = 0;
+        var points = this.points;
+        for (i = 0; i < this.numberOfCountours; ++i){
+            flags = this.flags[j];
+            point = points[j];
+            p0 = point;
+            if ((flags & 0x01) === 0){
+                throw new Error("first point is off-curve");
+            }
+            path.moveToPoint(point, transform);
+            ++j;
+            for (k = this.endPointIndexes[i]; j <= k; ++j){
+                flags = this.flags[j];
+                point = points[j];
+                if ((flags & 0x01) === 0){
+                    if (cp !== null){
+                        path.addQuadraticCurveToPoint(cp.interpolation(point, 0.5), cp, transform);
+                    }
+                    cp = point;
+                }else{
+                    if (cp !== null){
+                        path.addQuadraticCurveToPoint(point, cp, transform);
+                    }else{
+                        path.addLineToPoint(point, transform);
+                    }
+                    cp = null;
+                }
+            }
+            if (cp !== null){
+                path.addQuadraticCurveToPoint(p0, cp, transform);
+                cp = null;
+            }
+            path.closeSubpath();
+        }
+        return path;
     },
-
-    numberOfCountours: DataBackedProperty(0, "int16")
 
 });
 
-JSClass("FNTOpenTypeCompoundGlyph", JSObject, {
+JSClass("FNTOpenTypeCompoundGlyph", FNTOpenTypeGlyph, {
 
-    initWithData: function(data){
-        this.data = data;
-        this.dataView = data.dataView();
-    },
+    glyf: null,
+    loca: null,
+    locaFormat: null,
 
     updateReferencedGlyphs: function(glyphIndexByOriginalIndex, nextGlyphIndex){
         this.data = JSData.initWithCopyOfData(this.data);
@@ -1859,16 +2042,142 @@ JSClass("FNTOpenTypeCompoundGlyph", JSObject, {
             }
         }while ((flags & 0x20) == 0x20);
         return newGlyphs;
-    }
+    },
+
+    getPath: function(transform){
+        if (!transform){
+            transform = JSAffineTransform.Identity;
+        }
+        var points = [];
+        var path = JSPath.init();
+        var offset = 10;
+        var end = this.data.length;
+        var flags;
+        var glyphIndex;
+        var arg1;
+        var arg2;
+        var glyph;
+        var glyphTransform;
+        var glyphPath;
+        var hasMore = true;
+        var p1;
+        var p2;
+        while (hasMore && offset < end){
+            if (offset + 4 > end){
+                throw new Error("not enough data for compound glyph");
+            }
+            flags = this.dataView.getUint16(offset);
+            hasMore = (flags & 0x20) !== 0;
+            offset += 2;
+            glyphIndex = this.dataView.getUint16(offset);
+            offset += 2;
+            glyph = this.glyf.glyph(glyphIndex, this.loca, this.locaFormat);
+            glyphPath = glyph.getPath();
+            glyphTransform = JSAffineTransform.Identity;
+            points = points.concat(glyph.points);
+            if ((flags & 0x01) !== 0){
+                if (offset + 4 > end){
+                    throw new Error("not enough data for compound glyph args");
+                }
+                if ((flags & 0x02) !== 0){
+                    // x-y values
+                    arg1 = this.dataView.getInt16(offset);
+                    offset += 2;
+                    arg2 = this.dataView.getInt16(offset);
+                    offset += 2;
+                }else{
+                    // point indexes
+                    arg1 = this.dataView.getUint16(offset);
+                    offset += 2;
+                    arg2 = this.dataView.getUint16(offset);
+                    offset += 2;
+                }
+            }else{
+                if (offset + 2 > end){
+                    throw new Error("not enough data for compound glyph args");
+                }
+                if ((flags & 0x02) !== 0){
+                    // x-y values
+                    arg1 = this.dataView.getInt8(offset);
+                    ++offset;
+                    arg2 = this.dataView.getInt8(offset);
+                    ++offset;
+                }else{
+                    // point indexes
+                    arg1 = this.data[offset];
+                    ++offset;
+                    arg2 = this.data[offset];
+                    ++offset;
+                }
+            }
+            if ((flags & 0x08) !== 0){
+                if (offset + 2 > end){
+                    throw new Error("not enough data for compound glyph scale");
+                }
+                glyphTransform.a = this.dataView.getOTFFixedGlyphTranform(offset);
+                glyphTransform.d = glyphTransform.a;
+                offset += 2;
+            }
+            if ((flags & 0x40) !== 0){
+                if (offset + 4 > end){
+                    throw new Error("not enough data for compound glyph scales");
+                }
+                glyphTransform.a = this.dataView.getOTFFixedGlyphTranform(offset);
+                offset += 2;
+                glyphTransform.d = this.dataView.getOTFFixedGlyphTranform(offset + 2);
+                offset += 2;
+            }
+            if ((flags & 0x80) !== 0){
+                if (offset + 8 > end){
+                    throw new Error("not enough data for compound glyph scale 2x2");
+                }
+                glyphTransform.a = this.dataView.getOTFFixedGlyphTranform(offset);
+                offset += 2;
+                glyphTransform.b = this.dataView.getOTFFixedGlyphTranform(offset);
+                offset += 2;
+                glyphTransform.c = this.dataView.getOTFFixedGlyphTranform(offset);
+                offset += 2;
+                glyphTransform.d = this.dataView.getOTFFixedGlyphTranform(offset);
+                offset += 2;
+            }
+
+            if ((flags & 0x02) !== 0){
+                // x-y values
+                glyphTransform = glyphTransform.translatedBy(arg1, arg2);
+            }else{
+                // point indexes
+                p1 = points[arg1];
+                p2 = glyph.points[arg2];
+                glyphTransform.tx = p1.x - p2.x;
+                glyphTransform.ty = p1.y - p2.y;
+            }
+            path.addPath(glyphPath, glyphTransform.concatenatedWith(transform));
+        }
+        return path;
+    },
 
 });
 
 Object.defineProperties(DataView.prototype, {
 
-    getOTFFixed: function(offset){
-        var whole = this.getUint16(offset);
-        var frac = this.getUint16(offset + 2);
-        return whole + frac / 0x10000;
+    getOTFFixed: {
+        value: function DataView_getOTFFixed(offset){
+            var whole = this.getUint16(offset);
+            var frac = this.getUint16(offset + 2);
+            return whole + frac / 0x10000;
+        }
+    },
+
+    getOTFFixedGlyphTranform: {
+        value: function DataView_getOTFFixedGlyphTransform(offset){
+            var n = this.getUint16(offset);
+            var whole = ((n & 0x4000) !== 0) ? 1 : 0;
+            if ((n & 0x8000) !== 0){
+                whole = -whole;
+            }
+            var frac = n & 0x3FFF;
+            return whole + frac / 0x4000;
+        }
     }
 
 });
