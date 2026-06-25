@@ -37,6 +37,7 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         this._lineElementQueue = [];
     },
 
+    _useCanvasMetricsForMeasure: true,
     _suggestedHTMLLineLayout: null,
 
     canvasContext: null,
@@ -260,10 +261,16 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
                 runDescriptor.attachment = attachment;
             }else{
                 if (!newline){
-                    if (attributes[JSAttributedString.Attribute.maskCharacter] !== undefined){
-                        metrics = this.canvasContext.measureText(attributes[JSAttributedString.Attribute.maskCharacter]);
+                    if (this._useCanvasMetricsForMeasure){
+                        if (attributes[JSAttributedString.Attribute.maskCharacter] !== undefined){
+                            metrics = this.canvasContext.measureText(attributes[JSAttributedString.Attribute.maskCharacter]);
+                        }else{
+                            metrics = this.canvasContext.measureText(iterator.utf16);
+                        }
                     }else{
-                        metrics = this.canvasContext.measureText(iterator.utf16);
+                        metrics = {
+                            width: runDescriptor.font.widthOfString(iterator.utf16)
+                        };
                     }
                     usedWidth += metrics.width;
                     runDescriptor.userPerceivedCharacterWidths.push(metrics.width);
