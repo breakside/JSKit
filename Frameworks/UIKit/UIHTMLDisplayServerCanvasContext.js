@@ -769,22 +769,22 @@ JSClass("UIHTMLDisplayServerCanvasContext", UIHTMLDisplayServerContext, {
         this._insertChildElement(imageElement);
     },
 
-    drawLinearGradientStroke: function(gradient, path){
+    drawLinearGradientStroke: function(gradient, path, alternateRect){
         var rect = path.boundingRect;
         this.canvasContext.save();
         this.addPath(path);
-        var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, rect);
+        var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, alternateRect || rect);
         this.canvasContext.strokeStyle = canvasGradient;
         this.canvasContext.stroke();
         this.canvasContext.restore();
         this.beginPath();
     },
 
-    drawRadialGradientStroke: function(gradient, path){
+    drawRadialGradientStroke: function(gradient, path, alternateRect){
         var rect = path.boundingRect;
         this.canvasContext.save();
         this.addPath(path);
-        var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, rect);
+        var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, alternateRect || rect);
         this.canvasContext.strokeStyle = canvasGradient;
         this.canvasContext.stroke();
         this.canvasContext.restore();

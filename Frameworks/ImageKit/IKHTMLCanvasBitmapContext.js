@@ -320,13 +320,13 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         });
     },
 
-    drawLinearGradientStroke: function(gradient, path){
+    drawLinearGradientStroke: function(gradient, path, alternateRect){
         this.enqueueOperation(function(state, completion, target){
             var rect = path.boundingRect;
             this.canvasContext.save();
             this.canvasContext.beginPath();
             path.addToIKHTMLCanvasContext(this.canvasContext);
-            var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, rect);
+            var canvasGradient = this._linearGradientForCanvasContext(this.canvasContext, gradient, alternateRect || rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
             this.canvasContext.restore();
@@ -335,13 +335,13 @@ JSClass("IKHTMLCanvasBitmapContext", IKBitmapContext, {
         this.beginPath();
     },
 
-    drawRadialGradientStroke: function(gradient, path){
+    drawRadialGradientStroke: function(gradient, path, alternateRect){
         this.enqueueOperation(function(state, completion, target){
             var rect = path.boundingRect;
             this.canvasContext.save();
             this.canvasContext.beginPath();
             path.addToIKHTMLCanvasContext(this.canvasContext);
-            var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, rect);
+            var canvasGradient = this._radialGradientForCanvasContext(this.canvasContext, gradient, alternateRect || rect);
             this.canvasContext.strokeStyle = canvasGradient;
             this.canvasContext.stroke();
             this.canvasContext.restore();
