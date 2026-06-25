@@ -586,6 +586,24 @@ JSClass("JSPath", JSObject, {
         }
     },
 
+    addPath: function(path, transform){
+        var i, l;
+        var elements = path.elements;
+        var element;
+        for (i = 0, l = elements.length; i < l; ++i){
+            element = elements[i];
+            if (element.type === JSPathElement.Type.move){
+                this.moveToPoint(element.point, transform);
+            }else if (element.type === JSPathElement.Type.line){
+                this.addLineToPoint(element.point, transform);
+            }else if (element.type === JSPathElement.Type.cubicCurve){
+                this.addCurveToPoint(element.curve.p2, element.curve.cp1, element.curve.cp2, transform);
+            }else if (element.type === JSPathElement.Type.close){
+                this.closeSubpath();
+            }
+        }
+    },
+
     // TODO: convert to dashed outlines
 
     pathThatFillsStroke: function(lineWidth, lineCap, lineJoin, miterLimit, transform){
@@ -1265,7 +1283,7 @@ JSClass("JSPath", JSObject, {
                     break;
                 }
                 if (point !== null){
-                    point = point.adding(JSPoint(command.values[0], command.values[1]))
+                    point = point.adding(JSPoint(command.values[0], command.values[1]));
                 }else{
                     point = JSPoint(command.values[0], command.values[1]);
                 }
