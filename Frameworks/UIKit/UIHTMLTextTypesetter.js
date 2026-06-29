@@ -205,6 +205,14 @@ JSClass("UIHTMLTextTypesetter", JSTextTypesetter, {
         span.style.color = textColor ? textColor.cssString() : 'black';
         span.style.backgroundColor = backgroundColor ? backgroundColor.cssString() : '';
         span.style.pointerEvents = 'none';
+
+        // Stroke
+        var strokeColor = attributes[JSAttributedString.Attribute.strokeColor] || null;
+        var strokeWidth = attributes[JSAttributedString.Attribute.strokeWidth] || 0;
+        if (strokeWidth > 0){
+            span.style.webkitTextStrokeWidth = '%fpx'.sprintf(strokeWidth);
+            span.style.webkitTextStrokeColor = strokeColor ? strokeColor.cssString() : 'black';
+        }
     },
 
     _styleAttachmentElementWithAttributes: function(span, attributes, attachment){

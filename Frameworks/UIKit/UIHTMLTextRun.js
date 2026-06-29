@@ -99,6 +99,11 @@ JSClass("UIHTMLTextRun", JSTextRun, {
                 context.translateBy(point.x, point.y + this.font.ascender);
                 context.setFont(this.font);
                 context.setFillColor(this.attributes.textColor);
+                if (this.attributes.strokeWidth){
+                    context.setLineWidth(this.attributes.strokeWidth);
+                    context.setStrokeColor(this.attributes.strokeColor);
+                    context.setTextDrawingMode(JSContext.TextDrawingMode.fillStroke);
+                }
                 context.showText(this.textNode.nodeValue);
                 context.restore();
             }

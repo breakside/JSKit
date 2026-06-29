@@ -16,6 +16,7 @@
 // #import "JSObject.js"
 // #import "CoreTypes.js"
 // #import "JSAttributedString.js"
+// #import "JSContext.js"
 'use strict';
 
 (function(){
@@ -81,6 +82,11 @@ JSClass("JSTextRun", JSObject, {
             }
             context.setFont(this.font);
             context.setFillColor(this.attributes.textColor);
+            if (this.attributes.strokeWidth){
+                context.setLineWidth(this.attributes.strokeWidth);
+                context.setStrokeColor(this.attributes.strokeColor);
+                context.setTextDrawingMode(JSContext.TextDrawingMode.fillStroke);
+            }
             context.showGlyphs(this.glyphs);
             context.restore();
         }

@@ -65,6 +65,7 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.font:
                     return JSAttributedString.AttributeDecoder.font(value);
                 case JSAttributedString.Attribute.textColor:
+                case JSAttributedString.Attribute.strokeColor:
                 case JSAttributedString.Attribute.backgroundColor:
                     return JSAttributedString.AttributeDecoder.color(value);
                 case JSAttributedString.Attribute.link:
@@ -90,6 +91,7 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.headIndent:
                 case JSAttributedString.Attribute.tailIndent:
                 case JSAttributedString.Attribute.minimumLineHeight:
+                case JSAttributedString.Attribute.strokeWidth:
                     return JSAttributedString.AttributeDecoder.number(value);
                 case JSAttributedString.Attribute.textAlignment:
                     return JSAttributedString.AttributeDecoder.enumValue(JSTextAlignment)(value);
@@ -137,6 +139,7 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.font:
                     return JSAttributedString.AttributeEncoder.font(value);
                 case JSAttributedString.Attribute.textColor:
+                case JSAttributedString.Attribute.strokeColor:
                 case JSAttributedString.Attribute.backgroundColor:
                     return JSAttributedString.AttributeEncoder.color(value);
                 case JSAttributedString.Attribute.link:
@@ -162,6 +165,7 @@ JSClass("JSAttributedString", JSObject, {
                 case JSAttributedString.Attribute.lineBreakMode:
                 case JSAttributedString.Attribute.maskCharacter:
                 case JSAttributedString.Attribute.paragraphStyleName:
+                case JSAttributedString.Attribute.strokeWidth:
                 default:
                     return value;
             }
@@ -680,6 +684,7 @@ JSClass("JSAttributedString", JSObject, {
 JSAttributedString.Attribute = {
     font: "font",
     textColor: "textColor",
+    strokeColor: "strokeColor",
     backgroundColor: "backgroundColor",
     bold: "bold",
     italic: "italic",
@@ -689,6 +694,7 @@ JSAttributedString.Attribute = {
     maskCharacter: "maskCharacter",
     cursor: "cursor",
     link: "link",
+    strokeWidth: "strokeWidth",
 
     // Paragraph
     paragraphStyleName: "paragraphStyleName",
