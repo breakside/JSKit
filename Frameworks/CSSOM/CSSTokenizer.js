@@ -20,609 +20,772 @@
 
 JSClass("CSSTokenizer", JSObject, {
 
-    tokenize: function(input){
-        var i = 0;
-        var l = input.length;
-        var isAtValidEscapeSequence = function(offset){
-            if (offset === undefined){
-                offset = 0;
+    cssText: "",
+    offset: 0,
+    length: 0,
+
+    initWithCSSText: function(cssText){
+        this.cssText = cssText;
+        this.length = this.cssText.length;
+    },
+
+    isAtValidEscapeSequence: function(offset){
+        if (offset === undefined){
+            offset = 0;
+        }
+        var i = this.offset + offset;
+        return (i < this.length - 1) && this.cssText.charCodeAt(i) == 0x5C && !CSSTokenizer.isNewline(this.cssText.charCodeAt(i + 1));
+    },
+
+    isAtIdentifierStart: function(offset){
+        if (offset === undefined){
+            offset = 0;
+        }
+        var i = this.offset + offset;
+        if (i < this.length){
+            var c = this.cssText.charCodeAt(i);
+            if (CSSTokenizer.isIdentifierStart(c)){
+                return true;
             }
-            var j = i + offset;
-            return (j < l - 1) && input.charCodeAt(j) == 0x5C && !isNewline(input.charCodeAt(j + 1));
-        };
-        var isAtIdentifierStart = function(offset){
-            if (offset === undefined){
-                offset = 0;
-            }
-            var j = i + offset;
-            if (j < l){
-                var c = input.charCodeAt(j);
-                if (isIdentifierStart(c)){
-                    return true;
-                }
-                if (c == 0x2D){
-                    if (j < l - 1){
-                        c = input.charCodeAt(j + 1);
-                        if (c == 0x2D || isIdentifierStart(c)){
-                            return true;
-                        }
-                        if (isAtValidEscapeSequence(1)){
-                            return true;
-                        }
-                        return false;
+            if (c == 0x2D){
+                if (i < this.length - 1){
+                    c = this.cssText.charCodeAt(i + 1);
+                    if (c == 0x2D || CSSTokenizer.isIdentifierStart(c)){
+                        return true;
+                    }
+                    if (this.isAtValidEscapeSequence(1)){
+                        return true;
                     }
                     return false;
                 }
-                if (isAtValidEscapeSequence()){
-                    return true;
-                }
                 return false;
             }
-            return false;
-        };
-        var isAtNumber = function(offset){
-            if (offset === undefined){
-                offset = 0;
+            if (this.isAtValidEscapeSequence()){
+                return true;
             }
-            var j = i + offset;
-            if (j < l){
-                var c = input.charCodeAt(j);
-                if (c == 0x2B || c == 0x2D){
-                    if (j < l - 1 && isDigit(input.charCodeAt(j + 1))){
-                        return true;
-                    }
-                    return j < l - 2 && input.charCodeAt(j + 1) == 0x2E && isDigit(input.charCodeAt(j + 2));
-                }else if (c == 0x2E){
-                    return j < l - 1 && isDigit(input.charCodeAt(j + 1));
-                }else if (isDigit(c)){
+            return false;
+        }
+        return false;
+    },
+
+    isAtNumber: function(offset){
+        if (offset === undefined){
+            offset = 0;
+        }
+        var i = this.offset + offset;
+        if (i < this.length){
+            var c = this.cssText.charCodeAt(i);
+            if (c == 0x2B || c == 0x2D){
+                if (i < this.length - 1 && CSSTokenizer.isDigit(this.cssText.charCodeAt(i + 1))){
                     return true;
                 }
+                return i < this.length - 2 && this.cssText.charCodeAt(i + 1) == 0x2E && CSSTokenizer.isDigit(this.cssText.charCodeAt(i + 2));
+            }else if (c == 0x2E){
+                return i < this.length - 1 && CSSTokenizer.isDigit(this.cssText.charCodeAt(i + 1));
+            }else if (CSSTokenizer.isDigit(c)){
+                return true;
             }
-            return false;
-        };
-        var consumeEscapedCodePoint = function(){
-            ++i;
-            var i0 = i;
-            if (i < l){
-                var c = input.charCodeAt(i);
-                if (isHexDigit(c)){
-                    ++i;
-                    while (i < l && i < i0 + 6 && isHexDigit(input.charCodeAt(i))){
-                        ++i;
-                    }
-                    var n = parseInt(input.substring(i0, i), 16);
-                    if (isWhitespace(input.charCodeAt(i))){
-                        ++i;
-                    }
-                    if (n === 0 || n > 0x10FFFF || (n >= 0xD800 && n <= 0xDFFF)){
-                        return 0xFFFD;
-                    }
-                    return String.fromCodePoint(n);
-                }else{
-                    return input[i++];
+        }
+        return false;
+    },
+
+    consumeEscapedCodePoint: function(){
+        ++this.offset;
+        var i0 = this.offset;
+        if (this.offset < this.length){
+            var c = this.cssText.charCodeAt(this.offset);
+            if (CSSTokenizer.isHexDigit(c)){
+                ++this.offset;
+                while (this.offset < this.length && this.offset < i0 + 6 && CSSTokenizer.isHexDigit(this.cssText.charCodeAt(this.offset))){
+                    ++this.offset;
                 }
-            }
-            throw new Error("Found end of document in esape sequence");
-        };
-        var consumeIdentifier = function(){
-            var value = "";
-            var c;
-            while (i < l){
-                c = input.charCodeAt(i);
-                if (isIdentifier(c)){
-                    value += input[i];
-                    ++i;
-                }else if (isAtValidEscapeSequence()){
-                    value += consumeEscapedCodePoint();
-                }else{
-                    return value;
+                var n = parseInt(this.cssText.substring(i0, this.offset), 16);
+                if (CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+                    ++this.offset;
                 }
-            }
-            return value;
-        };
-        var consumeNumber = function(){
-            var type = "integer";
-            var str = "";
-            var c = input.charCodeAt(i);
-            if (c == 0x2B || c == 0x2D){
-                str += input[i];
-                ++i;
-            }
-            while (i < l && isDigit(input.charCodeAt(i))){
-                str += input[i];
-                ++i;
-            }
-            if (i < l - 1){
-                if (input.charCodeAt(i) == 0x2E && isDigit(input.charCodeAt(i + 1))){
-                    type = "number";
-                    str += input[i];
-                    ++i;
-                    while (i < l && isDigit(input.charCodeAt(i))){
-                        str += input[i];
-                        ++i;
-                    }
+                if (n === 0 || n > 0x10FFFF || (n >= 0xD800 && n <= 0xDFFF)){
+                    return 0xFFFD;
                 }
-            }
-            if (i < l - 1){
-                if ((input.charCodeAt(i) == 0x45) || (input.charCodeAt(i) == 0x65)){
-                    if (isDigit(input.charCodeAt(i + 1))){
-                        type = "number";
-                        str += input[i];
-                        ++i;
-                        while (isDigit(input.charCodeAt(i))){
-                            str += input[i];
-                            ++i;
-                        }
-                    }else if (i < l -2 && input.charCodeAt(i + 1) == 0x2E && isDigit(input.charCodeAt(i + 2))){
-                        type = "number";
-                        str += input[i];
-                        ++i;
-                        str += input[i];
-                        ++i;
-                        while (isDigit(input.charCodeAt(i))){
-                            str += input[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-            return {type: type, str: str};
-        };
-        var consumeNumeric = function(){
-            var info = consumeNumber();
-            var n;
-            if (info.type === "integer"){
-                n = parseInt(info.str);
+                return String.fromCodePoint(n);
             }else{
-                n = parseFloat(info.str);
+                return this.cssText[this.offset++];
             }
-            if (i < l){
-                if (isAtIdentifierStart()){
-                    var units = consumeIdentifier();
-                    return new CSSTokenizer.DimensionToken(n, units);
+        }
+        throw new Error("Found end of document in esape sequence");
+    },
+
+    consumeIdentifier: function(){
+        var value = "";
+        var c;
+        while (this.offset < this.length){
+            c = this.cssText.charCodeAt(this.offset);
+            if (CSSTokenizer.isIdentifier(c)){
+                value += this.cssText[this.offset];
+                ++this.offset;
+            }else if (this.isAtValidEscapeSequence()){
+                value += this.consumeEscapedCodePoint();
+            }else{
+                return value;
+            }
+        }
+        return value;
+    },
+
+    consumeNumber: function(){
+        var type = "integer";
+        var str = "";
+        var c = this.cssText.charCodeAt(this.offset);
+        if (c == 0x2B || c == 0x2D){
+            str += this.cssText[this.offset];
+            ++this.offset;
+        }
+        while (this.offset < this.length && CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset))){
+            str += this.cssText[this.offset];
+            ++this.offset;
+        }
+        if (this.offset < this.length - 1){
+            if (this.cssText.charCodeAt(this.offset) == 0x2E && CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset + 1))){
+                type = "number";
+                str += this.cssText[this.offset];
+                ++this.offset;
+                while (this.offset < this.length && CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset))){
+                    str += this.cssText[this.offset];
+                    ++this.offset;
                 }
-                var c = input.charCodeAt(i);
-                if (c === 0x25){
-                    ++i;
-                    return new CSSTokenizer.PercentageToken(n);
+            }
+        }
+        if (this.offset < this.length - 1){
+            if ((this.cssText.charCodeAt(this.offset) == 0x45) || (this.cssText.charCodeAt(this.offset) == 0x65)){
+                if (CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset + 1))){
+                    type = "number";
+                    str += this.cssText[this.offset];
+                    ++this.offset;
+                    while (CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset))){
+                        str += this.cssText[this.offset];
+                        ++this.offset;
+                    }
+                }else if (this.offset < this.length -2 && this.cssText.charCodeAt(this.offset + 1) == 0x2E && CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset + 2))){
+                    type = "number";
+                    str += this.cssText[this.offset];
+                    ++this.offset;
+                    str += this.cssText[this.offset];
+                    ++this.offset;
+                    while (CSSTokenizer.isDigit(this.cssText.charCodeAt(this.offset))){
+                        str += this.cssText[this.offset];
+                        ++this.offset;
+                    }
                 }
             }
-            return new CSSTokenizer.NumberToken(n);
-        };
-        var consumeURL = function(){
-            var url = "";
-            var c;
-            while (i < l && isWhitespace(input.charCodeAt(i))){
-                ++i;
+        }
+        return {type: type, str: str};
+    },
+
+    consumeNumeric: function(){
+        var info = this.consumeNumber();
+        var n;
+        if (info.type === "integer"){
+            n = parseInt(info.str);
+        }else{
+            n = parseFloat(info.str);
+        }
+        if (this.offset < this.length){
+            if (this.isAtIdentifierStart()){
+                var units = this.consumeIdentifier();
+                return new CSSDimensionToken(n, units);
             }
-            while (i < l){
-                c = input.charCodeAt(i);
-                if (c == 0x29){
-                    ++i;
-                    return new CSSTokenizer.URLToken(url);
-                }else if (isWhitespace(c)){
-                    ++i;
-                    while (i < l && isWhitespace(input.charCodeAt(i))){
-                        ++i;
+            var c = this.cssText.charCodeAt(this.offset);
+            if (c === 0x25){
+                ++this.offset;
+                return new CSSPercentageToken(n);
+            }
+        }
+        return new CSSNumberToken(n);
+    },
+
+    consumeURL: function(){
+        var url = "";
+        var c;
+        while (this.offset < this.length && CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+            ++this.offset;
+        }
+        while (this.offset < this.length){
+            c = this.cssText.charCodeAt(this.offset);
+            if (c == 0x29){
+                ++this.offset;
+                return new CSSURLToken(url);
+            }else if (CSSTokenizer.isWhitespace(c)){
+                ++this.offset;
+                while (this.offset < this.length && CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+                    ++this.offset;
+                }
+                if (this.offset < this.length){
+                    if (this.cssText.charCodeAt(this.offset) == 0x29){
+                        ++this.offset;
+                        return new CSSURLToken(url);
                     }
-                    if (i < l){
-                        if (input.charCodeAt(i) == 0x29){
-                            ++i;
-                            return new CSSTokenizer.URLToken(url);
-                        }
-                        throw new Error("Expecting ) to end url at %d".sprintf(i));
-                    }
-                    throw new Error("Found end of document before end of url");
-                }else if (c == 0x22 || c == 0x27 || c == 0x28){
-                    throw new Error("Unexpected %s in url at %d".sprintf(input[i], i));
-                }else if (c == 0x5C){
-                    if (isAtValidEscapeSequence()){
-                        url += consumeEscapedCodePoint();
-                    }else{
-                        throw new Error("Bad escape sequence in url at %d".sprintf(i));
-                    }
+                    throw new Error("Expecting ) to end url at %d".sprintf(this.offset));
+                }
+                throw new Error("Found end of document before end of url");
+            }else if (c == 0x22 || c == 0x27 || c == 0x28){
+                throw new Error("Unexpected %s in url at %d".sprintf(this.cssText[this.offset], this.offset));
+            }else if (c == 0x5C){
+                if (this.isAtValidEscapeSequence()){
+                    url += this.consumeEscapedCodePoint();
                 }else{
-                    url += input[i];
-                    ++i;
+                    throw new Error("Bad escape sequence in url at %d".sprintf(this.offset));
                 }
+            }else{
+                url += this.cssText[this.offset];
+                ++this.offset;
             }
-            throw new Error("Found end of document before end of url");
-        };
-        var consumeIdentifierLike = function(){
-            var identifier = consumeIdentifier();
-            if (i < l){
-                var c = input.charCodeAt(i);
-                var lower = identifier.toLowerCase();
-                if (lower == "url" && c == 0x28){
-                    ++i;
-                    if (i < l && isWhitespace(input.charCodeAt(i))){
-                        ++i;
-                        if (i < l && isWhitespace(input.charCodeAt(i))){
-                            ++i;
-                        }
-                    }
-                    if (i < l){
-                        c = input.charCodeAt(i);
-                        if (isWhitespace(c) && i < l - 1){
-                            c = input.charCodeAt(i + 1);
-                        }
-                        if (c == 0x22 || c == 0x27){
-                            return new CSSTokenizer.FunctionToken(identifier);
-                        }
-                        return consumeURL();
-                    }
-                }else if (c == 0x28){
-                    ++i;
-                    return new CSSTokenizer.FunctionToken(identifier);
-                }
-            }
-            return new CSSTokenizer.IdentifierToken(identifier);
-        };
-        var consume = function(){
-            var i0 = i;
-            var c = input.charCodeAt(i);
-            var str;
-            var quote;
-            if (i < l - 1 && c == 0x2F && input.charCodeAt(i + 1) == 0x2A){
-                i += 2;
-                while (i < l - 1 && (input.charCodeAt(i) != 0x2A || input.charCodeAt(i + 1) != 0x2F)){
-                    ++i;
-                }
-                if (i < l - 1){
-                    i += 2;
-                    return new CSSTokenizer.CommentToken(input.substring(i0 + 2, i - 2));
-                }
-                throw new Error("Found end of document before end of comment");
-            }else if (isWhitespace(c)){
-                ++i;
-                while (i < l && isWhitespace(input.charCodeAt(i))){
-                    ++i;
-                }
-                return new CSSTokenizer.WhitespaceToken(input.substring(i0, i));
-            }else if (c == 0x22 || c == 0x27){
-                quote = c;
-                ++i;
-                str = "";
-                while (i < l){
-                    c = input.charCodeAt(i);
-                    if (c == quote){
-                        ++i;
-                        return new CSSTokenizer.StringToken(input[i0], str);
-                    }else if (isNewline(c)){
-                        throw new Error("String includes unescaped newline at %d".sprintf(i));
-                    }else if (c == 0x5C){
-                        ++i;
-                        if (i < l){
-                            c = input.charCodeAt(i);
-                            // check for CRLF before checking for just CR
-                            // (adjustment to spec algorithm because we're not
-                            // preprocessing away the CRLFs)
-                            if (c == 0x0D){
-                                ++i;
-                                if (i < l && input.charCodeAt(i) == 0x0A){
-                                    ++i;
-                                }
-                            }else if (isNewline(c)){
-                                ++i;
-                            }else{
-                                str += input[i];
-                                ++i;
-                            }
-                        }
-                    }else{
-                        str += input[i];
-                        ++i;   
+        }
+        throw new Error("Found end of document before end of url");
+    },
+
+    consumeIdentifierLike: function(){
+        var identifier = this.consumeIdentifier();
+        if (this.offset < this.length){
+            var c = this.cssText.charCodeAt(this.offset);
+            var lower = identifier.toLowerCase();
+            if (lower == "url" && c == 0x28){
+                ++this.offset;
+                if (this.offset < this.length && CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+                    ++this.offset;
+                    if (this.offset < this.length && CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+                        ++this.offset;
                     }
                 }
-                throw new Error("Found end of document before end of string");
-            }else if (c == 0x23){
-                ++i;
-                if (i < l){
-                    c = input.charCodeAt(i);
-                    if (isIdentifier(c) || isAtValidEscapeSequence()){
-                        if (isAtIdentifierStart()){
-                            str = consumeIdentifier();
-                            return new CSSTokenizer.HashToken("id", str);
-                        }else{
-                            str = consumeIdentifier();
-                            return new CSSTokenizer.HashToken(null, str);
-                        }
-                    }else{
-                        return new CSSTokenizer.DelimToken("#");
+                if (this.offset < this.length){
+                    c = this.cssText.charCodeAt(this.offset);
+                    if (CSSTokenizer.isWhitespace(c) && this.offset < this.length - 1){
+                        c = this.cssText.charCodeAt(this.offset + 1);
                     }
-                }else{
-                    return new CSSTokenizer.DelimToken("#");
+                    if (c == 0x22 || c == 0x27){
+                        return new CSSFunctionToken(identifier);
+                    }
+                    return this.consumeURL();
                 }
             }else if (c == 0x28){
-                ++i;
-                return new CSSTokenizer.OpenParenToken();
-            }else if (c == 0x29){
-                ++i;
-                return new CSSTokenizer.CloseParenToken();
-            }else if (c == 0x2B){
-                if (isAtNumber()){
-                    return consumeNumeric();
-                }
-                ++i;
-                return new CSSTokenizer.DelimToken("+");
-            }else if (c == 0x2C){
-                ++i;
-                return new CSSTokenizer.CommaToken();
-            }else if (c == 0x2D){
-                if (isAtNumber()){
-                    return consumeNumeric();
-                }
-                if (i < l - 2 && input.charCodeAt(i + 1) == 0x2D && input.charCodeAt(i + 2) == 0x3E){
-                    i += 3;
-                    return new CSSTokenizer.CDCToken();
-                }
-                if (isAtIdentifierStart()){
-                    return consumeIdentifierLike();
-                }
-                ++i;
-                return new CSSTokenizer.DelimToken("-");
-            }else if (c == 0x2E){
-                if (isAtNumber()){
-                    return consumeNumeric();
-                }
-                ++i;
-                return new CSSTokenizer.DelimToken(".");
-            }else if (c == 0x3A){
-                ++i;
-                return new CSSTokenizer.ColonToken();
-            }else if (c == 0x3B){
-                ++i;
-                return new CSSTokenizer.SemicolonToken();
-            }else if (c == 0x3C){
-                ++i;
-                if (i < l - 2 && input.charCodeAt(i) == 0x21 && input.charCodeAt(i + 1) == 0x2D && input.charCodeAt(i + 2) == 0x2D){
-                    i += 3;
-                    return new CSSTokenizer.CDOToken();
-                }
-                return new CSSTokenizer.DelimToken("<");
-            }else if (c == 0x40){
-                ++i;
-                if (isAtIdentifierStart()){
-                    str = consumeIdentifier();
-                    return new CSSTokenizer.AtKeywordToken(str);
-                }
-                return new CSSTokenizer.DelimToken("@");
-            }else if (c == 0x5B){
-                ++i;
-                return new CSSTokenizer.OpenSquareToken();
-            }else if (c == 0x5C){
-                if (isAtValidEscapeSequence()){
-                    return consumeIdentifierLike();
-                }
-                throw new Error("Bad escape sequence at %d".sprintf(i));
-            }else if (c == 0x5D){
-                ++i;
-                return new CSSTokenizer.CloseSquareToken();
-            }else if (c == 0x7B){
-                ++i;
-                return new CSSTokenizer.OpenCurlyToken();
-            }else if (c == 0x7D){
-                ++i;
-                return new CSSTokenizer.CloseCurlyToken();
-            }else if (isDigit(c)){
-                return consumeNumeric();
-            }else if (isIdentifierStart(c)){
-                return consumeIdentifierLike();
-            }else{
-                str = input[i];
-                ++i;
-                return new CSSTokenizer.DelimToken(str);
+                ++this.offset;
+                return new CSSFunctionToken(identifier);
             }
-        };
+        }
+        return new CSSIdentifierToken(identifier);
+    },
+
+    consume: function(){
+        var i0 = this.offset;
+        var c = this.cssText.charCodeAt(this.offset);
+        var str;
+        var quote;
+        if (this.offset < this.length - 1 && c == 0x2F && this.cssText.charCodeAt(this.offset + 1) == 0x2A){
+            this.offset += 2;
+            while (this.offset < this.length - 1 && (this.cssText.charCodeAt(this.offset) != 0x2A || this.cssText.charCodeAt(this.offset + 1) != 0x2F)){
+                ++this.offset;
+            }
+            if (this.offset < this.length - 1){
+                this.offset += 2;
+                return new CSSCommentToken(this.cssText.substring(i0 + 2, this.offset - 2));
+            }
+            throw new Error("Found end of document before end of comment");
+        }else if (CSSTokenizer.isWhitespace(c)){
+            ++this.offset;
+            while (this.offset < this.length && CSSTokenizer.isWhitespace(this.cssText.charCodeAt(this.offset))){
+                ++this.offset;
+            }
+            return new CSSWhitespaceToken(this.cssText.substring(i0, this.offset));
+        }else if (c == 0x22 || c == 0x27){
+            quote = c;
+            ++this.offset;
+            str = "";
+            while (this.offset < this.length){
+                c = this.cssText.charCodeAt(this.offset);
+                if (c == quote){
+                    ++this.offset;
+                    return new CSSStringToken(this.cssText[i0], str);
+                }else if (CSSTokenizer.isNewline(c)){
+                    throw new Error("String includes unescaped newline at %d".sprintf(this.offset));
+                }else if (c == 0x5C){
+                    ++this.offset;
+                    if (this.offset < this.length){
+                        c = this.cssText.charCodeAt(this.offset);
+                        // check for CRLF before checking for just CR
+                        // (adjustment to spec algorithm because we're not
+                        // preprocessing away the CRLFs)
+                        if (c == 0x0D){
+                            ++this.offset;
+                            if (this.offset < this.length && this.cssText.charCodeAt(this.offset) == 0x0A){
+                                ++this.offset;
+                            }
+                        }else if (CSSTokenizer.isNewline(c)){
+                            ++this.offset;
+                        }else{
+                            str += this.cssText[this.offset];
+                            ++this.offset;
+                        }
+                    }
+                }else{
+                    str += this.cssText[this.offset];
+                    ++this.offset;
+                }
+            }
+            throw new Error("Found end of document before end of string");
+        }else if (c == 0x23){
+            ++this.offset;
+            if (this.offset < this.length){
+                c = this.cssText.charCodeAt(this.offset);
+                if (CSSTokenizer.isIdentifier(c) || this.isAtValidEscapeSequence()){
+                    if (this.isAtIdentifierStart()){
+                        str = this.consumeIdentifier();
+                        return new CSSHashToken("id", str);
+                    }else{
+                        str = this.consumeIdentifier();
+                        return new CSSHashToken(null, str);
+                    }
+                }else{
+                    return new CSSDelimToken("#");
+                }
+            }else{
+                return new CSSDelimToken("#");
+            }
+        }else if (c == 0x28){
+            ++this.offset;
+            return new CSSOpenParenToken();
+        }else if (c == 0x29){
+            ++this.offset;
+            return new CSSCloseParenToken();
+        }else if (c == 0x2B){
+            if (this.isAtNumber()){
+                return this.consumeNumeric();
+            }
+            ++this.offset;
+            return new CSSDelimToken("+");
+        }else if (c == 0x2C){
+            ++this.offset;
+            return new CSSCommaToken();
+        }else if (c == 0x2D){
+            if (this.isAtNumber()){
+                return this.consumeNumeric();
+            }
+            if (this.offset < this.length - 2 && this.cssText.charCodeAt(this.offset + 1) == 0x2D && this.cssText.charCodeAt(this.offset + 2) == 0x3E){
+                this.offset += 3;
+                return new CSSCDCToken();
+            }
+            if (this.isAtIdentifierStart()){
+                return this.consumeIdentifierLike();
+            }
+            ++this.offset;
+            return new CSSDelimToken("-");
+        }else if (c == 0x2E){
+            if (this.isAtNumber()){
+                return this.consumeNumeric();
+            }
+            ++this.offset;
+            return new CSSDelimToken(".");
+        }else if (c == 0x3A){
+            ++this.offset;
+            return new CSSColonToken();
+        }else if (c == 0x3B){
+            ++this.offset;
+            return new CSSSemicolonToken();
+        }else if (c == 0x3C){
+            ++this.offset;
+            if (this.offset < this.length - 2 && this.cssText.charCodeAt(this.offset) == 0x21 && this.cssText.charCodeAt(this.offset + 1) == 0x2D && this.cssText.charCodeAt(this.offset + 2) == 0x2D){
+                this.offset += 3;
+                return new CSSCDOToken();
+            }
+            return new CSSDelimToken("<");
+        }else if (c == 0x40){
+            ++this.offset;
+            if (this.isAtIdentifierStart()){
+                str = this.consumeIdentifier();
+                return new CSSAtKeywordToken(str);
+            }
+            return new CSSDelimToken("@");
+        }else if (c == 0x5B){
+            ++this.offset;
+            return new CSSOpenSquareToken();
+        }else if (c == 0x5C){
+            if (this.isAtValidEscapeSequence()){
+                return this.consumeIdentifierLike();
+            }
+            throw new Error("Bad escape sequence at %d".sprintf(this.offset));
+        }else if (c == 0x5D){
+            ++this.offset;
+            return new CSSCloseSquareToken();
+        }else if (c == 0x7B){
+            ++this.offset;
+            return new CSSOpenCurlyToken();
+        }else if (c == 0x7D){
+            ++this.offset;
+            return new CSSCloseCurlyToken();
+        }else if (CSSTokenizer.isDigit(c)){
+            return this.consumeNumeric();
+        }else if (CSSTokenizer.isIdentifierStart(c)){
+            return this.consumeIdentifierLike();
+        }else{
+            str = this.cssText[this.offset];
+            ++this.offset;
+            return new CSSDelimToken(str);
+        }
+    },
+
+    next: function(){
+        if (this.offset < this.length){
+            var token = this.consume();
+            return token;
+        }
+        return null;
+    },
+
+    tokenize: function(){
         var tokens = [];
-        var token;
-        while (i < l){
-            token = consume();
+        var token = this.next();
+        while (token !== null){
             tokens.push(token);
+            token = this.next();
         }
         return tokens;
     }
 
 });
 
-var isUpperCase = function(code){
+CSSTokenizer.isUpperCase = function(code){
     return (code >= 0x41 && code <= 0x5A);
 };
 
-var isLowerCase = function(code){
+CSSTokenizer.isLowerCase = function(code){
     return (code >= 0x61 && code <= 0x7A);
 };
 
-var isDigit = function(code){
+CSSTokenizer.isDigit = function(code){
     return (code >= 0x30 && code <= 0x39);
 };
 
-var isHexDigit = function(code){
-    return isDigit(code) || (code >= 0x41 && code <= 0x46) || (code >= 0x61 && code <= 0x66);
+CSSTokenizer.isHexDigit = function(code){
+    return CSSTokenizer.isDigit(code) || (code >= 0x41 && code <= 0x46) || (code >= 0x61 && code <= 0x66);
 };
 
-var isLetter = function(code){
-    return isUpperCase(code) || isLowerCase(code);
+CSSTokenizer.isLetter = function(code){
+    return CSSTokenizer.isUpperCase(code) || CSSTokenizer.isLowerCase(code);
 };
 
-var isNonASCII = function(code){
+CSSTokenizer.isNonASCII = function(code){
     return code >= 0x80;
 };
 
-var isIdentifierStart = function(code){
-    return isLetter(code) || isNonASCII(code) || code == 0x5F;
+CSSTokenizer.isIdentifierStart = function(code){
+    return CSSTokenizer.isLetter(code) || CSSTokenizer.isNonASCII(code) || code == 0x5F;
 };
 
-var isIdentifier = function(code){
-    return isIdentifierStart(code) || isDigit(code) || code == 0x2D;
+CSSTokenizer.isIdentifier = function(code){
+    return CSSTokenizer.isIdentifierStart(code) || CSSTokenizer.isDigit(code) || code == 0x2D;
 };
 
-var isWhitespace = function(code){
+CSSTokenizer.isWhitespace = function(code){
     return code == 0x20 || code == 0x09 || code == 0x0A || code == 0x0D || code == 0x0C;
 };
 
-var isNewline = function(code){
+CSSTokenizer.isNewline = function(code){
     return code == 0x0A || code == 0x0D || code == 0x0C;
 };
 
-CSSTokenizer.CommentToken = function(text){
+JSGlobalObject.CSSCommentToken = function CSSCommentToken(text){
     this.text = text;
-    this.toString = function(){
-        return "/*" + this.text + "*/";
-    };
 };
 
-CSSTokenizer.IdentifierToken = function(name){
+Object.defineProperties(CSSCommentToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCommentToken_toString(){
+            return "/*" + this.text + "*/";
+        }
+    }
+});
+
+JSGlobalObject.CSSIdentifierToken = function CSSIdentifierToken(name){
     this.name = name;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return this.name;
-    };
 };
 
-CSSTokenizer.FunctionToken = function(name){
+Object.defineProperties(CSSIdentifierToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSIdentifierToken_toString(){
+            // FIXME: escape sequences
+            return this.name;
+        }
+    }
+});
+
+JSGlobalObject.CSSFunctionToken = function CSSFunctionToken(name){
     this.name = name;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return this.name + "(";
-    };
 };
 
-CSSTokenizer.AtKeywordToken = function(name){
+Object.defineProperties(CSSFunctionToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSFunctionToken_toString(){
+            // FIXME: escape sequences
+            return this.name + "(";
+        }
+    }
+});
+
+JSGlobalObject.CSSAtKeywordToken = function CSSAtKeywordToken(name){
     this.name = name;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return "@" + this.name;
-    };
 };
 
-CSSTokenizer.HashToken = function(type, name){
+Object.defineProperties(CSSAtKeywordToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSAtKeywordToken_toString(){
+            // FIXME: escape sequences
+            return "@" + this.name;
+        }
+    }
+});
+
+JSGlobalObject.CSSHashToken = function CSSHashToken(type, name){
     this.type = type;
     this.name = name;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return "#" + this.name;
-    };
 };
 
-CSSTokenizer.StringToken = function(quote, value){
+Object.defineProperties(CSSHashToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSHashToken_toString(){
+            // FIXME: escape sequences
+            return "#" + this.name;
+        }
+    }
+});
+
+JSGlobalObject.CSSStringToken = function CSSStringToken(quote, value){
     this.quote = quote;
     this.value = value;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return this.quote + this.value.replace(this.quote, "\\" + this.quote) + this.quote;
-    };
 };
 
-CSSTokenizer.URLToken = function(url){
+Object.defineProperties(CSSStringToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSStringToken_toString(){
+            // FIXME: escape sequences
+            return this.quote + this.value.replace(this.quote, "\\" + this.quote) + this.quote;
+        }
+    }
+});
+
+JSGlobalObject.CSSURLToken = function CSSURLToken(url){
     this.url = url;
-    this.toString = function(){
-        // FIXME: escape sequences
-        return "url(" + this.url + ")";
-    };
 };
 
-CSSTokenizer.WhitespaceToken = function(whitespace){
+Object.defineProperties(CSSURLToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSURLToken_toString(){
+            // FIXME: escape sequences
+            return "url(" + this.url + ")";
+        }
+    }
+});
+
+JSGlobalObject.CSSWhitespaceToken = function CSSWhitespaceToken(whitespace){
     this.whitespace = whitespace;
-    this.toString = function(){
-        return this.whitespace;
-    };
 };
 
-CSSTokenizer.OpenParenToken = function(){
-    this.toString = function(){
-        return "(";
-    };
+Object.defineProperties(CSSWhitespaceToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSWhitespaceToken_toString(){
+            return this.whitespace;
+        }
+    }
+});
+
+JSGlobalObject.CSSOpenParenToken = function CSSOpenParenToken(){
 };
 
-CSSTokenizer.CloseParenToken = function(){
-    this.toString = function(){
-        return ")";
-    };
+Object.defineProperties(CSSOpenParenToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSOpenParenToken_toString(){
+            return "(";
+        }
+    }
+});
+
+JSGlobalObject.CSSCloseParenToken = function CSSCloseParenToken(){
 };
 
-CSSTokenizer.CommaToken = function(){
-    this.toString = function(){
-        return ",";
-    };
+Object.defineProperties(CSSCloseParenToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCloseParenToken_toString(){
+            return ")";
+        }
+    }
+});
+
+JSGlobalObject.CSSCommaToken = function CSSCommaToken(){
 };
 
-CSSTokenizer.ColonToken = function(){
-    this.toString = function(){
-        return ":";
-    };
+Object.defineProperties(CSSCommaToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCommaToken_toString(){
+            return ",";
+        }
+    }
+});
+
+JSGlobalObject.CSSColonToken = function CSSColonToken(){
 };
 
-CSSTokenizer.SemicolonToken = function(){
-    this.toString = function(){
-        return ";";
-    };
+Object.defineProperties(CSSColonToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSColonToken_toString(){
+            return ":";
+        }
+    }
+});
+
+JSGlobalObject.CSSSemicolonToken = function CSSSemicolonToken(){
 };
 
-CSSTokenizer.DimensionToken = function(value, units){
+Object.defineProperties(CSSSemicolonToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSSemicolonToken_toString(){
+            return ";";
+        }
+    }
+});
+
+JSGlobalObject.CSSDimensionToken = function CSSDimensionToken(value, units){
     this.value = value;
     this.units = units;
-    this.toString = function(){
-        // FIXME: escape sequences units
-        return this.value.toString() + this.units;
-    };
 };
 
-CSSTokenizer.PercentageToken = function(value){
+Object.defineProperties(CSSDimensionToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSDimensionToken_toString(){
+            // FIXME: escape sequences units
+            return this.value.toString() + this.units;
+        }
+    }
+});
+
+JSGlobalObject.CSSPercentageToken = function CSSPercentageToken(value){
     this.value = value;
-    this.toString = function(){
-        return this.value.toString() + "%";
-    };
 };
 
-CSSTokenizer.NumberToken = function(value){
+Object.defineProperties(CSSPercentageToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSPercentageToken_toString(){
+            return this.value.toString() + "%";
+        }
+    }
+});
+
+JSGlobalObject.CSSNumberToken = function CSSNumberToken(value){
     this.value = value;
-    this.toString = function(){
-        return this.value.toString();
-    };
 };
 
-CSSTokenizer.CDCToken = function(){
-    this.toString = function(){
-        return "-->";
-    };
+Object.defineProperties(CSSNumberToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSNumberToken_toString(){
+            return this.value.toString();
+        }
+    }
+});
+
+JSGlobalObject.CSSCDCToken = function CSSCDCToken(){
 };
 
-CSSTokenizer.CDOToken = function(){
-    this.toString = function(){
-        return "<!--";
-    };
+Object.defineProperties(CSSCDCToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCDCToken_toString(){
+            return "-->";
+        }
+    }
+});
+
+JSGlobalObject.CSSCDOToken = function CSSCDOToken(){
 };
 
-CSSTokenizer.OpenSquareToken = function(){
-    this.toString = function(){
-        return "[";
-    };
+Object.defineProperties(CSSCDOToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCDOToken_toString(){
+            return "<!--";
+        }
+    }
+});
+
+JSGlobalObject.CSSOpenSquareToken = function CSSOpenSquareToken(){
 };
 
-CSSTokenizer.CloseSquareToken = function(){
-    this.toString = function(){
-        return "]";
-    };
+Object.defineProperties(CSSOpenSquareToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSOpenSquareToken_toString(){
+            return "[";
+        }
+    }
+});
+
+JSGlobalObject.CSSCloseSquareToken = function CSSCloseSquareToken(){
 };
 
-CSSTokenizer.OpenCurlyToken = function(){
-    this.toString = function(){
-        return "{";
-    };
+Object.defineProperties(CSSCloseSquareToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCloseSquareToken_toString(){
+            return "]";
+        }
+    }
+});
+
+JSGlobalObject.CSSOpenCurlyToken = function CSSOpenCurlyToken(){
 };
 
-CSSTokenizer.CloseCurlyToken = function(){
-    this.toString = function(){
-        return "}";
-    };
+Object.defineProperties(CSSOpenCurlyToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSOpenCurlyToken_toString(){
+            return "{";
+        }
+    }
+});
+
+JSGlobalObject.CSSCloseCurlyToken = function CSSCloseCurlyToken(){
 };
 
-CSSTokenizer.DelimToken = function(char){
+Object.defineProperties(CSSCloseCurlyToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSCloseCurlyToken_toString(){
+            return "}";
+        }
+    }
+});
+
+JSGlobalObject.CSSDelimToken = function CSSDelimToken(char){
     this.char = char;
-    this.toString = function(){
-        return this.char;
-    };
 };
+
+Object.defineProperties(CSSDelimToken.prototype, {
+    toString: {
+        enumerable: false,
+        value: function CSSDelimToken_toString(){
+            return this.char;
+        }
+    }
+});
 
 })();

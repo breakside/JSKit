@@ -21,25 +21,25 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testIdentifier: function(){
         var css = "test";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.IdentifierToken);
+        TKAssertInstance(tokens[0], CSSIdentifierToken);
         TKAssertEquals(tokens[0].name, "test");
 
         css = "test Test _test -test --test";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 9);
-        TKAssertInstance(tokens[0], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.IdentifierToken);
+        TKAssertInstance(tokens[0], CSSIdentifierToken);
+        TKAssertInstance(tokens[1], CSSWhitespaceToken);
+        TKAssertInstance(tokens[2], CSSIdentifierToken);
+        TKAssertInstance(tokens[3], CSSWhitespaceToken);
+        TKAssertInstance(tokens[4], CSSIdentifierToken);
+        TKAssertInstance(tokens[5], CSSWhitespaceToken);
+        TKAssertInstance(tokens[6], CSSIdentifierToken);
+        TKAssertInstance(tokens[7], CSSWhitespaceToken);
+        TKAssertInstance(tokens[8], CSSIdentifierToken);
         TKAssertEquals(tokens[0].name, "test");
         TKAssertEquals(tokens[2].name, "Test");
         TKAssertEquals(tokens[4].name, "_test");
@@ -53,16 +53,16 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testWhitespace: function(){
         var css = "\n\n\ttest    \t  \r\nTest\r_test \f \f\t \n";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 7);
-        TKAssertInstance(tokens[0], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.WhitespaceToken);
+        TKAssertInstance(tokens[0], CSSWhitespaceToken);
+        TKAssertInstance(tokens[1], CSSIdentifierToken);
+        TKAssertInstance(tokens[2], CSSWhitespaceToken);
+        TKAssertInstance(tokens[3], CSSIdentifierToken);
+        TKAssertInstance(tokens[4], CSSWhitespaceToken);
+        TKAssertInstance(tokens[5], CSSIdentifierToken);
+        TKAssertInstance(tokens[6], CSSWhitespaceToken);
         TKAssertEquals(tokens[1].name, "test");
         TKAssertEquals(tokens[3].name, "Test");
         TKAssertEquals(tokens[5].name, "_test");
@@ -78,16 +78,16 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testComment: function(){
         var css = "/*\n    this is a comment\n    two lines\n*/\n/**/Test/*comment*/_test/*  comment  */";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 7);
-        TKAssertInstance(tokens[0], CSSTokenizer.CommentToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.CommentToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.CommentToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.IdentifierToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.CommentToken);
+        TKAssertInstance(tokens[0], CSSCommentToken);
+        TKAssertInstance(tokens[1], CSSWhitespaceToken);
+        TKAssertInstance(tokens[2], CSSCommentToken);
+        TKAssertInstance(tokens[3], CSSIdentifierToken);
+        TKAssertInstance(tokens[4], CSSCommentToken);
+        TKAssertInstance(tokens[5], CSSIdentifierToken);
+        TKAssertInstance(tokens[6], CSSCommentToken);
         TKAssertEquals(tokens[3].name, "Test");
         TKAssertEquals(tokens[5].name, "_test");
         TKAssertEquals(tokens[1].whitespace, "\n");
@@ -104,18 +104,18 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testString: function(){
         var css = "'test' 'tes\\'t' \"Test\" \"Tes\\\"t\" 'te\\\nst'";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 9);
-        TKAssertInstance(tokens[0], CSSTokenizer.StringToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.StringToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.StringToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.StringToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.StringToken);
+        TKAssertInstance(tokens[0], CSSStringToken);
+        TKAssertInstance(tokens[1], CSSWhitespaceToken);
+        TKAssertInstance(tokens[2], CSSStringToken);
+        TKAssertInstance(tokens[3], CSSWhitespaceToken);
+        TKAssertInstance(tokens[4], CSSStringToken);
+        TKAssertInstance(tokens[5], CSSWhitespaceToken);
+        TKAssertInstance(tokens[6], CSSStringToken);
+        TKAssertInstance(tokens[7], CSSWhitespaceToken);
+        TKAssertInstance(tokens[8], CSSStringToken);
         TKAssertEquals(tokens[0].quote, "'");
         TKAssertEquals(tokens[0].value, "test");
         TKAssertEquals(tokens[2].quote, "'");
@@ -136,20 +136,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testNumbers: function(){
         var css = "1,12,123,1.23,.123,1e23";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.NumberToken);
+        TKAssertInstance(tokens[0], CSSNumberToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSNumberToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSNumberToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSNumberToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSNumberToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSNumberToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -165,20 +165,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23"); // rewritten with + exponent
 
         css = "+1,+12,+123,+1.23,+.123,+1e23";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.NumberToken);
+        TKAssertInstance(tokens[0], CSSNumberToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSNumberToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSNumberToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSNumberToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSNumberToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSNumberToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -195,20 +195,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23"); // rewritten with + exponent
 
         css = "-1,-12,-123,-1.23,-.123,-1e23";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.NumberToken);
+        TKAssertInstance(tokens[0], CSSNumberToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSNumberToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSNumberToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSNumberToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSNumberToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSNumberToken);
         TKAssertExactEquals(tokens[0].value, -1);
         TKAssertExactEquals(tokens[2].value, -12);
         TKAssertExactEquals(tokens[4].value, -123);
@@ -226,20 +226,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testDimensions: function(){
         var css = "1px,12em,123abc,1.23test,.123_abc,1e23ABC";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.DimensionToken);
+        TKAssertInstance(tokens[0], CSSDimensionToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSDimensionToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSDimensionToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSDimensionToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSDimensionToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSDimensionToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -261,20 +261,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23ABC"); // rewritten with + exponent
 
         css = "+1px,+12em,+123abc,+1.23test,+.123_abc,+1e23ABC";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.DimensionToken);
+        TKAssertInstance(tokens[0], CSSDimensionToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSDimensionToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSDimensionToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSDimensionToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSDimensionToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSDimensionToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -297,20 +297,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23ABC"); // rewritten with + exponent
 
         css = "-1px,-12em,-123abc,-1.23test,-.123_abc,-1e23ABC";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.DimensionToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.DimensionToken);
+        TKAssertInstance(tokens[0], CSSDimensionToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSDimensionToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSDimensionToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSDimensionToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSDimensionToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSDimensionToken);
         TKAssertExactEquals(tokens[0].value, -1);
         TKAssertExactEquals(tokens[2].value, -12);
         TKAssertExactEquals(tokens[4].value, -123);
@@ -334,20 +334,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testPercentages: function(){
         var css = "1%,12%,123%,1.23%,.123%,1e23%";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.PercentageToken);
+        TKAssertInstance(tokens[0], CSSPercentageToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSPercentageToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSPercentageToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSPercentageToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSPercentageToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSPercentageToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -363,20 +363,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23%"); // rewritten with + exponent
 
         css = "+1%,+12%,+123%,+1.23%,+.123%,+1e23%";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.PercentageToken);
+        TKAssertInstance(tokens[0], CSSPercentageToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSPercentageToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSPercentageToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSPercentageToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSPercentageToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSPercentageToken);
         TKAssertExactEquals(tokens[0].value, 1);
         TKAssertExactEquals(tokens[2].value, 12);
         TKAssertExactEquals(tokens[4].value, 123);
@@ -393,20 +393,20 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[10].toString(), "1e+23%"); // rewritten with + exponent
 
         css = "-1%,-12%,-123%,-1.23%,-.123%,-1e23%";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 11);
-        TKAssertInstance(tokens[0], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.PercentageToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[10], CSSTokenizer.PercentageToken);
+        TKAssertInstance(tokens[0], CSSPercentageToken);
+        TKAssertInstance(tokens[1], CSSCommaToken);
+        TKAssertInstance(tokens[2], CSSPercentageToken);
+        TKAssertInstance(tokens[3], CSSCommaToken);
+        TKAssertInstance(tokens[4], CSSPercentageToken);
+        TKAssertInstance(tokens[5], CSSCommaToken);
+        TKAssertInstance(tokens[6], CSSPercentageToken);
+        TKAssertInstance(tokens[7], CSSCommaToken);
+        TKAssertInstance(tokens[8], CSSPercentageToken);
+        TKAssertInstance(tokens[9], CSSCommaToken);
+        TKAssertInstance(tokens[10], CSSPercentageToken);
         TKAssertExactEquals(tokens[0].value, -1);
         TKAssertExactEquals(tokens[2].value, -12);
         TKAssertExactEquals(tokens[4].value, -123);
@@ -424,29 +424,29 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testHash: function(){
         var css = "#";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[0], CSSDelimToken);
         TKAssertEquals(tokens[0].char, "#");
 
         TKAssertEquals(tokens[0].toString(), "#");
 
         css = "#test";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.HashToken);
+        TKAssertInstance(tokens[0], CSSHashToken);
         TKAssertEquals(tokens[0].name, "test");
         TKAssertEquals(tokens[0].type, "id");
 
         TKAssertEquals(tokens[0].toString(), "#test");
 
         css = "#9test";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.HashToken);
+        TKAssertInstance(tokens[0], CSSHashToken);
         TKAssertEquals(tokens[0].name, "9test");
         TKAssertNull(tokens[0].type);
 
@@ -455,30 +455,30 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testAt: function(){
         var css = "@";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[0], CSSDelimToken);
         TKAssertEquals(tokens[0].char, "@");
 
         TKAssertEquals(tokens[0].toString(), "@");
 
         css = "@test";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.AtKeywordToken);
+        TKAssertInstance(tokens[0], CSSAtKeywordToken);
         TKAssertEquals(tokens[0].name, "test");
 
         TKAssertEquals(tokens[0].toString(), "@test");
 
         css = "@9test";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 2);
-        TKAssertInstance(tokens[0], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[0], CSSDelimToken);
         TKAssertEquals(tokens[0].char, "@");
-        TKAssertInstance(tokens[1], CSSTokenizer.DimensionToken);
+        TKAssertInstance(tokens[1], CSSDimensionToken);
         TKAssertEquals(tokens[1].value, 9);
         TKAssertEquals(tokens[1].units, "test");
 
@@ -488,25 +488,25 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testDelimiters: function(){
         var css = "()[]{},:;<><!---->.";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 14);
-        TKAssertInstance(tokens[0], CSSTokenizer.OpenParenToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.CloseParenToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.OpenSquareToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.CloseSquareToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.OpenCurlyToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.CloseCurlyToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.ColonToken);
-        TKAssertInstance(tokens[8], CSSTokenizer.SemicolonToken);
-        TKAssertInstance(tokens[9], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[0], CSSOpenParenToken);
+        TKAssertInstance(tokens[1], CSSCloseParenToken);
+        TKAssertInstance(tokens[2], CSSOpenSquareToken);
+        TKAssertInstance(tokens[3], CSSCloseSquareToken);
+        TKAssertInstance(tokens[4], CSSOpenCurlyToken);
+        TKAssertInstance(tokens[5], CSSCloseCurlyToken);
+        TKAssertInstance(tokens[6], CSSCommaToken);
+        TKAssertInstance(tokens[7], CSSColonToken);
+        TKAssertInstance(tokens[8], CSSSemicolonToken);
+        TKAssertInstance(tokens[9], CSSDelimToken);
         TKAssertEquals(tokens[9].char, "<");
-        TKAssertInstance(tokens[10], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[10], CSSDelimToken);
         TKAssertEquals(tokens[10].char, ">");
-        TKAssertInstance(tokens[11], CSSTokenizer.CDOToken);
-        TKAssertInstance(tokens[12], CSSTokenizer.CDCToken);
-        TKAssertInstance(tokens[13], CSSTokenizer.DelimToken);
+        TKAssertInstance(tokens[11], CSSCDOToken);
+        TKAssertInstance(tokens[12], CSSCDCToken);
+        TKAssertInstance(tokens[13], CSSDelimToken);
         TKAssertEquals(tokens[13].char, ".");
 
         TKAssertEquals(tokens[0].toString(), "(");
@@ -527,28 +527,28 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testFunctions: function(){
         var css = "test()";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 2);
-        TKAssertInstance(tokens[0], CSSTokenizer.FunctionToken);
+        TKAssertInstance(tokens[0], CSSFunctionToken);
         TKAssertEquals(tokens[0].name, "test");
-        TKAssertInstance(tokens[1], CSSTokenizer.CloseParenToken);
+        TKAssertInstance(tokens[1], CSSCloseParenToken);
 
         TKAssertEquals(tokens[0].toString(), "test(");
         TKAssertEquals(tokens[1].toString(), ")");
 
         css = "--test('one',2, 3.4)";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 8);
-        TKAssertInstance(tokens[0], CSSTokenizer.FunctionToken);
-        TKAssertInstance(tokens[1], CSSTokenizer.StringToken);
-        TKAssertInstance(tokens[2], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[3], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[4], CSSTokenizer.CommaToken);
-        TKAssertInstance(tokens[5], CSSTokenizer.WhitespaceToken);
-        TKAssertInstance(tokens[6], CSSTokenizer.NumberToken);
-        TKAssertInstance(tokens[7], CSSTokenizer.CloseParenToken);
+        TKAssertInstance(tokens[0], CSSFunctionToken);
+        TKAssertInstance(tokens[1], CSSStringToken);
+        TKAssertInstance(tokens[2], CSSCommaToken);
+        TKAssertInstance(tokens[3], CSSNumberToken);
+        TKAssertInstance(tokens[4], CSSCommaToken);
+        TKAssertInstance(tokens[5], CSSWhitespaceToken);
+        TKAssertInstance(tokens[6], CSSNumberToken);
+        TKAssertInstance(tokens[7], CSSCloseParenToken);
         TKAssertEquals(tokens[0].name, "--test");
         TKAssertEquals(tokens[1].value, "one");
         TKAssertEquals(tokens[3].value, 2);
@@ -566,32 +566,32 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
 
     testURL: function(){
         var css = "url(one)";
-        var tokenizer = CSSTokenizer.init();
-        var tokens = tokenizer.tokenize(css);
+        var tokenizer = CSSTokenizer.initWithCSSText(css);
+        var tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.URLToken);
+        TKAssertInstance(tokens[0], CSSURLToken);
         TKAssertEquals(tokens[0].url, "one");
 
         TKAssertEquals(tokens[0].toString(), "url(one)");
 
         css = "url( one/there#hash )";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 1);
-        TKAssertInstance(tokens[0], CSSTokenizer.URLToken);
+        TKAssertInstance(tokens[0], CSSURLToken);
         TKAssertEquals(tokens[0].url, "one/there#hash");
 
         TKAssertEquals(tokens[0].toString(), "url(one/there#hash)"); // rewritten without whitespace
 
         css = "url('one/there#hash')";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 3);
-        TKAssertInstance(tokens[0], CSSTokenizer.FunctionToken);
+        TKAssertInstance(tokens[0], CSSFunctionToken);
         TKAssertEquals(tokens[0].name, "url");
-        TKAssertInstance(tokens[1], CSSTokenizer.StringToken);
+        TKAssertInstance(tokens[1], CSSStringToken);
         TKAssertEquals(tokens[1].value, "one/there#hash");
-        TKAssertInstance(tokens[2], CSSTokenizer.CloseParenToken);
+        TKAssertInstance(tokens[2], CSSCloseParenToken);
 
 
         TKAssertEquals(tokens[0].toString(), "url(");
@@ -599,16 +599,16 @@ JSClass("CSSTokenizerTests", TKTestSuite, {
         TKAssertEquals(tokens[2].toString(), ")");
 
         css = "url( \"one/there#hash\" )";
-        tokenizer = CSSTokenizer.init();
-        tokens = tokenizer.tokenize(css);
+        tokenizer = CSSTokenizer.initWithCSSText(css);
+        tokens = tokenizer.tokenize();
         TKAssertEquals(tokens.length, 4);
-        TKAssertInstance(tokens[0], CSSTokenizer.FunctionToken);
+        TKAssertInstance(tokens[0], CSSFunctionToken);
         TKAssertEquals(tokens[0].name, "url");
-        TKAssertInstance(tokens[1], CSSTokenizer.StringToken);
+        TKAssertInstance(tokens[1], CSSStringToken);
         TKAssertEquals(tokens[1].value, "one/there#hash");
-        TKAssertInstance(tokens[2], CSSTokenizer.WhitespaceToken);
+        TKAssertInstance(tokens[2], CSSWhitespaceToken);
         TKAssertEquals(tokens[2].whitespace, " ");
-        TKAssertInstance(tokens[3], CSSTokenizer.CloseParenToken);
+        TKAssertInstance(tokens[3], CSSCloseParenToken);
 
         TKAssertEquals(tokens[0].toString(), "url(");
         TKAssertEquals(tokens[1].toString(), "\"one/there#hash\"");
