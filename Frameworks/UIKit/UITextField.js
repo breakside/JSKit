@@ -332,6 +332,13 @@ JSClass("UITextField", UIControl, {
         return this._localEditor.cursorColor;
     },
 
+    addFallbackFontDescriptor: function(fontDescriptor){
+        if (this._localEditor._fallbackFontDescriptors === null){
+            this._localEditor._fallbackFontDescriptors = [];
+        }
+        this._localEditor._fallbackFontDescriptors.push(fontDescriptor);
+    },
+
     // --------------------------------------------------------------------
     // MARK: - Undo Manager
 

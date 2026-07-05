@@ -44,6 +44,7 @@ JSClass("UITextEditor", JSObject, {
     _selectionHighlightColor: null,
     _draggingSelectionIndex: null,
     _showsSelectionWhenNotFirstResponder: false,
+    _fallbackFontDescriptors: null,
 
     initWithTextLayer: function(textLayer){
         this.layoutLayer = textLayer;
@@ -809,14 +810,27 @@ JSClass("UITextEditor", JSObject, {
         this.undoManager.setActionName("Typing");
     },
 
+    _usedFallbackFontDescriptors: false,
+
     _replaceTextStorageRangeAllowingUndo: function(textStorage, range, attributedString){
         var replacedString = null;
         var insertedLength = 0;
         if (range.length > 0){
             replacedString = textStorage.attributedSubstringInRange(range);
         }
+        this._usedFallbackFontDescriptors = false;
         if (attributedString !== null){
             insertedLength = attributedString.string.length;
+            if (this._fallbackFontDescriptors !== null && insertedLength > 0){
+                var usedDescriptors = [];
+                attributedString = attributedString.stringWithFallbackFonts(this._fallbackFontDescriptors, this.layoutLayer.font, usedDescriptors);
+                if (usedDescriptors.length > 0){
+                    this._usedFallbackFontDescriptors = true;
+                    if (this.delegate && this.delegate.textEditorDidUseFallbackFontDescriptors){
+                        this.delegate.textEditorDidUseFallbackFontDescriptors(this, usedDescriptors);
+                    }
+                }
+            }
         }
         this.undoManager.registerUndo(this, this._replaceTextStorageRangeAllowingUndo, textStorage, JSRange(range.location, insertedLength), replacedString);
         this._isHandlingSelectionAdjustments = true;
@@ -922,6 +936,9 @@ JSClass("UITextEditor", JSObject, {
             this._replaceTextStorageRangeAllowingUndo(textStorage, adjustedRange, JSAttributedString.initWithString(text, insertAttributes));
             selection.range = JSRange(adjustedRange.location + textLength, 0);
             selection.affinity = UITextInput.SelectionAffinity.beforeCurrentCharacter;
+            if (this._usedFallbackFontDescriptors){
+                selection.attributes = insertAttributes;
+            }
             locationAdjustment += textLength - adjustedRange.length;
         }
         this._setSelectionsAllowingUndo(selections);

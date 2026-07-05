@@ -395,6 +395,49 @@ JSClass("JSAttributedString", JSObject, {
         this._fixParagraphAttributesAtIndex(range.location + attributedString.string.length);
     },
 
+    stringWithFallbackFonts: function(fallbackFontDescriptors, defaultFont, usedDescriptors){
+        var attributedString = this;
+        var runIterator = attributedString.runIterator();
+        var unicodeIterator;
+        var end = attributedString.string.length;
+        var font;
+        var glyph;
+        var descriptor;
+        var i, l;
+        var descriptorFonts = [];
+        for (i = 0, l = fallbackFontDescriptors.length; i < l; ++i){
+            descriptorFonts.push({});
+        }
+        for (; runIterator.range.location < end; runIterator.increment()){
+            font = runIterator.attributes.font || defaultFont;
+            unicodeIterator = attributedString.string.unicodeIterator(0);
+            for (; unicodeIterator.character !== null; unicodeIterator.increment()){
+                glyph = font.glyphForCharacter(unicodeIterator.character);
+                if (glyph === 0){
+                    for (i = 0, l = fallbackFontDescriptors.length && glyph === 0; i < l; ++i){
+                        descriptor = fallbackFontDescriptors[i];
+                        glyph = descriptor.glyphForCharacter(unicodeIterator.character);
+                        if (glyph !== 0){
+                            if (usedDescriptors !== undefined){
+                                if (usedDescriptors.indexOf(descriptor) < 0){
+                                    usedDescriptors.push(descriptor);
+                                }
+                            }
+                            if (attributedString === this){
+                                attributedString = JSAttributedString.initWithAttributedString(attributedString);
+                            }
+                            if (descriptorFonts[i][font.pointSize] === undefined){
+                                descriptorFonts[i][font.pointSize] = JSFont.initWithDescriptor(descriptor, font.pointSize);
+                            }
+                            attributedString.addAttributeInRange("font", descriptorFonts[i][font.pointSize], JSRange(unicodeIterator.index, unicodeIterator.nextIndex - unicodeIterator.index));
+                        }
+                    }
+                }
+            }
+        }
+        return attributedString;
+    },
+
     // MARK: - Attribute mutations
 
     setAttributesInRange: function(attributes, range){
