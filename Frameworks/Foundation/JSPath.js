@@ -571,9 +571,6 @@ JSClass("JSPath", JSObject, {
         }else{
             clockwise = endAngle - startAngle <= Math.PI;
         }
-        if (Math.abs(t1.x - this._currentPoint.x) > 0.00001 || Math.abs(t1.y - this._currentPoint.y) > 0.00001){
-            this.moveToPoint(t1);
-        }
         this.addArc(center, radius, startAngle, endAngle, clockwise);
     },
 
