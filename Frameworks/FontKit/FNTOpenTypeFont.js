@@ -1958,43 +1958,62 @@ JSClass("FNTOpenTypeSimpleGlyph", FNTOpenTypeGlyph, {
         }
         var flags;
         var point;
-        var i, j, k;
+        var i;
         var p0;
         var path = JSPath.init();
         var cp = null;
-        j = 0;
+        var pointIndex;
+        var startPointIndex;
+        var endPointIndex;
+        var pointCount;
+        var pointCounter;
         var points = this.points;
+        pointIndex = 0;
         for (i = 0; i < this.numberOfCountours; ++i){
-            flags = this.flags[j];
-            point = points[j];
-            p0 = point;
-            if ((flags & 0x01) === 0){
-                throw new Error("first point is off-curve");
+            startPointIndex = pointIndex;
+            endPointIndex = this.endPointIndexes[i];
+            pointCount = endPointIndex - startPointIndex;
+            // The specs aren't totally clear here, but some contours
+            // start with a point that is off-curve.  In order to draw
+            // a path, we want to start with a `moveToPoint()` for a
+            // point that is on-curve.  Therefore, we'll loop until we
+            // find the first on-curve point, and use it as our starting point.
+            while (pointIndex <= endPointIndex && ((this.flags[pointIndex] & 0x01) === 0)){
+                ++pointIndex;
             }
-            path.moveToPoint(point, transform);
-            ++j;
-            for (k = this.endPointIndexes[i]; j <= k; ++j){
-                flags = this.flags[j];
-                point = points[j];
-                if ((flags & 0x01) === 0){
-                    if (cp !== null){
-                        path.addQuadraticCurveToPoint(cp.interpolation(point, 0.5), cp, transform);
+            if (pointIndex <= endPointIndex){
+                flags = this.flags[pointIndex];
+                point = points[pointIndex];
+                p0 = point;
+                path.moveToPoint(point, transform);
+                ++pointIndex;
+                for (pointCounter = 1; pointCounter <= pointCount; ++pointCounter, ++pointIndex){
+                    if (pointIndex > endPointIndex){
+                        pointIndex = startPointIndex;
                     }
-                    cp = point;
-                }else{
-                    if (cp !== null){
-                        path.addQuadraticCurveToPoint(point, cp, transform);
+                    flags = this.flags[pointIndex];
+                    point = points[pointIndex];
+                    if ((flags & 0x01) === 0){
+                        if (cp !== null){
+                            path.addQuadraticCurveToPoint(cp.interpolation(point, 0.5), cp, transform);
+                        }
+                        cp = point;
                     }else{
-                        path.addLineToPoint(point, transform);
+                        if (cp !== null){
+                            path.addQuadraticCurveToPoint(point, cp, transform);
+                        }else{
+                            path.addLineToPoint(point, transform);
+                        }
+                        cp = null;
                     }
+                }
+                if (cp !== null){
+                    path.addQuadraticCurveToPoint(p0, cp, transform);
                     cp = null;
                 }
+                path.closeSubpath();
             }
-            if (cp !== null){
-                path.addQuadraticCurveToPoint(p0, cp, transform);
-                cp = null;
-            }
-            path.closeSubpath();
+            pointIndex = endPointIndex + 1;
         }
         return path;
     },
