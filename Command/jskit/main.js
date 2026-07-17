@@ -22,6 +22,7 @@
 // #import "GlobalsCommand.js"
 // #import "KeyCommand.js"
 // #import "KeypairCommand.js"
+// #import "LintCommand.js"
 'use strict';
 
 var options = {
