@@ -63,7 +63,7 @@ JSClass("JSZip", JSObject, {
         var extraFieldLength;
         var name;
         var headerOffset;
-        var offset = 0;
+        offset = 0;
         for (var i = 0; i < numberOfItemsTotal; ++i){
             // Central Directory File Header (APPNOTE.txt 4.3.12)
             // Everything is little-endian
@@ -133,7 +133,7 @@ JSClass("JSZip", JSObject, {
         if (version > 20){
             return null;
         }
-        if (method !== 8){
+        if (method !== 8 && method !== 0){
             return null;
         }
         if ((flags & 0x8) !== 0){
@@ -148,13 +148,18 @@ JSClass("JSZip", JSObject, {
             return null;
         }
         var compressedData = this.data.subdataInRange(JSRange(offset, compressedLength));
-        var data = JSData.initWithLength(uncompressedLength);
-        var stream = DeflateStream();
-        stream.input = compressedData;
-        stream.output = data;
-        stream.inflate(true);
-        if (stream.state !== DeflateStream.State.done){
-            data = null;
+        var data;
+        if (method === 0){
+            data = compressedData;
+        }else if (method === 8){
+            data = JSData.initWithLength(uncompressedLength);
+            var stream = DeflateStream();
+            stream.input = compressedData;
+            stream.output = data;
+            stream.inflate(true);
+            if (stream.state !== DeflateStream.State.done){
+                data = null;
+            }
         }
         if (data === null){
             return;
