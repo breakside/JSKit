@@ -212,7 +212,7 @@ JSClass("Resources", JSObject, {
             path: path,
             ext: ext,
             byte_size: contents.length,
-            mimetype: mimeTypesByExt[ext] || null,
+            mimetype: Resources.mimeTypesByExt[ext] || null,
             hash: hash.hexStringRepresentation()
         };
         if (lang != 'global' && name.endsWith('.strings.yaml')){
@@ -427,7 +427,7 @@ var adjustSpecConstraints = function(obj){
 addMetadata['.jpeg'] = addMetadata['.jpg'];
 addMetadata['.otf'] = addMetadata['.ttf'];
 
-var mimeTypesByExt = {
+Resources.mimeTypesByExt = {
     ".html": "text/html",
     ".css": "text/css",
     ".js": "application/javascript",

@@ -50,6 +50,7 @@ JSClass("HTMLBuilder", Builder, {
         'tls-cert': {default: null, help: "The SSL cert to use for the debug build"},
         'tls-key': {default: null, help: "The SSL key to use for the debug build"},
         'zoneinfo': {default: null, help: "The build host path to timezone data files"},
+        'zip-resources': {kind: "flag", help: "Create a zip file of the Resources folder for optimized loading"},
         'server': {kind: "flag", help: "Run an http server (required --debug) (implies --no-docker)"}
     },
 
@@ -368,7 +369,9 @@ JSClass("HTMLBuilder", Builder, {
     // MARK: - Resources
 
     resources: null,
+    resourcesZip: null,
     wwwResourcePaths: null,
+    wwwResourceZipPath: null,
 
     findResources: async function(){
         this.printer.setStatus("Finding resources...");
@@ -378,6 +381,21 @@ JSClass("HTMLBuilder", Builder, {
 
     bundleResources: async function(){
         await this.addBundleJS(this.sourcesURL, this.project.info, this.resources, this.resources.sourceURLs, true);
+        if (this.arguments["zip-resources"]){
+            this.printer.setStatus("Zipping resources...");
+            let zip = JSZip.init();
+            for (let path of this.wwwResourcePaths){
+                let url = JSURL.initWithString(path, this.wwwURL);
+                this.printer.setStatus("Zipping %s...".sprintf(url.encodedString));
+                let data = await this.fileManager.contentsAtURL(url);
+                let attributes = await this.fileManager.attributesOfItemAtURL(url);
+                zip.addDataForFilename(data, path, attributes, false);
+            }
+            let zipFilename = "%s-%s.zip".sprintf(this.resourcesURL.lastPathComponent, this.cacheBustingURL.lastPathComponent);
+            let url = this.resourcesURL.removingLastPathComponent().appendingPathComponent(zipFilename);
+            await this.fileManager.createFileAtURL(url, zip.data);
+            this.wwwResourceZipPath = url.encodedStringRelativeTo(this.wwwURL);
+        }
     },
 
     addBundleJS: async function(parentURL, info, resources, sourceURLs, isMain){
@@ -755,6 +773,14 @@ JSClass("HTMLBuilder", Builder, {
         for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
             sources[this.wwwResourcePaths[i]] = {required: true, cache: "default"};
         }
+        if (this.wwwResourceZipPath !== null){
+            for (let i = 0, l = this.wwwResourcePaths.length; i < l; ++i){
+                let name = this.wwwResourcePaths[i];
+                let source = sources[name];
+                source.zipped = true;
+                source.mimetype = Resources.mimeTypesByExt[name.fileExtension] || null;
+            }
+        }
         for (let i = 0, l = this.wwwCSSPaths.length; i < l; ++i){
             sources[this.wwwCSSPaths[i]] = {required: true, cache: "no-store"};
         }
@@ -766,6 +792,7 @@ JSClass("HTMLBuilder", Builder, {
                 buildId: this.buildId,
                 environment: this.project.info.HTMLApplicationEnvironment,
                 sources: sources,
+                resourcesZip: this.wwwResourceZipPath,
                 debug: this.debug
             }, null, 2)
         };
