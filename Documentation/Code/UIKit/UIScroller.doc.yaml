@@ -102,6 +102,8 @@ topics:
       -
         name: State
         kind: enum
+        type: bitmask
+        inherits: UIControl.State
         summary: The custom control states for a `UIScroller`
         topics:
           -
@@ -124,6 +126,7 @@ topics:
           is always visible next to the content
       -
         name: UIScrollerStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for scroller stylers
@@ -138,6 +141,7 @@ topics:
                   or always be visible next to it
       -
         name: UIScrollerDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIScrollerStyler
         summary: The styler `UIKit` uses by default

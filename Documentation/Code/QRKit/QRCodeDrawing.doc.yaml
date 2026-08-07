@@ -68,6 +68,7 @@ topics:
       -
         name: Flag
         kind: enum
+        type: bitmask
         summary: The bitmasked flags encoding properties for each module
         topics:
           -

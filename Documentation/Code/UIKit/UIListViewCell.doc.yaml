@@ -132,6 +132,7 @@ topics:
         name: State
         kind: enum
         suffix: enum
+        type: bitmask
         summary: The possible states a cell can be in
         description: |
           Cell states can be combined with bitwise operations to represent
@@ -194,7 +195,7 @@ topics:
                   value left by one bit.
       -
         name: state
-        type: UIListView.State
+        type: State
         summary: The cell's combined state
         note: Typically you'll use the shortcut properties like `active` and
           \`selected` instead of inspecting this state directly.

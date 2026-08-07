@@ -3,6 +3,8 @@ kind: framework
 introduced: 2021.10.0
 summary: Save and retrieve objects from databases
 codeURL: Frameworks/DBKit/
+dependencies:
+  - SecurityKit
 description: |
   `DBKit` provides a standard way of storing objects in databases regardless
   of the underlying technology.

@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
-inherits: JSObect
+inherits: JSObject
 summary: Manage a stack of undo and redo operations
 description: |
   Applications supporting undo and redo use `JSUndoManager` to keep track of the

@@ -19,7 +19,13 @@ topics:
     members:
       - name: initWithString
         kind: init
+        nullable: true
         summary: Create a User Agent object by parsing the given string
+        arguments:
+          - name: string
+            type: String
+            nullable: true
+            summary: The User Agent string
         description: |
           The string typically comes from a `User-Agent` header in an HTTP
           request.

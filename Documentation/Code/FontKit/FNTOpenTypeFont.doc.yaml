@@ -106,6 +106,7 @@ topics:
           the [OpenType Specification](https://docs.microsoft.com/en-us/typography/opentype/spec/)
       -
         name: FNTOpenTypeFontTable
+        namespace: FontKit
         kind: class
         inherits: JSObject
         summary: The base class for all tables
@@ -138,6 +139,7 @@ topics:
         summary: The font's postscript header table
       -
         name: FNTOpenTypeFontTableHead
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType header table
@@ -225,6 +227,7 @@ topics:
                 type: Number
       -
         name: FNTOpenTypeFontTableOS2
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType OS/2 header table
@@ -393,6 +396,7 @@ topics:
                 type: Number
       -
         name: FNTOpenTypeFontTablePost
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType postscript header table
@@ -448,6 +452,7 @@ topics:
         summary: The font's name table
       -
         name: FNTOpenTypeFontTableName
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType name table
@@ -502,7 +507,7 @@ topics:
                   -
                     name: preferences
                     variable: true
-                    type: Number[3]
+                    type: [Number, Number, Number]
                     summary: The preferred name to lookup
                 description: |
                   Each preference is a 3-Array of:
@@ -550,6 +555,7 @@ topics:
         summary: The font's horizontal metrics table
       -
         name: FNTOpenTypeFontTableHhea
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType horizontal header table 
@@ -607,6 +613,7 @@ topics:
                 type: Number
       -
         name: FNTOpenTypeFontTableHmtx
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType horizontal metrics table
@@ -645,6 +652,7 @@ topics:
         summary: The font's character map
       -
         name: FNTOpenTypeFontTableCmap
+        namespace: FontKit
         kind: class
         inherits: FNTOpenTypeFontTable
         summary: The structure of the OpenType character map table
@@ -674,7 +682,7 @@ topics:
                   -
                     name: preferences
                     variable: true
-                    type: Number[2]
+                    type: [Number, Number]
                     summary: The preferred name to lookup
                 description: |
                   Each preference is a 2-Array of:
@@ -699,6 +707,7 @@ topics:
                     summary: The map to add
       -
         name: FNTOpenTypeFontCmap
+        namespace: FontKit
         kind: class
         inherits: JSObject
         summary: The OpenType character map format

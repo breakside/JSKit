@@ -62,6 +62,7 @@ topics:
         name: initWithRGBAHexString
         introduced: 2021.28.0
         kind: init
+        nullable: true
         summary: Create a color using an RGB hex string with or without a
           leading `"#"`
         description: |
@@ -82,22 +83,10 @@ topics:
           ````
         arguments:
           -
-            name: red
-            type: Number
-            summary: The percentage of red, from `0.0` to `1.0`
-          -
-            name: green
-            type: Number
-            summary: The percentage of green, from `0.0` to `1.0`
-          -
-            name: blue
-            type: Number
-            summary: The percentage of blue, from `0.0` to `1.0`
-          -
-            name: alpha
-            type: Number
-            default: "1.0"
-            summary: The percentage of opaqueness, from `0.0` to `1.0`
+            name: hexString
+            type: String
+            nullable: true
+            summary: The hex string representation of the RGB[A] color 
       -
         name: initWithHSVA
         introduced: 2021.28.0
@@ -244,6 +233,7 @@ topics:
         name: initFromDictionary
         introduced: 2021.28.0
         kind: init
+        nullable: true
         summary: Create a color from a serialized dictionary representation
         arguments:
           -

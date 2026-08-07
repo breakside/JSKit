@@ -613,7 +613,7 @@ topics:
             type: String
             summary: The name of property to validate
           - name: defaultValue
-            type: Array
+            type: any[]
             summary: The value to return if the key is not in the object
         description: |
           If the key isn't a object, an error will be thrown.
@@ -649,7 +649,7 @@ topics:
             type: Set
             summary: The allowed values
           - name: defaultValue
-            type: option
+            type: any
             summary: The value to return if the key is not in the object
         description: |
           If the key isn't a valid option, an error will be thrown.

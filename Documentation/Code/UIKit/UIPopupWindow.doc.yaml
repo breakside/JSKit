@@ -126,6 +126,7 @@ topics:
     members:
       -
         name: UIPopupWindowStyler
+        namespace: UIKit
         kind: class
         inherits: UIWindowStyler
         summary: A styler for popup windows
@@ -181,6 +182,7 @@ topics:
       -
         name: Styler
         kind: enum
+        type: UIPopupWindowStyler
         suffix: enum
         summary: The default stylers for popup windows
         topics:

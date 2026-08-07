@@ -19,21 +19,25 @@ topics:
       -
         name: initWithString
         kind: init
+        nullable: true
         summary: Parse a string into its URL components
         arguments:
           -
             name: string
             type: String
+            nullable: true
             summary: The URL's encoded string representation
       -
         name: initWithString
         suffix: relative
         kind: init
+        nullable: true
         summary: Reslove a relative URL string to a base URL
         arguments:
           -
             name: string
             type: String
+            nullable: true
             summary: The relative URL's encoded string representation
           -
             name: baseURL
@@ -51,11 +55,13 @@ topics:
       -
         name: initWithData
         kind: init
+        nullable: true
         summary: Create a URL from a UTF-8 encoded byte array
         arguments:
           -
             name: data
             type: JSData
+            nullable: true
             summary: The UTF-8 byte array that represents the URL
   -
     name: String Representation

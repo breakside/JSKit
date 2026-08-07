@@ -11,6 +11,7 @@ topics:
       -
         name: initWithData
         kind: init
+        nullable: true
         summary: Create a reader based on CFF data
         arguments:
           -
@@ -61,8 +62,7 @@ topics:
             summary: OpenType properties obtained elswhere.  Can be `{}`.
       -
         name: ExternalInfo
-        kind: class
-        anonymous: true
+        kind: dictionary
         summary: Information that can be provided when converting a CFF to
           OpenType
         description: |
@@ -73,8 +73,8 @@ topics:
             members:
               -
                 name: bbox
-                type: Number[4]
-                summary: The bounding box to use
+                type: Number[]
+                summary: The bounding box to use, a 4-element array
               -
                 name: ascender
                 type: Number
@@ -85,8 +85,8 @@ topics:
                 summary: The descender to use
               -
                 name: singleByteEncoding
-                type: Number[255]
-                summary: The character encoding map to use
+                type: Number[]
+                summary: The character encoding map to use, a 255-element array
               -
                 name: diffs
                 type: any[]

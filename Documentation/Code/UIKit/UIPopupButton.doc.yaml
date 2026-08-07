@@ -215,6 +215,7 @@ topics:
     members:
       -
         name: UIPopupButtonStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for popup button stylers
@@ -244,6 +245,7 @@ topics:
                 summary: The styler to use for the button's menu
       -
         name: UIPopupButtonCustomStyler
+        namespace: UIKit
         kind: class
         inherits: UIPopupButtonStyler
         summary: An initially blank popup button styler with standard layout and
@@ -535,6 +537,7 @@ topics:
                   popup or a pull down menu.
       -
         name: UIPopupButtonDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIPopupButtonCustomStyler
         summary: Configures a popup styler with `UIKit` default colors, layout,
@@ -547,6 +550,7 @@ topics:
           sets their initial values differently.
       -
         name: UIPopupButtonImageStyler
+        namespace: UIKit
         introduced: 2021.6.0
         kind: class
         inherits: UIPopupButtonStyler
@@ -570,7 +574,7 @@ topics:
                   derived from the normal color
               -
                 name: Spec File Properties
-                type: spec
+                kind: spec
                 summary: Spec file properties for a popup button image styler
                 topics:
                   -

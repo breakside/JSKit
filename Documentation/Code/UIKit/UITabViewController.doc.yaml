@@ -146,7 +146,7 @@ topics:
         arguments:
           -
             name: tabView
-            kind: UITabView
+            type: UITabView
             summary: The tab view owned by this controller
           -
             name: index

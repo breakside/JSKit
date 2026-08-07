@@ -1,0 +1,21 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextContainer
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A text frame container
+topics:
+  - name: Creating a Text Container
+    members:
+      - name: initWithSize
+        kind: init
+        summary: Create a new text container
+        arguments:
+          - name: size
+            type: JSSize
+            summary: The size of the container
+  - name: Resizing
+    members:
+      - name: size
+        type: JSSize
+        summary: The size of the container

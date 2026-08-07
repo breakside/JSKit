@@ -37,6 +37,7 @@ topics:
     members:
       -
         name: UITokenFieldDelegate
+        namespace: UIKit
         kind: protocol
         summary: A protocol that allows token field customization
         topics:
@@ -45,6 +46,7 @@ topics:
             members:
               -
                 name: tokenFieldRepresentedObjectForString
+                optional: true
                 summary: Get the data object for a given string
                 type: object
                 return: An data object that will be represented as a token
@@ -68,6 +70,7 @@ topics:
                   a `Contact`() record.
               -
                 name: tokenFieldStringForRepresentedObject
+                optional: true
                 summary: Get the string for a data object
                 arguments:
                   -
@@ -86,6 +89,7 @@ topics:
             members:
               -
                 name: tokenFieldViewForRepresentedObject
+                optional: true
                 summary: Get the view that will be used as the token
                 arguments:
                   -

@@ -89,7 +89,7 @@ topics:
         type: Promise
         promise:
           resolve:
-            type: Array
+            type: "[Status, PDFDocument]"
             summary: A two-element Array.  The first item is the `Status` of
               the open call.  If the first item is `Status.open`, the second
               item is a `PDFDocument`.
@@ -140,7 +140,7 @@ topics:
         type: Promise
         promise:
           resolve:
-            type: Array
+            type: "[Status, PDFDocument]"
             summary: A two-element Array.  The first item is the `Status` of
               the open call.  If the first item is `Status.open`, the second
               item is a `PDFDocument`.
@@ -160,6 +160,7 @@ topics:
     members:
       -
         name: PDFReaderStream
+        namespace: PDFKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for PDF reader streams
@@ -198,6 +199,7 @@ topics:
                 summary: Get the total length of the data
       -
         name: PDFReaderDataStream
+        namespace: PDFKit
         kind: class
         inherits: PDFReaderStream
         summary: A in-memory data stream

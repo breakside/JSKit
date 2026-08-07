@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.1.0
-inherits: JSObect
+inherits: JSObject
 summary: Represents a visual cursor that moves with the user's mouse
 description: |
   `UIKit` supports two ways of setting the current cursor:

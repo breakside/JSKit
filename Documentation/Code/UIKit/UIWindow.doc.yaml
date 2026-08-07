@@ -245,6 +245,7 @@ topics:
                   \`UITooltipWindowStyler`
       -
         name: UIWindowStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for a window styler
@@ -311,6 +312,7 @@ topics:
                 summary: The thickness of the ring drawn around the window's `firstResponder`
       -
         name: UIWindowDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIWindowStyler
         summary: The default `UIKit` window styling
@@ -401,11 +403,13 @@ topics:
                 summary: The thickness of the content separator
       -
         name: UIWindowCustomStyler
+        namespace: UIKit
         kind: class
         inherits: UIWindowStyler
         summary: A blank window styler
       -
         name: UITooltipWindowStyler
+        namespace: UIKit
         introduced: 2021.36.2
         kind: class
         inherits: UIWindowStyler

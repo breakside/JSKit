@@ -3,7 +3,7 @@ kind: class
 introduced: 2020.1.0
 inherits: UIViewController
 implements:
-  - UISplitView
+  - UISplitViewDelegate
 summary: A view controller that manages a `UISplitView`
 topics:
   -

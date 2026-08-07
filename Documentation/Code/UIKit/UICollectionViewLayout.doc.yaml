@@ -1,0 +1,106 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: JSObject
+summary: Abstract base class for defining the cell layout of a collction view
+description: |
+  A collection view works much in the same way as a `UIListView`, but where a
+  `UIListView` uses fixed layout for its cells, a `UICollectionView` can
+  arrange cells wherever you want.  `UICollectionViewLayout` subclasses are
+  the way to define what you want.
+
+  See `UICollectionViewGridLayout` for an exmample of a concrete implementation.
+topics:
+  - name: Preparing a Layout
+    members:
+      - name: prepare
+        kind: method
+        summary: Called by the associated collection view when it determines
+          the layout needs to be initially prepared, or re-prepared.
+        description: |
+          This is where a custom subclass will do most of its work.
+
+          Typically, you'll use `collectionView`'s `contentView`() to determine
+          the available width, and then calculate cell layout from there.  For
+          example, a grid view might use the same size for every cell, so
+          dividing the available width by the cell size results in the number
+          of columns to use.  Then, a layout might call the `collectionView`'s
+          `dataSource`(UICollectionView.dataSource) to learn how many sections
+          there are and how many cells are in each section.  From there, it can
+          divide the number of cells in a section by the previously calculated
+          number of columns to yeild the number of rows needed for the section.
+          Once it knows the number of rows, the layout can calculate how tall
+          the each section is.  Finally, the total height can be remembered
+          and returned in `collectionViewContentSize`, allowing the collection
+          view to set its scroll size.
+  - name: Associated Collection View
+    members:
+      - name: collectionView
+        type: UICollectionView
+        summary: A reference back to the collection view
+        description: |
+          Useful for finding the collection view's size.
+
+          Also useful for calling `dataSource`(UICollectionView.dataSource)
+          methods.
+  - name: Layout Information
+    members:
+      - name: collectionViewContentSize
+        type: JSSize
+        summary: The scrolling content size of the collection view
+        description: |
+          Queried by the `collectionView` after it calls `prepare()`, this
+          size should return whatever size the layout thinks it needs, based on
+          the calculations it made in `prepare()`.
+      - name: layoutAttributesForElementsInRect
+        kind: method
+        type: UICollectionViewLayoutAttributes[]
+        summary: Get the attributes for items that are visible within the
+          given rect.
+        arguments:
+          - name: rect
+            type: JSRect
+            summary: The visible rect of a collection view
+        note: Must be implemented by subclasses
+        description: |
+          Called by the `collectionView` when it loads or as the user
+          scrolls.
+
+          Because this method is called frequently, implementations should
+          strive to perform effeciently.
+      - name: layoutAttributesForCellAtIndexPath
+        kind: method
+        type: UICollectionViewLayoutAttributes
+        summary: Get the attributes for a specific cell
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the specific cell
+        note: Must be implemented by subclasses
+      - name: layoutAttributesForSupplimentaryViewAtIndexPath
+        kind: method
+        type: UICollectionViewLayoutAttributes
+        summary: Get the attributes for a specific supplimentary view
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the specific supplimentary view
+          - name: kind
+            type: String
+            summary: The kind of supplimentary view
+        note: Must be implemented by subclasses that support supplimentary views
+  - name: Invalidating Layouts
+    members:
+      - name: invalidateLayout
+        kind: method
+        summary: Invalidate the layout, causing the associated collection 
+          view to call `prepare()` again.
+      - name: shouldInvalidateLayoutForBounds
+        kind: method
+        summary: Tells whether the layout should be invalidated given the
+          proposed new bounds
+        type: Boolean
+        arguments:
+          - name: bounds
+            type: JSRect
+            summary: The proposed new bounds

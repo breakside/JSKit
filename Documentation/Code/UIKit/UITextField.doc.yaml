@@ -249,6 +249,7 @@ topics:
     members:
       -
         name: UITextFieldDelegate
+        namespace: UIKit
         kind: protocol
         summary: An interface that text field delegates can implement
         topics:
@@ -257,6 +258,7 @@ topics:
             members:
               -
                 name: textFieldDidChange
+                optional: true
                 summary: Called anytime the field changes while the user types
                 arguments:
                   -
@@ -265,6 +267,7 @@ topics:
                     summary: The field that changed
               -
                 name: textFieldDidReceiveEnter
+                optional: true
                 summary: Called when the user presses the enter key
                 arguments:
                   -
@@ -335,6 +338,7 @@ topics:
         name: Styler
         suffix: enum
         kind: enum
+        type: UITextFieldStyler
         summary: The built-in stylers for text fields
         topics:
           -
@@ -350,6 +354,8 @@ topics:
                 summary: A `UITextFieldCustomStyler` that starts out compeltely blank
       -
         name: UITextFieldStyler
+        namespace: UIKit
+        inherits: UIControlStyler
         kind: class
         summary: The abstract base class for all text field stylers
         topics:
@@ -399,6 +405,7 @@ topics:
                 summary: The color for the left accessory view
       -
         name: UITextFieldDefaultStyler
+        namespace: UIKit
         inherits: UITextFieldStyler
         kind: class
         summary: The default styler class for `UIKit` text fields
@@ -452,6 +459,7 @@ topics:
                 summary: The amount to inset text from the edges
       -
         name: UITextFieldCustomStyler
+        namespace: UIKit
         inherits: UITextFieldStyler
         kind: class
         summary: A customizable styler class for `UIKit` text fields

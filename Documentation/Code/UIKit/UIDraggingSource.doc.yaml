@@ -8,6 +8,7 @@ topics:
     members:
       -
         name: draggingSessionDidBecomeActive
+        optional: true
         summary: Called when a drag session becomes active
         arguments:
           -

@@ -3,6 +3,8 @@ introduced: 2020.28.0
 kind: framework
 summary: Mock classes for testing `ServerKit`-based applications
 codeURL: Frameworks/ServerKitTesting/
+dependencies:
+  - ServerKit
 description: |
   `ServerKitTesting` is designed to provide a way of testing `ServerKit`
   applications without actually running an HTTP server.

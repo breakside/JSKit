@@ -55,6 +55,7 @@ topics:
     members:
       - name: Styler
         kind: enum
+        type: UISliderStyler
         summary: The predefined stylers for `UISlider` controls
         topics:
           - name: Options
@@ -63,6 +64,8 @@ topics:
                 type: UISliderStyler
                 summary: The default styler for sliders in `UIKit`
       - name: UISliderStyler
+        namespace: UIKit
+        inherits: UIControlStyler
         kind: class
         summary: The abstract base class for all slider stylers
         topics:
@@ -103,6 +106,7 @@ topics:
                 description: |
                   Defaults to `false`()
       - name: UISliderLayerBasedStyler
+        namespace: UIKit
         kind: class
         inherits: UISliderStyler
         summary: An abstract class for styling a slider with layers for a track
@@ -148,6 +152,7 @@ topics:
                 type: Number
                 summary: The corner radius of the track
       - name: UISliderDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UISliderLayerBasedStyler
         summary: The default slider styler class, providing a customizable
@@ -399,6 +404,7 @@ topics:
                 type: JSPoint
                 summary: The offset of the knob's drop shadow
       - name: UISliderColorStyler
+        namespace: UIKit
         kind: class
         inherits: UISliderLayerBasedStyler
         summary: A slider styler that shows a color gradient along its

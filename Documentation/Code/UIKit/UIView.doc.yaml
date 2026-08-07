@@ -849,7 +849,7 @@ topics:
     members:
       -
         name: tag
-        type: Int
+        type: int
         summary: An optional unique tag that identifies this view among its
           sibling views
       -
@@ -1016,7 +1016,7 @@ topics:
         arguments:
           -
             name: animated
-            type: booleanm
+            type: boolean
             summary: Whether the change should be animated
             default: "false"
   -
@@ -1513,5 +1513,5 @@ topics:
             summary: The layer to draw
           -
             name: context
-            type: JScontext
+            type: JSContext
             summary: The context to use for drawing

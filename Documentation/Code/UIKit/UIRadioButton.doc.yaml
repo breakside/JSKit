@@ -83,11 +83,13 @@ topics:
     members:
       -
         name: UIRadioButtonStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for radio button stylers
       -
         name: UIRadioButtonDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIRadioButtonStyler
         summary: The styler `UIKit` uses by default

@@ -1,0 +1,119 @@
+copyright: Copyright © 2020 Breakside Inc.
+name: JSTextLayoutManager
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A text layout manager
+description: |
+  `JSTextLayoutManager` coordinates the layout of an attributed string
+  across one or more `JSTextContainer`s.
+topics:
+  - name: Text
+    members:
+      - name: textStorage
+        type: JSTextStorage
+        summary: The text to layout across the containers
+  - name: Style
+    members:
+      - name: defaultFont
+        type: JSFont
+        nullable: true
+        summary: The default font to use for runs of text without a font attribute
+      - name: defaultTextColor
+        type: JSColor
+        summary: The default color to use for runs of text without a color.
+      - name: defaultParagraphStyle
+        type: JSParagraphStyle
+        summary: The default paragraph style to use for runs of text without a paragraph style.
+  - name: Containers
+    members:
+      - name: addTextContainer
+        kind: method
+        summary: Add a text container to the layout
+        arguments:
+          - name: textContainer
+            type: JSTextContainer
+            summary: The text container to add
+      - name: insertTextContainerAtIndex
+        kind: method
+        summary: Insert a text container to the layout at the specific index
+        arguments:
+          - name: textContainer
+            type: JSTextContainer
+            summary: The text container to insert
+          - name: index
+            type: int
+            summary: The index in the text container list
+      - name: removeTextContainerAtIndex
+        kind: method
+        summary: Remove a text container from the layout at the specific index
+        arguments:
+          - name: index
+            type: int
+            summary: The index of the text container to remove
+  - name: Layout
+    members:
+      - name: setNeedsLayout
+        kind: method
+        summary: Indicate that a new layout is needed
+      - name: layoutIfNeeded
+        kind: method
+        summary: Layout the text in the containers
+  - name: Drawing
+    members:
+      - name: drawContainerInContextAtPoint
+        kind: method
+        summary: Draw the given text container in a context
+        arguments:
+          - name: context
+            type: JSContext
+            summary: The context to draw in
+          - name: point
+            type: JSPoint
+            summary: The origin of the container in the context
+  - name: Delegate
+    members:
+      - name: delegate
+        type: JSTextLayoutManagerDelegate
+        nullable: true
+        summary: The layout delegate
+      - name: JSTextLayoutManagerDelegate
+        namespace: Foundation
+        kind: protocol
+        summary: The layout manager delegate interface
+        topics:
+          - name: Layout
+            members:
+              - name: layoutManagerDidInvalidateLayout
+                kind: method
+                optional: true
+                summary: Called when the layout manager's layout becomes invalid
+                arguments:
+                  - name: layoutManager
+                    type: JSTextLayoutManager
+                    summary: The layout manager
+              - name: layoutManagerDidCompleteLayoutForContainer
+                kind: method
+                optional: true
+                summary: Called when the layout manager's layout is complete
+                arguments:
+                  - name: layoutManager
+                    type: JSTextLayoutManager
+                    summary: The layout manager
+                  - name: container
+                    type: JSTextContainer
+                    summary: The text container
+                  - name: isAtEnd
+                    type: boolean
+                    summary: Has the layout reached the end of the string?
+              - name: layoutManagerTextContainerForLocation
+                kind: method
+                optional: true
+                summary: Called to find a text container at the given point
+                arguments:
+                  - name: layoutManager
+                    type: JSTextLayoutManager
+                    summary: The layout manager
+                  - name: location
+                    type: JSPoint
+                    summary: The point at which to look for a container

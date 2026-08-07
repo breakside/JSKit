@@ -283,7 +283,7 @@ topics:
         arguments:
           -
             name: completion
-            type: function()
+            type: function
             summary: The function to call when the menu is fully closed after
               the animation completes
           -
@@ -305,6 +305,7 @@ topics:
     members:
       -
         name: UIMenuDelegate
+        namespace: UIKit
         kind: protocol
         summary: The interface that a menu delegate can implement
         topics:
@@ -313,6 +314,7 @@ topics:
             members:
               -
                 name: menuDidClose
+                optional: true
                 summary: Called when the menu is dismissed
                 arguments:
                   -
@@ -321,6 +323,7 @@ topics:
                     summary: The menu making the call
               -
                 name: menuDidNavigateLeft
+                optional: true
                 summary: Called when the user requested a left navigation
                 arguments:
                   -
@@ -333,6 +336,7 @@ topics:
                   message on to its delegate
               -
                 name: menuDidNavigateRight
+                optional: true
                 summary: Called when the user requested a right navigation
                 arguments:
                   -
@@ -353,6 +357,7 @@ topics:
     members:
       -
         name: UIMenuStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for menu stylers
@@ -473,6 +478,7 @@ topics:
                     summary: The index of the item
       -
         name: UIMenuWindowStyler
+        namespace: UIKit
         kind: class
         inherits: UIMenuStyler
         summary: The default menu styler for `UIKit`
@@ -669,6 +675,7 @@ topics:
       -
         name: Styler
         kind: enum
+        type: UIMenuStyler
         suffix: enum
         summary: The default menu stylers for `UIKit`
         topics:
@@ -714,7 +721,7 @@ topics:
           items
       -
         name: updateEnabled
-        type: method
+        kind: method
         summary: Called to force the menu to update the enabled/disabled states
           of its items
   -

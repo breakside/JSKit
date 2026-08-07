@@ -1,0 +1,56 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+inherits: JSObject
+introduced: 2020.1.0
+summary: A object that can be used as the
+  `attachment`(JSAttributedString.Attribute.attachment) attribute in a
+  `JSAttributeString`.
+description: |
+  Attributed strings with attachments can be created using
+  `JSAttributedString.initWithAttachment()`.
+
+  Attachment strings are a single character (`0xFFFC`()) long and contain a value
+  for the `JSAttributedString.Attribute.attachment` attribute that is a
+  `JSTextAttachment`.
+
+  Attachments are typically images, which will draw inline with the text.
+topics:
+  - name: Creating Attachments
+    members:
+      - name: initWithImage
+        kind: init
+        summary: Create an image attachment
+        arguments:
+          - name: image
+            type: JSImage
+            summary: The image to use
+          - name: size
+            type: JSSize
+            nullable: true
+            default: null
+            summary: The display size of the image, defaults to natural image size
+      - name: initWithImageName
+        kind: init
+        summary: Create an image attachment with a resource name
+        arguments:
+          - name: imageName
+            type: String
+            summary: The name of an image resource
+          - name: size
+            type: JSSize
+            nullable: true
+            default: null
+            summary: The display size of the image, defaults to natural image size
+      - name: initWithImageForFont
+        kind: init
+        summary: Create an image attachment sized to fit the given font line height
+        arguments:
+          - name: imageName
+            type: String
+            summary: The name of an image resource
+          - name: font
+            type: JSFont
+            summary: The font to use for automatic image sizing
+        description: |
+          The image will be scaled so its height matches the font's
+          `displayLineHeight`(JSFont.displayLineHeight)

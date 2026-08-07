@@ -86,6 +86,7 @@ topics:
     members:
       -
         name: UISegmentedControlItem
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: Represents a segment in a `UISegmentedControl`
@@ -268,6 +269,7 @@ topics:
     members:
       -
         name: UISegmentedControlStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for segmented control stylers
@@ -317,6 +319,7 @@ topics:
                   after to override the default styler insets.
       -
         name: UISegmentedControlDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UISegmentedControlStyler
         summary: The styler `UIKit` uses by default

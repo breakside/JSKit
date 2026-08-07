@@ -365,6 +365,7 @@ topics:
     members:
       -
         name: UIButtonStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for button stylers
@@ -410,6 +411,7 @@ topics:
                   override the default styler insets.
       -
         name: UIButtonDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIButtonStyler
         summary: The styler `UIKit` uses by default
@@ -509,6 +511,7 @@ topics:
                 summary: The radius of the button's shadow
       -
         name: UIButtonCustomStyler
+        namespace: UIKit
         kind: class
         inherits: UIButtonStyler
         summary: A basic button style that can adapt to any color
@@ -674,6 +677,8 @@ topics:
                 summary: The title text color to use for hover over states
       -
         name: UIButtonImageStyler
+        namespace: UIKit
+        inherits: UIButtonStyler
         kind: class
         summary: A button styler that will render template images with
           different colors depending on state.

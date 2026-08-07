@@ -121,16 +121,16 @@ topics:
     members:
       - JSFont
       - JSFontDescriptor
-      # - JSTextAttachment
-      # - JSTextContainer
       - JSTextFrame
       - JSTextFramesetter
-      # - JSTextLayoutManager
       - JSTextLine
       - JSTextRun
       - JSTextStorage
       - JSTextTypesetter
       - JSParagraphStyle
+      - JSTextAttachment
+      - JSTextLayoutManager
+      - JSTextContainer
       -
         name: JSTextAlignment
         kind: enum
@@ -254,6 +254,7 @@ topics:
       - JSTimer
       - JSNumberFormatter
       - JSXMLParser
+      - JSXMLAttributeMap
       # - JSBinarySearcher
       # - JSValueTransformer
       # - JSMath

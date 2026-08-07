@@ -34,6 +34,7 @@ topics:
         summary: The standard HTTP request methods
         suffix: enum
         kind: enum
+        type: String
         topics:
           -
             name: Options

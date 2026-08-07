@@ -68,6 +68,7 @@ topics:
     members:
       -
         name: UIViewControllerDelegate
+        namespace: UIKit
         kind: protocol
         summary: A delgate interface for navigation events
         topics:
@@ -76,6 +77,7 @@ topics:
             members:
               -
                 name: navigationControllerWillShowViewController
+                optional: true
                 kind: method
                 summary: Called just before a new view controller will be shown
                 arguments:
@@ -89,6 +91,7 @@ topics:
                     summary: The view controller that will be shown
               -
                 name: navigationControllerDidShowViewController
+                optional: true
                 kind: method
                 summary: Called just after a new view controller was be shown
                 arguments:

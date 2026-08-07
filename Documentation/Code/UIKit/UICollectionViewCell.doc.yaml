@@ -1,0 +1,97 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: UICollectionReusableView
+summary: A base class for collection view cells
+description: |
+  Unlike `UIListViewCell`, which comes with standard elements such as
+  `titleLabel`() and `imageView`(), a collection cell is blank canvas.
+
+  You'll always make a subclass with the elements that make sense for your
+  particular use case.
+
+  This cell class is based on the more generic `UICollectionReusableView`,
+  which can be used to create supplimentary views on the collection that
+  aren't selectable cells.
+topics:
+  - name: Styling
+    members:
+      - name: update
+        kind: method
+        summary: Update the cell's style when the cell's state changes
+  - name: State
+    members:
+      - name: State
+        kind: enum
+        suffix: enum
+        type: bitmask
+        summary: The possible states a cell can be in
+        description: |
+          Cell states can be combined with bitwise operations to represent
+          multiple states in a single value
+
+          ````
+          var state = UICollectionViewCell.State.selected | UICollectionViewCell.State.contextSelected;
+          ````
+
+          Custom States
+          =============
+          Subclasses can create custom states, but should be careful to
+          correctly set the new state values.
+
+          The first custom state for a subclass should start with
+          `firstUserState`.  The next should be `firstUserState << 1`, followed
+          by `firstUserState << 2`, and so on.
+        topics:
+          - name: Options
+            members:
+              - name: normal
+                summary: A cell without any other state
+              - name: active
+                summary: Set when the cell is active, like when it is being clicked
+              - name: selected
+                summary: When a cell is selected
+              - name: contextSelected
+                summary: When a cell is context-selected, like by a right click
+              - name: over
+                summary: When a cell is hovered over
+              - name: dropTarget
+                summary: When a cell is the target for a drag and drop operation
+              - name: firstUserState
+                summary: The first value a subclass can use for a custom
+                  state.  Subsequent values shoulde be made by shifting this
+                  value left by one bit.
+      - name: state
+        type: State
+        summary: The cell's combined state
+        note: Typically you'll use the shortcut properties like `active` and
+          \`selected` instead of inspecting this state directly.
+      - name: active
+        type: boolean
+        summary: Indicates the cell is active, like when it is being clicked
+      - name: selected
+        type: boolean
+        summary: Indicates the cell is selected
+      - name: contextSelected
+        type: boolean
+        summary: Indicates the cell is context-selected, like when it is
+          right-clicked
+      - name: over
+        type: boolean
+        summary: Indicates the cell is hovered over
+      - name: dropTarget
+        type: boolean
+        summary: Indicates the cell is a target for a drag and drop operation
+      - name: toggleStates
+        kind: method
+        summary: Change the `state` by turning the given states on or off
+        arguments:
+          - name: states
+            type: State
+            summary: The states to turn on or off
+          - name: "on"
+            type: boolean
+            summary: Whether the states should be turned on or off
+        description: |
+          Convenience method subclasses can call to turn their custom states
+          on or off without having to perform bitwise operations themselves.

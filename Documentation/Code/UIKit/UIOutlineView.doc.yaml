@@ -65,13 +65,14 @@ topics:
             members:
               -
                 name: styler
-                type: UIOutlineViewStyler
+                type: UIListViewStyler
                 summary: The styler to use for this outline view
   -
     name: Delegate & Data Source
     members:
       -
         name: UIOutlineViewDelegate
+        namespace: UIKit
         kind: protocol
         inherits: UIListViewDelegate
         summary: The delegate protocol for outline views
@@ -105,6 +106,7 @@ topics:
             members:
               -
                 name: outlineViewDidExpandIndexPath
+                optional: true
                 summary: Called after an item in the outline view is expanded
                   to reveal its children
                 arguments:
@@ -121,6 +123,7 @@ topics:
                   expansion.
               -
                 name: outlineViewDidCollapseIndexPath
+                optional: true
                 summary: Called after an item in the outline view is colllapsed
                   to reveal its children
                 arguments:
@@ -137,6 +140,8 @@ topics:
                   collapse.
       -
         name: UIOutlineViewDataSource
+        namespace: UIKit
+        inherits: UIListViewDataSource
         kind: protocol
         summary: The outline view data source protocol
         description: |
@@ -197,6 +202,7 @@ topics:
                   to perform as quickly as possible
               -
                 name: outlineViewExpandedIndexPaths
+                optional: true
                 type: JSIndexPath[]
                 summary: Get the index paths that should be expanded by default
                 arguments:
@@ -251,8 +257,9 @@ topics:
     members:
       -
         name: UIOutlineViewDefaultStyler
+        namespace: UIKit
         kind: class
-        inherits: UIOutlineViewDefaultStyler
+        inherits: UIListViewDefaultStyler
         summary: The default styler used for list views
         topics:
           -
@@ -302,6 +309,7 @@ topics:
         name: Styler
         suffix: enum
         kind: enum
+        type: UIOutlineViewDefaultStyler
         summary: The default styler options for outline views
         topics:
           -
@@ -312,5 +320,5 @@ topics:
                 summary: The default outline view styler created by `UIKit`
       -
         name: styler
-        type: UIOutlineViewStyler
+        type: UIListViewStyler
         summary: The styler in use by this outline view

@@ -42,6 +42,8 @@ topics:
         name: State
         kind: enum
         suffix: enum
+        type: bitmask
+        inherits: UIListViewCell.State
         summary: The possible states a cell can be in
         description: |
           Cell states can be combined with bitwise operations to represent

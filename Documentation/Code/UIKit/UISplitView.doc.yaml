@@ -182,6 +182,7 @@ topics:
     members:
       -
         name: UISplitViewDelegate
+        namespace: UIKit
         kind: protocol
         summary: An interface for receiving split view events
         topics:
@@ -190,6 +191,7 @@ topics:
             members:
               -
                 name: splitViewDidToggleView
+                optional: true
                 summary: Called when one of the side views is shown or hidden
                 arguments:
                   -

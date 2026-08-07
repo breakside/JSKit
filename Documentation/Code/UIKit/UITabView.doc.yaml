@@ -116,7 +116,7 @@ topics:
         arguments:
           -
             name: item
-            type: UITabItem
+            type: UITabViewItem
             summary: The item to add
         description: |
           The new item will be added at the end of the tab view's `items` list.
@@ -140,7 +140,7 @@ topics:
         arguments:
           -
             name: item
-            type: UITabItem
+            type: UITabViewItem
             summary: The item to add
           -
             name: index
@@ -171,6 +171,7 @@ topics:
     members:
       -
         name: UITabViewDelegate
+        namespace: UIKit
         kind: protocol
         summary: An interface that can be implemented to receive notifications
           when tabs change
@@ -180,6 +181,7 @@ topics:
             members:
               -
                 name: tabViewWillSelectItemAtIndex
+                optional: true
                 summary: Called just before a tab view changes its selection
                 arguments:
                   -
@@ -193,6 +195,7 @@ topics:
                       selected
               -
                 name: tabViewDidSelectItemAtIndex
+                optional: true
                 summary: Called just after a tab view changes its selection
                 arguments:
                   -
@@ -215,6 +218,7 @@ topics:
     members:
       -
         name: UITabViewStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: An abstract base class for all tab stylers
@@ -355,6 +359,7 @@ topics:
                     summary: The index of the item
       -
         name: UITabViewDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UITabViewStyler
         summary: The default tab view styler for `UIKit`
@@ -605,6 +610,7 @@ topics:
       -
         name: Styler
         kind: enum
+        type: UITabViewStyler
         suffix: enum
         summary: The tab view stylers available by default
         topics:
@@ -632,7 +638,8 @@ topics:
         type: JSFont
         summary: The font to use for this tab view, overriding the styler's font
       -
-        name: UITabItemsView
+        name: UITabViewItemsView
+        namespace: UIKit
         kind: class
         inherits: UIView
         summary: Displays a list of tab items and handles user interaction.
@@ -645,10 +652,11 @@ topics:
             members:
               -
                 name: itemViews
-                type: UITabItemView[]
+                type: UITabViewItemView[]
                 summary: The item views contained within
               -
-                name: UITabItemView
+                name: UITabViewItemView
+                namespace: UIKit
                 kind: class
                 inherits: UIView
                 summary: A child of `UITabItemsView` that knows its index in the tab

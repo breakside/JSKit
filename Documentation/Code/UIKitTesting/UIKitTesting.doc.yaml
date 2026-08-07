@@ -3,6 +3,8 @@ introduced: 2021.8.0
 kind: framework
 summary: Mock classes for testing `UIKit`-based applications
 codeURL: Frameworks/UIKitTesting/
+dependencies:
+  - UIKit
 description: |
   `UIKitTesting` is designed to provide a way of testing `UIKit`
   applications without actually running in a browser.

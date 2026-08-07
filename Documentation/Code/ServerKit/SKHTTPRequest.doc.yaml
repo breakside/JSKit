@@ -149,7 +149,7 @@ topics:
         type: Promise
         promise:
           resolve:
-            type: SKValidating
+            type: SKValidatingObject
             summary: An instance of the given class
         summary: Get an instance of the given class created with
           \`initWithValidatingObject()`, returned via a promise
@@ -269,7 +269,7 @@ topics:
         type: Promise
         promise:
           resolve:
-            type: SKValidating
+            type: SKValidatingObject
             summary: An instance of the given class
         summary: Get an instance of the given class created from a form request with
           \`initWithValidatingObject()`, returned via a promise

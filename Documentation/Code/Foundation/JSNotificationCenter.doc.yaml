@@ -62,7 +62,7 @@ topics:
         name: addObserver
         kind: method
         summary: Register an object to listen for notifictions
-        type: Int
+        type: int
         return: A unique observer identifier that can be passed to
           \`removeObserver()`
         arguments:
@@ -101,5 +101,5 @@ topics:
             summary: The name of the notification being observed
           -
             name: observer
-            type: Int
+            type: int
             summary: The observer ID returned by `addObserver()`

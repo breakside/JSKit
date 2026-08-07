@@ -74,6 +74,7 @@ topics:
     members:
       -
         name: UIHTMLElementLayerDelegate
+        namespace: UIKit
         kind: protocol
         inherits: UILayerDelegate
         topics:
@@ -82,6 +83,7 @@ topics:
             members:
               -
                 name: elementNameForLayer
+                optional: true
                 kind: method
                 type: String
                 summary: Return the name of the element to create
@@ -94,6 +96,7 @@ topics:
                   If not provided, `"div"` will be used.
               -
                 name: layerDidCreateElement
+                optional: true
                 kind: method
                 summary: Called immediately after the element is created to
                   allow for further setup
@@ -107,6 +110,7 @@ topics:
                   styling
               -
                 name: layerWillDestroyElement
+                optional: true
                 kind: method
                 summary: Called immediately before the element will be removed
                   from the DOM

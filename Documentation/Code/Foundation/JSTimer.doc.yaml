@@ -17,7 +17,7 @@ topics:
             type: Number
             summary: The timeout, in seconds, before the `action` runs
           - name: action
-            type: function()
+            type: function
             summary: The function to call when the interval has passed
           - name: target
             type: object
@@ -44,7 +44,7 @@ topics:
             type: Number
             summary: The timeout, in seconds, between invocations of `action`
           - name: action
-            type: function()
+            type: function
             summary: The function to call each time the interval has passed
           - name: target
             type: object
@@ -71,7 +71,7 @@ topics:
             type: boolean
             summary: Whether the timer should repeat or run only once
           - name: action
-            type: function()
+            type: function
             summary: The function to call each time the interval has passed
           - name: target
             type: object

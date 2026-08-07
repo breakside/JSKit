@@ -1,7 +1,7 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: class
 introduced: 2020.35.0
-inherits: JSObect
+inherits: JSObject
 summary: Abstract base for classes used in touch interfaces to detect common
   gesture interactions
 description: |

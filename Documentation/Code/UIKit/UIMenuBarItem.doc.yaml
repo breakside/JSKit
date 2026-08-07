@@ -325,6 +325,15 @@ topics:
         type: ImagePosition
         summary: Where the item's image should be positioned relative
           to its title
+      -
+        name: ImagePosition
+        suffix: enum
+        kind: enum
+        topics:
+          - name: Options
+            members:
+              - name: left
+              - name: right
   -
     name: Custom View
     members:
@@ -400,6 +409,7 @@ topics:
           after construction
       -
         name: UIMenuBarItemDelegate
+        namespace: UIKit
         introduced: 2021.6.0
         kind: protocol
         summary: The menu item delegate protocol
@@ -409,6 +419,7 @@ topics:
             members:
               -
                 name: windowControllerForMenuBarItem
+                optional: true
                 type: UIWindowController
                 summary: Create and prepare a window controller to be shown
                   in response to the menu item selection

@@ -55,6 +55,7 @@ topics:
     members:
       -
         name: PDFStreamOperation
+        namespace: PDFKit
         kind: class
         summary: A single operation and its operands found in a pdf stream
         topics:

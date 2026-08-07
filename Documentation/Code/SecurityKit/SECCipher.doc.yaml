@@ -84,20 +84,19 @@ topics:
       -
         name: CipherOptions
         introduced: 2024.40.0
-        kind: class
-        anonymous: true
+        kind: dictionary
         summary: The possible options for cipher creation
         topics:
           - name: Options for AES-CBC
             members:
               - name: keyBitLength
                 suffix: aes-cbc
-                type: Number?
+                type: Number
                 summary: The key length in bits (must be 128, 192, or 256),
                   defaults to 256.
               - name: iv
                 suffix: aes-cbc
-                type: JSData?
+                type: JSData
                 summary: The "initialization vector" data. Will be used for all
                   calls to `encrypt()`. If not provied, a random `iv` will be
                   generated during `encrypt()`
@@ -105,39 +104,39 @@ topics:
             members:
               - name: keyBitLength
                 suffix: aes-gcm
-                type: Number?
+                type: Number
                 summary: The key length in bits (must be 128, 192, or 256),
                   defaults to 256.
               - name: tagByteLength
-                type: Number?
+                type: Number
                 summary: The length in bytes of the authentication tag/signature.
                   Defaults to 16 bytes.
               - name: ivByteLength
-                type: Number?
+                type: Number
                 summary: The length in bytes of the "initialization vector",
                   which will be randomly generated during `encrypt()` unless
                   a specific `iv` is specied, in which case `ivByteLength`() is
                   ignored. Defaults to 16 bytes.
               - name: iv
                 suffix: aes-gcm
-                type: JSData?
+                type: JSData
                 summary: The "initialization vector" data. Will be used for all
                   calls to `encrypt()`. If not provied, a random `iv`() of
                   `ivByteLength` will be generated during `encrypt()`
               - name: additionalData
-                type: JSData?
+                type: JSData
                 summary: The additional data that should be authenticated with
                   a signature, used for all calls to `encrypt()` and `decrypt()`
           - name: Options for RSA-OAEP
             members:
               - name: modulusLength
-                type: Number?
+                type: Number
                 summary: The RSA modululs length, defaults to 2048
               - name: publicExponent
-                type: Number?
+                type: Number
                 summary: The RSA public exponent, defaults to 0x10001
               - name: label
-                type: JSData?
+                type: JSData
                 summary: The optional label for RSA-OAEP
               - name: hash
                 type: SECHash.Algorithm

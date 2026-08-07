@@ -244,6 +244,7 @@ topics:
     members:
       -
         name: UIControlStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for all control stylers
@@ -712,6 +713,7 @@ topics:
         name: State
         kind: enum
         suffix: enum
+        type: bitmask
         summary: The possible states a control can be in
         description: |
           Control states can be combined with bitwise operations to represent

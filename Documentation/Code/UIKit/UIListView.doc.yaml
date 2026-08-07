@@ -309,6 +309,7 @@ topics:
     members:
       -
         name: UIListViewDelegate
+        namespace: UIKit
         kind: protocol
         summary: The interface a list view delegate implements
         description: |
@@ -389,6 +390,7 @@ topics:
                   ````
               -
                 name: heightForListViewRowAtIndexPath
+                optional: true
                 summary: Get the exact height for a row
                 type: Number
                 arguments:
@@ -408,6 +410,7 @@ topics:
                   which will ensure the list view can run efficiently.
               -
                 name: estimatedHeightForListViewRows
+                optional: true
                 summary: Get an estimated height for all rows in the list view
                 type: Number
                 return: A good estimate or average of how tall rows are
@@ -433,6 +436,7 @@ topics:
             members:
               -
                 name: headerViewForListViewSection
+                optional: true
                 summary: Get the header view for the section
                 type: UIListViewHeaderFooterView
                 nullable: true
@@ -504,6 +508,7 @@ topics:
                   ````
               -
                 name: footerViewForListViewSection
+                optional: true
                 summary: Get the footer for the section
                 type: UIListViewHeaderFooterView
                 return: The footer for the section
@@ -583,6 +588,7 @@ topics:
                   ````
               -
                 name: heightForListViewHeaderInSection
+                optional: true
                 summary: Get the height for the header in a section
                 type: Number
                 return: The exact height for the header.  Use `0` to indicate
@@ -598,6 +604,7 @@ topics:
                     summary: The section for the header
               -
                 name: heightForListViewFooterInSection
+                optional: true
                 summary: Get the height for the footer in a section
                 type: Number
                 return: The exact height for the footer.  Use `0` to indicate
@@ -617,6 +624,7 @@ topics:
             members:
               -
                 name: listViewShouldSelectCellAtIndexPath
+                optional: true
                 type: boolean
                 return: |
                   `true` if the cell can be selected, `false` otherwise
@@ -632,6 +640,7 @@ topics:
                     summary: The location of the cell in the list
               -
                 name: listViewDidSelectCellAtIndexPath
+                optional: true
                 summary: Called whent the user selects a cell
                 arguments:
                   -
@@ -656,6 +665,7 @@ topics:
                   `listViewSelectionDidChange()`.
               -
                 name: listViewDidFinishSelectingCellAtIndexPath
+                optional: true
                 summary: Called when the selection is done, typically on
                   mouseUp
                 arguments:
@@ -674,6 +684,7 @@ topics:
                   should happen on `listViewDidSelectCellAtIndexPath()`
               -
                 name: listViewDidOpenCellAtIndexPath
+                optional: true
                 summary: Called when the user performs an action like double
                   click or the enter key
                 arguments:
@@ -692,6 +703,7 @@ topics:
                   Double click and Enter key are both considered open events.
               -
                 name: listViewSelectionDidChange
+                optional: true
                 summary: 
                 arguments:
                   -
@@ -715,6 +727,7 @@ topics:
             members:
               -
                 name: menuForListViewCellAtIndexPath
+                optional: true
                 type: UIMenu
                 nullable: true
                 return: The context menu to show for the cell
@@ -736,6 +749,7 @@ topics:
             members:
               -
                 name: listViewShouldDragCellAtIndexPath
+                optional: true
                 type: boolean
                 summary: Indicate if a cell can be dragged as copy/paste data
                 arguments:
@@ -753,6 +767,7 @@ topics:
                   pasteboard representation of the cell.
               -
                 name: pasteboardItemsForListViewAtIndexPath
+                optional: true
                 type: UIDragItem[]
                 summary: Get the data items that correspond to the item at the
                   index path
@@ -770,6 +785,7 @@ topics:
                   on the session's `pasteboard`(UIDraggingSession.pasteboard).
               -
                 name: listViewWillBeginDraggingSession
+                optional: true
                 summary: Called when the list view is about to begin a dragging
                   session
                 arguments:
@@ -788,6 +804,7 @@ topics:
                   `image`(UIDraggingSession.image).
       -
         name: UIListViewDataSource
+        namespace: UIKit
         kind: protocol
         summary: An interface that's used to tell the list view how many sections
           and rows to display.
@@ -827,6 +844,7 @@ topics:
       -
         name: delegate
         type: UIListViewDelegate
+        nullable: true
         summary: The delegate object for this list view
         description: |
           A list view's delegate is responsible for creating cells,
@@ -842,6 +860,7 @@ topics:
       -
         name: dataSource
         type: UIListViewDataSource
+        nullable: true
         summary: The data source object for this list view
         description: |
            A list view's data source is required for every list view.
@@ -862,6 +881,7 @@ topics:
     members:
       -
         name: UIListViewStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for all list view stylers
@@ -970,6 +990,7 @@ topics:
                   Gives the styler an opportunity to configure the footer
       -
         name: UIListViewDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIListViewStyler
         summary: The default list view styler for `UIKit`
@@ -2073,7 +2094,7 @@ topics:
 
             viewDidLoad: function(){
               PlanetsViewController.$super.viewDidLoad.call(this);
-              this.listView.loadData();
+              this.listView.reloadData();
             }
           });
           ````

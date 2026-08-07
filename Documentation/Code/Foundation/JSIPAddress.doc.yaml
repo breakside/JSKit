@@ -10,10 +10,12 @@ topics:
     members:
       - name: initWithString
         kind: init
+        nullable: true
         summary: Create an JSIPAddress from a string
         arguments:
           - name: string
             type: String
+            nullable: true
             summary: The string representation of the IP Address
   - name: Address Info
     members:

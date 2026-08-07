@@ -176,15 +176,18 @@ topics:
     members:
       -
         name: UIScrollViewDelegate
+        namespace: UIKit
         kind: protocol
         summary: The interface that scroll view delegates may impelment
         topics:
           -
             name: scrollViewDidScroll
+            optional: true
             summary: Called whenever the scroll view's `contentOffset` changes
       -
         name: delegate
         type: UIScrollViewDelegate
+        nullable: true
         summary: This scroll view's delegate
   -
     name: Scrollers

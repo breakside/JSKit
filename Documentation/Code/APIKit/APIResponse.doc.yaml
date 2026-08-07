@@ -11,6 +11,7 @@ topics:
     members:
       - name: StatusCode
         kind: enum
+        type: int
         suffix: enum
         summary: The possible HTTP status codes
         topics:
@@ -118,7 +119,7 @@ topics:
         type: StatusCode
         summary: The status code for the response
       - name: headerMap
-        type: JSMimeHeaderMap
+        type: JSMIMEHeaderMap
         summary: The headers for this response
   - name: Response Body
     members:

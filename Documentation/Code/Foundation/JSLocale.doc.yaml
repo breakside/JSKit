@@ -16,6 +16,11 @@ topics:
         name: initWithIdentifier
         kind: init
         summary: Create a locale based on a standard identifier
+        nullable: true
+        arguments:
+          - name: identifier
+            type: String
+            summary: The locale identifier, like `"en-US"`
         description: |
           A locale identifier is typically a two letter language sequence like
           `"en"` followed by a region specifier like "`-US`", resulting in a
@@ -91,5 +96,5 @@ topics:
     members:
       -
         name: calendarIdentifier
-        type: Calendar.Identifier
+        type: JSCalendar.Identifier
         summary: The identifier for the default calendar in this locale
