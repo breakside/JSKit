@@ -80,6 +80,58 @@
             parent = this.inherits;
         }
         return ['JSProtocol("%s", %s, { ... })'.sprintf(this.name, parent)];
+    },
+
+    typescriptDeclaration: function(container = null){
+        if (this.isTypescript){
+            return null;
+        }
+        let declaration = "";
+        if (container === null){
+            declaration += "declare ";
+        }
+        declaration += "interface %s".sprintf(this.name);
+        if (this.inherits){
+            declaration += " extends %s".sprintf(this.inherits);
+        }
+        declaration += "{\n";
+        let namespaceChildren = [];
+        for (let child of this.children){
+            if (child.namespace === null){
+                if (child.kind === "class" || child.kind === "dictionary" || child.kind === "enum" || child.kind === "protocol"){
+                    namespaceChildren.push(child);
+                }else if (child.kind === "init"){
+                    let childDeclaration = child.typescriptDeclaration("class", true);
+                    if (childDeclaration !== null){
+                        let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                        declaration += "%s\n".sprintf(indented);
+                    }
+                }else{
+                    let childDeclaration = child.typescriptDeclaration("interface");
+                    if (childDeclaration !== null){
+                        let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                        declaration += "%s\n".sprintf(indented);
+                    }
+                }
+            }
+        }
+        declaration += "}";
+        if (namespaceChildren.length > 0){
+            declaration += "\n";
+            if (container === null){
+                declaration += "declare ";
+            }
+            declaration += "namespace %s{\n".sprintf(this.name);
+            for (let child of namespaceChildren){
+                let childDeclaration = child.typescriptDeclaration("namespace");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        return declaration;
     }
 
  });

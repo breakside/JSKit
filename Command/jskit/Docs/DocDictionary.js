@@ -28,4 +28,38 @@
         return 'Dictionary';
     },
 
+    typescriptDeclaration: function(container = null){
+        if (this.isTypescript){
+            return null;
+        }
+        if (this.name.indexOf(" ") >= 0){
+            return null;
+        }
+        let declaration = "";
+        if (container === null){
+            declaration = "declare ";
+        }
+        let valueTypesByName = {};
+        let properties = [];
+        for (let child of this.children){
+            if (!valueTypesByName[child.name]){
+                valueTypesByName[child.name] = child.valueType;
+                properties.push(child);
+            }else{
+                if (child.valueType != valueTypesByName[child.name]){
+                    valueTypesByName[child.name] += " | " + child.valueType;
+                }
+            }
+        }
+        declaration += "type %s = {\n".sprintf(this.name);
+        for (let child of properties){
+            let childDeclaration = child.typescriptDeclaration("type", valueTypesByName[child.name]);
+            if (childDeclaration !== null){
+                declaration += "  %s\n".sprintf(childDeclaration);
+            }
+        }
+        declaration += "};";
+        return declaration;
+    }
+
  });

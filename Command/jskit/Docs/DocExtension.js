@@ -45,11 +45,7 @@
 
     populateRelationships: function(){
         DocExtension.$super.populateRelationships.call(this);
-        var parts = this.extends.split('.');
-        this.extendsComponent = this.componentForName(parts.shift());
-        while (parts.length > 0 && this.extendsComponent !== null){
-            this.extendsComponent = this.extendsComponent.childForName(parts.shift());
-        }
+        this.extendsComponent = this.componentForDottedName(this.extends);
         if (this.extendsComponent !== null){
             if (this.extendsComponent.kind === "class"){
                 this.extendsComponent.addExtension(this);
@@ -126,5 +122,167 @@
         lines.push(this.codeLineFromTokens(document, tokens));
         return lines;
     },
+
+    typescriptDeclaration: function(container = null){
+        if (this.isTypescript){
+            return null;
+        }
+        if (this.extendsComponent !== null){
+            if (this.extendsComponent.kind === "enum" && !this.extendsComponent.isTypescriptEnum()){
+                return this.typescriptDeclarationForEnum(container, this.extendsComponent.valueType);
+            }
+        }
+        if (this.extends === "Math"){
+            return this.typescriptDeclarationForBuiltin("Math", "Math", container);
+        }else if (this.extends === "Number"){
+            return this.typescriptDeclarationForBuiltin("Number", "NumberConstructor", container);
+        }else if (this.extends === "RegExp"){
+            return this.typescriptDeclarationForBuiltin("RegExp", "RegExpConstructor", container);
+        }
+        let declaration = "interface %s{\n".sprintf(this.extends);
+        let namespaceChildren = [];
+        let extensionChildren = [];
+        let hasInterface = false;
+        for (let child of this.children){
+            if (child.kind === "class" || child.kind === "dictionary" || child.kind === "enum" || child.kind === "protocol" || child.kind === "init" || ((child.kind === "method" || child.kind === "property") && child.isStatic)){
+                namespaceChildren.push(child);
+            }else if (child.kind === "extension"){
+                extensionChildren.push(child);
+            }else{
+                let childDeclaration = child.typescriptDeclaration("interface");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                    hasInterface = true;
+                }
+            }
+        }
+        declaration += "}";
+        if (!hasInterface){
+            declaration = "";
+        }
+        if (namespaceChildren.length > 0){
+            if (declaration !== ""){
+                declaration += "\n";
+            }
+            if (container === null){
+                declaration += "declare ";
+            }
+            declaration += "namespace %s{\n".sprintf(this.extends);
+            for (let child of namespaceChildren){
+                let childDeclaration = child.typescriptDeclaration("namespace");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        if (extensionChildren.length > 0){
+            if (declaration !== ""){
+                declaration += "\n";
+            }
+            for (let child of extensionChildren){
+                let childDeclaration = child.typescriptDeclaration(container);
+                if (childDeclaration !== null){
+                    declaration += childDeclaration;
+                }
+            }
+        }
+        return declaration;
+    },
+
+    typescriptDeclarationForBuiltin: function(name, constructorName, container){
+        let declaration = "interface %s{\n".sprintf(name);
+        let constructorChildren = [];
+        let hasInterface = false;
+        for (let child of this.children){
+            if (name !== constructorName && (child.kind === "class" || child.kind === "dictionary" || child.kind === "enum" || child.kind === "protocol" || child.kind === "init" || ((child.kind === "method" || child.kind === "property") && child.isStatic))){
+                constructorChildren.push(child);
+            }else{
+                let childDeclaration = child.typescriptDeclaration("interface");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                    hasInterface = true;
+                }
+            }
+        }
+        declaration += "}";
+        if (!hasInterface){
+            declaration = "";
+        }
+        if (constructorChildren.length > 0){
+            if (declaration !== ""){
+                declaration += "\n";
+            }
+            if (container === null){
+                declaration += "declare ";
+            }
+            declaration += "interface %s{\n".sprintf(constructorName);
+            for (let child of constructorChildren){
+                let childDeclaration = child.typescriptDeclaration("interface");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        return declaration;
+    },
+
+    typescriptDeclarationForEnum: function(container, valueType){
+        if (valueType === "bitmask"){
+            valueType = "number";
+        }
+        valueType = this.typescriptValueType(valueType);
+        let declaration = "";
+        if (container === null){
+            declaration += "declare ";
+        }
+        declaration += "namespace %s{\n".sprintf(this.extends);
+        let reservedChildren = [];
+        let reservedKeywords = new Set(["switch", "default"]);
+        for (let child of this.children){
+            if (reservedKeywords.has(child.name)){
+                reservedChildren.push(child);
+            }else{
+                let childDeclaration = child.typescriptDeclaration("namespace", valueType);
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+        }
+        declaration += "}";
+        if (reservedChildren.length > 0){
+            declaration += "\n";
+            if (container === null){
+                declaration += "declare ";
+            }
+            declaration += "namespace %s{\n".sprintf(this.extends);
+            let names = [];
+            for (let child of reservedChildren){
+                let originalName = child.name;
+                let alteredName = "_" + originalName;
+                names.push([originalName, alteredName]);
+                child.name = alteredName;
+                let childDeclaration = child.typescriptDeclaration("namespace", valueType);
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+                child.name = originalName;
+            }
+            declaration += "  export {\n";
+            for (let [originalName, alteredName] of names){
+                declaration += "    %s as %s,\n".sprintf(alteredName, originalName);
+            }
+            declaration += "  }\n";
+            declaration += "}";
+        }
+        return declaration;
+    }
 
  });

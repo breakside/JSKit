@@ -20,6 +20,7 @@
 
     kind: 'method',
     isStatic: false,
+    optional: false,
 
     getDisplayNameForKind: function(){
         if (this.isStatic){
@@ -32,6 +33,9 @@
         await DocMethod.$super.extractPropertiesFromInfo.call(this, info, documentation);
         if (info.static){
             this.isStatic = true;
+        }
+        if (info.optional){
+            this.optional = true;
         }
     },
     
@@ -62,6 +66,23 @@
             obj.static = true;
         }
         return obj;
-    }
+    },
+
+    typescriptDeclaration: function(container = null){
+        if (this.name[0] === "["){
+            return null;
+        }
+        let returnType = this.typescriptValueType(this.valueType, this.nullable, this.promise);
+        let args = this.typescriptAgumentsDeclaration();
+        if (container === "class" || container === "type" || container === "interface"){
+            let declaration = "";
+            if (container === "class" && this.isStatic){
+                declaration += "static ";
+            }
+            declaration += "%s%s(%s): %s;".sprintf(this.name, this.optional ? "?" : "", args, returnType);
+            return declaration;
+        }
+        return "function %s(%s): %s;".sprintf(this.name, args, returnType);
+    },
 
  });

@@ -16,12 +16,72 @@
 // #import "DocTopicBasedComponent.js"
 'use strict';
 
- JSClass("DocFramework", DocTopicBasedComponent, {
+JSClass("DocFramework", DocTopicBasedComponent, {
 
     kind: 'framework',
+    dependencies: null,
 
     getDisplayNameForKind: function(){
         return "Framework";
-    }
+    },
+
+    extractPropertiesFromInfo: async function(info, documentation){
+        await DocFramework.$super.extractPropertiesFromInfo.call(this, info, documentation);
+        if (info.dependencies){
+            this.dependencies = info.dependencies;
+        }
+    },
+
+    resolvedDependencies: function(){
+        let dependencies = [];
+        let dependencySet = new Set();
+        if (this.dependencies !== null){
+            for (let dependency of this.dependencies){
+                let framework = this.componentForName(dependency);
+                if (framework === null || framework.sourcePackage === null){
+                    if (framework !== null && framework.kind === "framework"){
+                        for (let indirectDependency of framework.resolvedDependencies()){
+                            if (!dependencySet.has(indirectDependency)){
+                                dependencySet.add(indirectDependency);
+                                dependencies.push(indirectDependency);
+                            }
+                        }
+                    }
+                    if (!dependencySet.has(dependency)){
+                        dependencySet.add(dependency);
+                        dependencies.push(dependency);
+                    }
+                }
+            }
+        }
+        return dependencies;
+    },
+
+    typescriptDeclaration: function(){
+        if (this.isTypescript){
+            return null;
+        }
+        let declaration = "";
+        let references = [];
+        let dependencies = this.resolvedDependencies();
+        for (let dependency of dependencies){
+            references.push('/// <reference types="./%s" />'.sprintf(dependency));
+        }
+        if (references.length > 0){
+            declaration += references.join("\n");
+            declaration += "\n\n";
+        }
+        let declarations = [];
+        let children = this.componentsInNamespace(this.name);
+        for (let child of children){
+            let childDeclarations = child.typescriptDeclaration();
+            if (childDeclarations !== null){
+                declarations.push(childDeclarations);
+            }
+        }
+        declaration += declarations.join("\n\n");
+        declaration += "\n";
+        return declaration;
+    },
 
  });

@@ -105,4 +105,11 @@
         return elements;
     },
 
+    typescriptDeclaration: function(container = null, valueTypeOverride = null){
+        let declaration = "";
+        let valueType = this.typescriptValueType(valueTypeOverride || this.valueType, true);
+        declaration += "%s?: %s;".sprintf(this.name, valueType);
+        return declaration;
+    },
+
  });

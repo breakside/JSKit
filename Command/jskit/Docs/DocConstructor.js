@@ -46,6 +46,11 @@ JSClass("DocConstructor", DocMethod, {
 
     getDisplayNameForKind: function(){
         return "Constructor";
+    },
+
+    typescriptDeclaration: function(){
+        let args = this.typescriptAgumentsDeclaration();
+        return "constructor(%s);".sprintf(args);
     }
 
 });

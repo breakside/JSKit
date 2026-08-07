@@ -24,11 +24,16 @@
 
 JSGlobalObject.JSClass = function(name, superclass, extensions){
     if (this === undefined){
-        if (superclass instanceof JSClass){
-            JSGlobalObject[name] = superclass.$extend(extensions, name);
-            return JSGlobalObject[name];
+        if (name instanceof JSClass){
+            var cls = name;
+            cls.initialize();
         }else{
-            throw new Error("JSClass(): superclass must be an instance of JSClass");
+            if (superclass instanceof JSClass){
+                JSGlobalObject[name] = superclass.$extend(extensions, name);
+                return JSGlobalObject[name];
+            }else{
+                throw new Error("JSClass(): superclass must be an instance of JSClass");
+            }
         }
     }
 };

@@ -96,4 +96,18 @@
         return ['%s'.sprintf(this.name)];
     },
 
+    typescriptDeclaration: function(container = null, valueType = null){
+        if (container === "class"){
+            return "static %s: %s;".sprintf(this.name, valueType);
+        }
+        if (container === "namespace"){
+            return "let %s: %s;".sprintf(this.name, valueType);
+        }
+        if (container === "type"){
+            return "%s: %s,".sprintf(this.name, valueType);
+        }
+        return "%s,".sprintf(this.name);
+    }
+
+
  });
