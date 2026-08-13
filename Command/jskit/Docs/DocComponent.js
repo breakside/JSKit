@@ -1029,6 +1029,8 @@ JSClass("DocComponent", JSObject, {
             valueType = "Set<any>";
         }else if (valueType === "DOMElement"){
             valueType = "Element";
+        }else if (valueType === "UIEvent"){
+            valueType = "UIEventObject";
         }
 
         if (valueType === "Promise"){
@@ -1062,7 +1064,7 @@ JSClass("DocComponent", JSObject, {
                 if (this.parent.kind == 'class' || this.parent.kind == 'protocol'){
                     let parentName = this.parent.typescriptName();
                     if (parentName === "UIEvent"){
-                        parentName = "UIEventConstructor";
+                        parentName = "UIEventObject";
                     }
                     return "%s.%s".sprintf(parentName, this.name);
                 }

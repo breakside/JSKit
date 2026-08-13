@@ -178,9 +178,6 @@ JSClass("DocClass", DocTopicBasedComponent, {
         if (this.name === "JSData"){
             return this.typescriptDeclarationForBuiltin("Uint8Array", "Uint8ArrayConstructor");
         }
-        if (this.name === "UIEvent"){
-            return this.typescriptDeclarationForBuiltin("UIEvent", "UIEventConstructor", true);
-        }
         if (this.name === "JSClass"){
             return this.typescriptDeclarationForJSClass();
         }
@@ -188,7 +185,11 @@ JSClass("DocClass", DocTopicBasedComponent, {
             return this.typescriptDeclarationForJSObject();
         }
         let declaration = "";
-        if (this.name === "UIPopupWindow"){
+        let name = this.name;
+        if (name === "UIEvent"){
+            name = "UIEventObject";
+        }
+        if (name === "UIPopupWindow"){
             declaration += "// @ts-ignore\n";
         }
         if (container === null){
@@ -196,10 +197,10 @@ JSClass("DocClass", DocTopicBasedComponent, {
         }
         let childContainer = "class";
         if (this.anonymous){
-            declaration += "type %s = {\n".sprintf(this.name);
+            declaration += "type %s = {\n".sprintf(name);
             childContainer = "type";
         }else{
-            declaration += "class %s".sprintf(this.name);
+            declaration += "class %s".sprintf(name);
             if (this.inherits){
                 declaration += " extends %s".sprintf(this.inherits);
             }
@@ -285,7 +286,7 @@ JSClass("DocClass", DocTopicBasedComponent, {
             if (container === null){
                 declaration += "declare ";
             }
-            declaration += "namespace %s{\n".sprintf(this.name);
+            declaration += "namespace %s{\n".sprintf(name);
             for (let child of namespaceChildren){
                 let childDeclaration = child.typescriptDeclaration("namespace");
                 if (childDeclaration !== null){
@@ -302,7 +303,7 @@ JSClass("DocClass", DocTopicBasedComponent, {
                 if (container === null){
                     declaration += "declare ";
                 }
-                declaration += "function %s(%s): %s;\n".sprintf(this.name, args, this.name);
+                declaration += "function %s(%s): %s;\n".sprintf(name, args, name);
             }
         }
         return declaration;
