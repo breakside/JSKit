@@ -484,6 +484,34 @@ JSClass("Project", JSObject, {
         return globals;
     },
 
+    findTypescriptDeclarations: async function(){
+        let urls = [];
+        let stack = [this.url];
+        while (stack.length > 0){
+            let url = stack.shift();
+            var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
+            for (let entry of entries){
+                let ext = entry.name.fileExtension;
+                let ext2 = "";
+                if (ext.length > 0){
+                    ext2 = entry.name.substr(0, entry.name.length - ext.length).fileExtension;
+                }
+                if (entry.itemType === JSFileManager.ItemType.directory){
+                    if (entry.name.startsWith(".")){
+                        // nothing
+                    }else if (entry.name === "node_modules"){
+                        // nothing
+                    }else{
+                        stack.push(entry.url);
+                    }
+                }else if (ext === ".ts" && ext2 === ".d"){
+                    urls.push(entry.url);
+                }
+            }
+        }
+        return urls;
+    },
+
     // -----------------------------------------------------------------------
     // MARK: - Resources
 
@@ -524,6 +552,7 @@ JSClass("Project", JSObject, {
 
     findResourceURLs: async function(){
         var blacklist = this.resourceBlacklist();
+        blacklist.extensions.add(".ts");
         blacklist.extensions.add(".js");
         blacklist.extensions.add(".jslink");
         blacklist.extensions.add(".jsframework");

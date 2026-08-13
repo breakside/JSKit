@@ -10,5 +10,6 @@
   },
   "engines": {
     "node": ">=10.10.0"
-  }
+  },
+  "types": "./types/JSKit.d.ts"
 }

@@ -338,6 +338,14 @@ JSClass("NodeBuilder", Builder, {
         pkg.license = "SEE LICENSE IN %s".sprintf(licenseName);
         pkg.files = ["*"];
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
+        if (pkg.types){
+            let typefiles = await this.project.findTypescriptDeclarations();
+            for (let dts of typefiles){
+                let relativePath = dts.encodedStringRelativeTo(this.project.url);
+                let outputURL = JSURL.initWithString(relativePath, this.bundleURL);
+                await this.fileManager.copyItemAtURL(dts, outputURL);
+            }
+        }
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
         packageJSON = JSON.stringify(pkg, null, 2);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());

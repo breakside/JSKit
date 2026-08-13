@@ -26,6 +26,16 @@ description: |
   ````
   $ npx jskit doc docs/Messages.doc.yaml ~/Desktop/MessagesDocs
   ````
+
+  TypeScript
+  ----
+  Additionally, because the docs contain strong typing information, the
+  `jskit doc`() command can generate TypeScript declaration files (`.d.ts`()
+  files).
+
+  ````
+  $ npx jskit doc --typescript docs/Messages.doc.yaml ~/Desktop/MessagesTypes
+  ````
 invocations:
   - <root-doc> <output-dir>
 topics:
@@ -57,3 +67,12 @@ topics:
 
           Also inside `output-dir` will be a `components-manifest.json` file 
           that maps html files to their expected URL path (sans-`.html`)
+  -
+    name: TypeScript
+    members:
+      -
+        name: --typescript
+        introduced: 2026.33.0
+        type: flag
+        summary: Generate TypeScript declaration files (`.d.ts`()) instead of
+          HTML.
