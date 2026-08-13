@@ -71,6 +71,7 @@ topics:
       - FirstApp
       - JavascriptSyntax
       - DevelopmentEnvironment
+      - UsingTypescript
   - name: Command Line Utility
     summary: The primary command line tools for creating, building, and
       testing `JSKit` based projects

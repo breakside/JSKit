@@ -141,7 +141,7 @@ JSClass("FrameworkBuilder", Builder, {
         var genericGlobals = new Set();
         var sources = {};
         for (let env in this.bundleEnvironments){
-            sources[env] = {frameworks: [], files: [], features: [], globals: []};
+            sources[env] = {frameworks: [], files: [], features: [], globals: [], typescript: []};
             let imports = this.importsByEnvironment[env];
             for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                 let framework = imports.frameworks[i];
@@ -162,7 +162,21 @@ JSClass("FrameworkBuilder", Builder, {
                     genericFiles.add(bundledPath);
                 }
                 if (env == 'generic' || !genericFiles.has(bundledPath)){
-                    sources[env].files.push(bundledPath);
+                    if (file.url.fileExtension === ".ts"){
+                        sources[env].typescript.push(bundledPath);
+                    }else{
+                        sources[env].files.push(bundledPath);
+                    }
+                    let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
+                    this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
+                    await this.fileManager.copyItemAtURL(file.url, bundledURL);
+                }
+            }
+            for (let i = 0, l = imports.modules.length; i < l; ++i){
+                let file = imports.modules[i];
+                let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+                if (!bundledPath.startsWith("..")){
+                    sources[env].typescript.push(bundledPath);
                     let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
                     this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
                     await this.fileManager.copyItemAtURL(file.url, bundledURL);
@@ -206,7 +220,7 @@ JSClass("FrameworkBuilder", Builder, {
         }
         var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
         for (let env in this.bundleEnvironments){
-            sources[env] = {frameworks: [], files: [], features: [], globals: []};
+            sources[env] = {frameworks: [], files: [], features: [], globals: [], typescript: []};
             let filename = this.bundleEnvironments[env];
             let compilation = JavascriptCompilation.initWithName(filename, this.sourcesURL, this.fileManager);
             var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
@@ -224,9 +238,13 @@ JSClass("FrameworkBuilder", Builder, {
                     genericFiles.add(bundledPath);
                 }
                 if (env == 'generic' || !genericFiles.has(bundledPath)){
-                    compilation.sources.push(bundledPath);
                     await this.fileManager.copyItemAtURL(file.url, bundledURL);
-                    await compilation.writeJavascriptAtURL(file.url);
+                    if (file.url.fileExtension === ".ts"){
+                        sources[env].typescript.push(bundledPath);
+                    }else{
+                        compilation.sources.push(bundledPath);
+                        await compilation.writeJavascriptAtURL(file.url);
+                    }
                 }
             }
             await compilation.finish();
@@ -238,6 +256,16 @@ JSClass("FrameworkBuilder", Builder, {
                 }
                 if (env == 'generic' || !genericFrameworks.has(framework)){
                     sources[env].frameworks.push(framework);
+                }
+            }
+            for (let i = 0, l = imports.modules.length; i < l; ++i){
+                let file = imports.modules[i];
+                let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+                if (!bundledPath.startsWith("..")){
+                    sources[env].typescript.push(bundledPath);
+                    let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
+                    this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
+                    await this.fileManager.copyItemAtURL(file.url, bundledURL);
                 }
             }
             for (let i = 0, l = imports.features.length; i < l; ++i){

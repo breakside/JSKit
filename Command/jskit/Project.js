@@ -75,25 +75,24 @@ JSClass("Project", JSObject, {
         var resourceImportPaths;
         if (this.info.JSBundleType == 'html'){
             if (!this.info.UIMainSpec && this.info.UIApplicationDelegate){
-                roots.push(this.info.UIApplicationDelegate + ".js");
+                let appDelegatePath = await this.pathForJavascriptOrTypescript(this.info.UIApplicationDelegate, this.includeDirectoryURLs);
+                roots.push(appDelegatePath);
             }
             await this.loadResources();
-            await this.loadIncludeDirectoryURLs();
             resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
             roots = roots.concat(resourceImportPaths);
         }else if (this.info.JSBundleType == 'node'){
             if (!this.info.SKMainSpec && this.info.SKApplicationDelegate){
-                roots.push(this.info.SKApplicationDelegate + ".js");
+                let appDelegatePath = await this.pathForJavascriptOrTypescript(this.info.SKApplicationDelegate, this.includeDirectoryURLs);
+                roots.push(appDelegatePath);
             }
             await this.loadResources();
-            await this.loadIncludeDirectoryURLs();
             resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
             roots = roots.concat(resourceImportPaths);
         }else if (this.info.JSBundleType == 'tests'){
             await this._recursivelyAddAnyJavascriptInDirectory(this.url, roots);
         }else if (this.info.JSBundleType == "api"){
             await this.loadResources();
-            await this.loadIncludeDirectoryURLs();
             resourceImportPaths = await this.resources.getImportPaths(this.includeDirectoryURLs);
             roots = roots.concat(resourceImportPaths);
         }
@@ -115,6 +114,8 @@ JSClass("Project", JSObject, {
 
     load: async function(){
         await this._loadInfo();
+        await this.loadIncludeDirectoryURLs();
+        this._entryPoint = await this._loadEntryPoint();
     },
 
     reload: async function(){
@@ -177,9 +178,9 @@ JSClass("Project", JSObject, {
     // -----------------------------------------------------------------------
     // MARK: - Entry Point
 
-    entryPoint: JSReadOnlyProperty(),
+    entryPoint: JSReadOnlyProperty("_entryPoint", null),
 
-    getEntryPoint: function(){
+    _loadEntryPoint: async function(){
         if (this.info.EntryPoint){
             var entryParts = this.info.EntryPoint.split(':');   
             return {
@@ -188,16 +189,22 @@ JSClass("Project", JSObject, {
             };
         }
         if (this.info.JSBundleType == 'framework'){
-            return {path: this.info.EntryPoint || this.name + '.js', fn: null};
+            let path = this.infoEntryPoint;
+            if (!path){
+                path = await this.pathForJavascriptOrTypescript(this.name, this.includeDirectoryURLs);
+            }
+            return {path: path, fn: null};
         }
         if (this.info.JSBundleType == 'tests'){
             return null;
         }
         if (this.info.JSBundleType == "api"){
-            return {path: this.info.APIResponder + '.js', fn: null};
+            let path = await this.pathForJavascriptOrTypescript(this.info.APIResponder, this.includeDirectoryURLs);
+            return {path: path, fn: null};
         }
+        let path = await this.pathForJavascriptOrTypescript("main", this.includeDirectoryURLs);
         return {
-            path: 'main.js',
+            path: path,
             fn: 'main'
         };
     },
@@ -265,6 +272,20 @@ JSClass("Project", JSObject, {
         return null;
     },
 
+    pathForJavascriptOrTypescript: async function(name, includeDirectoryURLs){
+        let jsPath = name + ".js";
+        let url = await this.urlForJavascriptPath(jsPath, includeDirectoryURLs);
+        if (url !== null){
+            return jsPath;
+        }
+        let tsPath = name + ".ts";
+        url = await this.urlForJavascriptPath(tsPath, includeDirectoryURLs);
+        if (url !== null){
+            return tsPath;
+        }
+        return jsPath;
+    },
+
     urlForFrameworkName: async function(name, includeDirectoryURLs){
         let directoryURL;
         let candidateURL;
@@ -303,15 +324,88 @@ JSClass("Project", JSObject, {
         return null;
     },
 
+    loadTSConfig: async function(){
+        let url = this.url.appendingPathComponent("tsconfig.json");
+        let exists = await this.fileManager.itemExistsAtURL(url);
+        if (exists){
+            let data = await this.fileManager.contentsAtURL(url);
+            this.tsconfig = JSON.parse(data.stringByDecodingUTF8());
+            this.tsconfig._url = url;
+        }else{
+            this.tsconfig = {};
+        }
+    },
+
+    tsconfig: null,
+
+    urlForModule: async function(path, sourceURL){
+        if (this.tsconfig === null){
+            await this.loadTSConfig();
+        }
+        let baseURL = sourceURL;
+        // TODO: 
+        // - consider more than the first lookup path
+        // - if more than one wildcard matches, use the longest match
+        // - if the config has a baseUrl, use it insted of this.tsconfig._url
+        if (this.tsconfig.compilerOptions && this.tsconfig.compilerOptions.paths){
+            for (let configPath in this.tsconfig.compilerOptions.paths){
+                if (configPath.endsWith("*")){
+                    let prefix = configPath.substr(0, configPath.length - 1);
+                    if (path.startsWith(prefix)){
+                        let replacement = this.tsconfig.compilerOptions.paths[configPath][0];
+                        replacement = replacement.substr(0, replacement.length - 1);
+                        path = replacement + path.substr(prefix.length);
+                        baseURL = this.tsconfig._url;
+                    }
+                }else{
+                    if (path === configPath){
+                        path = this.tsconfig.compilerOptions.paths[configPath][0];
+                        baseURL = this.tsconfig._url;
+                        break;
+                    }
+                }
+            }
+        }
+        let url = JSURL.initWithString(path, baseURL).standardized();
+        let exts = [];
+        if (url.fileExtension === ""){
+            if (sourceURL.fileExtension === ".ts"){
+                exts.push(".ts");
+                exts.push(".js");
+            }else{
+                exts.push(".js");
+            }
+        }
+        let exists = false;
+        if (exts.length > 0){
+            let url0 = url;
+            for (let ext of exts){
+                url = url0.appendingFileExtension(ext);
+                exists = await this.fileManager.itemExistsAtURL(url);
+                if (exists){
+                    break;
+                }
+            }
+        }else{
+            exists = await this.fileManager.itemExistsAtURL(url);
+        }
+        if (exists){
+            return url;
+        }
+        // console.warn("unable to find module %s at %s".sprintf(path, url.encodedString));
+        return null;
+    },
+
     findJavascriptImports: async function(env){
-        await this.loadIncludeDirectoryURLs();
         var includeDirectoryURLs = this.includeDirectoryURLs;
         var roots = await this.roots([env]);
         var result = {
             files: [],
             frameworks: [],
             features: [],
-            globals: []
+            globals: [],
+            modules: [],
+            esversion: null,
         };
         var visited = {
             paths: new Set(),
@@ -319,10 +413,20 @@ JSClass("Project", JSObject, {
             features: new Set()
         };
 
-        var visit = async function(path, sourceURL, sourceLine){
+        var visit = async function(path, sourceURL, sourceLine, isModule){
+            let url = null;
+            if (isModule){
+                url = await this.urlForModule(path, sourceURL);
+                if (url === null){
+                    return;
+                }
+                path = url.path;
+            }
             if (!visited.paths.has(path)){
                 visited.paths.add(path);
-                let url = await this.urlForJavascriptPath(path, includeDirectoryURLs);
+                if (!isModule){
+                    url = await this.urlForJavascriptPath(path, includeDirectoryURLs);
+                }
                 if (url === null){
                     if (sourceURL){
                         throw new Error('Cannot find "%s", included from %s:%d'.sprintf(path, sourceURL, sourceLine));
@@ -337,7 +441,16 @@ JSClass("Project", JSObject, {
                     import_ = imports.paths[i];
                     await visit.call(this, import_.path, import_.sourceURL, import_.sourceLine);
                 }
-                result.files.push({url: url});
+                let file = {url: url};
+                if (isModule){
+                    result.modules.push(file);
+                }else{
+                    result.files.push(file);
+                }
+                for (let i = 0, l = imports.modules.length; i < l; ++i){
+                    import_ = imports.modules[i];
+                    await visit.call(this, import_.path, import_.sourceURL, import_.sourceLine, true);
+                }
 
                 for (let i = 0, l = imports.frameworks.length; i < l; ++i){
                     import_ = imports.frameworks[i];
@@ -360,6 +473,11 @@ JSClass("Project", JSObject, {
                         result.features.push(feature);
                     }
                 }
+                if (imports.esversion !== null){
+                    if (result.esversion === null || imports.esversion > result.esversion){
+                        result.esversion = imports.esversion;
+                    }
+                }
                 let globals = js.globals();
                 for (let i = 0, l = globals.length; i < l; ++i){
                     let name = globals[i];
@@ -379,16 +497,16 @@ JSClass("Project", JSObject, {
         var entries = await this.fileManager.contentsOfDirectoryAtURL(url);
         for (let i = 0, l = entries.length; i < l; ++i){
             let entry = entries[i];
+            let ext = entry.name.fileExtension;
             if (entry.itemType == JSFileManager.ItemType.directory){
                 await this._recursivelyAddAnyJavascriptInDirectory(entry.url, paths);
-            }else if (entry.name.fileExtension == ".js"){
+            }else if (ext === ".js" || ext === ".ts"){
                 paths.push(entry.name);
             }
         }
     },
 
     globals: async function(roots, visitFrameworks, seenFrameworks, envs){
-        await this.loadIncludeDirectoryURLs();
         var includeDirectoryURLs = this.includeDirectoryURLs;
         var seenFiles = new Set();
         var urlStack = [];
@@ -556,6 +674,7 @@ JSClass("Project", JSObject, {
         blacklist.extensions.add(".js");
         blacklist.extensions.add(".jslink");
         blacklist.extensions.add(".jsframework");
+        blacklist.names.add("tsconfig.json");
         var stack = [this.url];
         var urls = [];
         while (stack.length > 0){

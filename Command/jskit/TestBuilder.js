@@ -143,6 +143,7 @@ JSClass("TestBuilder", Builder, {
             return;
         }
         let directory = framework.url.lastPathComponent;
+        let frameworkURL = this.frameworksURL.appendingPathComponents([directory, "JS"], true);
         if (environments.generic && environments.generic.files){
             let files = environments.generic.files;
             for (let i = 0, l = files.length; i < l; ++i){
@@ -150,6 +151,7 @@ JSClass("TestBuilder", Builder, {
                 this.nodeExecutableRequires.push(path);
                 this.htmlScripts.push(path);
             }
+            this.includeFrameworkTypescript(framework.name, frameworkURL, environments.generic.typescript);
         }
         if (environments.node && environments.node.files){
             let files = environments.node.files;
@@ -157,6 +159,7 @@ JSClass("TestBuilder", Builder, {
                 let path = "Frameworks/" + directory + "/JS/" + files[i];
                 this.nodeExecutableRequires.push(path);
             }
+            this.includeFrameworkTypescript(framework.name, frameworkURL, environments.node.typescript);
         }
         if (environments.html && environments.html.files){
             let files = environments.html.files;
@@ -164,6 +167,7 @@ JSClass("TestBuilder", Builder, {
                 let path = "Frameworks/" + directory + "/JS/" + files[i];
                 this.htmlScripts.push(path);
             }
+            this.includeFrameworkTypescript(framework.name, frameworkURL, environments.html.typescript);
         }
     },
 
@@ -247,11 +251,32 @@ JSClass("TestBuilder", Builder, {
     // MARK: - Javscript Code from Project
 
     bundleJavascript: async function(){
+        let tsPaths = [];
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
             let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
             let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            if (file.url.fileExtension === ".ts"){
+                tsPaths.push(bundledPath);
+            }else{
+                this.nodeExecutableRequires.push('JS/' + bundledPath);
+                this.htmlScripts.push('JS/' + bundledPath);
+            }
+        }
+        for (let i = 0, l = this.imports.modules.length; i < l; ++i){
+            let file = this.imports.modules[i];
+            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+            if (!bundledPath.startsWith("..")){
+                let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
+                this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
+                await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            }
+        }
+        if (tsPaths.length > 0){
+            this.printer.setStatus("Compiling typescript...");
+            let jsURL = await this.compileTypescript(tsPaths, this.sourcesURL, this.sourcesURL, this.imports.esversion);
+            let bundledPath = jsURL.encodedStringRelativeTo(this.sourcesURL);
             this.nodeExecutableRequires.push('JS/' + bundledPath);
             this.htmlScripts.push('JS/' + bundledPath);
         }

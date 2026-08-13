@@ -57,6 +57,12 @@ JSClass("Resources", JSObject, {
                     let url = await urlForPath(path);
                     if (url !== null){
                         paths.add(path);
+                    }else{
+                        path = obj['class'] + '.ts';
+                        url = await urlForPath(path);
+                        if (url !== null){
+                            paths.add(path);
+                        }
                     }
                 }
                 if ('routes' in obj){
@@ -67,6 +73,12 @@ JSClass("Resources", JSObject, {
                             let url = await urlForPath(jspath);
                             if (url !== null){
                                 paths.add(jspath);
+                            }else{
+                                jspath = responder + '.ts';
+                                url = await urlForPath(jspath);
+                                if (url !== null){
+                                    paths.add(jspath);
+                                }
                             }
                         }
                     }
@@ -86,7 +98,7 @@ JSClass("Resources", JSObject, {
                             let entries = await fileManager.contentsOfDirectoryAtURL(directoryURL);
                             for (let j = 0, k = entries.length; j < k; ++j){
                                 let entry = entries[j];
-                                if (entry.name.fileExtension == '.js'){
+                                if (entry.name.fileExtension === '.js' || entry.name.fileExtension === '.ts'){
                                     paths.add(directoryPath + entry.name);
                                 }
                             }

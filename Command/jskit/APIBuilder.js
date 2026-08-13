@@ -155,6 +155,8 @@ JSClass("APIBuilder", Builder, {
             let path = "Frameworks/" + directory + "/JS/" + sources.files[i];
             this.executableRequires.push(path);
         }
+        let frameworkURL = this.frameworksURL.appendingPathComponents([directory, "JS"], true);
+        this.includeFrameworkTypescript(framework.name, frameworkURL, sources.typescript);
     },
 
     // ----------------------------------------------------------------------
@@ -217,12 +219,23 @@ JSClass("APIBuilder", Builder, {
     // MARK: - Javscript Code from Project
 
     bundleJavascript: async function(){
+        let tsPaths = [];
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
             let projectPath = file.url.encodedStringRelativeTo(this.project.url);
             let bundledURL = JSURL.initWithString(projectPath, this.apiURL);
             let bundledPath = bundledURL.encodedStringRelativeTo(this.bundleURL);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            if (file.url.fileExtension === ".ts"){
+                tsPaths.push(projectPath);
+            }else{
+                this.executableRequires.push(bundledPath);
+            }
+        }
+        if (tsPaths.length > 0){
+            this.printer.setStatus("Compiling typescript...");
+            let jsURL = await this.compileTypescript(tsPaths, this.apiURL, this.apiURL, this.imports.esversion);
+            let bundledPath = jsURL.encodedStringRelativeTo(this.bundleURL);
             this.executableRequires.push(bundledPath);
         }
     },

@@ -73,3 +73,25 @@ description: |
   ````
   return !!('key' in KeyboardEvent.prototype)
   ````
+
+  Minimum ECMAScript Version
+  ----
+  The `#esversion` command can be used as a shorthand for feature requirements.
+
+  For example,
+
+  ````
+  // #esversion 11
+  ````
+
+  indicates that your app requires ECMAScript version 11 (ES2020), which was
+  the first to support null coalescing.  JSKit will automatically add relevant
+  preflight checks that align with the version.
+
+  This command only needs to be specified once in your code.  Your Application
+  Delegate is a good place.  If multiple versions are specified in multiple
+  files, the highest version wins.
+
+  If you're [using TypeScript](UsingTypescript), the `#esversion` command tells
+  the TypeScript transpiler which version to target when converting TypeScript
+  feature into JavaScript.
