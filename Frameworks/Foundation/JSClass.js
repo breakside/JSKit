@@ -117,6 +117,8 @@ JSClass.prototype = {
             }
         }
         JSClass._registry[this.className] = this;
+        var superclass = Object.getPrototypeOf(this);
+        superclass.initializeSubclass(this);
     },
 
     definePropertiesFromExtensions: function(extensions){
@@ -191,6 +193,9 @@ JSClass.prototype = {
                 return result;
             }
         });
+    },
+
+    initializeSubclass: function(subclass){
     },
 
     // -----------------------------------------------------------------------------

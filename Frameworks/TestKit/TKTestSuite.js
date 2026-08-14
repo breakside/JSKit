@@ -56,13 +56,11 @@ JSClass("TKTestSuite", JSObject, {
 
 TKTestSuite.RegisteredTestSuites = [];
 
-TKTestSuite.$extend = function(extensions, name){
-    var subclass = JSClass.prototype.$extend.call(this, extensions, name);
-    if (name.endsWith("Tests")){
+TKTestSuite.initializeSubclass = function(subclass){
+    if (subclass.className.endsWith("Tests")){
         this.RegisteredTestSuites.push(subclass);
     }
     this._FindTests(subclass);
-    return subclass;
 };
 
 TKTestSuite._FindTests = function(subclass){

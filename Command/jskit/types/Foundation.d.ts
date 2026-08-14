@@ -7,6 +7,7 @@ interface JSClass{
   className: string;
   $super: object;
   isSubclassOfClass(referenceClass: JSClass): boolean;
+  initializeSubclass(subclass: JSClass): void;
   $extend(extensions: object, className: string): void;
 }
 interface JSClassConstructor{
