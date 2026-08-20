@@ -11,6 +11,7 @@ topics:
       -
         name: initWithFormat
         kind: init
+        nullable: true
         summary: Create a bitmap decoder for the given format
         arguments:
           -

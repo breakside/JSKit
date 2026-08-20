@@ -30,7 +30,7 @@ JSClass("QRCode", JSObject, {
     errorCorrectionLevel: QRErrorCorrection.Level.M,
 
     initWithURL: function(url){
-        this.initWithString(url.encodedString);
+        return this.initWithString(url.encodedString);
     },
 
     initWithString: function(string, encoding){

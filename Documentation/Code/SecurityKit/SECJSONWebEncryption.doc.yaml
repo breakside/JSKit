@@ -8,10 +8,12 @@ topics:
     members:
       - name: initWithString
         kind: init
+        nullable: true
         summary: Create a JSON Web Encryption object for decryption from a compact serialized string
         arguments:
           - name: string
             type: String
+            nullable: true
             summary: The string representing a JSON web encryption
         description: |
           JSON Web Encryption uses base64 (URL variant) to encode 5 chunks of data,

@@ -2,6 +2,8 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: framework
 summary: Generate QR code images
 codeURL: Frameworks/QRKit/
+dependencies:
+  - Foundation
 introduced: 2020.29.0
 description: |
   `QRKit` provides methods for generating and drawing QR codes according to
@@ -18,3 +20,4 @@ topics:
     name: Advanced Drawing
     members:
       - QRCodeDrawing
+      - JSContext+QRKit

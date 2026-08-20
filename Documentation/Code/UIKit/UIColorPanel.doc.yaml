@@ -18,12 +18,14 @@ topics:
         summary: The delegate that receives calls from the panel when its
           color changes or it closes
       - name: UIColorPanelDelegate
+        namespace: UIKit
         kind: protocol
         summary: The color panel delegate protocol
         topics:
           - name: Color Changes
             members:
               - name: colorPanelDidChangeColor
+                optional: true
                 kind: method
                 summary: Called continuously as the user adjusts the color controls
                 arguments:
@@ -36,6 +38,7 @@ topics:
           - name: Panel Lifetime
             members:
               - name: colorPanelDidClose
+                optional: true
                 kind: method
                 summary: Called when the panel closes
                 arguments:

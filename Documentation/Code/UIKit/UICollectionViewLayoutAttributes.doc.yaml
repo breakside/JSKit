@@ -1,0 +1,69 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: JSObject
+summary: A collection of layout attributes used between `UICollectionView`
+  and `UICollectionViewLayout`.
+description: |
+  Layout attributes are typically created by a subclass of
+  `UICollectionViewLayout`, during calls to `layoutAttributesForElementsInRect()`.
+topics:
+  - name: Creating Attributes
+    members:
+      - name: initCellAtIndexPath
+        kind: init
+        summary: Create cell-like attributes for the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell that will adopt these attributes
+          - name: frame
+            type: JSRect
+            summary: The rect in which the cell will be shown
+      - name: initSupplimentaryAtIndexPath
+        kind: init
+        summary: Create supplimentary view attributes for the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the supplimentary view that will adopt
+              these attributes
+          - name: kind
+            type: String
+            summary: The supplimentary view kind (possible values defined by
+              each layout subclass)
+          - name: frame
+            type: JSRect
+            summary: The rect in which the view will be shown
+  - name: Identification
+    members:
+      - name: indexPath
+        type: JSIndexPath
+        summary: The index path of the item that will use these attributes
+      - name: kind
+        type: String
+        nullable: true
+        summary: The kind of supplimentary view these attributed apply to
+        description: |
+          Each layout subclass defines which supplimentary views it supports,
+          and should provide unique identifiers for them.
+  - name: Layout
+    members:
+      - name: frame
+        type: JSRect
+        summary:  The rect in which the item will be shown
+      - name: transform
+        type: JSAffineTransform
+        nullable: true
+        summary: Any transform that should be applied to the item's view
+      - name: zIndex
+        type: Number
+        summary: The z-index that should be applied to the item's view
+  - name: Accessibility
+    members:
+      - name: rowIndex
+        type: Number
+        summary: The accessibility row index for the item
+      - name: columnIndex
+        type: Number
+        summary: The accessibility column index for the item

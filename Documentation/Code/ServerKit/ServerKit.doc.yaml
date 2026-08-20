@@ -4,6 +4,8 @@ kind: framework
 environment: node
 summary: A platform for HTTP based server applications
 codeURL: Frameworks/ServerKit/
+dependencies:
+  - Foundation
 description: |
   `ServerKit` is designed to provide a `Foundation`-based server platform
   that can be used to build organized and performant APIs with the ability to
@@ -68,6 +70,7 @@ topics:
                 value: '"Last-Modified"'
                 summary: The header that specifies the last modified date for
                   caching
+      - SKUserAgent
       - SKHTTPError
   -
     name: HTTP Web Sockets

@@ -22,6 +22,7 @@ topics:
     members:
       -
         name: init
+        kind: init
         summary: Create an empty scene
         description: |
           After creating a scene, you'll need to add windows via `addWindow()`.

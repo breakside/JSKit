@@ -1,0 +1,63 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2023.9.1
+summary: A special kind of map for XML attributes
+description: |
+  Can look up attributes by namespace and name
+topics:
+  - name: Accessing Attributes by Name
+    members:
+      - name: contains
+        kind: method
+        type: Boolean
+        summary: Indicates if the given attribute is present, even if it has no value
+        arguments:
+          - name: name
+            type: String
+            summary: The un-prefixed attribute name
+          - name: namespace
+            type: String
+            nullable: true
+            default: "null"
+            summary: The namespace uri for the attribute
+      - name: get
+        kind: method
+        type: String
+        nullable: true
+        summary: Get the value for the given attribute
+        arguments:
+          - name: name
+            type: String
+            summary: The un-prefixed attribute name
+          - name: namespace
+            type: String
+            nullable: true
+            default: "null"
+            summary: The namespace uri for the attribute
+  - name: Listing All Attributes
+    members:
+      - name: all
+        kind: method
+        type: Attribute[]
+        summary: Return a list of all attributes
+      - name: Attribute
+        kind: class
+        anonymous: true
+        topics:
+          - name: Properties
+            members:
+              - name: name
+                type: String
+                summary: The attribute's name
+              - name: prefix
+                type: String
+                summary: The attribute's name's prefix, if any
+                nullable: true
+              - name: namespace
+                type: String
+                summary: The attribute's full namespace identifier (url), if any
+                nullable: true
+              - name: value
+                type: String
+                summary: The attribute's value, if any
+                nullable: true

@@ -250,7 +250,7 @@ topics:
           This initialization method is called automatically as part of the
           `JSClass()` function call.
 
-          However, if you're using class syntax, you'll need to call `initialize()`
+          However, if you're using `class`() syntax, you'll need to call `initialize()`
           yourself.
 
           ````
@@ -417,16 +417,21 @@ topics:
     name: Extending
     members:
       -
-        name: $extend
+        name: initializeSubclass
         kind: method
-        summary: Create a new class by extending this class
+        introduced: 2026.33.0
+        summary: Called when a new subclass is initialized
+        arguments:
+          - name: subclass
+            type: JSClass
+            summary: The subclass being initialized
         description: |
-          Not typically called directly, as `JSClass()` is the preferred way
-          of creating new classes.
-
           Can be overridden by subclasses interested in doing some kind of
           automatic registration of their own subclasses, in support of a
           factory pattern.
+
+          The default implementation does nothing, so there is no need to
+          call it when implenting your own.
 
           Here's an example of an image reader that can factory out specific
           subclasses depending on file etension:
@@ -446,10 +451,8 @@ topics:
 
           ImageReader.subclassesByExt = {};
 
-          ImageReader.$extend = function(extensions, className){
-            var subclass = JSObject.$extend.call(this, extensions, className);
+          ImageReader.initializeSubclass = function(subclass){
             ImageReader.subclassesByExt[subclass.prototype.ext] = subclass;
-            return subclass;
           };
 
           JSClass("PNGReader", ImageReader, {
@@ -473,6 +476,21 @@ topics:
           // obj will be a PNGReader if file.ext == 'png'
           //             a JPGReader if file.ext == 'jpg'
           ````
+        note: This works for both `JSClass()`-based and `class`()-based
+          declarations, provided the `class`()-based declaration is follwed
+          by a call to `initialize()`.
+      -
+        name: $extend
+        kind: method
+        summary: Create a new class by extending this class
+        description: |
+          Not typically called directly, as `JSClass()` is the preferred way
+          of creating new classes.
+
+          Originally used by classes interested in doing some kind of automatic
+          registration of their own subclasses, but support for this has been
+          moved to `initializeSubclass()`, which is compatible with `class`()
+          style syntax.
         arguments:
           -
             name: extensions

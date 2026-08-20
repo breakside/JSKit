@@ -3,6 +3,8 @@ kind: class
 inherits: JSObject
 introduced: 2020.1.0
 summary: Parse and verify JSON Web Tokens
+dependencies:
+  - SecurityKit
 topics:
   -
     name: Create a Token
@@ -10,11 +12,13 @@ topics:
       -
         name: initWithString
         kind: init
+        nullable: true
         summary: Create a JSON Web Token to read from a string
         arguments:
           - 
             name: string
             type: String
+            nullable: true
             summary: The string representing a JSON web token
         description: |
           JSON Web Token uses base64 (URL variant) to encode 3 chunks of data,

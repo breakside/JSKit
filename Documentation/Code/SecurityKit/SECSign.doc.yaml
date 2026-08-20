@@ -314,6 +314,7 @@ topics:
                 summary: The `P-521`() curve, also known as `secp521r1`()
       -
         introduced: 2020.28.0
+        namespace: SecurityKit
         name: JWKKeyPair
         kind: class
         anonymous: true

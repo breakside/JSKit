@@ -16,7 +16,7 @@
 // #import "DocTopicBasedComponent.js"
 'use strict';
 
- JSClass("DocClass", DocTopicBasedComponent, {
+JSClass("DocClass", DocTopicBasedComponent, {
 
     kind: 'class',
     defaultChildKind: 'property',
@@ -166,6 +166,313 @@
             }
         }
         return component;
+    },
+
+    typescriptDeclaration: function(container = null){
+        if (this.isTypescript){
+            return null;
+        }
+        if (this.name === "String"){
+            return this.typescriptDeclarationForBuiltin("String", "StringConstructor");
+        }
+        if (this.name === "JSData"){
+            return this.typescriptDeclarationForBuiltin("Uint8Array", "Uint8ArrayConstructor");
+        }
+        if (this.name === "JSClass"){
+            return this.typescriptDeclarationForJSClass();
+        }
+        if (this.name === "JSObject"){
+            return this.typescriptDeclarationForJSObject();
+        }
+        let declaration = "";
+        let name = this.name;
+        if (name === "UIEvent"){
+            name = "UIEventObject";
+        }
+        if (name === "UIPopupWindow"){
+            declaration += "// @ts-ignore\n";
+        }
+        if (container === null){
+            declaration += "declare ";
+        }
+        let childContainer = "class";
+        if (this.anonymous){
+            declaration += "type %s = {\n".sprintf(name);
+            childContainer = "type";
+        }else{
+            declaration += "class %s".sprintf(name);
+            if (this.inherits){
+                declaration += " extends %s".sprintf(this.inherits);
+            }
+            if (this.implements !== null && this.implements.length > 0){
+                declaration += " implements %s".sprintf(this.implements.join(", "));
+            }
+            declaration += "{\n";
+        }
+        let propertyValueTypesByName = {};
+        let properties = [];
+        for (let child of this.children){
+            if (child.kind === "property"){
+                if (!propertyValueTypesByName[child.name]){
+                    propertyValueTypesByName[child.name] = child.valueType;
+                    properties.push(child);
+                }else{
+                    if (child.valueType != propertyValueTypesByName[child.name]){
+                        propertyValueTypesByName[child.name] += " | " + child.valueType;
+                    }
+                }
+            }
+        }
+        let namespaceChildren = [];
+        let constructors = [];
+        let seenPropertyNames = new Set();
+        for (let child of this.children){
+            if (child.namespace === null){
+                if (child.kind === "class" || child.kind === "dictionary" || child.kind === "protocol"){
+                    namespaceChildren.push(child);
+                    continue;
+                }
+                if (child.kind === "enum"){
+                    namespaceChildren.push(child);
+                    continue;
+                }
+                let childDeclaration = null;
+                if (child.kind === "property"){
+                    if (!seenPropertyNames.has(child.name)){
+                        seenPropertyNames.add(child.name);
+                        childDeclaration = child.typescriptDeclaration(childContainer, propertyValueTypesByName[child.name]);
+                    }
+                }else{
+                    childDeclaration = child.typescriptDeclaration(childContainer);
+                }
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+                if (child.kind === "constructor"){
+                    constructors.push(child);
+                }
+            }
+        }
+        if (this.implements !== null){
+            let childNames = new Set(this.children.map(c => c.name));
+            for (let name of this.implements){
+                let component = this.componentForDottedName(name);
+                if (component !== null && component.kind === "protocol"){
+                    for (let child of component.children){
+                        if (child.kind === "enum"){
+                            continue;
+                        }
+                        if (child.kind === "class"){
+                            continue;
+                        }
+                        if (!childNames.has(child.name)){
+                            let childDeclaration = child.typescriptDeclaration(childContainer);
+                            if (childDeclaration !== null){
+                                let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                                declaration += "%s\n".sprintf(indented);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        declaration += "}";
+        if (this.anonymous){
+            declaration += ";";
+        }
+        if (namespaceChildren.length > 0){
+            declaration += "\n";
+            if (container === null){
+                declaration += "declare ";
+            }
+            declaration += "namespace %s{\n".sprintf(name);
+            for (let child of namespaceChildren){
+                let childDeclaration = child.typescriptDeclaration("namespace");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        if (constructors.length > 0){
+            declaration += "\n";
+            for (let child of constructors){
+                let args = child.typescriptAgumentsDeclaration();
+                if (container === null){
+                    declaration += "declare ";
+                }
+                declaration += "function %s(%s): %s;\n".sprintf(name, args, name);
+            }
+        }
+        return declaration;
+    },
+
+    typescriptDeclarationForBuiltin: function(name, constructorName){
+        let declaration = "interface %s{\n".sprintf(name);
+        let interfaceChildren = [];
+        let namespaceChildren = [];
+        let aliasNamespaceChildren = [];
+        let enumChildren = [];
+        let constructors = [];
+        for (let child of this.children){
+            if (child.kind === "init" || (child.kind === "method" && child.isStatic)){
+                if (this.name !== name){
+                    aliasNamespaceChildren.push(child);
+                }else{
+                    interfaceChildren.push(child);
+                }
+            }else if (child.kind === "enum"){
+                enumChildren.push(child);
+            }else if (child.kind === "class" || child.kind === "dictionary" || child.kind === "protocol" || (child.kind === "property" && child.isStatic)){
+                namespaceChildren.push(child);
+            }else{
+                let childDeclaration = child.typescriptDeclaration("interface");
+                if (childDeclaration !== null){
+                    if (this.name === "JSData" && child.name === "length"){
+                        continue;
+                    }
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+        }
+        declaration += "}";
+        if (enumChildren.length > 0){
+            for (let child of enumChildren){
+                let childDeclaration = child.typescriptDeclaration(null, "%s%s".sprintf(name, child.name));
+                if (childDeclaration !== null){
+                    declaration += "\n" + childDeclaration;
+                }
+            }
+            declaration += "\n";
+            declaration += "declare namespace %s{\n".sprintf(name);
+            for (let child of enumChildren){
+                declaration += "  type %s = %s%s;\n".sprintf(child.name, name, child.name);
+            }
+            declaration += "}";
+        }
+        if (interfaceChildren.length > 0){
+            declaration += "\n";
+            declaration += "interface %s{\n".sprintf(constructorName);
+            for (let child of interfaceChildren){
+                let childDeclaration = child.typescriptDeclaration("interface");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            for (let child of enumChildren){
+                declaration += "  readonly %s: typeof %s%s;\n".sprintf(child.name, name, child.name);
+            }
+            declaration += "}";
+        }
+        if (namespaceChildren.length > 0){
+            declaration += "\n";
+            declaration += "declare namespace %s{\n".sprintf(constructorName);
+            for (let child of namespaceChildren){
+                let childDeclaration = child.typescriptDeclaration("namespace");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        if (this.name !== name){
+            declaration += "\ntype %s = %s;".sprintf(this.name, name);
+        }
+        if (aliasNamespaceChildren.length > 0){
+            declaration += "\ndeclare namespace %s{\n".sprintf(this.name);
+            for (let child of aliasNamespaceChildren){
+                let childDeclaration = child.typescriptDeclaration("namespace");
+                if (childDeclaration !== null){
+                    let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                    declaration += "%s\n".sprintf(indented);
+                }
+            }
+            declaration += "}";
+        }
+        return declaration;
+    },
+
+    typescriptDeclarationForJSClass: function(){
+        let constructorName = "%sConstructor".sprintf(this.name);
+        let declaration = "interface %s{\n".sprintf(this.name);
+        let constructors = [];
+        let statics = [];
+        for (let child of this.children){
+            if (child.namespace === null){
+                if (child.kind === "constructor"){
+                    constructors.push(child);
+                }else if ((child.kind === "property" || child.kind === "method") && child.isStatic){
+                    statics.push(child);
+                }else{
+                    let childDeclaration = child.typescriptDeclaration("interface");
+                    if (childDeclaration !== null){
+                        let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                        declaration += "%s\n".sprintf(indented);
+                    }
+                }
+            }
+        }
+        declaration += "}\n";
+        declaration += "interface %s{\n".sprintf(constructorName);
+        for (let child of constructors){
+            declaration += "  (%s): %s;\n".sprintf(child.typescriptAgumentsDeclaration(), this.name);
+            declaration += "  (cls: %s): void;\n".sprintf(this.name);
+            declaration += "  new (%s): %s;\n".sprintf(child.typescriptAgumentsDeclaration(), this.name);
+        }
+        declaration += "  readonly prototype: %s;\n".sprintf(this.name);
+        for (let child of statics){
+            let childDeclaration = child.typescriptDeclaration("interface");
+            if (childDeclaration !== null){
+                let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                declaration += "%s\n".sprintf(indented);
+            }
+        }
+        declaration += "}\n";
+        declaration += "declare const %s: %s;".sprintf(this.name, constructorName);
+        return declaration;
+    },
+
+    typescriptDeclarationForJSObject: function(){
+        let declaration = "interface %s{\n".sprintf(this.name);
+        let statics = [];
+        for (let child of this.children){
+            if (child.namespace === null){
+                if (child.kind === "init"){
+                    statics.push(child);
+                    let childDeclaration = child.typescriptDeclaration("class", true);
+                    if (childDeclaration !== null){
+                        let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                        declaration += "%s\n".sprintf(indented);
+                    }
+                }else if ((child.kind === "property" || child.kind === "method") && child.isStatic){
+                    statics.push(child);
+                }else{
+                    let childDeclaration = child.typescriptDeclaration("interface");
+                    if (childDeclaration !== null){
+                        let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                        declaration += "%s\n".sprintf(indented);
+                    }
+                }
+            }
+        }
+        declaration += "}\n";
+        declaration += "declare const %s: JSClass & {\n".sprintf(this.name);
+        declaration += "  new (): JSObject;\n";
+        declaration += "  readonly prototype: JSObject;\n";
+        for (let child of statics){
+            let childDeclaration = child.typescriptDeclaration("type");
+            if (childDeclaration !== null){
+                let indented = childDeclaration.split("\n").map(l => "  " + l).join("\n");
+                declaration += "%s\n".sprintf(indented);
+            }
+        }
+        declaration += "}\n";
+        return declaration;
     }
 
  });

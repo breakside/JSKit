@@ -1,0 +1,33 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: UIView
+summary: A base class for reusable views within a collection
+description: |
+  Supplimentary views within a collection provide things like headers,
+  footers, backgrounds, or anything else you need.
+
+  The collection's `collectionViewLayout` defines which supplimentary views
+  are allowed for the collection.  See `UICollectionViewGridLayout` for
+  examples.
+topics:
+  - name: Creating a Resuable View
+    members:
+      - name: initWithReuseIdentifier
+        kind: init
+        summary: Called by `UICollectionView` when it creates reusable views
+        arguments:
+          - name: identifier
+            type: String
+            summary: A list-unique identifier for this kind of cell
+        see:
+          - UICollectionView.registerCellClassForReuseIdentifier()
+          - UICollectionView.registerViewClassForReuseIdentifier()
+  - name: Content
+    members:
+      - name: contentView
+        type: UIView
+        summary: A container view for all of the view's content
+        description: |
+          Any custom subviews should be added to this content view rather than
+          to the cell directly.

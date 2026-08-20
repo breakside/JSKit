@@ -102,6 +102,7 @@ topics:
     members:
       -
         name: UILayerDelegate
+        namespace: UIKit
         kind: protocol
         summary: A protocol for layer delegates to implement
         topics:
@@ -110,6 +111,7 @@ topics:
             members:
               -
                 name: layerDidChangeSize
+                optional: true
                 summary: Called when the layer's bounds change size
                 arguments:
                   -
@@ -124,6 +126,7 @@ topics:
             members:
               -
                 name: layoutSublayersOfLayer
+                optional: true
                 summary: Called if present as an override to the layer's own
                   \`layoutSublayers` method
                 arguments:
@@ -136,6 +139,7 @@ topics:
             members:
               -
                 name: drawLayerInContext
+                optional: true
                 summary: Called if present as an override to the layer's own
                   \`drawInContext` method
                 arguments:
@@ -848,49 +852,53 @@ topics:
                 type: JSRect
               -
                 name: position
-                type: JSRect
+                type: JSPoint
               -
                 name: anchorPoint
-                type: JSRect
+                type: JSPoint
               -
                 name: transform
-                type: JSRect
+                type: JSAffineTransform
               -
                 name: hidden
-                type: JSRect
+                type: boolean
               -
                 name: alpha
-                type: JSRect
+                type: Number
               -
                 name: backgroundColor
-                type: JSRect
+                type: JSColor
+                nullable: true
               -
                 name: backgroundGradient
-                type: JSRect
+                type: JSGradient
+                nullable: true
               -
                 name: borderWidth
-                type: JSRect
+                type: Number
               -
                 name: borderColor
-                type: JSRect
+                type: JSColor
+                nullable: true
               -
                 name: maskedBorders
-                type: JSRect
+                type: UILayer.Sides
               -
                 name: cornerRadius
-                type: JSRect
+                type: Number
               -
                 name: maskedCorners
-                type: JSRect
+                type: UILayer.Corners
               -
                 name: shadowColor
-                type: JSRect
+                type: JSColor
+                nullable: true
               -
                 name: shadowOffset
-                type: JSRect
+                type: JSPoint
               -
                 name: shadowRadius
-                type: JSRect
+                type: Number
   -
     name: Layout
     members:

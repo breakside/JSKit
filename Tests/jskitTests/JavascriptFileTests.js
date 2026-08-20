@@ -300,6 +300,126 @@ JSClass("JavascriptFileTests", TKTestSuite, {
         TKAssertExactEquals(scan.columnNumber, 0);
         scan = file.next();
         TKAssertNull(scan);
+
+        js = [
+            'import Test from "./Testing"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import Test from "./Testing"');
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            'import Test from "./Testing";',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import Test from "./Testing";');
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            "import Test from './Testing'",
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, "import Test from './Testing'");
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            'import "./Testing"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import "./Testing"');
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            'import {"something" as other} from "./Testing"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import {"something" as other} from "./Testing"');
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            'import * as Test from "./Testing"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import * as Test from "./Testing"');
+        TKAssertExactEquals(scan.esimport, "./Testing");
+
+        js = [
+            'import * as Test from "../Testing/file.js"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'import * as Test from "../Testing/file.js"');
+        TKAssertExactEquals(scan.esimport, "../Testing/file.js");
+
+        js = [
+            'export {Test} from "Testing"',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'export {Test} from "Testing"');
+        TKAssertExactEquals(scan.esimport, "Testing");
+
+        js = [
+            'export {Test} from "Testing";',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'export {Test} from "Testing";');
+        TKAssertExactEquals(scan.esimport, "Testing");
+
+        js = [
+            "export {Test} from 'Testing';",
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, "export {Test} from 'Testing';");
+        TKAssertExactEquals(scan.esimport, "Testing");
+
+        js = [
+            'export {Test as "test"};',
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, 'export {Test as "test"};');
+        TKAssertExactEquals(scan.esimport, undefined);
+
+        js = [
+            "export default class Test {",
+            ""
+        ].join('\n').utf8();
+        file = JavascriptFile.initWithData(js);
+        scan = file.next();
+        TKAssertNotNull(scan);
+        TKAssertEquals(scan.code, "export default class Test {");
+        TKAssertExactEquals(scan.esimport, undefined);
     },
 
     testStrings: function(){

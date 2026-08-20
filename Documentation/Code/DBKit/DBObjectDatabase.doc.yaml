@@ -171,6 +171,7 @@ topics:
             summary: Resovles when the connection succeeds
         summary: Open a connection to the database using a promise
       - name: close
+        kind: method
         introduced: 2021.14.1
         suffix: promise
         type: Promise
@@ -540,11 +541,10 @@ topics:
       - name: delete
         suffix: promise
         kind: method
-        type: Proimse
+        type: Promise
         promise:
           resolve:
-            type: boolean
-            summary: Whether the delete succeeded or not
+            summary: Resolves if the delete succeeded
         summary: Delete an object from the underlying store as a `Promise`
         arguments:
           - name: id

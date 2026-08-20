@@ -269,6 +269,7 @@ topics:
       -
         name: Level
         kind: enum
+        type: String
         summary: The logging priority levels
         topics:
           -
@@ -409,6 +410,7 @@ topics:
             summary: The category to configure
       -
         name: JSLogRecord
+        namespace: Foundation
         kind: class
         anonymous: true
         summary: A single loggged record
@@ -442,6 +444,7 @@ topics:
                 summary: The message format arguments
       -
         name: JSLogHandler
+        namespace: Foundation
         kind: protocol
         summary: An interface for custom log handlers
         topics:

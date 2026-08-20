@@ -70,10 +70,11 @@ topics:
             name: completion
             type:
               arguments:
-                name: result
-                type: AuthenticationResult
-                nullable: true
-                summary: The result of signing the challenge data
+                - 
+                  name: result
+                  type: AuthenticationResult
+                  nullable: true
+                  summary: The result of signing the challenge data
           -
             name: target
             type: any

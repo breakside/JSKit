@@ -93,12 +93,14 @@ topics:
       -
         name: initFromDictionary
         kind: init
+        nullable: true
         introduced: 2022.23.0
         summary: Create an attributed string from a dictionary representation
         arguments:
           -
             name: dictionary
             type: AttributedStringDictionary
+            nullable: true
             summary: The dictionary representation of the attributed string
         description:
           This init method is used to construct a `JSAttributedString`() from
@@ -179,6 +181,7 @@ topics:
           of values are expected to be in an attributes dictionary for each
           option.
         kind: enum
+        type: String
         topics:
           -
             name: Text Styling
@@ -310,7 +313,7 @@ topics:
         arguments:
           -
             name: attributeName
-            type: JSAttributedString.Attribute
+            type: String
             summary: The attribute to match
           -
             name: index
@@ -326,7 +329,7 @@ topics:
         arguments:
           -
             name: attributeNames
-            type: JSAttributedString.Attribute[]
+            type: String[]
             summary: The attributes to match
           -
             name: index

@@ -14,6 +14,7 @@ topics:
     members:
       - name: StatusCode
         kind: enum
+        type: int
         summary: Standard HTTP status codes
         suffix: enum
         topics:
@@ -119,6 +120,7 @@ topics:
                 value: "505"
       - name: StatusClass
         kind: enum
+        type: int
         suffix: enum
         summary: Standard HTTP status classes, mapped to the first digit of the
           status code
@@ -246,6 +248,7 @@ topics:
     members:
       - name: JSURLResponseError
         introduced: 2021.46.0
+        namespace: Foundation
         kind: class
         inherits: Error
         summary: An error that contains a non-2xx response

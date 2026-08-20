@@ -29,6 +29,7 @@ topics:
     members:
       -
         name: UIApplicationDelegate
+        namespace: UIKit
         kind: protocol
         summary: A delgate for important application events like launch
         topics:
@@ -56,11 +57,12 @@ topics:
                   [Info](UIApplicationInfo) file.
               -
                 name: applicationWillTerminate
+                optional: true
                 summary: Called when the application will terminate
                 arguments:
                   -
                     name: completion
-                    type: function()
+                    type: function
                     summary: You must call the completion function when
                       your `applicationWillTerminate` method is done saving
                       anything that needs to be saved.
@@ -79,6 +81,7 @@ topics:
                   ````
               -
                 name: applicationShouldWarnBeforeExit
+                optional: true
                 introduced: 2021.6.0
                 environment: html
                 summary: Called for HTML applications when the user is closing the page
@@ -96,6 +99,7 @@ topics:
                   with the page.
               -
                 name: applicationDidCrash
+                optional: true
                 introduced: 2020.8.0
                 summary: Called when an unhandled exception or promise rejection occurs
                   within the application's code
@@ -118,8 +122,8 @@ topics:
             members:
               -
                 name: applicationDidRequestState
+                optional: true
                 introduced: 2021.28.0
-                beta: true
                 kind: method
                 type: UIState
                 nullable: true
@@ -146,6 +150,7 @@ topics:
             members:
               -
                 name: applicationUpdateAvailable
+                optional: true
                 kind: method
                 summary: Called when an update is available
                 arguments:

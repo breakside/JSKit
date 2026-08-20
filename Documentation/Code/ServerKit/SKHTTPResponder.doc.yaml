@@ -126,7 +126,7 @@ topics:
             summary: The request that matched to this responder
           -
             name: context
-            type: SKHTTPContext
+            type: SKHTTPResponderContext
             nullable: true
             summary: The context, if any, for the request
         description: |
@@ -144,7 +144,7 @@ topics:
         summary: The request that matched to this responder
       -
         name: context
-        type: SKHTTPContext
+        type: SKHTTPResponderContext
         nullable: true
         summary: The context, if any, for the request
       -
@@ -283,6 +283,7 @@ topics:
           ````
       -
         name: SKHTTPAuthorization
+        namespace: ServerKit
         kind: class
         summary: A simple object for collecting authorization information
         topics:

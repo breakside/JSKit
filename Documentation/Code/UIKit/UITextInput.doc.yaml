@@ -24,6 +24,7 @@ topics:
           insertion point, replacing any selections with the text.
       -
         name: replaceText
+        optional: true
         introduced: 2021.13.0
         summary: Replace the given selections with the given text
         arguments:
@@ -40,18 +41,21 @@ topics:
           selections and then insert the given text
       -
         name: insertNewline
+        optional: true
         summary: Insert a newline, or otherwise handle an `Enter`() keypress
         description: |
           Implementations can treat a newline request as an `Enter`() key press,
           which may result in some action other than a newline insertion.
       -
         name: insertLineBreak
+        optional: true
         introduced: 2020.42.0
         summary: Insert a line break
         description: |
           Not considered the same as an `Enter`() keypress.
       -
         name: insertTab
+        optional: true
         summary: Insert a horizontal tab, or otherwise handle a `Tab`() keypress
         description: |
           Implementations can treat a tab request as an `Tab` key press,
@@ -63,6 +67,7 @@ topics:
           Other implementations may treat a tab as an indentation request
       -
         name: insertBacktab
+        optional: true
         summary: Insert a backtab, or otherwise handle a `Shift+Tab`() keypress
         description: |
           Implementations can treat a tab request as an `Shift+Tab` key press,
@@ -77,6 +82,7 @@ topics:
     members:
       -
         name: setMarkedText
+        optional: true
         introduced: 2021.13.0
         summary: Insert the given text as marked text
         description: |
@@ -98,6 +104,7 @@ topics:
           new marked text and update the `markedTextRange()`.
       -
         name: clearMarkedText
+        optional: true
         introduced: 2021.13.0
         summary: Clear the marked text to prepare for inserted text
         description: |
@@ -119,6 +126,7 @@ topics:
           `markedTextRange()` cleared.
       -
         name: markedTextRange
+        optional: true
         introduced: 2021.13.0
         summary: Return the range of marked text, if any
         nullable: true
@@ -143,117 +151,150 @@ topics:
     members:
       -
         name: deleteBackward
+        optional: true
         summary: Delete the previous character
       -
         name: deleteWordBackward
+        optional: true
         summary: Delete the previous word
       -
         name: deleteToBeginningOfLine
+        optional: true
         summary: Delete back to the beginning of the line
       -
         name: deleteToBeginningOfDocument
+        optional: true
         summary: Delete back to the beginning of the document
       -
         name: deleteForward
+        optional: true
         summary: Delete the next character
       -
         name: deleteWordForward
+        optional: true
         summary: Delete the next word
       -
         name: deleteToEndOfLine
+        optional: true
         summary: Delete to the end of the line
       -
         name: deleteToEndOfDocument
+        optional: true
         summary: Delete to the end of the document
       -
         name: deleteAll
+        optional: true
         summary: Delete everything
   -
     name: Moving
     members:
       -
         name: moveBackward
+        optional: true
         summary: Move one character backwards
       -
         name: moveWordBackward
+        optional: true
         summary: Move one word backwards
       -
         name: moveToBeginningOfLine
+        optional: true
         summary: Move to the start of the line
       -
         name: moveUp
+        optional: true
         summary: Move up one line
       -
         name: moveToBeginningOfDocument
+        optional: true
         summary: Move to the start of the document
       -
         name: moveForward
+        optional: true
         summary: Move one character forward
       -
         name: moveWordForward
+        optional: true
         summary: Move one word forward
       -
         name: moveToEndOfLine
+        optional: true
         summary: Move to the end of the line
       -
         name: moveDown
+        optional: true
         summary: Move down one line
       -
         name: moveToEndOfDocument
+        optional: true
         summary: Move to the end of the document
   -
     name: Selection
     members:  
       -
         name: moveBackwardAndModifySelection
+        optional: true
         summary: Move back and extend the selection to include the previous
           character
       -
         name: moveWordBackwardAndModifySelection
+        optional: true
         summary: Move back and extend the selection to include the previous word
       -
         name: moveToBeginningOfLineAndModifySelection
+        optional: true
         summary: Move back and extend the section to the start of the line
       -
         name: moveUpAndModifySelection
+        optional: true
         summary: Move up and extend the selection one line above
       -
         name: moveToBeginningOfDocumentAndModifySelection
+        optional: true
         summary: Move and extend the selection to the beginning of the document
       -
         name: moveForwardAndModifySelection
+        optional: true
         summary: Move forward and extend the selection to include the next
           character
       -
         name: moveWordForwardAndModifySelection
+        optional: true
         summary: Move forward and extend the selection to include the next word
       -
         name: moveToEndOfLineAndModifySelection
+        optional: true
         summary: Move forward and extend the selection to the end of the line
       -
         name: moveDownAndModifySelection
+        optional: true
         summary: Move down and extend the selection one line below
       -
         name: moveToEndOfDocumentAndModifySelection
+        optional: true
         summary: Move and extend the selection to the end of the document
       -
         name: selectAll
+        optional: true
         summary: Select everything
   -
     name: Control
     members:
       -
         name: textInputLayer
+        optional: true
         introduced: 2020.42.0
         type: UILayer
         summary: The layer used to display the text
       -
         name: textInputLayoutManager
+        optional: true
         introduced: 2020.42.0
         type: JSTextLayoutManager
         summary: The layout manager used for the text
       -
         name: textInputSelections
+        optional: true
         introduced: 2020.42.0
         type: UITextInputSelection[]
         summary: The text selections
@@ -262,6 +303,7 @@ topics:
     members:
       -
         name: secureTextEntry
+        optional: true
         kind: property
         introduced: 2021.13.0
         type: boolean
@@ -272,6 +314,7 @@ topics:
           integration, set `textContentType` to `TextContentType.password`.
       -
         name: keyboardType
+        optional: true
         kind: property
         introduced: 2021.12.0
         type: KeyboardType
@@ -309,6 +352,7 @@ topics:
                 summary: A keyboard for typing search queries
       -
         name: textContentType
+        optional: true
         kind: property
         introduced: 2021.13.0
         type: TextContentType
@@ -403,6 +447,7 @@ topics:
     members:
       -
         name: UITextInputSelection
+        namespace: UIKit
         kind: class
         introduced: 2020.42.0
         summary: Describes a selected range of text

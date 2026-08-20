@@ -73,7 +73,7 @@ topics:
     members:
       - name: truncatedLine
         kind: method
-        type: JSLine
+        type: JSTextLine
         summary: Create a new line truncated to the specified width
         arguments:
           - name: width

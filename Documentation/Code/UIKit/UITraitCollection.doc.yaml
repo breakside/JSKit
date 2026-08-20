@@ -21,7 +21,7 @@ topics:
         name: traitsWithSize
         introduced: 2021.40.0
         kind: method
-        type: UITraitConllection
+        type: UITraitCollection
         summary: Create a copy of this trait collection with the size classes
           changed to match the given size
         arguments:
@@ -34,7 +34,7 @@ topics:
         name: traitsWithContrast
         introduced: 2020.42.0
         kind: method
-        type: UITraitConllection
+        type: UITraitCollection
         summary: Create a copy of this trait collection with the contrast value
           changed to match the given value
         arguments:
@@ -46,7 +46,7 @@ topics:
         name: traitsWithUserInterfaceStyle
         introduced: 2021.40.0
         kind: method
-        type: UITraitConllection
+        type: UITraitCollection
         summary: Create a copy of this trait collection with the user interface style
           changed to match the given value
         arguments:

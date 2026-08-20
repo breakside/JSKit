@@ -301,7 +301,208 @@ JSClass("Builder", JSObject, {
         }catch (e){
             return null;
         }
+    },
+
+    // -----------------------------------------------------------------------
+    // MARK: - Typescript
+
+    frameworkTypescript: null,
+
+    includeFrameworkTypescript: function(name, url, paths){
+        if (!paths || paths.length === 0){
+            return;
+        }
+        if (this.frameworkTypescript === null){
+            this.frameworkTypescript = {};
+        }
+        let entry = this.frameworkTypescript[name];
+        if (!entry){
+            entry = this.frameworkTypescript[name] = {
+                name: name,
+                url: url,
+                paths: []
+            };
+        }
+        entry.paths = entry.paths.concat(paths);
+    },
+
+    compileTypescript: async function(paths, sourcesRootURL, outputRootURL, esversion = null, env = null){
+        let baseName = "%s+TypeScript".sprintf(this.project.name);
+        if (env){
+            baseName += "+" + env;
+        }
+        let indexName = baseName + ".ts";
+        let indexURL = sourcesRootURL.appendingPathComponent(indexName);
+        let indexPath = this.fileManager.pathForURL(indexURL);
+        let indexText = "";
+        for (let path of paths){
+            indexText += 'import "./%s";\n'.sprintf(path.removingFileExtension());
+        }
+        if (this.frameworkTypescript !== null){
+            for (let name in this.frameworkTypescript){
+                let entry = this.frameworkTypescript[name];
+                for (let path of entry.paths){
+                    let url = JSURL.initWithString(path, entry.url);
+                    let relativePath = url.encodedStringRelativeTo(indexURL);
+                    indexText += 'import "%s";\n'.sprintf(relativePath.removingFileExtension());
+                }
+            }
+        }
+        await this.fileManager.createFileAtURL(indexURL, indexText.utf8());
+
+        // Check with `tsc`
+        let configURL = await this.findTSConfigURL();
+        let buildConfigURL = this.buildURL.appendingPathComponent("tsconfig.json");
+        let config = await this.adjustedTSConfig(configURL, buildConfigURL);
+        config.include = [indexPath];
+        await this.fileManager.createFileAtURL(buildConfigURL, JSON.stringify(config, null, 2).utf8());
+        let buildConfigPath = this.fileManager.pathForURL(buildConfigURL);
+        const { spawn } = require('child_process');
+        let args = [
+            "tsc",
+            "--noEmit",
+            "--project",
+            buildConfigPath
+        ];
+        let cwd = this.fileManager.pathForURL(sourcesRootURL);
+        let tsc = spawn("npx", args, {cwd: cwd});
+        let err = "";
+        tsc.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+        tsc.stdout.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+        await new Promise(function(resolve, reject){
+            tsc.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Failed to check typescript: " + err));
+                    return;
+                }
+                resolve();
+            });
+            tsc.on('error',function(){
+                reject(new Error("Failed to check typescript because `typescript` is not installed: npm install -D typescript"));
+            });
+        });
+
+        // Bundle with `esbuild`
+        let outputName = baseName + ".js";
+        let outputURL = outputRootURL.appendingPathComponent(outputName);
+        let outputPath = this.fileManager.pathForURL(outputURL);
+        let target = "es2022";
+        if (esversion !== null){
+            if (esversion < 13){
+                throw new Error("TypeScript requires esversion >= 13");
+            }
+            target = "es%04d".sprintf(2009 + esversion);
+        }
+        args = [
+            "esbuild",
+            "--bundle",
+            "--outfile=" + outputPath,
+            "--sourcemap",
+            "--sources-content=false",
+            "--target=" + target,
+            "--tsconfig=" + buildConfigPath,
+            indexPath
+        ];
+        if (!this.debug){
+            args.push("--minify-whitespace");
+            args.push("--line-limit=4000");
+        }
+        let esbuild = spawn("npx", args, {cwd: cwd});
+        err = "";
+        esbuild.stderr.on('data', function(data){
+            if (data){
+                err += data.stringByDecodingUTF8();
+            }
+        });
+        await new Promise(function(resolve, reject){
+            esbuild.on('close', function(code){
+                if (code !== 0){
+                    reject(new Error("Failed to bundle typescript: " + err));
+                    return;
+                }
+                resolve();
+            });
+            esbuild.on('error',function(){
+                reject(new Error("Failed to bundle typescript because `esbuild` is not installed: npm install -D esbuild"));
+            });
+        });
+        return outputURL;
+    },
+
+    findTSConfigURL: async function(){
+        let url = this.project.url;
+        let workspaceURL = this.workingDirectoryURL;
+        while (url.encodedString.startsWith(workspaceURL.encodedString)){
+            let configURL = url.appendingPathComponent("tsconfig.json");
+            let exists = await this.fileManager.itemExistsAtURL(configURL);
+            if (exists){
+                return configURL;
+            }
+            url = url.removingLastPathComponent();
+        }
+        return null;
+    },
+
+    adjustedTSConfig: async function(configURL, buildConfigURL){
+        let config = {};
+        if (configURL !== null){
+            let data = await this.fileManager.contentsAtURL(configURL);
+            config = JSON.parse(data.stringByDecodingUTF8());
+        }
+        if (config.compilerOptions){
+            let frameworkTypescript = this.frameworkTypescript || {};
+            if (config.compilerOptions.paths){
+                for (let path in config.compilerOptions.paths){
+                    let entry = frameworkTypescript[path];
+                    if (entry){
+                        let replacement = entry.url.appendingPathComponent(entry.name).encodedStringRelativeTo(buildConfigURL);
+                        if (replacement[0] != "."){
+                            replacement = "./" + replacement;
+                        }
+                        config.compilerOptions.paths[path] = [replacement];
+                    }else{
+                        if (path.endsWith("/*")){
+                            entry = frameworkTypescript[path.substr(0, path.length - 2)];
+                        }
+                        if (entry){
+                            let replacement = entry.url.appendingPathComponent("*").encodedStringRelativeTo(buildConfigURL);
+                            if (replacement[0] != "."){
+                                replacement = "./" + replacement;
+                            }
+                            config.compilerOptions.paths[path] = [replacement];
+                        }else{
+                            let paths = config.compilerOptions.paths[path];
+                            for (let i = 0, l = paths.length; i < l; ++i){
+                                let replacement = paths[i];
+                                replacement = JSURL.initWithString(replacement, configURL).encodedStringRelativeTo(buildConfigURL);
+                                if (replacement[0] != "."){
+                                    replacement = "./" + replacement;
+                                }
+                                paths[i] = replacement;
+                            }
+                        }
+                    }
+                }
+            }
+            if (config.compilerOptions.typeRoots){
+                for (let i = 0, l = config.compilerOptions.typeRoots.length; i < l; ++i){
+                    let typeRoot = config.compilerOptions.typeRoots[i];
+                    typeRoot = JSURL.initWithString(typeRoot, configURL).encodedStringRelativeTo(buildConfigURL);
+                    config.compilerOptions.typeRoots[i] = typeRoot;
+                }
+            }
+        }
+        return config;
     }
+
 });
 
 var frameworkDependencies = function(framework, env){

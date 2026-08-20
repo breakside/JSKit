@@ -23,6 +23,7 @@ topics:
     members:
       -
         name: SKApplicationDelegate
+        namespace: ServerKit
         kind: protocol
         summary: The interface that receives application events
         topics:
@@ -66,6 +67,7 @@ topics:
                   ````
               -
                 name: applicationWillTerminate
+                optional: true
                 summary: Called when the application receives a signal to
                   shutdown, allowing an opportunity to gracefully shutdown
                 arguments:
@@ -87,6 +89,7 @@ topics:
                   Used to stop running services, close connections to databases, etc.
               -
                 name: applicationWillTerminate
+                optional: true
                 suffix: promise
                 summary: Called when the application receives a signal to
                   shutdown, allowing an opportunity to gracefully shutdown
@@ -108,6 +111,7 @@ topics:
                   Used to stop running services, close connections to databases, etc.
               -
                 name: applicationDidCrash
+                optional: true
                 introduced: 2021.17.0
                 summary: Called when an unhandled exception or promise rejection occurs
                   within the application's code
@@ -183,6 +187,7 @@ topics:
       -
         name: Signal
         kind: enum
+        type: int
         summary: Process Signals
         description: |
           Used during `SKApplicationDelegate.applicationWillTerminate()`

@@ -833,6 +833,17 @@ topics:
             name: observerID
             type: Number
             summary: The unique identifier returned by `addObserverForURL()`
+      - name: Notification
+        introduced: 2020.44.0
+        kind: enum
+        type: string
+        summary: File Manager notification names
+        topics:
+          - name: Options
+            members:
+              - name: directoryDidAddItem
+              - name: directoryDidRemoveItem
+              - name: itemDidChangeState
   -
     name: Permissions
     members:

@@ -178,6 +178,7 @@ topics:
     members:
       -
         name: SKHTTPServerDelegate
+        namespace: ServerKit
         kind: protocol
         summary: The interface that a server delegate can impelemnt to receive
           calls when server events occur.
@@ -187,6 +188,7 @@ topics:
             members:
               -
                 name: serverDidCreateContextForRequest
+                optional: true
                 summary: Called when the server creates a context
                 arguments:
                   -
@@ -209,6 +211,7 @@ topics:
                   database connection object on the context.
               -
                 name: serverFoundResponder
+                optional: true
                 summary: Called when the server creates a responder
                 arguments:
                   -
@@ -225,6 +228,7 @@ topics:
               -
                 introduced: 2020.28.0
                 name: serverDidReceiveRequest
+                optional: true
                 summary: Called when the server begins handling a request
                 arguments:
                   -
@@ -243,6 +247,7 @@ topics:
               -
                 introduced: 2020.28.0
                 name: serverDidRespondToRequest
+                optional: true
                 summary: Called when the server completes a request
                 arguments:
                   -

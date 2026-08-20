@@ -45,6 +45,8 @@ JSClass("JavascriptFile", JSObject, {
             paths: [],
             frameworks: [],
             features: [],
+            modules: [],
+            esversion: null
         };
         var scan = this.next();
         while (scan !== null){
@@ -62,6 +64,12 @@ JSClass("JavascriptFile", JSObject, {
                         sourceLine: this.lineNumber
                     });
                 }
+            }else if (scan.code && scan.esimport){
+                imports.modules.push({
+                    path: scan.esimport,
+                    sourceURL: this.url,
+                    sourceLine: this.lineNumber
+                });
             }else if (scan.command == "feature"){
                 imports.features.push(scan.args);
             }else if (scan.command == "esversion"){
@@ -87,6 +95,9 @@ JSClass("JavascriptFile", JSObject, {
                 if (version >= 13){
                     imports.features.push('eval("class x{ y; }") === undefined');
                     imports.features.push('eval("class x{ #y; }") === undefined');
+                }
+                if (imports.esversion === null || version > imports.esversion){
+                    imports.esversion = version;
                 }
             }
             scan = this.next();
@@ -294,6 +305,33 @@ JSClass("JavascriptFile", JSObject, {
                         lineNumber: lineNumber,
                         columnNumber: columnNumber
                     };
+                }
+                if (line.startsWith("import ") || line.startsWith("export ")){
+                    // import lines should all end with a string that is a module path
+                    // export lines may end with a string that is an import module path
+                    // So, the same logic can catch both: look for a string at the end,
+                    // and ignore anything else.
+                    let i = line.length - 1;
+                    if (line[i] === ";"){
+                        --i;
+                    }
+                    let quote = line[i];
+                    if (quote === "'" || quote === '"'){
+                        --i;
+                        let l = 0;
+                        while (i > 7 && line[i] !== quote){
+                            ++l;
+                            --i;
+                        }
+                        if (line[i] === quote){
+                            return {
+                                code: line,
+                                esimport: line.substr(i + 1, l),
+                                lineNumber: lineNumber,
+                                columnNumber: columnNumber
+                            }
+                        }
+                    }
                 }
                 return {
                     code: line,

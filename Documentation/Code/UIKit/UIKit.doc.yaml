@@ -4,6 +4,8 @@ introduced: 2020.1.0
 environment: html
 summary: Create desktop-quality applications on the web
 codeURL: Frameworks/UIKit/
+dependencies:
+  - Foundation
 description: |
   `UIKit` is designed to
   - Feel like coding an application instead of a DOM document
@@ -208,6 +210,14 @@ topics:
       - UIOutlineViewCell
       #- UIBrowserView
       #- UIBrowserViewController
+  - name: Collection Views
+    members:
+      - UICollectionView
+      - UICollectionViewLayout
+      - UICollectionViewGridLayout
+      - UICollectionViewLayoutAttributes
+      - UICollectionViewCell
+      - UICollectionReusableView
   - name: Navigation Views
     members:
       - UINavigationController

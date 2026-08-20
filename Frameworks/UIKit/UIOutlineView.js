@@ -26,7 +26,7 @@ JSProtocol("UIOutlineViewDelegate", UIListViewDelegate, {
 
 });
 
-JSProtocol("UIOutlineViewDataSource", JSProtocol, {
+JSProtocol("UIOutlineViewDataSource", UIListViewDataSource, {
 
     numberOfSectionsInOutlineView: function(outlineView){},
     outlineViewExpandedIndexPaths: function(outlineView){},

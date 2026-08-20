@@ -24,11 +24,16 @@
 
 JSGlobalObject.JSClass = function(name, superclass, extensions){
     if (this === undefined){
-        if (superclass instanceof JSClass){
-            JSGlobalObject[name] = superclass.$extend(extensions, name);
-            return JSGlobalObject[name];
+        if (name instanceof JSClass){
+            var cls = name;
+            cls.initialize();
         }else{
-            throw new Error("JSClass(): superclass must be an instance of JSClass");
+            if (superclass instanceof JSClass){
+                JSGlobalObject[name] = superclass.$extend(extensions, name);
+                return JSGlobalObject[name];
+            }else{
+                throw new Error("JSClass(): superclass must be an instance of JSClass");
+            }
         }
     }
 };
@@ -112,6 +117,8 @@ JSClass.prototype = {
             }
         }
         JSClass._registry[this.className] = this;
+        var superclass = Object.getPrototypeOf(this);
+        superclass.initializeSubclass(this);
     },
 
     definePropertiesFromExtensions: function(extensions){
@@ -186,6 +193,9 @@ JSClass.prototype = {
                 return result;
             }
         });
+    },
+
+    initializeSubclass: function(subclass){
     },
 
     // -----------------------------------------------------------------------------

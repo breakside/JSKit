@@ -26,6 +26,7 @@ topics:
     members:
       -
         name: UIWebViewDelegate
+        namespace: UIKit
         kind: protocol
         summary: An interface for receiving events related to the web view's
           navigation
@@ -35,6 +36,7 @@ topics:
             members:
               -
                 name: webViewDidLoadURL
+                optional: true
                 summary: Called when a page loads in the web view
                 arguments:
                   -

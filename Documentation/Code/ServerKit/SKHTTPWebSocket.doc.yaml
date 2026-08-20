@@ -29,6 +29,7 @@ topics:
     members:
       -
         name: SKHTTPWebSocketDelegate
+        namespace: ServerKit
         kind: protocol
         summary: An interface that an object can implement to handle
           socket events like received messages or errors
@@ -38,6 +39,7 @@ topics:
             members:
               -
                 name: socketDidReceiveMessage
+                optional: true
                 summary: Called when the socket receives the final chunk of
                   a message
                 arguments:
@@ -54,6 +56,7 @@ topics:
                   will catch and log any exceptions
               -
                 name: socketDidReceiveData
+                optional: true
                 summary: Called when the socket receives any chunk of data,
                   even if it is an incomplete part of a message
                 arguments:
@@ -70,6 +73,7 @@ topics:
                   will catch and log any exceptions
               -
                 name: socketDidClose
+                optional: true
                 summary: Called when the socket closes
                 arguments:
                   -
@@ -156,6 +160,7 @@ topics:
       -
         name: Status
         kind: enum
+        type: int
         suffix: enum
         summary: The possible statuses a web socket can send when closing
         topics:

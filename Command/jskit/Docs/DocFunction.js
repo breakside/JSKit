@@ -45,6 +45,10 @@
         }
         if (info.type){
             this.valueType = info.type;
+            if (this.valueType.endsWith("?")){
+                this.valueType = this.valueType.substr(0, this.valueType.length - 1);
+                this.nullable = true;
+            }
         }
         if (info.promise){
             this.promise = info.promise;
@@ -206,6 +210,75 @@
         var args = this.argumentStrings();
         obj.name += '(%s)'.sprintf(args.join(", "));
         return obj;
-    }
+    },
+
+    typescriptDeclaration: function(container = null){
+        if (this.isTypescript){
+            return null;
+        }
+        if (this.name === "JSCopy"){
+            let declaration = "";
+            declaration += "declare function JSCopy<T>(obj: Array<T>): Array<T>;\n";
+            declaration += "declare function JSCopy<T extends {[k: string]: any}>(obj: T): T;";
+            return declaration;
+        }
+        if (this.name === "JSDeepCopy"){
+            let declaration = "";
+            declaration += "declare function JSDeepCopy<T>(obj: Array<T>): Array<T>;\n";
+            declaration += "declare function JSDeepCopy<T extends {[k: string]: any}>(obj: T): T;";
+            return declaration;
+        }
+        if (this.name[0] === "["){
+            return null;
+        }
+        let returnType = this.typescriptValueType(this.valueType, this.nullable, this.promise);
+        let args = this.typescriptAgumentsDeclaration();
+        if (container === null){
+            return "declare function %s(%s): %s;".sprintf(this.name, args, returnType);
+        }
+        if (container === "class" || container === "type" || container === "interface"){
+            return "%s(%s): %s;".sprintf(this.name, args, returnType); 
+        }
+        return "function %s(%s): %s;".sprintf(this.name, args, returnType);
+    },
+
+    typescriptAgumentsDeclaration: function(){
+        let declarations = [];
+        for (let arg of this.arguments){
+            let argDeclaration = this.typescriptArgumentDeclaration(arg);
+            declarations.push(argDeclaration);
+        }
+        return declarations.join(", ");
+    },
+
+    typescriptArgumentDeclaration: function(arg){
+        let name = arg.name;
+        if (name === "enum"){
+            name = "enum_";
+        }
+        if (typeof(arg.type) === "object"){
+            var fn = DocFunction.init();
+            fn._extractPropertiesFromInfo(arg.type);
+            fn.parent = this;
+            var returnType = fn.typescriptValueType(fn.valueType, fn.nullable);
+            var args = fn.typescriptAgumentsDeclaration();
+            fn.parent = null;
+            if (arg.nullable){
+                return "%s%s: ((%s) => %s) | null".sprintf(name, arg.default ? "?" : "", args, returnType);    
+            }
+            return "%s%s: (%s) => %s".sprintf(name, arg.default ? "?" : "", args, returnType);
+        }
+        if (arg.variable){
+            let valueType = this.typescriptValueType(arg.type, arg.nullable);
+            if (valueType.indexOf("|") >= 0){
+                valueType = "(%s)[]".sprintf(valueType);
+            }else{
+                valueType += "[]";
+            }
+            return "...%s%s: %s".sprintf(name, arg.default ? "?" : "", valueType);
+        }
+        let valueType = this.typescriptValueType(arg.type, arg.nullable);
+        return "%s%s: %s".sprintf(name, arg.default ? "?" : "", valueType);
+    },
 
  });

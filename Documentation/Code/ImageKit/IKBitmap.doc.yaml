@@ -54,6 +54,7 @@ topics:
       -
         name: initWithEncodedData
         kind: init
+        nullable: true
         summary: Create a bitmap with PNG or JPEG compressed data
         arguments:
           -

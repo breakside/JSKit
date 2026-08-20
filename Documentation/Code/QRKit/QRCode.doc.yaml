@@ -67,6 +67,7 @@ topics:
       -
         name: initWithURL
         kind: init
+        nullable: true
         summary: Create a new QR code representing the given URL
         arguments:
           -
@@ -76,6 +77,7 @@ topics:
       -
         name: initWithString
         kind: init
+        nullable: true
         summary: Create a new QR code representing the given string
         arguments:
           - 
@@ -90,6 +92,7 @@ topics:
       -
         name: initWithData
         kind: init
+        nullable: true
         summary: Create a QR coe representing the given bytes
         arguments:
           -

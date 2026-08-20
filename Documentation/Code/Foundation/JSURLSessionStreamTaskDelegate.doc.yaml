@@ -1,5 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: protocol
+namespace: Foundation
 introduced: 2020.1.0
 summary: A WebSocket stream delegate that receives data an connection events
 topics:
@@ -8,6 +9,7 @@ topics:
     members:
       -
         name: taskDidOpenStream
+        optional: true
         arguments:
           -
             name: task
@@ -15,6 +17,7 @@ topics:
             summary: The task that opened a connection
       -
         name: taskDidCloseStream
+        optional: true
         arguments:
           -
             name: task
@@ -22,6 +25,7 @@ topics:
             summary: The task that closed a connection
       -
         name: taskDidReceiveStreamData
+        optional: true
         arguments:
           -
             name: task
@@ -35,6 +39,7 @@ topics:
               The stream data is completely user-defined
       -
         name: taskDidReceiveStreamError
+        optional: true
         arguments:
           -
             name: task

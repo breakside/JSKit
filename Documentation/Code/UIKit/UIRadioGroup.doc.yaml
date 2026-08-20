@@ -72,6 +72,7 @@ topics:
     members:
       -
         name: UIRadioGroupStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for radio group stylers
@@ -99,6 +100,7 @@ topics:
                   be `20px * 1.5 = 30px`.  The spacing between items is `10px`.
       -
         name: UIRadioGroupDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIRadioGroupStyler
         summary: The styler `UIKit` uses by default

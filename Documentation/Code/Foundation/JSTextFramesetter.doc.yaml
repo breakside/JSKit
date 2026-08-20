@@ -46,7 +46,7 @@ topics:
     members:
       - name: attributes
         deprecated: 2022.24.0
-        type: JSTextParagraphAttributes
+        type: object
         summary: Paragraph attributes for the created text frame
         description: |
           Deprecated.

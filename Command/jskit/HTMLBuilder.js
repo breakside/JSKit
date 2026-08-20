@@ -250,6 +250,11 @@ JSClass("HTMLBuilder", Builder, {
                 this.preflightFeatures.add(sources.features[i]);
             }
         }
+        let frameworkURL = toURL;
+        if (!this.debug){
+            toURL = toURL.appendingPathComponent("_debug", true);
+        }
+        this.includeFrameworkTypescript(framework.name, toURL, sources.typescript);
     },
 
     // ----------------------------------------------------------------------
@@ -458,12 +463,32 @@ JSClass("HTMLBuilder", Builder, {
     },
 
     copyDebugJavascript: async function(){
+        let tsPaths = [];
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
             let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
             let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
-            let wwwPath = bundledURL.encodedStringRelativeTo(this.wwwURL);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            let wwwPath = bundledURL.encodedStringRelativeTo(this.wwwURL);
+            if (file.url.fileExtension === ".ts"){
+                tsPaths.push(bundledPath);
+            }else{
+                this.wwwJavascriptPaths.push(wwwPath);
+            }
+        }
+        for (let i = 0, l = this.imports.modules.length; i < l; ++i){
+            let file = this.imports.modules[i];
+            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+            if (!bundledPath.startsWith("..")){
+                let bundledURL = JSURL.initWithString(bundledPath, this.sourcesURL);
+                this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
+                await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            }
+        }
+        if (tsPaths.length > 0){
+            this.printer.setStatus("Compiling typescript...");
+            let jsURL = await this.compileTypescript(tsPaths, this.sourcesURL, this.sourcesURL, this.imports.esversion);
+            let wwwPath = jsURL.encodedStringRelativeTo(this.wwwURL);
             this.wwwJavascriptPaths.push(wwwPath);
         }
         for (let i = 0, l = this.imports.features.length; i < l; ++i){
@@ -472,7 +497,7 @@ JSClass("HTMLBuilder", Builder, {
     },
 
     minifyReleaseJavascript: async function(){
-        let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager);
+        let compilation = JavascriptCompilation.initWithName("%s.js".sprintf(this.project.name), this.sourcesURL, this.fileManager, this.workingDirectoryURL);
         var copyright  = this.project.getInfoString("JSCopyright", this.resources);
         var licenseString = await this.project.licenseNoticeString();
         if (licenseString.startsWith("Copyright")){
@@ -482,20 +507,40 @@ JSClass("HTMLBuilder", Builder, {
         }
         var header = "%s (%s)\n----\n%s%s".sprintf(this.project.info.JSBundleIdentifier, this.project.info.JSBundleVersion, copyright, licenseString);
         var fullSourcesURL = this.sourcesURL.appendingPathComponent("_debug", true);
+        let tsPaths = [];
         compilation.sourceRoot = fullSourcesURL.encodedStringRelativeTo(this.sourcesURL);
         compilation.writeComment(header);
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
             let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
             let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
-            compilation.sources.push(bundledPath);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
-            await compilation.writeJavascriptAtURL(file.url);
+            if (file.url.fileExtension === ".ts"){
+                tsPaths.push(bundledPath);
+            }else{
+                compilation.sources.push(bundledPath);
+                await compilation.writeJavascriptAtURL(file.url);
+            }
         }
         await compilation.finish();
         for (let i = 0, l = compilation.files.length; i < l; ++i){
             let url = this.sourcesURL.appendingPathComponent(compilation.files[i]);
             let wwwPath = url.encodedStringRelativeTo(this.wwwURL);
+            this.wwwJavascriptPaths.push(wwwPath);
+        }
+        for (let i = 0, l = this.imports.modules.length; i < l; ++i){
+            let file = this.imports.modules[i];
+            let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
+            if (!bundledPath.startsWith("..")){
+                let bundledURL = JSURL.initWithString(bundledPath, fullSourcesURL);
+                this.printer.setStatus("Copying %s...".sprintf(file.url.lastPathComponent));
+                await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            }
+        }
+        if (tsPaths.length > 0){
+            this.printer.setStatus("Compiling typescript...");
+            let jsURL = await this.compileTypescript(tsPaths, fullSourcesURL, this.sourcesURL, this.imports.esversion);
+            let wwwPath = jsURL.encodedStringRelativeTo(this.wwwURL);
             this.wwwJavascriptPaths.push(wwwPath);
         }
         for (let i = 0, l = this.imports.features.length; i < l; ++i){

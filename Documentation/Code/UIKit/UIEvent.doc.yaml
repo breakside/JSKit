@@ -158,6 +158,7 @@ topics:
       -
         name: Modifier
         kind: enum
+        type: bitmask
         summary: The possible modifier keys that can be pressed during events
         description: |
           The possible modifier values can be combined with bitwise operators

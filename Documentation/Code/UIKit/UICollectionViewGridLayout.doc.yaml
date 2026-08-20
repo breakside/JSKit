@@ -1,0 +1,136 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: UICollectionViewLayout
+summary: A customizable grid-based collection view layout
+description: |
+  The basic grid layout arranges cells into rows and columns.
+
+  Furthermore, each section may have optional header, footer, and background 
+  supplimentary views.
+
+  Finally, the collection as a whole may have optional header and footer views.
+topics:
+  - name: Cell Layout
+    members:
+      - name: cellSize
+        type: JSSize
+        summary: The size of every cell
+        description: |
+          Every cell will use this size unless the collection view's `delegate`
+          implements `cellSizeForCollectionViewInSection()`.
+      - name: rowSpacing
+        type: Number
+        summary: The vertical spacing between cells
+        note: This value will only be used between cells, not around the edges
+          of outermost cells.
+      - name: columnSpacing
+        type: Number
+        summary: The horizontal spacing between cells
+        note: This value will only be used between cells, not around the edges
+          of outermost cells.
+  - name: Section Layout
+    members:
+      - name: sectionSpacing
+        type: Number
+        summary: The vertical spacing between sections
+      - name: sectionInsets
+        type: JSInsets
+        summary: The insets around the entire section, including cells and 
+          headers/footers
+      - name: sectionHeaderHeight
+        type: Number
+        summary: The height of section headers
+        description: |
+          Use `0`() to disable headers
+      - name: sectionFooterHeight
+        type: Number
+        summary: The height of section footers
+        description: |
+          Use `0`() to disable footers
+      - name: sectionHeaderSpacing
+        type: Number
+        summary: The vertical spacing between section headers and section cells
+      - name: sectionFooterSpacing
+        type: Number
+        summary: The vertical spacing between section cells and section footers
+      - name: showsSectionBackgroundViews
+        type: Boolean
+        summary: Whether to use background views for each section
+      - name: headersStickToTop
+        type: Boolean
+        summary: Whether headers stick at the top of the view as the user
+          scrolls
+        description: |
+          When `true`, each section's header remains visible until the entire
+          section has scrolled out of view.
+        note: This applies to *both* section headers and the entire collection
+          header
+  - name: Collection Layout
+    members:
+      - name: collectionInsets
+        type: JSInsets
+        summary: The insets around the entire collection
+      - name: collectionHeaderHeight
+        type: Number
+        summary: The height of the header for the entire collection
+        description: |
+          Use `0`() to disable the collection header
+      - name: collectionFooterHeight
+        type: Number
+        summary: The height of the footer for the entire collection
+        description: |
+          Use `0`() to disable the collection footer
+      - name: collectionHeaderSpacing
+        type: Number
+        summary: The vertical spacing between the collection header and the
+          first section
+      - name: collectionFooterSpacing
+        type: Number
+        summary: The vertical spacing between the collection footer and the
+          last section
+  - name: Delegate
+    members:
+      - name: UICollectionViewGridLayoutDelegate
+        kind: protocol
+        namespace: UIKit
+        summary: Additional methods that a `UICollectionView.delegate` may
+          implement to customize the grid layout on a per-section basis.
+        topics:
+          - name: Cell Layout
+            members:
+              - name: cellSizeForCollectionViewInSection
+                optional: true
+                type: JSSize
+                summary: Provide a custom cell size for each section
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: sectionIndex
+                    type: Number
+                    summary: The section index
+          - name: Headers & Footers
+            members:
+              - name: heightForCollectionViewHeaderInSection
+                optional: true
+                type: Number
+                summary: Provide a custom header height for each section
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: sectionIndex
+                    type: Number
+                    summary: The section index
+              - name: heightForCollectionViewFooterInSection
+                optional: true
+                type: Number
+                summary: Provide a custom footer height for each section
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: sectionIndex
+                    type: Number
+                    summary: The section index

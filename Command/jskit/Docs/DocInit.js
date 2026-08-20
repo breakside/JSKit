@@ -16,12 +16,42 @@
 // #import "DocMethod.js"
 'use strict';
 
- JSClass("DocInit", DocMethod, {
+JSClass("DocInit", DocMethod, {
 
     kind: 'init',
 
     getDisplayNameForKind: function(){
         return "Init Method";
+    },
+
+    typescriptDeclaration: function(container = null, instanceOnly = false){
+        // TODO: this.promise
+        let args = this.typescriptAgumentsDeclaration();
+        let staticArgs = args;
+        let staticThisArg = "this: { new(): T }";
+        if (staticArgs !== ""){
+            staticArgs = staticThisArg + ", " + staticArgs;
+        }else{
+            staticArgs = staticThisArg;
+        }
+        let staticReturnType = "T";
+        let instanceReturnType = "this | void";
+        if (this.nullable){
+            staticReturnType += " | null";
+            instanceReturnType += " | null";
+        }
+        let declaration = "";
+        if (container === "class"){
+            if (!instanceOnly){
+                declaration += "static %s<T>(%s): %s;\n".sprintf(this.name, staticArgs, staticReturnType);
+            }
+            declaration += "%s(%s): %s".sprintf(this.name, args, instanceReturnType);
+        }else if (container === "namespace"){
+            declaration += "function %s(%s): %s;".sprintf(this.name, args, this.parent.name);
+        }else{
+            declaration += "%s<T>(%s): %s;".sprintf(this.name, staticArgs, staticReturnType);
+        }
+        return declaration;
     }
 
  });

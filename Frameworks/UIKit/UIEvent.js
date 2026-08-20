@@ -321,3 +321,6 @@ UIEvent.Key = {
     paste: "Paste",
     cursorSelect: "CrSel"
 };
+
+// name alias for TypeScript, which otherwise complains about the DOM `UIEvent`
+JSGlobalObject.UIEventObject = UIEvent;

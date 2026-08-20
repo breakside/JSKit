@@ -37,6 +37,7 @@ topics:
       -
         name: Unit
         kind: enum
+        type: bitmask
         summary: The various components of a calendar date
         description: |
           Used in many of the `JSCalendar` functions, this provides a
@@ -96,7 +97,7 @@ topics:
         name: Components
         summary: A simple `Object` that contains properties corresponding to
           the `Unit` options.
-        kind: class
+        kind: dictionary
         topics:
           -
             name: Properties
@@ -157,6 +158,7 @@ topics:
         name: Weekday
         introduced: 2024.33.0
         kind: enum
+        type: int
         summary: The days of the week
         description: |
           Values from this enum can be used anywhere a weekday is required
@@ -193,6 +195,7 @@ topics:
     members:
       -
         name: initWithIdentifier
+        kind: init
         summary: Create a calendar with the given identifier
         description: |
           Different regions and cultures have developed different calendars

@@ -41,6 +41,8 @@ topics:
     members:
       -
         name: UINavigationBarStyler
+        namespace: UIKit
+        inherits: JSObject
         kind: class
         summary: The abstract base class for all navigation bar stylers
         topics:
@@ -167,6 +169,8 @@ topics:
                     summary: The bar to style
       -
         name: UINavigationBarDefaultStyler
+        namespace: UIKit
+        inherits: UINavigationBarStyler
         kind: class
         summary: The default styler for navigation bars
         topics:
@@ -340,6 +344,7 @@ topics:
       -
         name: Styler
         kind: enum
+        type: UINavigationBarStyler
         suffix: enum
         summary: The default styler options provided by `UIKit`
         topics:

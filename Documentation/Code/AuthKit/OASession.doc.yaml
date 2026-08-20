@@ -68,7 +68,7 @@ topics:
           `["id_token"]` to receive a JSON Web Token response.
       - name: responseMode
         introduced: 2021.20.1
-        type: ResponseMode
+        type: String
         summary: How to receive the auth response
         description: |
           Defaults to `ResponseMode.fragment`, which means the response will
@@ -80,6 +80,7 @@ topics:
         introduced: 2021.20.1
         suffix: enum
         kind: enum
+        type: string
         summary: The possible response modes
         topics:
           - name: Options

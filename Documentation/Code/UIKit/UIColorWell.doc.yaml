@@ -43,6 +43,7 @@ topics:
     members:
       - name: Styler
         kind: enum
+        type: UIColorWellStyler
         summary: The predefined stylers for color wells
         topics:
           - name: Options
@@ -51,6 +52,7 @@ topics:
                 type: UIColorWellStyler
                 summary: The default color well styler for UIKit
       - name: UIColorWellStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for color well stylers
@@ -58,6 +60,7 @@ topics:
           The base color well styler currently adds no extra behavior beyond
           `UIControlStyler`.
       - name: UIColorWellDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UIColorWellStyler
         summary: The default color well styler class, with customizable options

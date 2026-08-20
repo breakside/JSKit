@@ -157,6 +157,8 @@ JSClass("NodeBuilder", Builder, {
             let path = "../Frameworks/" + directory + "/JS/" + sources.files[i];
             this.executableRequires.push(path);
         }
+        let frameworkURL = this.frameworksURL.appendingPathComponents([directory, "JS"], true);
+        this.includeFrameworkTypescript(framework.name, frameworkURL, sources.typescript);
     },
 
     // ----------------------------------------------------------------------
@@ -225,11 +227,22 @@ JSClass("NodeBuilder", Builder, {
     // MARK: - Javscript Code from Project
 
     bundleJavascript: async function(){
+        let tsPaths = [];
         for (let i = 0, l = this.imports.files.length; i < l; ++i){
             let file = this.imports.files[i];
             let bundledPath = file.url.encodedStringRelativeTo(this.project.url);
             let bundledURL = JSURL.initWithString(bundledPath, this.nodeURL);
             await this.fileManager.copyItemAtURL(file.url, bundledURL);
+            if (file.url.fileExtension === ".ts"){
+                tsPaths.push(bundledPath);
+            }else{
+                this.executableRequires.push(bundledPath);
+            }
+        }
+        if (tsPaths.length > 0){
+            this.printer.setStatus("Compiling typescript...");
+            let jsURL = await this.compileTypescript(tsPaths, this.nodeURL, this.nodeURL, this.imports.esversion);
+            let bundledPath = jsURL.encodedStringRelativeTo(this.nodeURL);
             this.executableRequires.push(bundledPath);
         }
     },
@@ -338,6 +351,14 @@ JSClass("NodeBuilder", Builder, {
         pkg.license = "SEE LICENSE IN %s".sprintf(licenseName);
         pkg.files = ["*"];
         pkg.bin = "./" + this.executableURL.encodedStringRelativeTo(this.bundleURL);
+        if (pkg.types){
+            let typefiles = await this.project.findTypescriptDeclarations();
+            for (let dts of typefiles){
+                let relativePath = dts.encodedStringRelativeTo(this.project.url);
+                let outputURL = JSURL.initWithString(relativePath, this.bundleURL);
+                await this.fileManager.copyItemAtURL(dts, outputURL);
+            }
+        }
         var outputPackageURL = this.bundleURL.appendingPathComponent("package.json");
         packageJSON = JSON.stringify(pkg, null, 2);
         await this.fileManager.createFileAtURL(outputPackageURL, packageJSON.utf8());

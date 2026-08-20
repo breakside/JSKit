@@ -88,11 +88,13 @@ topics:
     members:
       -
         name: UICheckboxStyler
+        namespace: UIKit
         kind: class
         inherits: UIControlStyler
         summary: The abstract base class for checkbox stylers
       -
         name: UICheckboxDefaultStyler
+        namespace: UIKit
         kind: class
         inherits: UICheckboxStyler
         summary: The styler `UIKit` uses by default

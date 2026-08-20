@@ -1,0 +1,454 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: document
+name: Using TypeScript
+summary: A guide to incorporating TypeScript into a JSKit project
+description: |
+  Introduction
+  ====
+  JSKit supports development using TypeScript.  While JSKit itself is written
+  in JavaScript, it is bundled with `.d.ts`() TypeScript declaration files for
+  all of its frameworks, and the JSKit build system will automatically transpile
+  any `.ts`() files in a project.
+
+  TypeScript is a great way to improve a project's code through strong
+  typing, while still leveraging the power and depth of JSKit.
+
+  Dependencies
+  ====
+  Because JSKit does not require that your project use TypeScript, it does not
+  have any strong dependencies on TypeScript, and therefore depends on each
+  project to bring in the necessary packages.
+
+  From within your JSKit-based project, add the `typescript`() and `esbuild`()
+  packages as development dependencies.
+
+  ```
+  $ npm install -D typescript esbuild
+  ```
+
+  tsconfig.json Setup
+  ====
+  A `tsconfig.json`() file isn't strictly necessary, but we recommend making one
+  to simplify how your project references JSKit types.
+
+  A JSKit workspace typically contains more than one project.  For example, you
+  may have a `MessageWeb`() `UIKit`-based project and an associated
+  `MessageWebTests`() `TestKit`-based project.  You may have additional framework
+  projects all within your workspace.
+
+  `tsconfig.json`() files work best within each project.  Here's an example of
+  what you might put in your `MessageWeb`() project folder:
+
+  `MessageWeb/tsconfig.json`
+  ````
+  {
+    "compilerOptions": {
+      "typeRoots": [
+        "../node_modules/@breakside/jskit/types"
+      ],
+      "types": [
+        "Foundation",
+        "UIKit"
+        "SecurityKit"
+      ]
+    }
+  }
+  ````
+
+  First, your IDE will use this `tsconfig.json` to correctly reference the JSKit
+  types you tell it about.
+
+  Second, the JSKit build system will read these options and use them when
+  running `tsc`() to check your code.  Note that the JSKit build system will
+  not use other options from your config, such as `include`() or `exclude`().
+  The JSKit build system maintains its own list of files that need to be
+  transpiled and bundled.
+
+  The `MessageWebTests/tsconfig.json`() file would look almost identical, but
+  would include `"TestKit"`() as another value in the `types`() list. It can
+  also make use of `paths`() for convenience, which is discussed in detail
+  later.
+
+  This example will bring in all the types.  You can append `/types/FrameworkName`()
+  to reference only specific frameworks.
+
+  TypeScript Files
+  ====
+  Incorporating TypeScript in a JSKit project is easy to do.  Simply create
+  a new `.ts` file for the class you want to build.
+
+  Let's say we have a `UIKit`-based messaging app and want to develop a
+  "contact details" view using TypeScript.
+
+  Create `ContactDetailsViewController.ts`
+  ```
+  // #import UIKit
+
+  export default class ContactDetailsViewController extends UIViewController {
+
+    viewDidLoad: function(){
+      super.viewDidLoad()
+    }
+
+    ...
+
+  }
+
+  ContactDetailsViewController.initialize();
+
+  ```
+
+  If you have your `tsconfig.json`() setup properly, your editor will know
+  where to find the type declarations for JSKit classes like `UIViewController`.
+
+  Note that we're using the `class`() syntax instead of `JSClass()` for defining
+  a new class.  JSKit has always supported the `class`() syntax, but it comes
+  with a small wrinkle: you need to call `initialize()`(JSClass.initialize) after
+  your class definition so JSKit is a) aware of the class, b) properly creates
+  static init methods on the class, and c) calls `initializeSubclass()` on the
+  super class.
+
+  From there, everything else you do is just normal TypeScript.
+
+  Modules vs. Scripts
+  ----
+  For JavaScript files, JSKit has never used modules.  Instead, classes are
+  created as globals, and we use a [custom import synax](JavascriptSyntax).
+
+  But with TypeScript, every `.ts`() file is treated as a module.  So you're
+  free to use standard `import`() and `export`() expressions.  
+
+  For example, if `ContactDetailsViewController`() needed to reference
+  another TypeScript class, maybe something like a `Contact`() data model,
+  it would do the following:
+
+  `ContactDetailsViewController.ts`
+  ```
+  // #import UIKit
+
+  import Contact from "./Contact";
+
+  export default class ContactDetailsViewController extends UIViewController {
+
+    contact!: Contact
+
+    viewDidLoad: function(){
+      super.viewDidLoad()
+    }
+
+    ...
+
+  }
+
+  ContactDetailsViewController.initialize()
+  ```
+
+  `Contact.ts`
+  ```
+  // #import Foundation
+
+  export default class Contact extends JSObject{
+
+    id: Number | null = null
+    name = ""
+
+    ...
+
+  }
+
+  Contact.initialize();
+  ```
+
+  When JSKit builds the project, all TypeScript modules will be combined
+  into a single `.js`() script that replaces the `import`()/`export`()
+  expressions.
+
+  Referencing JSKit Classes in TypeScript
+  ----
+  When referencing JSKit classes in a TypeScript file, the TypeScript system
+  will see all of the declarations from all of the JSKit frameworks, provided
+  you've setup `tsconfig.json`().
+
+  Since all of the JSKit classes are globals, you don't need to use `import`()
+  to bring them in, they're just there.
+
+  However, this alone doesn't ensure that the specific JSKit frameworks you
+  reference are actually bundled.
+
+  So, it's best to continue using the `// #import FrameworkName`() comment
+  so the JSKit build system is aware of the frameworks your code actually uses.
+
+  Referencing TypeScript classes in JavaScript
+  ----
+  If your project mixes JavaScript and TypeScript, at some point you'll need
+  to reference your TypeScript classes from within a JavaScript file.
+
+  But the JavaScript files aren't modules, so they can't use the `import`()
+  expression to get classes from TypeScript.
+
+  However, any subclass of `JSObject` is always accessible via the
+  `JSClass.FromName()` function.  So, if a `.js` file needed to reference the
+  `ContactDetailsViewController`() from the example above, it could do something
+  like:
+
+  `ConversationViewController.js`()
+  ```
+  // #import UIKit
+  // #import "ContactDetailsViewController.ts"
+  "use strict";
+
+  JSClass("ConversationViewController", UIViewController, {
+
+    ...
+
+    showContactDetails: function(){
+      let ContactDetailsViewController = JSClass.FromName("ContactDetailsViewController");
+      let viewController = ContactDetailsViewController.init()
+      ...
+
+    }
+
+    ...
+
+  });
+  ```
+
+  The key parts are:
+  1. Use the JSKit `// #import "FileName.ts"`() command to reference the TypeScript file
+  2. Use `JSClass.FromName()` to get a reference the class you want
+
+  Using TypeScript in JSKit Frameworks
+  ====
+
+  Your workspace may contain framework projects.  For example, if you have a `MessagesWeb`()
+  `UIKit`-based project in your workspace, you may also have created a `MessagesKit`() framework
+  that contains core functionality.
+
+  Frameworks can contain TypeScript, but there are few conventions that help make everything
+  work nicely together.
+
+  Aggregrate File
+  ----
+  First, you'll need a single TypeScript entry point that `export`s all of the framework's
+  public classes.  The aggregate file should be named with the framework name, `MessagesKit.ts`.
+
+  For example, let's say that `MessagesKit`() has a couple TypeScript files: `Message.ts` and
+  `Conversation.ts`.
+
+  `Message.ts`
+  ```
+  #import Foundation
+  
+  export default class Message extends JSObject{
+
+    text = ""
+
+    initWithText: function(text){
+      this.text = text
+    }
+
+    ...
+
+  }
+
+  Message.initialize()
+  ```
+
+  `Conversation.ts`
+  ```
+  #import Foundation
+
+  import Message from "./Message"
+  
+  export default class Conversation extends JSObject{
+
+    messages!: Message[]
+
+    init: function(){
+      this.messages = [];
+    }
+
+    ...
+
+  }
+
+  Conversation.initialize()
+  ```
+
+  You'll want to create a `MessagesKit.ts` file:
+  ````
+  export {Message} from "./Message"
+  export {Conversation} from "./Conversation"
+  ````
+
+  Finally, you need to tell the JSKit build system about the aggregate file
+  by adding it to `MessagesKit.js`, which was automatically created when
+  the framework was initialized.
+
+  `MessagesKit.js`
+  ```
+  # import "MessagesKit.ts"
+  ```
+
+  Now you're ready to import the framework's TypeScript into your main project.
+
+  Importing From JSKit Frameworks
+  ----
+  When it's time to reference the `MessagesKit`() framework in `MessagesWeb`(),
+  the first thing to do is edit your `tsconfig.json`() file with a path alias:
+
+  `MessagesWeb/tsconfig.json`
+  ````
+  {
+    "compilerOptions": {
+      ...,
+      "paths": {
+        "MessagesKit": ["../MessagesKit/MessagesKit"]
+      }
+    }
+  }
+  ````
+
+  This makes it so any `import ... from "MessagesKit"` expression actually points to
+  the aggregate `MessagesKit.ts` file within the `MessagesKit`() framework.
+  Without this path alias, you'd have to hard code various relative paths to
+  the aggregate file depending on where you are in the `MessagesWeb`() project.
+
+  `MessagesWeb/ConversationViewController.ts`
+  ```
+  import {Message, Conversation} from "MessagesKit"
+  
+  export default class ConversationViewController extends UIViewController {
+
+    conversation!: Conversation
+
+    ...
+
+    sendMessage(text){
+      let message = Message.initWithText(text)
+      this.conversation.messages.push(message)
+      ...
+    }
+
+  }
+
+  ConversationViewController.initialize()
+  ```
+
+  Testing TypeScript
+  ====
+  Tests can easily be written using TypeScript to test TypeScript classes from
+  your project.
+
+  Continuing the example from above, let's say we want to test the
+  `ConversationViewController`() class.
+
+  First, we'll use a path alias in the test project's config.  This is
+  similar to how we did it for the framework above, but with a small
+  change.  Becaue `MessagesWeb` doesn't have an aggregate file that
+  exports all classes, and because it's ok for tests to be tightly
+  coupled to the file they're testing, we'll point directly to specific
+  `.ts` files within `MessagesWeb`() when importing.  To do this, we'll
+  make use of a wildcard path alias:
+
+  `MessagesWebTests/tsconfig.js`
+  ```
+  {
+    "compilerOptions": {
+      ...
+      "paths": {
+        "MessagesKit": ["../MessagesKit/MessagesKit"],
+        "MessagesWeb/*": ["../MessagesWeb/*"] 
+      }
+    }
+  }
+  ```
+
+  Now a test file might look something like:
+  
+  `MessagesWebTests/ConversationViewControllerTests.ts`
+  ```
+  #import MessagesWeb
+  #import TestKit
+
+  import ConversationViewController from "MessagesWeb/ConversationViewController"
+
+  class ConversationViewControllerTests extends TKTestSuite {
+  
+    testInit: function(){
+      let viewController = ConversationViewController.init()
+      ...
+    }
+
+    ...
+
+  }
+
+  ConversationViewControllerTests.initialize()
+  ```
+
+  The JSClass Decorator
+  ====
+  Throughout this document we've been defining classes that extend `JSObject`,
+  such as:
+  
+  ```
+  class Message extends JSObject {
+  }
+  ```
+
+  And then we call the `initialize()`(JSClass.initialize) method:
+
+  ```
+  Message.initialize()
+  ```
+
+  This pattern works perfectly well.  But it's reapeated so much that it's the
+  perfect use case for a decorator.
+
+  ````
+  @JSClass
+  class Message extends JSObject {
+  }
+  ````
+
+  You can use this decorator syntax in TypeScript as an alternative to calling
+  `initialize()`(JSClass.initialize).  The tradeoff is that the
+  transpiled code will be messier because the build system wraps the 
+  class declaration in some functions.  If the extra generated code doesn't
+  bother you or hinder your debugging, the decorator can be a nice way to
+  go.
+  
+  Of course, it's a single-line decorator that replaces a single-line call,
+  so you may not feel very motivied to use the decorator in the first place.
+  
+  Browser Targeting
+  ====
+  JSKit will look for an `// #esversion N`() comment in your project to
+  determine which ECMAScript/JavaScript version to target when transpiling
+  TypeScript to JavaScript.
+
+  Your project must use `// #esversion 13`() or higher.  This corresponds
+  with ES2022, which introduced class properties.
+
+  *JSKit uses `esbuild`() for transpiling, and when `esbuild`() targets a version
+  that does not support class properties, `esbuild`() attempts to rewrite code
+  so properties are instantiated in the class's constructor function.  However,
+  JSKit-based classes never invoke the constructor, meaning that properties
+  will not be correctly populated.*
+
+  Generating TypeScript Declarations
+  ====
+  When combining JavaScript and TypeScript, it's best to have type declarations
+  for any JavaScript that the TypeScript will reference.
+
+  If you are documenting your JavaScript using the JSKit documentation format,
+  you can use the documentation files to generate the `.d.ts`() files.
+
+  ```
+  $ npx jskit doc --typescript path/to/Root.doc.yaml path/to/types-output/
+  ```
+
+  Because the documentation already contains they type information that the
+  JavaScript lacks, it's a great source of information.  Of course, if any
+  documentation is inaccurate, it will generate incorrect type declarations.

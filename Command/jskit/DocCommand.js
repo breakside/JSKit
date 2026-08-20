@@ -27,6 +27,7 @@ JSClass("DocCommand", Command, {
         input: {kind: "positional", help: "The root documentation file to start with"},
         output: {kind: "positional", help: "The directory in which to output the generated documentation"},
         sublime: {kind: "flag", help: "Generate Sublime Text completions"},
+        typescript: {kind: "flag", help: "Generate TypeScript declaration files"},
         stylesheet: {default: null, help: "Path to the stylesheet to use for docs"},
     },
 
@@ -37,12 +38,15 @@ JSClass("DocCommand", Command, {
         var documentation = Documentation.initWithRootURL(rootURL, this.fileManager);
         documentation.printer = printer;
         documentation.outputDirectoryURL = this.fileManager.urlForPath(this.arguments.output, workspaceURL);
+        documentation.workingDirectoryURL = this.workingDirectoryURL;
         if (this.arguments.stylesheet){
             documentation.customStylesheetURL = this.fileManager.urlForPath(this.arguments.stylesheet, workspaceURL);
         }
 
         if (this.arguments.sublime){
             await documentation.sublime();
+        }else if (this.arguments.typescript){
+            await documentation.typescript();
         }else{
             await documentation.run();
         }

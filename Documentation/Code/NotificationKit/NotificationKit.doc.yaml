@@ -3,6 +3,9 @@ kind: framework
 introduced: 2021.23.0
 summary: Create and show user-visible notifications
 codeURL: Frameworks/NotificationKit/
+dependencies:
+  - Foundation
+  - SecurityKit
 environment: html
 description: |
   `NotificationKit` provides functionality for applications to create and 

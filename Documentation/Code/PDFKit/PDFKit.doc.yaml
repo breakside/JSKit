@@ -3,6 +3,8 @@ kind: framework
 summary: Read and write PDF files
 beta: true
 codeURL: Frameworks/PDFKit/
+dependencies:
+  - Foundation
 description: |
   The goal of `PDFKit` is to support reading and parsing of PDF files in the
   browser or on a server in a common way.

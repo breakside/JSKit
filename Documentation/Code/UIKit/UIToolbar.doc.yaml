@@ -255,6 +255,7 @@ topics:
     members:
       -
         name: UIToolbarStyler
+        namespace: UIKit
         kind: class
         inherits: JSObject
         summary: The abstract base class for toolbar styling
@@ -330,6 +331,7 @@ topics:
                   \`UIView.noIntrinsicSize`.
       -
         name: UIToolbarCustomStyler
+        namespace: UIKit
         kind: class
         inherits: UIToolbarStyler
         summary: The default customizable toolbar styler for `UIKit`
@@ -372,7 +374,7 @@ topics:
                         description: |
                           If unspecified, will be derived from `itemColor`
                       -
-                        name: itemColor
+                        name: disabledItemColor
                         type: JSColor
                         summary: The color to use for item titles and template
                           images when the item is disabled
@@ -410,7 +412,7 @@ topics:
                 description: |
                   If unspecified, will be derived from `itemColor`
               -
-                name: itemColor
+                name: disabledItemColor
                 type: JSColor
                 summary: The color to use for item titles and template
                   images when the item is disabled
@@ -455,6 +457,7 @@ topics:
       -
         name: Styler
         kind: enum
+        type: UIToolbarStyler
         suffix: enum
         summary: The built-in stylers for toolbars
         topics:

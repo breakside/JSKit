@@ -177,6 +177,7 @@ topics:
       -
         name: initWithSpecName
         kind: init
+        nullable: true
         summary: Loads a `JSSpec` resource for the given name, and returns its
           `filesOwner` property.
         description: |

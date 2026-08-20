@@ -57,8 +57,13 @@ JSClass("DocComponent", JSObject, {
         if (info.publishedURL){
             this.publishedURL = info.publishedURL;
         }
+        if (info.namespace){
+            this.namespace = info.namespace;
+        }
+        this.isTypescript = info.typescript === true;
     },
 
+    sourcePackage: null,
     sourceURL: null,
     outputURL: JSDynamicProperty('_outputURL'),
     copyright: null,
@@ -91,6 +96,7 @@ JSClass("DocComponent", JSObject, {
     uniqueName: JSReadOnlyProperty(),
     uniquePrefix: null,
     uniqueSuffix: null,
+    namespace: null,
 
     getUniqueName: function(){
         var str = "";
@@ -139,6 +145,7 @@ JSClass("DocComponent", JSObject, {
     important: null,
     codeURL: null,
     publishedURL: null,
+    isTypescript: false,
 
     page: null,
 
@@ -212,6 +219,24 @@ JSClass("DocComponent", JSObject, {
     parent: null,
     children: null,
     images: null,
+
+    componentsInNamespace: function(namespace){
+        let components = [];
+        if (this.children !== null){
+            for (let child of this.children){
+                if (child.namespace === null && namespace === this.name){
+                    components.push(child);
+                }else if (child.namespace === namespace){
+                    components.push(child);
+                }
+                let childComponents = child.componentsInNamespace(namespace);
+                if (childComponents.length > 0){
+                    components = components.concat(childComponents);
+                }
+            }
+        }
+        return components;
+    },
 
     // --------------------------------------------------------------------
     // MARK: - Generating HTML
@@ -739,12 +764,17 @@ JSClass("DocComponent", JSObject, {
 
     urlForCode: function(code){
         var name = this.nameExcludingCodeSuffixes(code);
+        let component = this.componentForDottedName(name);
+        return this.urlForComponent(component);
+    },
+
+    componentForDottedName: function(name){
         var parts = name.split('.');
         var component = this.componentForName(parts.shift());
         while (parts.length > 0 && component !== null){
             component = component.childForName(parts.shift());
         }
-        return this.urlForComponent(component);
+        return component;
     },
 
     nameExcludingCodeSuffixes: function(name){
@@ -777,19 +807,21 @@ JSClass("DocComponent", JSObject, {
 
     childForName: function(name, excludingChild){
         var candidates = [];
-        for (let i = 0, l = this.children.length; i < l; ++i){
-            let child = this.children[i];
-            if (child !== excludingChild){
-                if (child.uniqueName === name){
-                    return child;
-                }
-                if (child.name == name){
-                    candidates.push(child);
+        if (this.children !== null){
+            for (let i = 0, l = this.children.length; i < l; ++i){
+                let child = this.children[i];
+                if (child !== excludingChild){
+                    if (child.uniqueName === name){
+                        return child;
+                    }
+                    if (child.name == name){
+                        candidates.push(child);
+                    }
                 }
             }
-        }
-        if (candidates.length > 0){
-            return candidates[0];
+            if (candidates.length > 0){
+                return candidates[0];
+            }
         }
 
         // Extensions
@@ -809,10 +841,12 @@ JSClass("DocComponent", JSObject, {
         }
 
         // Grandchildren or greater
-        for (let i = 0, l = this.children.length; i < l && component === null; ++i){
-            let child = this.children[i];
-            if (child !== excludingChild){
-                component = child.descendantForName(name);
+        if (this.children !== null){
+            for (let i = 0, l = this.children.length; i < l && component === null; ++i){
+                let child = this.children[i];
+                if (child !== excludingChild){
+                    component = child.descendantForName(name);
+                }
             }
         }
         return component;
@@ -834,6 +868,10 @@ JSClass("DocComponent", JSObject, {
         component = this.descendantForName(name, excludingChild);
         if (component !== null){
             return component;
+        }
+
+        if (name === "Error"){
+            return null;
         }
 
         // Parent
@@ -915,6 +953,128 @@ JSClass("DocComponent", JSObject, {
             obj.beta = true;
         }
         return obj;
+    },
+
+    // --------------------------------------------------------------------
+    // MARK: - Typescript
+
+    typescriptDeclaration: function(namespace = null){
+        return null;
+    },
+
+    typescriptValueType: function(valueType, nullable = false, promise = null){
+        if (valueType === null || valueType === undefined){
+            return "void";
+        }
+
+        if (valueType[0] === "[" && valueType[valueType.length - 1] === "]"){
+            let valueTypes = valueType.substr(1, valueType.length - 2).split(",").map(t => t.trim());
+            for (let i = 0, l = valueTypes.length; i < l; ++i){
+                valueTypes[i] = this.typescriptValueType(valueTypes[i]);
+            }
+            valueType = "[" + valueTypes.join(", ") + "]";
+            if (nullable){
+                valueType += " | null";
+            }
+            return valueType;
+        }
+
+        if (valueType.indexOf("|") >= 0){
+            let valueTypes = valueType.split("|").map(t => t.trim()).filter(t => t !== "");
+            for (let i = 0, l = valueTypes.length; i < l; ++i){
+                valueTypes[i] = this.typescriptValueType(valueTypes[i]);
+            }
+            valueType = valueTypes.join(" | ");
+            if (nullable){
+                valueType += " | null";
+            }
+            return valueType;
+        }
+
+        if (valueType.endsWith("?")){
+            valueType = valueType.substr(0, valueType.length - 1);
+            nullable = true;
+        }
+
+        let isArray = valueType.endsWith("[]");
+        if (isArray){
+            valueType = valueType.substr(0, valueType.length - 2);
+        }
+
+        if (valueType === "String"){
+            valueType = "string";
+        }else if (valueType === "Boolean"){
+            valueType = "boolean";
+        }else if (valueType === "Number"){
+            valueType = "number";
+        }else if (valueType === "Object"){
+            valueType = "object";
+        }else if (valueType === "bool"){
+            valueType = "boolean";
+        }else if (valueType === "int"){
+            valueType = "number";
+        }else if (valueType === "Int"){
+            valueType = "number";
+        }else if (valueType === "Uint8"){
+            valueType = "number";
+        }else if (valueType === "dictionary"){
+            valueType = "{}";
+        }else if (valueType === "function"){
+            valueType = "(() => void)";
+        }else if (valueType === "Buffer"){
+            valueType = "object";
+        }else if (valueType === "Enum"){
+            valueType = "object";
+        }else if (valueType === "Set"){
+            valueType = "Set<any>";
+        }else if (valueType === "DOMElement"){
+            valueType = "Element";
+        }else if (valueType === "UIEvent"){
+            valueType = "UIEventObject";
+        }
+
+        if (valueType === "Promise"){
+            if (promise && promise.resolve){
+                let resolveType = this.typescriptValueType(promise.resolve.type);
+                valueType = "Promise<%s>".sprintf(resolveType);
+            }else{
+                valueType = "Promise<void>";
+            }
+        }
+
+        if (valueType[0] === valueType[0].toUpperCase()){
+            let name = this.nameExcludingCodeSuffixes(valueType);
+            let component = this.componentForDottedName(name);
+            if (component !== null){
+                valueType = component.typescriptName();
+            }
+        }
+        if (isArray){
+            valueType += "[]";
+        }
+        if (nullable){
+            return valueType + " | null";
+        }
+        return valueType;
+    },
+
+    typescriptName: function(){
+        if (this.namespace === null){
+            if (this.parent !== null && this.kind !== "constructor"){
+                if (this.parent.kind == 'class' || this.parent.kind == 'protocol'){
+                    let parentName = this.parent.typescriptName();
+                    if (parentName === "UIEvent"){
+                        parentName = "UIEventObject";
+                    }
+                    return "%s.%s".sprintf(parentName, this.name);
+                }
+                if (this.parent.kind === "extension"){
+                    let parentName = this.parent.extends;
+                    return "%s.%s".sprintf(parentName, this.name);
+                }
+            }
+        }
+        return this.name;
     }
 
 

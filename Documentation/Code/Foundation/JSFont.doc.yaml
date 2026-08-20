@@ -177,6 +177,7 @@ topics:
       -
         name: Size
         kind: enum
+        type: Number
         summary: Common sizes based text style
         description: |
           These sizes may take different values on different platforms or

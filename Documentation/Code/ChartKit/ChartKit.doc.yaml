@@ -3,6 +3,8 @@ kind: framework
 introduced: 2021.27.0
 summary: Chart & Graph Drawing
 codeURL: Frameworks/ChartKit/
+dependencies:
+  - Foundation
 description: |
   `ChartKit` makes it easy to graphically represent your data
   in bar graphs, line graphs, pie charts, etc.
@@ -63,3 +65,6 @@ topics:
       - CHSeriesWedgeStyle
       - CHAxisStyle
       - CHLegendStyle
+  - name: Drawing
+    members:
+      - JSContext+ChartKit

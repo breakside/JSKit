@@ -1,0 +1,1582 @@
+copyright: Copyright © 2020 Breakside Inc.
+kind: class
+introduced: 2022.10.0
+inherits: UIScrollView
+summary: Display and interact with a collection of items using a custom layout
+description: |
+  A `UICollection` is one of the most versatile componets of `UIKit`, and it
+  takes inspiration from `UICollectionView`, while allowing more flexible and complex
+  layouts of items.
+
+  How a Collection View Gets Its Data
+  =========
+  The delegate and data source pattern is used often in `UIKit` as a way
+  to separate generic control behaviors from an application's specific data.
+
+  In the case of a `UICollection`, the `delegate` and `dataSource` combine to
+  1. Populate the collection's cells
+  2. Respond to user interaction with cells
+
+  Typically, your `delegate` and `dataSource` are the same controller object,
+  often a subclass of `UIViewController`.  Anything that implements the
+  `UICollectionViewDelegate` and `UICollectionViewDataSource` protocols will do.
+
+  The important delegate methods are:
+  1. `collectionViewDidSelectCellAtIndexPath()`, which is called when a user clicks a
+     cell
+
+  The important data source methods are:
+  1. `numberOfSectionsInCollectionView()`
+  2. `numberOfCellsInCollectionViewSection()`
+  3. `cellForCollectionViewAtIndexPath()`
+  4. `supplimentaryViewForCollectionViewAtIndexPath()`
+
+  which, when combined, tell the collection view how many items are included,
+  and what view should be used for each item.
+
+  Reusing Cells
+  ==========
+  Very large collections would cause perforance issues if `UICollectionView` created a
+  view for each cell in the entire collection.
+
+  Instead, `UICollectionView` creates only those cells that are visible in its
+  scroll window.  As the user scrolls, cells that become invisible can be reused
+  for cells that become visible.
+
+  Typically you'll register cell classes with
+  `registerCellClassForReuseIdentifier()`, when creating the collection view.
+
+  Then, when the collection view calls for `cellForCollectionViewAtIndexPath()`,
+  your delegate asks for a reusable cell with
+  `dequeueReusableCellWithIdentifier()`, which will either return a reusable
+  cell or create a new one if none are available for reuse.
+topics:
+  - name: Creating a Collection View
+    members:
+      - name: initWithLayout
+        kind: init
+        summary: Create a collection view with the given layout and styler
+        arguments:
+          - name: layout
+            type: UICollectionViewLayout
+            summary: The layout that determines where cells are places in the view
+          - name: styler
+            type: UICollectionViewStyler
+            nullable: true
+            default: "null"
+            summary: The styler to use for this collection view (a default
+              styler will be used if omitted)
+      - name: Spec File Properties
+        kind: spec
+        summary: The properties available for `UICollectionView`s defined in spec
+          files
+        topics:
+          - name: Delegate & Data Source
+            members:
+              - name: delegate
+                type: UICollectionViewDelegate
+                summary: The delegate object for this collection view
+                description: |
+                  A collection view's delegate is responsible for creating cells,
+                  responding to user interaction, and otherwise filling in
+                  application-specific logic that `UICollectionView` can't assume.
+
+                  See the `UICollectionViewDelegate` documentation for more
+                  information about implementing the delegate protocol.
+                note: Often the object that acts as a collection view's `delegate`
+                  also acts as its `dataSource`.
+              - name: dataSource
+                type: UICollectionViewDataSource
+                summary: The data source object for this collection view
+                description: |
+                   A collection view's data source is required for every collection view.
+
+                   It provides the basic information about how many sections
+                   and cells are in the collection view.
+
+                   The collection view uses this information to calculate its size
+                   without having to draw all of its cells.  As the user
+                   scrolls, the collection view asks its `delegate` for cells
+                   that are in the visible area.
+                note: Often the object that acts as a collection view's `dataSource`
+                  also acts as its `delegate`.
+          - name: Styling
+            members:
+              - name: styler
+                type: UICollectionViewStyler
+                summary: The styler to use for this collection view
+              - name: showsFocusRing
+                type: boolean
+                summary: Indicates if the default focus ring should be drawn
+                  around the collection view when it is a window's first responder
+          - name: Layout
+            members:
+              - name: layout
+                type: UICollectionViewLayout
+                summary: The layout to use for cell placement
+          - name: Cell Reuse
+            members:
+              - name: reusableCellClasses
+                type: dictionary
+                summary: Specifies which cell classes should be used for
+                  which reuse identifiers
+                description: |
+                  The keys in this dictionary are the reuse identifiers.
+
+                  The values can be either:
+                  1. A `String` of the cell's class name
+                  2. A `CellReuseInfo` dictionary
+
+                  The cell's class should be `UICollectionViewCell` or one of its
+                  subclasses.  Typically you'll create custom subclasses for
+                  cells.
+
+                  The short for simply maps an identifier to a class name.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetCollectionView
+
+                  PlanetCollectionView:
+                    class: UICollectionView
+                    reusableCellClasses:
+                      planet: PlanetCellView
+                  ````
+
+                  In your collection view delegate, you'll call
+                  `dequeueReusableCellWithIdentifier()` using the `"planet"`
+                  identifier from the spec file:
+                  ````
+                  JSClass("PlanetsViewController", UIViewController, {
+
+                    cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+                      var cell = collectionView.dequeueReusableCellWithIdentifier("planet", indexPath);
+                      // cell is an instance of PlanetCellView
+                      // ... configure cell as needed
+                      return cell;
+                    }
+
+                  });
+                  ````
+
+                  The longer form allows you to override the styler used for cells
+                  with this identifier.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetCollectionView
+
+                  PlanetCollectionView:
+                    class: UICollectionView
+                    reusableCellClasses:
+                      planet:
+                        className: PlanetCellView
+                        styler:
+                          class: UICollectionViewDefaultStyler
+                          cellFont:
+                            size: detail
+                            weight: bold
+                  ````
+              - name: CellReuseInfo
+                kind: dictionary
+                topics:
+                  - name: Properties
+                    members:
+                      - name: className
+                        type: String
+                        summary: The name of the `UICollectionViewCell` subclass to
+                          create when using the given identifier.
+                      - name: styler
+                        type: UICollectionViewStyler
+                        summary: The styler to use for cells created using
+                          the given identifier.
+          - name: Supplimentary View Reuse
+            members:
+              -
+                name: reusableViewClasses
+                type: dictionary
+                summary: Specifies which supplimentary view classes should be
+                  used for which reuse identifiers
+                description: |
+                  The keys in this dictionary are the reuse identifiers.
+
+                  The values are `String`s representing class names.
+
+                  The cell's class should be `UICollectionReusableView` or one
+                  of its subclasses.  Often you'll create custom subclasses
+                  for headers and footers.
+
+                  The dictionary simply maps an identifier to a class name.
+
+                  ````
+                  ViewController:
+                    class: PlanetsViewController
+                    view: /PlanetCollectionView
+
+                  PlanetCollectionView:
+                    class: UICollectionView
+                    reusableViewClasses:
+                      header: PlanetsHeaderView
+                  ````
+
+                  In your collection view delegate, you'll call
+                  `dequeueReusableViewWithIdentifier()` using the `"header"`
+                  identifier from the spec file:
+                  ````
+                  JSClass("PlanetsViewController", UIViewController, {
+
+                    supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, kind){
+                      var header = collectionView.dequeueReusableViewWithIdentifier("header", indexPath);
+                      // header is an instance of PlanetsHeaderView
+                      // ... configure cell as needed
+                      return header;
+                    }
+
+                  });
+                  ````
+          - name: Selection
+            members:
+              - name: allowsMultipleSelection
+                type: boolean
+                summary: Indicates that the user can select multiple cells at a
+                  time
+              - name: allowsEmptySelection
+                type: boolean
+                summary: Indicates that the user can de-select all cells
+                description: |
+                  Defaults to `true`()
+  - name: Delegate & Data Source
+    members:
+      - name: UICollectionViewDelegate
+        namespace: UIKit
+        kind: protocol
+        summary: The interface a collection view delegate implements
+        description: |
+          The collection view's delegate is what responds to
+          user interaction.
+
+          While not all methods are required to implement, you'll likely at
+          least implement `collectionViewDidSelectCellAtIndexPath()` to proide
+          behaviors when the user interacts with cells.
+
+          The collection view's `dataSource` is in charge of telling the
+          collection view how many sections and cells there are, and providing
+          those cells.
+        topics:
+          - name: Selection
+            members:
+              - name: collectionViewShouldSelectCellAtIndexPath
+                optional: true
+                type: boolean
+                return: |
+                  `true` if the cell can be selected, `false` otherwise
+                summary: Indicates if a cell can be selected by the user
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+              - name: collectionViewDidSelectCellAtIndexPath
+                optional: true
+                summary: Called whent the user selects a cell
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  Typically this is the call that triggers an action like
+                  navigating to a new screen.
+
+                  Selection occurs when the user performs a mouse down.
+
+                  If you need to perform an action on mouse up, see
+                  `collectionViewDidFinishSelectingCellAtIndexPath()`
+                note: |
+                  This is called when the user selects a single cell.
+                  If you need to monitor multiple selection, use
+                  `collectionViewSelectionDidChange()`.
+              - name: collectionViewDidFinishSelectingCellAtIndexPath
+                optional: true
+                summary: Called when the selection is done, typically on
+                  mouseUp
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  Certain actions only make sense if the user has released
+                  the mouse.
+                note: This method is not typically used because most actions
+                  should happen on `collectionViewDidSelectCellAtIndexPath()`
+              - name: collectionViewDidOpenCellAtIndexPath
+                optional: true
+                summary: Called when the user performs an action like double
+                  click or the enter key
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  Distict from cell selection is the concept that the user
+                  did an action typically associated with opening a resource.
+
+                  Double click and Enter key are both considered open events.
+              - name: collectionViewSelectionDidChange
+                optional: true
+                summary: 
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: selectedIndexPaths
+                    type: JSIndexPath[]
+                    summary: The currently selected index paths
+                description: |
+                  Called when the selection changes.
+
+                  While `collectionViewDidSelectCellAtIndexPath()` is useful for
+                  single-selection collections, this method is more appropriate for
+                  collections that allow mutliple selection.
+                see:
+                  - allowsMultipleSelection
+          - name: Context menu
+            members:
+              - name: menuForCollectionViewCellAtIndexPath
+                optional: true
+                type: UIMenu
+                nullable: true
+                return: The context menu to show for the cell
+                summary: Get the context menu for the cell
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  A context menu can be requested by an action such as a
+                  right click
+          - name: Dragging cells
+            members:
+              - name: collectionViewShouldDragCellAtIndexPath
+                optional: true
+                type: boolean
+                summary: Indicate if a cell can be dragged as copy/paste data
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  If you return `true`, expect a subsequent call to
+                  `pasteboardItemsForCollectionViewAtIndexPath()` to get the
+                  pasteboard representation of the cell.
+              - name: pasteboardItemsForCollectionViewAtIndexPath
+                optional: true
+                type: UIDragItem[]
+                summary: Get the data items that correspond to the item at the
+                  index path
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  The items will be added to a `UIDraggingSession` and placed
+                  on the session's `pasteboard`(UIDraggingSession.pasteboard).
+              - name: collectionViewWillBeginDraggingSession
+                optional: true
+                summary: Called when the collection view is about to begin a dragging
+                  session
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                description: |
+                  Gives the delgate an opportunity to configure the session.
+
+                  For example, the delegate can set the session's
+                  `image`(UIDraggingSession.image).
+          - name: Dragging Destination
+            members:
+              - name: collectionViewDraggingSessionDidEnter
+                optional: true
+                summary: Called when a drag session enters the collection view
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view
+                  - name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+              - name: collectionViewDraggingSessionDidUpdate
+                optional: true
+                summary: Called when a drag session moves over the collection view
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view
+                  - name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                  - name: indexPath
+                    type: JSIndexPath
+                    nullable: true
+                    summary: The index path of a cell that the drag is over, if any
+              - name: collectionViewDraggingSessionDidExit
+                optional: true
+                summary: Called when a drag session exits the collection view
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view
+                  - name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+              - name: collectionViewPerformDragOperation
+                optional: true
+                summary: Called when a drop happens on the collection view
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view
+                  - name: session
+                    type: UIDraggingSession
+                    summary: The dragging session
+                  - name: operation
+                    type: UIDragOperation
+                    summary: The drop operation
+                  - name: indexPath
+                    type: JSIndexPath
+                    nullable: true
+                    summary: The index path of a cell that the drop is on, if any
+      - name: UICollectionViewDataSource
+        namespace: UIKit
+        kind: protocol
+        summary: An interface that's used to tell the collection view how many sections
+          and cells to display.
+        description: |
+          A data source must be implemented for every collection view.
+
+          After obtaining the size of the collection from its `dataSource`, the collection
+          view will turn to its `delegate` for specifics about drawing and
+          user interaction.
+        topics:
+          - name: Collection Size
+            members:
+              - name: numberOfSectionsInCollectionView
+                type: Number
+                summary: Get the number of sections in the collection view
+                arguments: 
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+              - name: numberOfCellsInCollectionViewSection
+                type: Number
+                summary: The number of cells in the given section
+                arguments: 
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: section
+                    type: Number
+                    summary: The section to consider when counting cells
+          - name: Cells & Views
+            members:
+              - name: cellForCollectionViewAtIndexPath
+                summary: Get the cell for the given index path
+                type: UICollectionViewCell
+                return: A cell to display at the given index path
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The location of the cell in the collection
+                description: |
+                  This the primary function that populates collection views.
+
+                  If you've called `registerCellClassForReuseIdentifier()` when
+                  creating the collection view, then you'll call
+                  `dequeueReusableCellWithIdentifier()` in this method.
+
+                  ````
+                  JSClass("PlanetsViewController", UIViewController, {
+
+                    init: function(){
+                      PlanetsViewController.$super.init.call(this);
+                      this.planets = [
+                        {
+                          name: "Mercury",
+                          image: JSImage.initWithResourceName("MercuryIcon")
+                        },
+                        {
+                          name: "Venus",
+                          image: JSImage.initWithResourceName("VenusIcon")
+                        },
+                        {
+                          name: "Earth",
+                          image: JSImage.initWithResourceName("EarthIcon")
+                        }
+                        // ...
+                      ]
+                    },
+
+                    viewDidLoad: function(){
+                      PlanetsViewController.$super.viewDidLoad.call(this);
+                      this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+                    },
+
+                    cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+                      var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+                      var planet = this.planets[indexPath.row];
+                      cell.nameLabel.text = planet.name;
+                      cell.imageView.image = planet.image;
+                      return cell;
+                    }
+
+                  });
+                  ````
+              - name: supplimentaryViewForCollectionViewAtIndexPath
+                optional: true
+                summary: Get the supplimentary view for the section
+                type: UICollectionReusableView
+                return: The supplimentary view
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view making the call
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The index for the view, with 0, 1, or 2 componets
+                  - name: kind
+                    type: string
+                    summary: The kind of supplimentary view, defined by the
+                      collection's layout
+                description: |
+                  Works in a similar manner to cells.  Supplimentary view classes
+                  must be registered using `registerViewClassForReuseIdentifier()`,
+                  and then obtained with `dequeueReusableViewWithIdentifier()`.
+
+
+                  The `indexPath`() and `kind`() arguments work together to identify
+                  exactly which view is being requested.  For example, a
+                  collection view using `UICollectionViewGridLayout` may be
+                  send `kind=UICollectionViewGridLayout.SupplimentaryKind.header`
+                  with various `indexPath`()s: a 0-length `indexPath`()
+                  indicating a collection header and a 1-length `indexPath`()
+                  indicating a section header.
+      - name: delegate
+        type: UICollectionViewDelegate
+        nullable: true
+        summary: The delegate object for this collection view
+        description: |
+          A collection view's delegate is responsible for creating cells,
+          responding to user interaction, and otherwise filling in
+          application-specific logic that `UICollectionView` can't assume.
+
+          See the `UICollectionViewDelegate` documentation for more
+          information about implementing the delegate protocol.
+        note: Often the object that acts as a collection view's `delegate`
+          also acts as its `dataSource`.
+      - name: dataSource
+        nullable: true
+        type: UICollectionViewDataSource
+        summary: The data source object for this collection view
+        description: |
+           A collection view's data source is required for every collection view.
+
+           It provides the basic information about how many sections
+           and cells are in the collection view.
+
+           The collection view uses this information to calculate its size
+           without having to draw all of its cells.  As the user
+           scrolls, the collection view asks its `delegate` for cells
+           that are in the visible area.
+        note: Often the object that acts as a collection view's `dataSource`
+          also acts as its `delegate`.
+  - name: Layout
+    members:
+      - name: collectionViewLayout
+        type: UICollectionViewLayout
+        summary: The layout to use for cell placement
+  - name: Styling
+    members:
+      - name: UICollectionViewStyler
+        namespace: UIKit
+        kind: class
+        inherits: JSObject
+        summary: The abstract base class for all collection view stylers
+        topics:
+          - name: Initializing Collection Views
+            members:
+              - name: initializeCollectionView
+                kind: method
+                summary: Called when a collection view is created
+                arguments:
+                  - name: collectionView
+                    type: UICollectionView
+                    summary: The collection view being created
+                description: |
+                  Gives the styler an opportunity to configure the collection view
+          - name: Initializing Cells 
+            members:
+              - name: initializeCell
+                kind: method
+                summary: Called when a collection view cell is created
+                arguments:
+                  - name: cell
+                    type: UICollectionViewCell
+                    summary: The cell being created
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to configure the cell
+          - name: Updating Cells
+            members:
+              - name: updateCell
+                kind: method
+                summary: Called when a cell's state changes
+                arguments:
+                  - name: cell
+                    type: UICollectionViewCell
+                    summary: The cell being updated
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to configure the cell for its
+                  new state
+          - name: Cell Layout
+            members:
+              - name: layoutCell
+                kind: method
+                summary: Called when a cell needs to layout its subviews
+                arguments:
+                  - name: cell
+                    type: UICollectionViewCell
+                    summary: The cell to layout
+                  - name: indexPath
+                    type: JSIndexPath
+                    summary: The index path of the cell
+                description: |
+                  Gives the styler an opportunity to layout the cell
+          - name: Initializing Supplimentary Views
+            members:
+              - name: initializeReusableView
+                kind: method
+                summary: Called when a collection supplimentary view is created
+                arguments:
+                  - name: view
+                    type: UICollectionReusableView
+                    summary: The view being created
+                  - name: section
+                    type: Number
+                    summary: The section of the view
+                description: |
+                  Gives the styler an opportunity to configure the view
+      - name: UICollectionViewDefaultStyler
+        namespace: UIKit
+        kind: class
+        inherits: UICollectionViewStyler
+        summary: The default collection view styler for `UIKit`
+      - name: styler
+        type: UICollectionViewStyler
+        summary: The styler in use for this collection view
+        description: |
+          Stylers allow for separation between the collection view's model and its
+          presentation.
+
+          One styler can be resused for many collection views of the same type.
+
+          `UICollectionViewStyler` is provided as an abstract base class for subclasses
+          to extend into specific stylers for their needs.
+      - name: stylerProperties
+        type: dictionary
+        summary: A dictionary that a styler can use to store properties
+          relating to styling
+        description: |
+          Often a styler will need to create views or layers to help its
+          styling.  Since a single styler is used for multiple collection views,
+          the styler can't store those view-specific properties on its own.
+
+          So, `stylerProperties` is a place on each `UICollectionView` that a styler
+          can store control-specific objects.
+      - name: showsFocusRing
+        type: boolean
+        summary: Indicates if the default focus ring should be drawn
+          around the collection view when it is a window's first responder
+  - name: Cell Reuse
+    members:
+      - name: registerCellClassForReuseIdentifier
+        kind: method
+        summary: Tell the collection view which cell class should be used to create
+          cells when requsting the given identifier
+        arguments:
+          - name: cellClass
+            type: JSClass
+            summary: The `UICollectionViewCell` subclass to use when dequeuing a cell
+              with the given identifier
+          - name: identifier
+            type: String
+            summary: The identifier that links to the cell class
+        description: |
+          The collection view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          collection view to perform well even when there are thousands of cells in
+          the collection.
+
+          Typically, you'll register cell classes when a collection view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
+      - name: registerCellClassForReuseIdentifier
+        suffix: styler
+        kind: method
+        summary: Tell the collection view which cell class and styler should be used
+          to create cells when requsting the given identifier
+        arguments:
+          - name: cellClass
+            type: JSClass
+            summary: The `UICollectionViewCell` subclass to use when dequeuing a cell
+              with the given identifier
+          - name: identifier
+            type: String
+            summary: The identifier that links to the cell class
+          - name: styler
+            type: UICollectionViewStyler
+            summary: The styler to use for cells with the given identifier,
+              overriding the collection view's `styler`
+        description: |
+          The collection view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          collection view to perform well even when there are thousands of cells in
+          the collection.
+
+          Typically, you'll register cell classes when a collection view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
+      - name: dequeueReusableCellWithIdentifier
+        kind: method
+        summary: Reuse or create a cell for the the given identifier
+        arguments:
+          - name: identifier
+            type: String
+            summary: The cell identifier, matched with one that was passed to
+              \`registerCellClassForReuseIdentifier()`
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path for the newly created cell
+        description: |
+          The collection view only displays cells that are visibile in the scrolling
+          content area, and reuses them as the user scrolls.  This allows the
+          collection view to perform well even when there are thousands of cells in
+          the collection.
+
+          Typically, you'll register cell classes when a collection view is created,
+          and then use `dequeueReusableCellWithIdentifier()` when a cell is
+          required.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            }
+
+          });
+          ````
+  - name: Accessing Cells
+    members:
+      - name: indexPathAtLocation
+        kind: method
+        type: JSIndexPath
+        nullable: true
+        summary: Get the index path for the visible cell at the given point
+        arguments:
+          - name: location
+            type: JSPoint
+            summary: The point to match to a cell
+        important: This method only searches visible cells
+      - name: cellAtLocation
+        kind: method
+        type: UICollectionViewCell
+        nullable: true
+        summary: Get the visible cell at the given point
+        arguments:
+          - name: location
+            type: JSPoint
+            summary: The point to match to a cell
+        important: This method only searches visible cells
+      - name: cellAtIndexPath
+        kind: method
+        type: UICollectionViewCell
+        nullable: true
+        summary: Get the visible cell with the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path to match to a cell
+        important: This method only searches visible cells
+      - name: visibleIndexPaths
+        type: JSIndexPath[]
+        summary: The list of index paths corresponding to visible cells
+  - name: Supplimentary View Reuse
+    members:
+      - name: registerViewClassForReuseIdentifier
+        kind: method
+        summary: Tell the collection view which view class should be used
+          to create supplimentary views when requsting the given identifier
+        arguments:
+          - name: viewClass
+            type: JSClass
+            summary: The `UICollectionReusableView` subclass to use when
+              dequeuing a header or footer with the given identifier
+          - name: identifier
+            type: String
+            summary: The identifier that links to the header/footer class
+        description: |
+          The collection view only displays supplimentary views that are visibile in the
+          scrolling content area, and reuses them as the user scrolls.  This
+          allows the collection view to perform well even when there are thousands of 
+          cells and many sections in the collection.
+
+          Typically, you'll register view classes when a collection view is
+          created, and then use `dequeueReusableViewWithIdentifier()`.
+          
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInCollectionView: function(collectionView){
+              return this.solarSystems.length;
+            }
+
+            numberOfCellsInCollectionViewSection: function(collectionView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerViewClassForReuseIdentifier('solar-system', UICollectionReusableView);
+            },
+
+            supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, kind){
+              if (indexPath.length === 1){
+                var header = collectionView.dequeueReusableViewWithIdentifier('solar-system', indexPath);
+                var system = this.solarSystems[indexPath.section];
+                header.nameLabel.text = system.name;
+                return header;
+              }
+            }
+
+          });
+          ````
+      - name: dequeueReusableViewWithIdentifier
+        kind: method
+        summary: Reuse or create a supplimentary view for the the given identifier
+        arguments:
+          - name: identifier
+            type: String
+            summary: The view identifier, matched with one that was passed to
+              \`registerViewClassForReuseIdentifier()`
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path for the newly created view
+        description: |
+          The collection view only displays supplimentary views that are visibile in the
+          scrolling content area, and reuses them as the user scrolls.  This
+          allows the collection view to perform well even when there are thousands of 
+          cells and many sections in the collection.
+
+          Typically, you'll register view classes when a collection view is
+          created, and then use `dequeueReusableViewWithIdentifier()`.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInCollectionView: function(collectionView){
+              return this.solarSystems.length;
+            }
+
+            numberOfCellsInCollectionViewSection: function(collectionView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerViewClassForReuseIdentifier('solar-header', SolarSystemHeaderView);
+            },
+
+            supplimentaryViewForCollectionViewAtIndexPath: function(collectionView, indexPath, kind){
+              var header = collectionView.dequeueReusableViewWithIdentifier('solar-header', indexPath);
+              var system = this.solarSystems[section];
+              header.nameLabel.text = system.name;
+              return header;
+            }
+
+          });
+          ````
+  - name: Loading Collection Data
+    members:
+      - name: reloadData
+        kind: method
+        summary: Called to intially load collection data and to reload the entire collection
+        description: |
+          When called, the collection view will ask its `dataSource` for information
+          about the number of sections and cells, and will then proceed to ask
+          for any cells that are currently visibile.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.solarSystems = [
+                {
+                  name: 'Sol',
+                  planets: [
+                    {
+                      name: "Mercury",
+                      image: JSImage.initWithResourceName("MercuryIcon")
+                    },
+                    {
+                      name: "Venus",
+                      image: JSImage.initWithResourceName("VenusIcon")
+                    },
+                    {
+                      name: "Earth",
+                      image: JSImage.initWithResourceName("EarthIcon")
+                    }
+                    // ...
+                  ]
+                },
+                // ...
+              ];
+            },
+
+            numberOfSectionsInCollectionView: function(collectionView){
+              return this.solarSystems.length;
+            }
+
+            numberOfCellsInCollectionViewSection: function(collectionView, section){
+              var styem = this.solarSystems[section];
+              return system.planets.length;
+            }
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.reloadData();
+            }
+          });
+          ````
+
+          After the first load, you can reload individual cells or insert/remove
+          cells without reloading the entire collection.
+        see:
+          - reloadCellsAtIndexPaths()
+          - insertCellsAtIndexPaths()
+          - deleteCellsAtIndexPaths()
+          - insertSections()
+          - deleteSections()
+      - name: reloadCellAtIndexPath
+        kind: method
+        summary: Reload a single cell
+        arguments:
+          -
+            name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell to reload
+      - name: reloadCellAtIndexPath
+        suffix: animated
+        kind: method
+        summary: Reload a single cell with animation
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell to reload
+          - name: animator
+            type: UIViewPropertyAnimator
+            summary: An animator to which any layout changes should be added
+      - name: reloadCellsAtIndexPaths
+        kind: method
+        summary: Reload several cells
+        arguments:
+          - name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the cells to reload
+      - name: reloadCellsAtIndexPaths
+        suffix: animated
+        kind: method
+        summary: Reload several cells with animation
+        arguments:
+          - name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the cells to reload
+          - name: animator
+            type: UIViewPropertyAnimator
+            summary: An animator to which any layout changes should be added
+  - name: Collection Editing
+    members:
+      - name: insertCellAtIndexPath
+        kind: method
+        summary: Insert a single cell at the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the inserted cell
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+        description: |
+          When a new item is added to your data set, you can insert it without
+          reloading the entire collection.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            discoverPlanetVulcan: function(){
+              var indexPath = JSIndexPath(0, 1);
+              this.planets.splice(indexPath.row, 0, {name: "Vulcan", image: JSImage.initWithResourceName("VulcanIcon")});
+              this.collectionView.insertCellAtIndexPath(indexPath);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `insertCellAtIndexPath()`
+        see:
+          - insertCellsAtIndexPaths()
+      - name: insertCellsAtIndexPaths
+        kind: method
+        summary: Insert multiple cells at the given index paths
+        arguments:
+          - name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the inserted cells
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+        description: |
+          When new items are added to your data set, you can insert them without
+          reloading the entire collection.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            discoverPlanets: function(){
+              var vulcanIndexPath = JSIndexPath(0, 1);
+              var planetXIndexPath = JSIndexPath(0, 9);
+              this.planets.splice(vulcanIndexPath.row, 0, {name: "Vulcan", image: JSImage.initWithResourceName("VulcanIcon")});
+              this.planets.splice(planetXIndexPath.row, 0, {name: "Planet X", image: JSImage.initWithResourceName("PlanetXIcon")});
+              this.collectionView.insertCellsAtIndexPaths([vulcanIndexPath, planetXIndexPath]);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `insertCellsAtIndexPaths()`
+        important: The index paths provided should match the index paths that
+          the cells will have after all inserts are complete.
+      - name: insertSection
+        kind: method
+        summary: Insert an entire section
+        arguments:
+          - name: section
+            type: Number
+            summary: The section to insert
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+            summary: The animation to use for the inserted section
+      - name: insertSections
+        kind: method
+        summary: Insert several sections
+        arguments:
+          - name: sections
+            type: Number[]
+            summary: The sections to insert
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+            summary: The animation to use for the inserted section
+        important: The section indexes provided should match the indexes that
+          the sections will have after all inserts are complete.
+      - name: deleteCellAtIndexPath
+        kind: method
+        summary: Remove a single cell at the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell to delete
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+        description: |
+          When an item is removed from your data set, you can remove it without
+          reloading the entire collection.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            demotePluto: function(){
+              var indexPath = JSIndexPath(0, 8);
+              this.planets.splice(indexPath.row, 1);
+              this.collectionView.deleteCellAtIndexPath(indexPath);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `deleteCellAtIndexPath()`
+        see:
+          - deleteCellsAtIndexPaths()
+      - name: deleteCellsAtIndexPaths
+        kind: method
+        summary: Delete multiple cells at the given index paths
+        arguments:
+          - name: indexPaths
+            type: JSIndexPath[]
+            summary: The index paths of the deleted cells
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+        description: |
+          When items are removed from your data set, you can remove them without
+          reloading the entire collection.
+
+          ````
+          JSClass("PlanetsViewController", UIViewController, {
+
+            init: function(){
+              PlanetsViewController.$super.init.call(this);
+              this.planets = [
+                {
+                  name: "Mercury",
+                  image: JSImage.initWithResourceName("MercuryIcon")
+                },
+                {
+                  name: "Venus",
+                  image: JSImage.initWithResourceName("VenusIcon")
+                },
+                {
+                  name: "Earth",
+                  image: JSImage.initWithResourceName("EarthIcon")
+                }
+                // ...
+              ]
+            },
+
+            viewDidLoad: function(){
+              PlanetsViewController.$super.viewDidLoad.call(this);
+              this.collectionView.registerCellClassForReuseIdentifier('planet', PlanetCollectionCell);
+            },
+
+            cellForCollectionViewAtIndexPath: function(collectionView, indexPath){
+              var cell = collectionView.dequeueReusableCellWithIdentifier('planet', indexPath);
+              var planet = this.planets[indexPath.row];
+              cell.nameLabel.text = planet.name;
+              cell.imageView.image = planet.image;
+              return cell;
+            },
+
+            demotePluto: function(){
+              var indexPath = JSIndexPath(0, 8);
+              this.planets.splice(indexPath.row, 1);
+              this.collectionView.deleteCellsAtIndexPaths([indexPath]);
+            }
+
+          });
+          ````
+        note: You should always update your data source at the same time as
+          calling `deleteCellsAtIndexPaths()`
+        important: The index paths provided should match the index paths that
+          the cells have after before any edits.
+      - name: deleteSection
+        kind: method
+        summary: Delete an entire section
+        arguments:
+          - name: section
+            type: Number
+            summary: The section to delete
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+            summary: The animation to use for the deleted section
+      - name: deleteSections
+        kind: method
+        summary: Delete several sections
+        arguments:
+          - name: sections
+            type: Number[]
+            summary: The sections to delete
+          - name: animation
+            type: CellAnimation
+            default: UICollectionView.CellAnimation.default
+            summary: The animation to use for the deleted sections
+        important: The section indexes provided should match the indexes that
+          the sections have before any edits.
+      - name: CellAnimation
+        kind: enum
+        summary: The possible cell animations
+        topics:
+          - name: Options
+            members:
+              - name: none
+                summary: No animation
+              - name: default
+                summary: Depends on type of operation
+              - name: scale
+                summary: The affected cells appear to scaled up or down
+              - name: left
+                summary: The affected cell animates to or from the left
+              - name: right
+                summary: The affected cell animates to or from the right
+  - name: Selection
+    members:
+      - name: allowsMultipleSelection
+        type: boolean
+        summary: Indicates if the user can select mutliple items at a time
+      - name: allowsEmptySelection
+        type: boolean
+        summary: Indicates that the user can de-select all cells
+        description: |
+          Defaults to `true`()
+      - name: selectedIndexPaths
+        type: JSIndexPath[]
+        summary: The index paths of all selected cells
+        description: |
+          If you're using `allowsMultipleSelection`, this property will return
+          the entire set of all selected cell index paths.
+
+          If you aren't using `allowsMultipleSelection`, consider checking
+          `selectedIndexPath` instead so you don't have to deal with a
+          single-item array here.
+      - name: selectedIndexPath
+        type: JSIndexPath
+        nullable: true
+        summary: The index path of the single selected cell
+        description: |
+          If you're using `allowsMultipleSelection`, this property will be
+          `null` if anything but 1 cell is selected.
+      - name: setSelectedIndexPathAnimated
+        kind: method
+        summary: Set the selected index path with an animation
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            nullable: true
+            summary: The single index path to select
+        description: |
+          Setting the `indexPath`() to `null`() will deselect the current
+          selection with an animation
+      - name: contextSelectedIndexPaths
+        type: JSIndexPath[]
+        summary: The index paths of all cells that are context-selected
+        description: |
+          A context selection occurs when the user right clicks on a cell
+          or a set of selected cells.
+
+          Context selection can be different from the regular selection
+          depending on exactly how the user clicks.
+      - name: selectAll
+        kind: method
+        summary: Select all the cells in the collection
+      - name: selectNone
+        kind: method
+        summary: Select none of the cells in the collection
+  - name: Scrolling
+    members:
+      - name: rectForCellAtIndexPath
+        kind: method
+        type: JSRect
+        summary: Get the frame for the cell at the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell
+      - name: scrollToCellAtIndexPath
+        kind: method
+        summary: Scroll to the cell at the given index path
+        arguments:
+          - name: indexPath
+            type: JSIndexPath
+            summary: The index path of the cell
+          - name: position
+            type: UIScrollView.ScrollPosition
+            default: UIScrollView.ScrollPosition.auto
+            summary: The position the cell should have in the view after
+              scrolling

@@ -22,6 +22,7 @@
     isStatic: false,
     valueType: null,
     nullable: false,
+    optional: false,
 
     getDisplayNameForKind: function(){
         if (this.isStatic){
@@ -34,12 +35,19 @@
         await DocProperty.$super.extractPropertiesFromInfo.call(this, info, documentation);
         if (info.type){
             this.valueType = info.type;
+            if (this.valueType.endsWith("?")){
+                this.valueType = this.valueType.substr(0, this.valueType.length - 1);
+                this.nullable = true;
+            }
         }
         if (info.static){
             this.isStatic = true;
         }
         if (info.nullable){
             this.nullable = true;
+        }
+        if (info.optional){
+            this.optional = true;
         }
     },
 
@@ -144,6 +152,23 @@
             obj.static = true;
         }
         return obj;
+    },
+
+    typescriptDeclaration: function(container = null, valueTypeOverride = null){
+        if (this.name[0] === "["){
+            return null;
+        }
+        let declaration = "";
+        if (container === "namespace"){
+            declaration += "let ";
+        }else if (this.isStatic && container !== "interface"){
+            declaration += "static ";
+        }else if (container === null){
+            declaration += "declare var ";
+        }
+        let valueType = this.typescriptValueType(valueTypeOverride || this.valueType, this.nullable);
+        declaration += "%s%s: %s;".sprintf(this.name, this.optional ? "?" : "", valueType);
+        return declaration;
     }
 
  });

@@ -2,6 +2,7 @@ copyright: Copyright © 2020 Breakside Inc.
 kind: property
 introduced: 2020.1.0
 summary: A platform-independent reference to the Javascript global object
+type: object
 description: |
   In a browser context, the global object is called `window`().
 

@@ -44,7 +44,7 @@ topics:
             type: Number
             summary: The `x` coordinate translation
           -
-            name: tx
+            name: ty
             type: Number
             summary: The `y` coordinate translation
       -

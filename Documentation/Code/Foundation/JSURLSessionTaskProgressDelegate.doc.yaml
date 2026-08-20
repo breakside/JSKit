@@ -1,5 +1,6 @@
 copyright: Copyright © 2020 Breakside Inc.
 kind: protocol
+namespace: Foundation
 introduced: 2020.1.0
 summary: A delegate for http upload and download progress events
 topics:
@@ -8,6 +9,7 @@ topics:
     members:
       -
         name: taskDidSendBodyData
+        optional: true
         summary: Called when the task sends a chunk of body data to the server
         arguments:
           -
@@ -25,6 +27,7 @@ topics:
             summary: The total number of bytes that need to be sent
       -
         name: taskDidReceiveBodyData
+        optional: true
         arguments:
           -
             name: task

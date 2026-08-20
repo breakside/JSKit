@@ -52,6 +52,7 @@ topics:
       -
         name: initWithResource
         kind: init
+        nullable: true
         summary: Load a spec file resource from a bundle
         arguments:
           -
